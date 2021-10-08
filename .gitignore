@@ -3,4 +3,5 @@
 .vs/
 .vscode/
 cmake-build-*/
+build/
 tags

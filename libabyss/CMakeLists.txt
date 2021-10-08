@@ -6,8 +6,10 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 add_library(${PROJECT_NAME}
-    src/libabyss.c
-    src/log.c
+        src/libabyss.c
+        src/mpq.c
+        src/log.c
+        src/crypto.c
 )
 
 include_directories(
