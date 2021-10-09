@@ -1,22 +1,12 @@
 #include "crypto.h"
 #include <libabyss/log.h>
 #include <libabyss/mpq.h>
+#include <libabyss/mpqblock.h>
+#include <libabyss/mpqstream.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-typedef uint32_t mpq_file_flag;
-
-#define MPQ_FILE_FLAG_IMPLODE (mpq_file_flag)0x00000100   // File is compressed using PKWARE Data compression library
-#define MPQ_FILE_FLAG_COMPRESS (mpq_file_flag)0x00000200  // File is compressed using combination of compression methods
-#define MPQ_FILE_FLAG_ENCRYPTED (mpq_file_flag)0x00010000 // The file is encrypted
-#define MPQ_FILE_FLAG_FIX_KEY (mpq_file_flag)0x00020000 // The decryption key for the file is altered base on the position of the file in the archive
-#define MPQ_FILE_FLAG_PATCH_FILE (mpq_file_flag)0x00100000  // The file contains incremental patch for an existing file in base MPQ
-#define MPQ_FILE_FLAG_SINGLE_UNIT (mpq_file_flag)0x01000000 // Instead of being divided to 0x1000-bytes blocks, the file is stored as single unit
-#define MPQ_FILE_FLAG_DELETED (mpq_file_flag)0x02000000     // File is a deletion marker, indicating that the file no longer exists.
-#define MPQ_FILE_FLAG_SECTOR_CRC (mpq_file_flag)0x04000000  // File has checksums for each sector. Ignored if file is not compressed or imploded.
-#define MPQ_FILE_FLAG_EXISTS (mpq_file_flag)0x80000000      // Set if file exists, reset when the file was deleted
 
 typedef struct mpq_hash_entry {
     uint32_t hash_a;
@@ -25,13 +15,6 @@ typedef struct mpq_hash_entry {
     uint16_t platform;
     uint32_t block_index;
 } mpq_hash_entry;
-
-typedef struct mpq_block_entry {
-    uint32_t file_position;
-    uint32_t file_size_compressed;
-    uint32_t file_size_uncompressed;
-    uint32_t flags;
-} mpq_block_entry;
 
 // Represents the MPQ header
 typedef struct __attribute__((__packed__)) mpq_header {
@@ -46,20 +29,12 @@ typedef struct __attribute__((__packed__)) mpq_header {
     uint32_t block_table_entries;
 } mpq_header;
 
-// Represents an entry in the block table
-typedef struct __attribute__((__packed__)) mpq_block {
-    uint32_t file_position;
-    uint32_t compressed_file_size;
-    uint32_t uncompressed_file_size;
-    mpq_file_flag flags;
-} mpq_block;
-
 typedef struct mpq {
     const char *file_path;
     FILE *file;
     mpq_header header;
     mpq_hash_entry *hash_entries;
-    mpq_block_entry *block_entries;
+    mpq_block *block_entries;
 } mpq;
 
 int mpq_get_hash_index(const mpq *source, uint32_t hash_a, uint32_t hash_b) {
@@ -78,8 +53,19 @@ int mpq_get_hash_index(const mpq *source, uint32_t hash_a, uint32_t hash_b) {
     return -1;
 }
 
+mpq_block *mpq_get_block(const mpq *source, const char* filename) {
+    int hash_index = mpq_get_hash_index(source, crypto_hash_string(filename, 1), crypto_hash_string(filename, 2));
+
+    if (hash_index < 0) {
+        return NULL;
+    }
+
+    return &source->block_entries[source->hash_entries[hash_index].block_index];
+}
+
+
 mpq_hash_entry *mpq_read_hash_table(const mpq *source) {
-    mpq_hash_entry *result = malloc(source->header.hash_table_entries);
+    mpq_hash_entry *result = malloc(sizeof(mpq_hash_entry) * source->header.hash_table_entries);
 
     fseek(source->file, source->header.hash_table_offset, SEEK_SET);
     uint32_t *hash_data = crypto_decrypt_table(source->file, source->header.hash_table_entries, "(hash table)");
@@ -97,8 +83,8 @@ mpq_hash_entry *mpq_read_hash_table(const mpq *source) {
     return result;
 }
 
-mpq_block_entry *mpq_read_block_table(const mpq *source) {
-    mpq_block_entry *result = malloc(source->header.block_table_entries);
+mpq_block *mpq_read_block_table(const mpq *source) {
+    mpq_block *result = malloc(sizeof(mpq_block) * source->header.block_table_entries);
 
     fseek(source->file, source->header.block_table_offset, SEEK_SET);
     uint32_t *block_data = crypto_decrypt_table(source->file, source->header.block_table_entries, "(block table)");
@@ -153,14 +139,32 @@ bool mpq_file_exists(const mpq *source, const char* filename) {
     return mpq_get_hash_index(source, crypto_hash_string(filename, 1), crypto_hash_string(filename, 2)) >= 0;
 }
 
-void *mpq_read_file(const mpq *source, const char* filename) {
-    int hash_index = mpq_get_hash_index(source, crypto_hash_string(filename, 1), crypto_hash_string(filename, 2));
+void *mpq_read_file(mpq *source, const char* filename) {
+    mpq_block *block = mpq_get_block(source, filename);
 
-    if (hash_index < 0) {
+    if (block == NULL) {
+        log_error("File not found '%s'", filename);
         return NULL;
     }
 
+    mpq_stream *stream = mpq_stream_new(source, block, filename);
 
+    if (stream == NULL) {
+        log_error("Error creating stream for '%s'", filename);
+        return NULL;
+    }
 
-    return NULL;
+    void *result = malloc(block->file_size_uncompressed);
+
+    mpq_stream_read(stream, result, 0, block->file_size_uncompressed);
+
+    return result;
+}
+
+uint32_t mpq_get_block_size(const mpq *source) {
+    return source->header.block_size;
+}
+
+FILE *mpq_get_file_stream(const mpq *source) {
+    return source->file;
 }

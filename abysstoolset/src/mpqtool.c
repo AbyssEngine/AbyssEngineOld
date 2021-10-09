@@ -38,8 +38,9 @@ int mpqtool_list(const char * mpq_path) {
         return EXIT_FAILURE;
     }
 
-    if (mpq_file_exists(source, "(listfile)")) {
-        printf("found it, no decode logic yet...\n");
+    char *data = mpq_read_file(source, "(listfile)");
+    if (data != NULL) {
+        printf("found it!\n");
     } else {
         fprintf(stderr, "No listfile was present in this archive.\n");
     }

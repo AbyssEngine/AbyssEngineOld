@@ -16,6 +16,7 @@ add_executable(${PROJECT_NAME}
         )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
+  FOLDER "Applications/"
   BUNDLE TRUE
   MACOSX_BUNDLE_GUI_IDENTIFIER abyssengine
   OUTPUT_NAME "Abyss Engine"
@@ -35,13 +36,13 @@ set_source_files_properties(abyssbadge.icns PROPERTIES MACOSX_PACKAGE_LOCATION "
 target_sources(${PROJECT_NAME}
 PRIVATE
         src/abyssengine.c
-        src/engine/engine.c
-        src/scripting/scripting.c
-        src/misc/util.c
-        src/misc/ini.c
-        src/loader/loaderprovider.c
-        src/loader/filesystemloader.c
-        src/loader/loader.c
+        src/engine/engine.c src/engine/engine.h
+        src/scripting/scripting.c src/scripting/scripting.h
+        src/misc/util.c src/misc/util.h
+        src/misc/ini.c src/misc/ini.h
+        src/loader/loaderprovider.c src/loader/loaderprovider.h
+        src/loader/filesystemloader.c src/loader/filesystemloader.h
+        src/loader/loader.c src/loader/loader.h
 )
 
 add_definitions(

@@ -15,11 +15,14 @@ configure_file(
 target_sources(${PROJECT_NAME}
     PRIVATE
         src/abt.c
-        src/help.c
-        src/mpqtool.c
+        src/help.c src/help.h
+        src/mpqtool.c src/mpqtool.h
 )
 
-set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "abt")
+set_target_properties(${PROJECT_NAME} PROPERTIES
+        OUTPUT_NAME "abt"
+        FOLDER "Applications/"
+        )
 
 include_directories(
         ${PROJECT_BINARY_DIR}
