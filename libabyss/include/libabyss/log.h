@@ -14,7 +14,9 @@
 #include <time.h>
 
 #define LOG_VERSION "0.1.0"
+#ifndef _WIN32
 #define LOG_USE_COLOR
+#endif
 
 typedef struct {
   va_list ap;
