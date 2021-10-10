@@ -17,6 +17,9 @@
 #endif
 #define CHUNK 16384
 
+#ifndef min
+#define min(a,b) (((a) < (b)) ? (a) : (b))
+#endif // min
 
 typedef struct mpq_stream {
     void *data;
@@ -60,7 +63,7 @@ mpq_stream *mpq_stream_new(mpq *mpq, mpq_block *block, const char *filename) {
     mpq_stream *result = calloc(1, sizeof(mpq_stream));
     result->mpq = mpq;
     result->block = block;
-    result->filename = _strdup(filename);
+    result->filename = strdup(filename);
 
     if (mpq_block_has_flag(block, MPQ_BLOCK_FLAG_FIX_KEY)) {
         result->index = 0xFFFFFFFF;
@@ -123,8 +126,9 @@ void* mpq_stream_decompress_multi(mpq_stream* source, void *buffer, uint32_t siz
         free(buffer);
         return NULL;
     case 0x08: // PkLib/Implode
+    {
         void *new_buffer = malloc(size_uncompressed);
-        if (blast(blast_in_f, ((char*)buffer+1), blast_out_f, new_buffer, NULL, NULL) != 0) {
+        if (blast(blast_in_f, ((char *)buffer + 1), blast_out_f, new_buffer, NULL, NULL) != 0) {
             log_fatal("PkLib/Implode decompression error!");
             free(new_buffer);
             free(buffer);
@@ -132,6 +136,7 @@ void* mpq_stream_decompress_multi(mpq_stream* source, void *buffer, uint32_t siz
         }
         free(buffer);
         return new_buffer;
+    }
     case 0x10: // BZip2
         log_fatal("BZip2 decompression not currently supported.");
         free(buffer);
