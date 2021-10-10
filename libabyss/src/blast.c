@@ -29,7 +29,6 @@
 *                      - Enable the provision of initial input to blast()
 */
 
-#include <stddef.h>             /* for NULL */
 #include <setjmp.h>             /* for setjmp(), longjmp(), and jmp_buf */
 #include "blast.h"              /* prototype for blast() */
 
@@ -203,7 +202,7 @@ local int construct(struct huffman *h, const unsigned char *rep, int n)
        left = (len >> 4) + 1;
        len &= 15;
        do {
-           length[symbol++] = len;
+           length[symbol++] = (short)len;
        } while (--left);
    } while (--n);
    n = symbol;
@@ -227,7 +226,7 @@ local int construct(struct huffman *h, const unsigned char *rep, int n)
    /* generate offsets into symbol table for each length for sorting */
    offs[1] = 0;
    for (len = 1; len < MAXBITS; len++)
-       offs[len + 1] = offs[len] + h->count[len];
+       offs[len + 1] = (short)(offs[len] + h->count[len]);
 
    /*
     * put symbols in table sorted by length, by symbol order within each
@@ -235,7 +234,7 @@ local int construct(struct huffman *h, const unsigned char *rep, int n)
     */
    for (symbol = 0; symbol < n; symbol++)
        if (length[symbol] != 0)
-           h->symbol[offs[length[symbol]]++] = symbol;
+           h->symbol[offs[length[symbol]]++] = (short)symbol;
 
    /* return zero for complete set, positive for incomplete set */
    return left;
@@ -317,7 +316,6 @@ local int decomp(struct state *s)
        construct(&litcode, litlen, sizeof(litlen));
        construct(&lencode, lenlen, sizeof(lenlen));
        construct(&distcode, distlen, sizeof(distlen));
-       virgin = 0;
    }
 
    /* read header */
@@ -349,9 +347,9 @@ local int decomp(struct state *s)
                copy = MAXWIN;
                if (s->next < dist) {
                    from += copy;
-                   copy = dist;
+                   copy = (int)dist;
                }
-               copy -= s->next;
+               copy -= (int)s->next;
                if (copy > len) copy = len;
                len -= copy;
                s->next += copy;

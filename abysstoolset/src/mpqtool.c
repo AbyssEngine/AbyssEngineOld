@@ -38,12 +38,28 @@ int mpqtool_list(const char * mpq_path) {
         return EXIT_FAILURE;
     }
 
-    char *data = mpq_read_file(source, "(listfile)");
-    if (data != NULL) {
-        printf("found it!\n");
-    } else {
+    uint32_t file_size;
+    char *data = mpq_read_file(source, "(listfile)", &file_size);
+    if (data == NULL) {
         fprintf(stderr, "No listfile was present in this archive.\n");
+        mpq_destroy(source);
+        return EXIT_SUCCESS;
     }
+
+    const char end_line[3] = "\r\n";
+    char *token;
+
+
+    token = strtok(data, end_line);
+
+    /* walk through other tokens */
+    while( (token != NULL) && (token < (char*)(data+file_size))) {
+        printf( "%s\n", token );
+
+        token = strtok(NULL, end_line);
+    }
+    printf("%s\n", data);
+
 
     mpq_destroy(source);
     return EXIT_SUCCESS;

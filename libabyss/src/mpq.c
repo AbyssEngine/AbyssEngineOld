@@ -140,7 +140,7 @@ bool mpq_file_exists(const mpq *source, const char* filename) {
     return mpq_get_hash_index(source, crypto_hash_string(filename, 1), crypto_hash_string(filename, 2)) >= 0;
 }
 
-void *mpq_read_file(mpq *source, const char* filename) {
+void *mpq_read_file(mpq *source, const char* filename, uint32_t *file_size) {
     mpq_block *block = mpq_get_block(source, filename);
 
     if (block == NULL) {
@@ -155,7 +155,11 @@ void *mpq_read_file(mpq *source, const char* filename) {
         return NULL;
     }
 
-    void *result = malloc(block->file_size_uncompressed);
+    void *result = calloc(1, block->file_size_uncompressed);
+
+    if (file_size != NULL) {
+        *file_size = block->file_size_uncompressed;
+    }
 
     mpq_stream_read(stream, result, 0, block->file_size_uncompressed);
 
