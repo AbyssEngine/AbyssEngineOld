@@ -64,6 +64,7 @@ mpq_stream *mpq_stream_new(mpq *mpq, mpq_block *block, const char *filename) {
     result->mpq = mpq;
     result->block = block;
     result->filename = strdup(filename);
+    result->index = 0xFFFFFFFE;
 
     if (mpq_block_has_flag(block, MPQ_BLOCK_FLAG_FIX_KEY)) {
         result->index = 0xFFFFFFFF;
@@ -122,9 +123,30 @@ void* mpq_stream_decompress_multi(mpq_stream* source, void *buffer, uint32_t siz
         free(buffer);
         return NULL;
     case 0x02: // ZLib/Deflate
-        log_fatal("Deflate decompression not currently supported.");
+    {
+        void *new_buffer = malloc(size_uncompressed);
+        z_stream zlib_stream;
+        zlib_stream.zalloc = Z_NULL;
+        zlib_stream.zfree = Z_NULL;
+        zlib_stream.opaque = Z_NULL;
+        zlib_stream.avail_in = size_compressed;
+        zlib_stream.next_in = ((char *)buffer + 1);
+        zlib_stream.avail_out = size_uncompressed;
+        zlib_stream.next_out = (Bytef *)new_buffer;
+
+        inflateInit(&zlib_stream);
+        int ret = inflate(&zlib_stream, Z_NO_FLUSH);
+        if (ret == Z_STREAM_ERROR) {
+            log_fatal("Error decompressing Zlib/deflate.");
+            free(buffer);
+            return NULL;
+        }
+        inflateEnd(&zlib_stream);
+
+
         free(buffer);
-        return NULL;
+        return new_buffer;
+    }
     case 0x08: // PkLib/Implode
     {
         void *new_buffer = malloc(size_uncompressed);
