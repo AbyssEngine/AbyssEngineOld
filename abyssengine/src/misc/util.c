@@ -176,10 +176,14 @@ char *str_replace(char *string, const char *substr, const char *replacement) {
     return newstr;
 }
 
+bool is_space(unsigned char ch) {
+    return (ch == '\r') || (ch == ' ') || (ch == '\t' || (ch == '\n'));
+}
+
 char *trim_string(char *str) {
     char *end;
 
-    while (isspace((unsigned char)*str)) {
+    while (is_space((unsigned char)*str)) {
         str++;
     }
 
@@ -188,7 +192,7 @@ char *trim_string(char *str) {
     }
 
     end = str + strlen(str) - 1;
-    while (end > str && isspace((unsigned char)*end)) {
+    while (end > str && is_space((unsigned char)*end)) {
         end--;
     }
 

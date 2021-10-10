@@ -102,7 +102,7 @@ void engine_finalize_sdl2(engine *src) {
 void engine_run(engine *src) {
     SDL_Event sdl_event;
 
-    loader_add_provider(src->loader, filesystem_loader_new("/Users/lunaticedit/Desktop/abysstest"));
+    loader_add_provider(src->loader, filesystem_loader_new("./"));
 
     src->texture_logo = util_load_texture_png(resource_abyss_boot_logo, &src->rect_logo.w, &src->rect_logo.h);
     src->last_tick = SDL_GetTicks();
@@ -114,9 +114,14 @@ void engine_run(engine *src) {
     int file_size;
     char *lua_code = loader_load(src->loader, "test.lua", &file_size);
 
+    if (lua_code == NULL) {
+        log_fatal("Could not load bootstrap script!");
+        exit(EXIT_FAILURE);
+    }
+
     if (luaL_loadbuffer(src->lua_state, lua_code, file_size, "@test.lua") || lua_pcall(src->lua_state, 0, 0, 0)) {
         log_error(lua_tostring(src->lua_state, -1));
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
     free(lua_code);
 
@@ -179,7 +184,7 @@ engine *engine_get_global_instance() { return global_engine_instance; }
 
 void engine_set_global_instance(engine *src) { global_engine_instance = src; }
 
-void engine_show_system_cursor(engine *src, bool show) { SDL_ShowCursor(show); }
+void engine_show_system_cursor( engine *src, bool show) { SDL_ShowCursor(show); }
 
 SDL_Renderer *engine_get_renderer(engine *src) { return src->sdl_renderer; }
 
