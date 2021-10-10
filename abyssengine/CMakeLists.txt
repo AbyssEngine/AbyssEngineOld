@@ -64,6 +64,7 @@ include_directories(
         ${PROJECT_BINARY_DIR}
         ${CMAKE_SOURCE_DIR}/libabyss/include
         SDL2::Include
+        ${ZLIB_INCLUDE_DIR}
         ${LUA_INCLUDE_DIR}
         ${PNG_INCLUDE_DIR}
 )

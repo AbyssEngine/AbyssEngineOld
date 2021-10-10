@@ -90,7 +90,7 @@ mpq_block *mpq_read_block_table(const mpq *source) {
     fseek(source->file, source->header.block_table_offset, SEEK_SET);
     uint32_t *block_data = crypto_decrypt_table(source->file, source->header.block_table_entries, "(block table)");
 
-    for (int i = 0, n = 0; i < source->header.hash_table_entries; i++, n += 4) {
+    for (int i = 0, n = 0; i < source->header.block_table_entries; i++, n += 4) {
         result[i].file_position = block_data[n];
         result[i].file_size_compressed = block_data[n + 1];
         result[i].file_size_uncompressed = block_data[n + 2];
