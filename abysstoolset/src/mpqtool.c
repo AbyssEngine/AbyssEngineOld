@@ -43,7 +43,7 @@ int mpqtool_list(const char * mpq_path) {
     if (data == NULL) {
         fprintf(stderr, "No listfile was present in this archive.\n");
         mpq_destroy(source);
-        return EXIT_SUCCESS;
+        return EXIT_FAILURE;
     }
 
     const char end_line[3] = "\r\n";
@@ -58,7 +58,6 @@ int mpqtool_list(const char * mpq_path) {
 
         token = strtok(NULL, end_line);
     }
-    printf("%s\n", data);
 
 
     mpq_destroy(source);
