@@ -11,7 +11,6 @@
 #include <lualib.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 typedef struct engine {
     bool is_running;
@@ -105,10 +104,7 @@ void engine_run(engine *src) {
 
     loader_add_provider(src->loader, filesystem_loader_new("/Users/lunaticedit/Desktop/abysstest"));
 
-    uint8_t *data = util_base64_decode(resource_abyss_boot_logo, resource_abyss_boot_logo_size);
-    src->texture_logo = util_load_texture_png(data, &src->rect_logo.w, &src->rect_logo.h);
-    free(data);
-
+    src->texture_logo = util_load_texture_png(resource_abyss_boot_logo, &src->rect_logo.w, &src->rect_logo.h);
     src->last_tick = SDL_GetTicks();
     src->fps = 0;
     src->frame_count_tick = src->last_tick;
@@ -183,7 +179,7 @@ engine *engine_get_global_instance() { return global_engine_instance; }
 
 void engine_set_global_instance(engine *src) { global_engine_instance = src; }
 
-void engine_show_system_cursor(__attribute__((unused)) engine *src, bool show) { SDL_ShowCursor(show); }
+void engine_show_system_cursor(engine *src, bool show) { SDL_ShowCursor(show); }
 
 SDL_Renderer *engine_get_renderer(engine *src) { return src->sdl_renderer; }
 

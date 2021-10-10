@@ -1,6 +1,7 @@
 #ifndef LIBABYSS_MPQ_BLOCK_H
 #define LIBABYSS_MPQ_BLOCK_H
 
+#include <libabyss/commondef.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -16,12 +17,12 @@ typedef uint32_t mpq_block_flag;
 #define MPQ_BLOCK_FLAG_SECTOR_CRC ((mpq_block_flag)0x04000000)    // File has checksums for each sector.
 #define MPQ_BLOCK_FLAG_EXISTS ((mpq_block_flag)0x80000000)        // Set if file exists, reset when the file was deleted
 
-typedef struct __attribute__((__packed__)) mpq_block {
+typedef PACK(struct mpq_block {
     uint32_t file_position;
     uint32_t file_size_compressed;
     uint32_t file_size_uncompressed;
     mpq_block_flag flags;
-} mpq_block;
+}) mpq_block;
 
 bool mpq_block_has_flag(const mpq_block *source, mpq_block_flag flag);
 uint32_t mpq_block_get_encryption_seed(mpq_block *source, const char *filename);

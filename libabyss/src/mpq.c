@@ -3,6 +3,7 @@
 #include <libabyss/mpq.h>
 #include <libabyss/mpqblock.h>
 #include <libabyss/mpqstream.h>
+#include <libabyss/commondef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,7 +18,7 @@ typedef struct mpq_hash_entry {
 } mpq_hash_entry;
 
 // Represents the MPQ header
-typedef struct __attribute__((__packed__)) mpq_header {
+typedef PACK(struct mpq_header {
     uint8_t magic[4];
     uint32_t header_size;
     uint32_t archive_size;
@@ -27,7 +28,7 @@ typedef struct __attribute__((__packed__)) mpq_header {
     uint32_t block_table_offset;
     uint32_t hash_table_entries;
     uint32_t block_table_entries;
-} mpq_header;
+}) mpq_header;
 
 typedef struct mpq {
     const char *file_path;

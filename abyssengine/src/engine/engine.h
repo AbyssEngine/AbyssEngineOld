@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+
 typedef struct engine engine;
 
 engine *engine_create();
@@ -22,7 +23,7 @@ void engine_init_lua(engine *src);
 void engine_finalize_lua(engine *src);
 engine *engine_get_global_instance();
 void engine_set_global_instance(engine *src);
-void engine_show_system_cursor(__attribute__((unused)) engine *src, bool show);
+void engine_show_system_cursor(engine *src, bool show);
 SDL_Renderer *engine_get_renderer(engine *src);
 ini_file *engine_get_ini_configuration(engine *src);
 

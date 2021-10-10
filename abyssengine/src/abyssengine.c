@@ -1,14 +1,22 @@
 #include "config.h"
 #include "engine/engine.h"
-#include "misc/ini.h"
+#include <stdlib.h>
 #include <libabyss/log.h>
+#ifdef _WIN32
+#include <direct.h>
+#else
 #include <unistd.h>
+#endif
 
 int main(int argc, char **argv) {
     log_info("Abyss Engine v%d.%d", ABYSS_VERSION_MAJOR, ABYSS_VERSION_MINOR);
 
     char cwd_path[4096];
+#ifdef _WIN32
+    _getcwd(cwd_path, 4096);
+#else
     getcwd(cwd_path, 4096);
+#endif
 
     ini_file *ini = ini_file_load("config.ini");
 

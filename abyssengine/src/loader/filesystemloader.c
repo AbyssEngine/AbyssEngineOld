@@ -2,7 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef _WIN32
+#include <windows.h>
+#else
 #include <unistd.h>
+#endif
 
 typedef struct filesystem_loader {
     loader_provider provider;
@@ -34,7 +38,12 @@ bool filesystem_loader_exists(loader_provider *provider, const char *path) {
     strcat(file_path, "/");
     strcat(file_path, path);
 
+#ifdef _WIN32
+    DWORD file_attr = GetFileAttributesA(file_path);
+    bool result = ((file_attr != INVALID_FILE_ATTRIBUTES) && (file_attr != FILE_ATTRIBUTE_DIRECTORY));
+#else
     bool result = access(file_path, F_OK) != -1;
+#endif
 
     free(file_path);
 

@@ -5,6 +5,53 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _WIN32
+size_t getdelim(char **buf, size_t *bufsiz, int delimiter, FILE *fp)
+{
+    char *ptr, *eptr;
+
+
+    if (*buf == NULL || *bufsiz == 0) {
+        *bufsiz = BUFSIZ;
+        if ((*buf = malloc(*bufsiz)) == NULL)
+            return -1;
+    }
+
+    for (ptr = *buf, eptr = *buf + *bufsiz;;) {
+        int c = fgetc(fp);
+        if (c == -1) {
+            if (feof(fp)) {
+                size_t diff = (size_t)(ptr - *buf);
+                if (diff != 0) {
+                    *ptr = '\0';
+                    return diff;
+                }
+            }
+            return -1;
+        }
+        *ptr++ = c;
+        if (c == delimiter) {
+            *ptr = '\0';
+            return ptr - *buf;
+        }
+        if (ptr + 2 >= eptr) {
+            char *nbuf;
+            size_t nbufsiz = *bufsiz * 2;
+            size_t d = ptr - *buf;
+            if ((nbuf = realloc(*buf, nbufsiz)) == NULL)
+                return -1;
+            *buf = nbuf;
+            *bufsiz = nbufsiz;
+            eptr = nbuf + nbufsiz;
+            ptr = nbuf + d;
+        }
+    }
+}
+size_t getline(char **buf, size_t *bufsiz, FILE *fp) {
+    return getdelim(buf, bufsiz, '\n', fp);
+}
+#endif
+
 ini_file *ini_file_load(const char *file_path) {
     ini_file *result = calloc(1, sizeof(ini_file));
 
@@ -21,6 +68,7 @@ ini_file *ini_file_load(const char *file_path) {
     char *line = NULL;
     ini_file_category *current_category = NULL;
     int line_idx = 0;
+
 
     while (getline(&line, &line_size, file) > 0) {
         line_idx++;

@@ -54,7 +54,7 @@ void png_warn_func(png_structp png, png_const_charp warn_message) { log_warn("Li
 
 void png_reader(png_structp png, png_bytep data_out, png_size_t to_read) {
     png_read_data_handle *data_handle = (png_read_data_handle *)png_get_io_ptr(png);
-    const png_byte *read_src = data_handle->data + data_handle->pos;
+    const png_byte *read_src = (png_byte*)data_handle->data + data_handle->pos;
     memcpy(data_out, read_src, to_read);
     data_handle->pos += to_read;
 }
