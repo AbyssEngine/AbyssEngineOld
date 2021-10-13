@@ -1,5 +1,6 @@
 #include "blast.h"
 #include "crypto.h"
+#include "compress.h"
 #include <libabyss/log.h>
 #include <libabyss/mpq.h>
 #include <libabyss/mpqstream.h>
@@ -32,6 +33,9 @@ typedef struct mpq_stream {
     uint32_t size;
     uint32_t position;
 } mpq_stream;
+
+void* mpq_stream_decompress_multi(mpq_stream* source, void *buffer, uint32_t size_compressed, uint32_t size_uncompressed);
+
 
 bool mpq_stream_load_block_offsets(mpq_stream *source) {
     uint32_t block_position_count = ((source->block->file_size_uncompressed + source->size - 1) / source->size) + 1;
@@ -98,9 +102,50 @@ void mpq_stream_destroy(mpq_stream *source) {
     free(source);
 }
 
-uint32_t mpq_stream_read_internal_single_unit(mpq_stream *stream, void *buffer, uint32_t offset, uint32_t size) {
-    log_info("single unit!");
-    exit(-1);
+bool mpq_stream_load_single_unit(mpq_stream *source) {
+    FILE *file_stream = mpq_get_file_stream(source->mpq);
+    fseek(file_stream, mpq_get_header_size(source->mpq), SEEK_SET);
+    
+    
+    void *data = malloc(source->size);
+    fread(data, source->size, 1, file_stream);
+    
+    if (source->size != source->block->file_size_uncompressed) {
+        if (mpq_stream_decompress_multi(source, data, source->block->file_size_compressed, source->block->file_size_uncompressed) == NULL) {
+            free(data);
+            return false;
+        };
+    }
+    
+    if (source->data != NULL) {
+        free(source->data);
+    }
+    source->data = data;
+    
+    return true;
+}
+
+uint32_t mpq_stream_copy(mpq_stream *source, void* buffer, uint32_t offset, uint32_t position, uint32_t size) {
+    int bytes_to_copy = min((int)source->data_length-(int)position, (int)size);
+
+    if (bytes_to_copy <= 0) {
+        return 0;
+    }
+
+    memcpy((char*)buffer+offset, (char*)source->data+position, bytes_to_copy);
+    source->position += bytes_to_copy;
+    return bytes_to_copy;
+}
+
+
+uint32_t mpq_stream_read_internal_single_unit(mpq_stream *source, void *buffer, uint32_t offset, uint32_t size) {
+    if (source->data_length == 0) {
+        if (!mpq_stream_load_single_unit(source)) {
+            return 0;
+        }
+    }
+    
+    mpq_stream_copy(source, buffer, offset, source->position, source->data_length);
     return 0;
 }
 
@@ -120,7 +165,6 @@ void* mpq_stream_decompress_multi(mpq_stream* source, void *buffer, uint32_t siz
     switch(compression_type) {
     case 0x01: // Huffman
         log_fatal("Huffman decompression not currently supported.");
-        free(buffer);
         return NULL;
     case 0x02: // ZLib/Deflate
     {
@@ -130,7 +174,7 @@ void* mpq_stream_decompress_multi(mpq_stream* source, void *buffer, uint32_t siz
         zlib_stream.zfree = Z_NULL;
         zlib_stream.opaque = Z_NULL;
         zlib_stream.avail_in = size_compressed;
-        zlib_stream.next_in = ((char *)buffer + 1);
+        zlib_stream.next_in = (Bytef *)((char *)buffer + 1);
         zlib_stream.avail_out = size_uncompressed;
         zlib_stream.next_out = (Bytef *)new_buffer;
 
@@ -138,7 +182,6 @@ void* mpq_stream_decompress_multi(mpq_stream* source, void *buffer, uint32_t siz
         int ret = inflate(&zlib_stream, Z_NO_FLUSH);
         if (ret == Z_STREAM_ERROR) {
             log_fatal("Error decompressing Zlib/deflate.");
-            free(buffer);
             return NULL;
         }
         inflateEnd(&zlib_stream);
@@ -161,46 +204,39 @@ void* mpq_stream_decompress_multi(mpq_stream* source, void *buffer, uint32_t siz
     }
     case 0x10: // BZip2
         log_fatal("BZip2 decompression not currently supported.");
-        free(buffer);
-        return NULL;
-    case 0x80: // IMA ADPCM Stereo
-        log_fatal("IMA ADPCM Stereo decompression not currently supported.");
-        free(buffer);
-        return NULL;
-    case 0x40: // IMA ADPCM Mono
-        log_fatal("IMA ADPCM Mono decompression not currently supported.");
-        free(buffer);
         return NULL;
     case 0x12: // LZMA
         log_fatal("LZMA decompression not currently supported.");
-        free(buffer);
         return NULL;
+    case 0x80: // IMA ADPCM Stereo
+    {
+        return compress_decompress_wav(buffer+1, size_compressed, 2);
+    }
+    case 0x40: // IMA ADPCM Mono
+    {
+        return compress_decompress_wav(buffer+1, size_compressed, 1);
+    }
     case 0x22: // Sparse + ZLib
         log_fatal("Sparse + Zlib decompression not currently supported.");
-        free(buffer);
         return NULL;
     case 0x30: // Sparse + BZip2
         log_fatal("Sparse + BZip2 decompression not currently supported.");
-        free(buffer);
         return NULL;
     case 0x41: // Huffman + WAV
         log_fatal("Huffman + WAV decompression not currently supported.");
-        free(buffer);
         return NULL;
     case 0x48: // Pk + WAV
         log_fatal("Pk + WAV decompression not currently supported.");
-        free(buffer);
         return NULL;
     case 0x81: // Huffman + WAV
         log_fatal("Huffman + WAV decompression not currently supported.");
-        free(buffer);
         return NULL;
     case 0x88: // Pk + WAV
         log_fatal("Pk + WAV decompression not currently supported.");
-        free(buffer);
         return NULL;
     default:
-        log_fatal("Unknown compression code: %#04x", compression_type);
+        log_fatal("Unknown compression code: %#04x for file '%s'", compression_type, source->filename);
+        return NULL;
     }
 
     return buffer;
@@ -283,17 +319,6 @@ bool mpq_stream_buffer_data(mpq_stream *source) {
     return true;
 }
 
-uint32_t mpq_stream_copy(mpq_stream *source, void* buffer, uint32_t offset, uint32_t position, uint32_t size) {
-    int bytes_to_copy = min((int)source->data_length-(int)position, (int)size);
-
-    if (bytes_to_copy <= 0) {
-        return 0;
-    }
-
-    memcpy((char*)buffer+offset, (char*)source->data+position, bytes_to_copy);
-    source->position += bytes_to_copy;
-    return bytes_to_copy;
-}
 
 uint32_t mpq_stream_read_internal(mpq_stream *source, void *buffer, uint32_t offset, uint32_t size) {
     if (!mpq_stream_buffer_data(source)) {

@@ -166,6 +166,11 @@ void *mpq_read_file(mpq *source, const char* filename, uint32_t *file_size) {
     return result;
 }
 
+
+uint32_t mpq_get_header_size(const mpq *source) {
+    return source->header.header_size;
+}
+
 uint32_t mpq_get_block_size(const mpq *source) {
     return source->header.block_size;
 }

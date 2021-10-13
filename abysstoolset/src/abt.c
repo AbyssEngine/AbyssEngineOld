@@ -22,7 +22,4 @@ int main(int argc, char **argv) {
     } else {
         fprintf(stderr, "Unknown tool '%s' specified.", tool_name);
         return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS;
-}
+    }}

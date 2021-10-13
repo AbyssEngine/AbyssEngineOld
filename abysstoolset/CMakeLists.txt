@@ -17,6 +17,7 @@ target_sources(${PROJECT_NAME}
         src/abt.c
         src/help.c src/help.h
         src/mpqtool.c src/mpqtool.h
+        src/common.c src/common.h
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES

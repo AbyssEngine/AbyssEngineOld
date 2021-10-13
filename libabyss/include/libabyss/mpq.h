@@ -14,5 +14,6 @@ void *mpq_read_file(mpq *source, const char* filename, uint32_t *file_size);
 uint32_t mpq_get_block_size(const mpq *source);
 FILE *mpq_get_file_stream(const mpq *source);
 mpq_block *mpq_get_block(const mpq *source, const char* filename);
+uint32_t mpq_get_header_size(const mpq *source);
 
 #endif // LIBABYSS_MPQ_H
