@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #ifdef _WIN32
-#include <direct.h>
+#include <windows.h>
 #else
 #include <sys/stat.h>
 #include <unistd.h>
@@ -12,14 +12,14 @@ char * common_fix_mpq_path(char * path) {
     if (path[0] == '\0') {
         return path;
     }
-    
+
     for (char *ch = path; *ch != '\0'; ch++) {
         if (*ch != '/') {
             continue;
         }
         *ch = '\\';
     }
-    
+
     return (path[0] == '\\')
         ? path+1
         : path;
@@ -29,33 +29,31 @@ void common_normalize_path(char *path) {
     if (path[0] == '\0') {
         return;
     }
-    
+
     for (char *ch = path; *ch != '\0'; ch++) {
         if (*ch != '\\') {
             continue;
         }
-        
+
         *ch = '/';
     }
 }
 
 const char* common_get_cwd() {
     char *result = calloc(1, 2048);
-    
+
 #ifdef _WIN32
     _getcwd(result, 2048);
 #else // _WIN32
     getcwd(result, 2048);
 #endif // _WIN32
-    
+
     return result;
 }
 
 void common_create_directory(const char *path) {
 #ifdef _WIN32
-    // TODO: Win32
-    fprintf(stderr, "Win32 not implemented for common_create_directory");
-    exit(-1);
+    CreateDirectoryA(path, NULL);
 #else // _WIN32
     struct stat s = {0};
     if (stat(path, &s) != -1) {
@@ -70,16 +68,24 @@ void common_create_directories_recursively(const char *path) {
     char *new_path = calloc(1, 2048);
     strcat(original_path, path);
     original_path[(int)(strrchr(original_path, '/')-original_path)] = '\0';
-    
+
+#ifdef _WIN32
+    char *token = strtok_s(original_path, "/", &original_path);
+#else
     char *token = strtok_r(original_path, "/", &original_path);
-    
+#endif // _WIN32
+
     while (token != NULL) {
         strcat(new_path, "/");
         strcat(new_path, token);
         common_create_directory(new_path);
+#ifdef _WIN32
+        token = strtok_s(NULL, "/", &original_path);
+#else
         token = strtok_r(NULL, "/", &original_path);
+#endif // _WIN32
     }
-    
+
     free(original_path);
     free(new_path);
 }

@@ -35,4 +35,19 @@ target_link_libraries(${PROJECT_NAME}
         libabyss
 )
 
+if(WIN32)
+install(TARGETS ${PROJECT_NAME}
+        RUNTIME_DEPENDENCIES
+        PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
+        POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
+        DIRECTORIES C:/DevLibs/bin
+        LIBRARY DESTINATION bin
+        ARCHIVE DESTINATION bin
+)
+else(WIN32)
+install(TARGETS ${PROJECT_NAME}
+        LIBRARY DESTINATION bin
+        ARCHIVE DESTINATION bin
+)
+endif(WIN32)
 

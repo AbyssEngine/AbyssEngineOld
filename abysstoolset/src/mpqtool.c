@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif // _WIN32
 
 int mpqtool_run(int argc, char **argv) {
     if (argc == 0) {
@@ -92,10 +95,18 @@ int mpqtool_extract_all_files(mpq *source, const char *output_root_path) {
         return EXIT_FAILURE;
     }
 
+#ifdef _WIN32
+    char *token = strtok_s(data, "\n", &data);
+#else
     char *token = strtok_r(data, "\n", &data);
+#endif // _WIN32
     while (token != NULL) {
         mpqtool_extract_single_file(source, output_root_path, token);
+#ifdef _WIN32
+        token = strtok_s(NULL, "\n", &data);
+#else
         token = strtok_r(NULL, "\n", &data);
+#endif // _WIN32
     }
 
     free(data);

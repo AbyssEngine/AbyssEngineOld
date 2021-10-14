@@ -207,11 +207,11 @@ void *mpq_stream_decompress_multi(mpq_stream *source, void *buffer, uint32_t siz
         return NULL;
     case 0x80: // IMA ADPCM Stereo
     {
-        return compress_decompress_wav(buffer + 1, size_compressed, 2);
+        return compress_decompress_wav((void*)((char*)buffer + 1), size_compressed, 2);
     }
     case 0x40: // IMA ADPCM Mono
     {
-        return compress_decompress_wav(buffer + 1, size_compressed, 1);
+        return compress_decompress_wav((void*)((char*)buffer + 1), size_compressed, 1);
     }
     case 0x22: // Sparse + ZLib
         log_fatal("Sparse + Zlib decompression not currently supported.");

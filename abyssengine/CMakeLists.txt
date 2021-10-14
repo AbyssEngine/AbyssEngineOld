@@ -9,9 +9,20 @@ find_package(ZLIB REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(PNG REQUIRED)
 
-add_executable(${PROJECT_NAME}
-        MACOSX_BUNDLE
-        ./abyssbadge.icns
+if(MSVC)
+        set(OPTIONS WIN32)
+        set(SOURCE_EXTRA resource.rc)
+endif(MSVC)
+if(APPLE)
+
+        set_source_files_properties(abyssbadge.icns PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+        set(OPTIONS
+                MACOSX_BUNDLE
+                ./abyssbadge.icns
+        )
+endif(APPLE)
+
+add_executable(${PROJECT_NAME} ${OPTIONS}
         )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -30,7 +41,7 @@ configure_file(
         ${PROJECT_BINARY_DIR}/config.h
 )
 
-set_source_files_properties(abyssbadge.icns PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+
 
 target_sources(${PROJECT_NAME}
         PRIVATE
@@ -53,6 +64,8 @@ target_sources(${PROJECT_NAME}
         src/lua/lstrlib.c src/lua/ltable.c src/lua/ltable.h src/lua/ltablib.c src/lua/ltm.c src/lua/ltm.h src/lua/lua.h src/lua/lua.hpp
         src/lua/luaconf.h src/lua/lualib.h src/lua/lundump.c src/lua/lundump.h src/lua/lutf8lib.c src/lua/lvm.c src/lua/lvm.h src/lua/lzio.c
         src/lua/lzio.h
+
+        ${SOURCE_EXTRA}
         )
 
 add_definitions(
@@ -70,7 +83,6 @@ include_directories(
 )
 
 set(ABYSS_LIBS
-        libabyss
         ${ZLIB_LIBRARIES}
         ${SDL2_LIBRARIES}
         ${PNG_LIBRARIES}
@@ -78,10 +90,37 @@ set(ABYSS_LIBS
 )
 
 if(UNIX)
-set(ABYSS_LIBS
-        ${ABYSS_LIBS}
-        m
-)
+        set(ABYSS_LIBS
+                ${ABYSS_LIBS}
+                m
+        )
 endif(UNIX)
+if(WIN32)
+        set(ABYSS_LIBS
+                SDL2::SDL2main
+                SDL2::SDL2
+                PNG::PNG
+        )
+endif(WIN32)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ${ABYSS_LIBS})
+target_link_libraries(${PROJECT_NAME}
+        PRIVATE
+        libabyss
+        ${ABYSS_LIBS}
+)
+
+if(WIN32)
+install(TARGETS ${PROJECT_NAME}
+        RUNTIME_DEPENDENCIES
+        PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
+        POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
+        DIRECTORIES C:/DevLibs/bin
+        LIBRARY DESTINATION bin
+        ARCHIVE DESTINATION bin
+)
+else(WIN32)
+install(TARGETS ${PROJECT_NAME}
+        LIBRARY DESTINATION bin
+        ARCHIVE DESTINATION bin
+)
+endif(WIN32)
