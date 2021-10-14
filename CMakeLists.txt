@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(abyss)
+project(abyss C)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 

@@ -25,16 +25,12 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
         FOLDER "Libraries/"
         )
 
-include_directories(
-        ${CMAKE_SOURCE_DIR}/libabyss/include
-        ${ZLIB_INCLUDE_DIR}
+target_include_directories(${PROJECT_NAME} PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 target_link_libraries(${PROJECT_NAME}
         ZLIB::ZLIB
         )
 
-install(TARGETS libabyss
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        )
+install(TARGETS libabyss)
