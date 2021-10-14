@@ -118,9 +118,15 @@ install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION bin
         ARCHIVE DESTINATION bin
 )
-else(WIN32)
+endif(WIN32)
+
+if(UNIX AND NOT APPLE)
 install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION bin
         ARCHIVE DESTINATION bin
 )
-endif(WIN32)
+endif(UNIX AND NOT APPLE)
+
+if(APPLE)
+
+endif()
