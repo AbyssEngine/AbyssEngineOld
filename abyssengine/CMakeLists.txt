@@ -63,18 +63,25 @@ include_directories(
         ${PROJECT_SOURCE_DIR}/src/lua
         ${PROJECT_BINARY_DIR}
         ${CMAKE_SOURCE_DIR}/libabyss/include
-        SDL2::Include
+        ${SDL2_INCLUDE_DIR}
         ${ZLIB_INCLUDE_DIR}
         ${LUA_INCLUDE_DIR}
         ${PNG_INCLUDE_DIR}
 )
 
-target_link_libraries(${PROJECT_NAME}
-        PRIVATE
+set(ABYSS_LIBS
         libabyss
-        ZLIB::ZLIB
-        SDL2::SDL2main
-        SDL2::SDL2-static
+        ${ZLIB_LIBRARIES}
+        ${SDL2_LIBRARIES}
         ${PNG_LIBRARIES}
         ${LUA_LIBRARIES}
-        )
+)
+
+if(UNIX)
+set(ABYSS_LIBS
+        ${ABYSS_LIBS}
+        m
+)
+endif(UNIX)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE ${ABYSS_LIBS})

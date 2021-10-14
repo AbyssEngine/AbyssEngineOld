@@ -2,7 +2,7 @@
 #define ABYSS_ENGINE_H
 
 #include "../misc/ini.h"
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <stdbool.h>
 #include <stddef.h>
 
