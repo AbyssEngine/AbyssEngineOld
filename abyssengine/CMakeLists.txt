@@ -68,46 +68,22 @@ target_sources(${PROJECT_NAME}
         ${SOURCE_EXTRA}
         )
 
-add_definitions(
-        ${PNG_DEFINITIONS}
-)
-
-include_directories(
+target_include_directories(${PROJECT_NAME} PRIVATE
         ${PROJECT_SOURCE_DIR}/src/lua
         ${PROJECT_BINARY_DIR}
-        ${CMAKE_SOURCE_DIR}/libabyss/include
-        ${SDL2_INCLUDE_DIR}
-        ${ZLIB_INCLUDE_DIR}
-        ${LUA_INCLUDE_DIR}
-        ${PNG_INCLUDE_DIR}
 )
-
-set(ABYSS_LIBS
-        ${ZLIB_LIBRARIES}
-        ${SDL2_LIBRARIES}
-        ${PNG_LIBRARIES}
-        ${LUA_LIBRARIES}
-)
-
-if(UNIX)
-        set(ABYSS_LIBS
-                ${ABYSS_LIBS}
-                m
-        )
-endif(UNIX)
-if(WIN32)
-        set(ABYSS_LIBS
-                SDL2::SDL2main
-                SDL2::SDL2
-                PNG::PNG
-        )
-endif(WIN32)
 
 target_link_libraries(${PROJECT_NAME}
         PRIVATE
         libabyss
-        ${ABYSS_LIBS}
+        SDL2::SDL2main
+        SDL2::SDL2
+        PNG::PNG
 )
+
+if(UNIX)
+    target_link_libraries(${PROJECT_NAME} PRIVATE m)
+endif()
 
 if(WIN32)
 install(TARGETS ${PROJECT_NAME}
@@ -121,10 +97,7 @@ install(TARGETS ${PROJECT_NAME}
 endif(WIN32)
 
 if(UNIX AND NOT APPLE)
-install(TARGETS ${PROJECT_NAME}
-        LIBRARY DESTINATION bin
-        ARCHIVE DESTINATION bin
-)
+install(TARGETS ${PROJECT_NAME})
 endif(UNIX AND NOT APPLE)
 
 if(APPLE)

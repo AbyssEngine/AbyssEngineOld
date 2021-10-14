@@ -25,9 +25,8 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
         FOLDER "Applications/"
         )
 
-include_directories(
+target_include_directories(${PROJECT_NAME} PRIVATE
         ${PROJECT_BINARY_DIR}
-        ${CMAKE_SOURCE_DIR}/libabyss/include
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -45,9 +44,6 @@ install(TARGETS ${PROJECT_NAME}
         ARCHIVE DESTINATION bin
 )
 else(WIN32)
-install(TARGETS ${PROJECT_NAME}
-        LIBRARY DESTINATION bin
-        ARCHIVE DESTINATION bin
-)
+install(TARGETS ${PROJECT_NAME})
 endif(WIN32)
 
