@@ -1,6 +1,7 @@
 #include "blast.h"
-#include "crypto.h"
 #include "compress.h"
+#include "crypto.h"
+#include <assert.h>
 #include <libabyss/log.h>
 #include <libabyss/mpq.h>
 #include <libabyss/mpqstream.h>
@@ -10,16 +11,14 @@
 #include <zlib.h>
 
 #if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(__CYGWIN__)
-#  include <fcntl.h>
-#  include <io.h>
-#  define SET_BINARY_MODE(file) setmode(fileno(file), O_BINARY)
+#include <fcntl.h>
+#include <io.h>
+#define SET_BINARY_MODE(file) setmode(fileno(file), O_BINARY)
 #else
-#  define SET_BINARY_MODE(file)
+#define SET_BINARY_MODE(file)
 #endif
-#define CHUNK 16384
-
 #ifndef min
-#define min(a,b) (((a) < (b)) ? (a) : (b))
+#define min(a, b) (((a) < (b)) ? (a) : (b))
 #endif // min
 
 typedef struct mpq_stream {
@@ -34,8 +33,7 @@ typedef struct mpq_stream {
     uint32_t position;
 } mpq_stream;
 
-void* mpq_stream_decompress_multi(mpq_stream* source, void *buffer, uint32_t size_compressed, uint32_t size_uncompressed);
-
+void *mpq_stream_decompress_multi(mpq_stream *source, void *buffer, uint32_t size_compressed, uint32_t size_uncompressed);
 
 bool mpq_stream_load_block_offsets(mpq_stream *source) {
     uint32_t block_position_count = ((source->block->file_size_uncompressed + source->size - 1) / source->size) + 1;
@@ -105,38 +103,38 @@ void mpq_stream_destroy(mpq_stream *source) {
 bool mpq_stream_load_single_unit(mpq_stream *source) {
     FILE *file_stream = mpq_get_file_stream(source->mpq);
     fseek(file_stream, mpq_get_header_size(source->mpq), SEEK_SET);
-    
-    
+
     void *data = malloc(source->size);
+    if (data == NULL) {
+        return false;
+    }
     fread(data, source->size, 1, file_stream);
-    
+
     if (source->size != source->block->file_size_uncompressed) {
         if (mpq_stream_decompress_multi(source, data, source->block->file_size_compressed, source->block->file_size_uncompressed) == NULL) {
-            free(data);
             return false;
         };
     }
-    
+
     if (source->data != NULL) {
         free(source->data);
     }
     source->data = data;
-    
+
     return true;
 }
 
-uint32_t mpq_stream_copy(mpq_stream *source, void* buffer, uint32_t offset, uint32_t position, uint32_t size) {
-    int bytes_to_copy = min((int)source->data_length-(int)position, (int)size);
+uint32_t mpq_stream_copy(mpq_stream *source, void *buffer, uint32_t offset, uint32_t position, uint32_t size) {
+    int bytes_to_copy = min((int)source->data_length - (int)position, (int)size);
 
     if (bytes_to_copy <= 0) {
         return 0;
     }
 
-    memcpy((char*)buffer+offset, (char*)source->data+position, bytes_to_copy);
+    memcpy((char *)buffer + offset, (char *)source->data + position, bytes_to_copy);
     source->position += bytes_to_copy;
     return bytes_to_copy;
 }
-
 
 uint32_t mpq_stream_read_internal_single_unit(mpq_stream *source, void *buffer, uint32_t offset, uint32_t size) {
     if (source->data_length == 0) {
@@ -144,25 +142,25 @@ uint32_t mpq_stream_read_internal_single_unit(mpq_stream *source, void *buffer, 
             return 0;
         }
     }
-    
+
     mpq_stream_copy(source, buffer, offset, source->position, source->data_length);
     return 0;
 }
 
-unsigned blast_in_f(void *how, unsigned char ** buf) {
+unsigned blast_in_f(void *how, unsigned char **buf) {
     *buf = how;
 }
 
-int blast_out_f(void *how, unsigned char * buf, unsigned len) {
+int blast_out_f(void *how, unsigned char *buf, unsigned len) {
     memcpy(how, buf, len);
     return 0;
 }
 
-void* mpq_stream_decompress_multi(mpq_stream* source, void *buffer, uint32_t size_compressed, uint32_t size_uncompressed) {
+void *mpq_stream_decompress_multi(mpq_stream *source, void *buffer, uint32_t size_compressed, uint32_t size_uncompressed) {
 
-    uint8_t compression_type = ((char*)buffer)[0];
+    uint8_t compression_type = ((char *)buffer)[0];
 
-    switch(compression_type) {
+    switch (compression_type) {
     case 0x01: // Huffman
         log_fatal("Huffman decompression not currently supported.");
         return NULL;
@@ -185,7 +183,6 @@ void* mpq_stream_decompress_multi(mpq_stream* source, void *buffer, uint32_t siz
             return NULL;
         }
         inflateEnd(&zlib_stream);
-
 
         free(buffer);
         return new_buffer;
@@ -210,11 +207,11 @@ void* mpq_stream_decompress_multi(mpq_stream* source, void *buffer, uint32_t siz
         return NULL;
     case 0x80: // IMA ADPCM Stereo
     {
-        return compress_decompress_wav(buffer+1, size_compressed, 2);
+        return compress_decompress_wav(buffer + 1, size_compressed, 2);
     }
     case 0x40: // IMA ADPCM Mono
     {
-        return compress_decompress_wav(buffer+1, size_compressed, 1);
+        return compress_decompress_wav(buffer + 1, size_compressed, 1);
     }
     case 0x22: // Sparse + ZLib
         log_fatal("Sparse + Zlib decompression not currently supported.");
@@ -234,20 +231,18 @@ void* mpq_stream_decompress_multi(mpq_stream* source, void *buffer, uint32_t siz
     case 0x88: // Pk + WAV
         log_fatal("Pk + WAV decompression not currently supported.");
         return NULL;
-    default:
-        log_fatal("Unknown compression code: %#04x for file '%s'", compression_type, source->filename);
-        return NULL;
     }
 
-    return buffer;
+    log_fatal("Unknown compression code: %#04x for file '%s'", compression_type, source->filename);
+    return NULL;
 }
 
-void* mpq_stream_load_block(mpq_stream *source, uint32_t index, uint32_t length, uint32_t* to_read) {
+void *mpq_stream_load_block(mpq_stream *source, uint32_t index, uint32_t length, uint32_t *to_read) {
     uint32_t offset;
 
     if (mpq_block_has_flag(source->block, MPQ_BLOCK_FLAG_COMPRESS) || mpq_block_has_flag(source->block, MPQ_BLOCK_FLAG_IMPLODE)) {
         offset = source->positions[index];
-        *to_read = source->positions[index+1] - offset;
+        *to_read = source->positions[index + 1] - offset;
     } else {
         offset = index * source->size;
         *to_read = length;
@@ -260,7 +255,7 @@ void* mpq_stream_load_block(mpq_stream *source, uint32_t index, uint32_t length,
     offset += source->block->file_position;
     void *data = malloc(*to_read);
 
-    FILE* file = mpq_get_file_stream(source->mpq);
+    FILE *file = mpq_get_file_stream(source->mpq);
 
     fseek(file, (long)offset, SEEK_SET);
     fread(data, *to_read, 1, file);
@@ -273,10 +268,10 @@ void* mpq_stream_load_block(mpq_stream *source, uint32_t index, uint32_t length,
             return NULL;
         }
 
-        crypto_decrypt_bytes(data, *to_read, index+encryption_seed);
+        crypto_decrypt_bytes(data, *to_read, index + encryption_seed);
     }
 
-    if (mpq_block_has_flag(source->block,MPQ_BLOCK_FLAG_COMPRESS) && (*to_read != length)) {
+    if (mpq_block_has_flag(source->block, MPQ_BLOCK_FLAG_COMPRESS) && (*to_read != length)) {
         if (!mpq_block_has_flag(source->block, MPQ_BLOCK_FLAG_SINGLE_UNIT)) {
             return mpq_stream_decompress_multi(source, data, *to_read, length);
         }
@@ -300,7 +295,7 @@ bool mpq_stream_buffer_data(mpq_stream *source) {
         return true;
     }
 
-    uint32_t expected_length = min(source->block->file_size_uncompressed-(block_index*source->size),source->size);
+    uint32_t expected_length = min(source->block->file_size_uncompressed - (block_index * source->size), source->size);
     uint32_t data_read;
 
     void *new_data = mpq_stream_load_block(source, block_index, expected_length, &data_read);
@@ -319,7 +314,6 @@ bool mpq_stream_buffer_data(mpq_stream *source) {
     return true;
 }
 
-
 uint32_t mpq_stream_read_internal(mpq_stream *source, void *buffer, uint32_t offset, uint32_t size) {
     if (!mpq_stream_buffer_data(source)) {
         return 0;
@@ -330,7 +324,7 @@ uint32_t mpq_stream_read_internal(mpq_stream *source, void *buffer, uint32_t off
     return mpq_stream_copy(source, buffer, offset, local_position, size);
 }
 
-uint32_t mpq_stream_read(mpq_stream *source, void* buffer, uint32_t offset, uint32_t size) {
+uint32_t mpq_stream_read(mpq_stream *source, void *buffer, uint32_t offset, uint32_t size) {
     if (mpq_block_has_flag(source->block, MPQ_BLOCK_FLAG_SINGLE_UNIT)) {
         return mpq_stream_read_internal_single_unit(source, buffer, offset, size);
     }
@@ -340,7 +334,7 @@ uint32_t mpq_stream_read(mpq_stream *source, void* buffer, uint32_t offset, uint
     for (uint32_t to_read = size; to_read > 0;) {
         uint32_t read = mpq_stream_read_internal(source, buffer, offset, to_read);
 
-        if (read==0) {
+        if (read == 0) {
             break;
         }
 

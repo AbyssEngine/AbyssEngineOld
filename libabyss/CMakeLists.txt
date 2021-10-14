@@ -16,6 +16,8 @@ add_library(${PROJECT_NAME}
         src/mpqblock.c include/libabyss/mpqblock.h
         src/blast.c src/blast.h
         src/compress.c src/compress.h
+        src/streamreader.c src/streamreader.h
+        src/streamwriter.c src/streamwriter.h
         )
 
 
