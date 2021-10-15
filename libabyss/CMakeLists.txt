@@ -5,6 +5,8 @@ project(libabyss C)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
+include(GNUInstallDirs)
+
 find_package(ZLIB REQUIRED)
 
 add_library(${PROJECT_NAME}
@@ -33,4 +35,8 @@ target_link_libraries(${PROJECT_NAME}
         ZLIB::ZLIB
         )
 
-install(TARGETS libabyss)
+install(TARGETS libabyss
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
