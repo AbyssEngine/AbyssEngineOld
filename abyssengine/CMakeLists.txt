@@ -30,7 +30,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
         FOLDER "Applications/"
         BUNDLE TRUE
         MACOSX_BUNDLE_GUI_IDENTIFIER abyssengine
-        OUTPUT_NAME "Abyss Engine"
+        OUTPUT_NAME "AbyssEngine"
         MACOSX_BUNDLE_BUNDLE_NAME "Abyss Engine"
         MACOSX_BUNDLE_BUNDLE_VERSION "${abyss_VERSION_MAJOR}.${abyss_VERSION_MINOR}"
         MACOSX_BUNDLE_SHORT_VERSION_STRING "${abyss_VERSION_MAJOR}.${abyss_VERSION_MINOR}"
