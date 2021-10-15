@@ -8,6 +8,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 find_package(ZLIB REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(PNG REQUIRED)
+find_package(Lua REQUIRED)
 
 if(MSVC)
         set(OPTIONS WIN32)
@@ -55,22 +56,12 @@ target_sources(${PROJECT_NAME}
         src/loader/filesystemloader.c src/loader/filesystemloader.h
         src/loader/loader.c src/loader/loader.h
 
-        # lua
-        src/lua/lapi.c src/lua/lapi.h src/lua/lauxlib.c src/lua/lauxlib.h src/lua/lbaselib.c src/lua/lcode.c src/lua/lcode.h
-        src/lua/lcorolib.c src/lua/lctype.c src/lua/lctype.h src/lua/ldblib.c src/lua/ldebug.c src/lua/ldebug.h src/lua/ldo.c src/lua/ldo.h src/lua/ldump.c
-        src/lua/lfunc.c src/lua/lfunc.h src/lua/lgc.c src/lua/lgc.h src/lua/linit.c src/lua/liolib.c src/lua/ljumptab.h src/lua/llex.c src/lua/llex.h
-        src/lua/llimits.h src/lua/lmathlib.c src/lua/lmem.c src/lua/lmem.h src/lua/loadlib.c src/lua/lobject.c src/lua/lobject.h src/lua/lopcodes.c src/lua/lopcodes.h
-        src/lua/lopnames.h src/lua/loslib.c src/lua/lparser.c src/lua/lparser.h src/lua/lprefix.h src/lua/lstate.c src/lua/lstate.h src/lua/lstring.c src/lua/lstring.h
-        src/lua/lstrlib.c src/lua/ltable.c src/lua/ltable.h src/lua/ltablib.c src/lua/ltm.c src/lua/ltm.h src/lua/lua.h src/lua/lua.hpp
-        src/lua/luaconf.h src/lua/lualib.h src/lua/lundump.c src/lua/lundump.h src/lua/lutf8lib.c src/lua/lvm.c src/lua/lvm.h src/lua/lzio.c
-        src/lua/lzio.h
-
         ${SOURCE_EXTRA}
         )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
-        ${PROJECT_SOURCE_DIR}/src/lua
         ${PROJECT_BINARY_DIR}
+        ${LUA_INCLUDE_DIR}
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -79,6 +70,7 @@ target_link_libraries(${PROJECT_NAME}
         SDL2::SDL2main
         SDL2::SDL2
         PNG::PNG
+        ${LUA_LIBRARIES}
 )
 
 if(UNIX)
