@@ -8,7 +8,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 find_package(ZLIB REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(PNG REQUIRED)
-find_package(Lua REQUIRED)
+find_package(Lua 5.4 REQUIRED)
 
 if(MSVC)
         set(OPTIONS WIN32)
@@ -23,8 +23,7 @@ if(APPLE)
         )
 endif(APPLE)
 
-add_executable(${PROJECT_NAME} ${OPTIONS}
-        )
+add_executable(${PROJECT_NAME} ${OPTIONS})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
         FOLDER "Applications/"
@@ -82,7 +81,7 @@ install(TARGETS ${PROJECT_NAME}
         RUNTIME_DEPENDENCIES
         PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
         POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
-        DIRECTORIES C:/DevLibs/bin
+        DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}
         LIBRARY DESTINATION bin
         ARCHIVE DESTINATION bin
 )
@@ -91,7 +90,3 @@ endif(WIN32)
 if(UNIX AND NOT APPLE)
 install(TARGETS ${PROJECT_NAME})
 endif(UNIX AND NOT APPLE)
-
-if(APPLE)
-
-endif()

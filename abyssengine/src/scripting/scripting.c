@@ -98,7 +98,7 @@ static int abyss_lua_get_config(lua_State *l) {
     return 1;
 }
 
-LUALIB_API int luaopen_abyss(lua_State *l) {
+int luaopen_abyss(lua_State *l) {
     lua_register(l, "getConfig", abyss_lua_get_config);
     lua_register(l, "log", abyss_lua_log);
     lua_register(l, "showSystemCursor", abyss_lua_show_system_cursor);

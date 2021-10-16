@@ -1,0 +1,10 @@
+{
+    "name": "abyssengine",
+    "version-string":  "pre-alpha",
+    "dependencies": [
+        "libpng",
+        "zlib",
+        "sdl2",
+        "lua"
+    ]
+}

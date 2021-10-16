@@ -6,3 +6,5 @@ cmake-build-*/
 build-*/
 build/
 tags
+out/
+CMakeSettings.json
