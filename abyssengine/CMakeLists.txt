@@ -4,6 +4,7 @@ project(abyssengine C)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
+set(APP_NAME "abyssengine")
 
 find_package(ZLIB REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
@@ -13,9 +14,11 @@ find_package(Lua 5.4 REQUIRED)
 if(MSVC)
         set(OPTIONS WIN32)
         set(SOURCE_EXTRA resource.rc)
+        set(APP_NAME "AbyssEngine")
 endif(MSVC)
-if(APPLE)
 
+if(APPLE)
+        set(APP_NAME "Abyss Engine")
         set_source_files_properties(abyssbadge.icns PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
         set(OPTIONS
                 MACOSX_BUNDLE
@@ -29,8 +32,8 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
         FOLDER "Applications/"
         BUNDLE TRUE
         MACOSX_BUNDLE_GUI_IDENTIFIER abyssengine
-        OUTPUT_NAME "AbyssEngine"
-        MACOSX_BUNDLE_BUNDLE_NAME "Abyss Engine"
+        OUTPUT_NAME ${APP_NAME}
+        MACOSX_BUNDLE_BUNDLE_NAME ${APP_NAME}
         MACOSX_BUNDLE_BUNDLE_VERSION "${abyss_VERSION_MAJOR}.${abyss_VERSION_MINOR}"
         MACOSX_BUNDLE_SHORT_VERSION_STRING "${abyss_VERSION_MAJOR}.${abyss_VERSION_MINOR}"
         MACOSX_BUNDLE_ICON_FILE abyssbadge.icns
@@ -90,3 +93,6 @@ endif(WIN32)
 if(UNIX AND NOT APPLE)
 install(TARGETS ${PROJECT_NAME})
 endif(UNIX AND NOT APPLE)
+
+if(APPLE)
+endif(APPLE)

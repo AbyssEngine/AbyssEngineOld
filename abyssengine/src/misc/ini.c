@@ -6,10 +6,8 @@
 #include <string.h>
 
 #ifdef _WIN32
-size_t getdelim(char **buf, size_t *bufsiz, int delimiter, FILE *fp)
-{
+size_t getdelim(char **buf, size_t *bufsiz, int delimiter, FILE *fp) {
     char *ptr, *eptr;
-
 
     if (*buf == NULL || *bufsiz == 0) {
         *bufsiz = BUFSIZ;
@@ -47,9 +45,7 @@ size_t getdelim(char **buf, size_t *bufsiz, int delimiter, FILE *fp)
         }
     }
 }
-size_t getline(char **buf, size_t *bufsiz, FILE *fp) {
-    return getdelim(buf, bufsiz, '\n', fp);
-}
+size_t getline(char **buf, size_t *bufsiz, FILE *fp) { return getdelim(buf, bufsiz, '\n', fp); }
 #endif
 
 ini_file *ini_file_load(const char *file_path) {
@@ -61,14 +57,13 @@ ini_file *ini_file_load(const char *file_path) {
 
     if (file == NULL) {
         log_error("Cannot load INI file: %s", file_path);
-        return NULL;
+        return result;
     }
 
     size_t line_size = 0;
     char *line = NULL;
     ini_file_category *current_category = NULL;
     int line_idx = 0;
-
 
     while (getline(&line, &line_size, file) > 0) {
         line_idx++;
@@ -192,7 +187,7 @@ void ini_file_destroy_entry(ini_file_entry *source) {
     free(source);
 }
 
-ini_file_entry *ini_file_get_entry(ini_file_category *source, const char* name) {
+ini_file_entry *ini_file_get_entry(ini_file_category *source, const char *name) {
     for (int i = 0; i < source->num_entries; i++) {
         ini_file_entry *entry = source->entries[i];
         if (strcmp(entry->name, name) != 0) {
@@ -205,7 +200,7 @@ ini_file_entry *ini_file_get_entry(ini_file_category *source, const char* name) 
     return NULL;
 }
 
-const char *init_file_get_value(ini_file *source, const char* category, const char *name) {
+const char *init_file_get_value(ini_file *source, const char *category, const char *name) {
     ini_file_category *cat = ini_file_get_category(source, category);
 
     if (cat == NULL) {

@@ -1,7 +1,8 @@
 #include "config.h"
 #include "engine/engine.h"
-#include <stdlib.h>
+#include <assert.h>
 #include <libabyss/log.h>
+#include <stdlib.h>
 #ifdef _WIN32
 #include <direct.h>
 #else
@@ -19,6 +20,7 @@ int main(int argc, char **argv) {
 #endif
 
     ini_file *ini = ini_file_load("config.ini");
+    assert(ini != NULL);
 
     engine *engine = engine_create(cwd_path, ini);
     engine_set_global_instance(engine);

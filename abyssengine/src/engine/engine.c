@@ -184,7 +184,7 @@ engine *engine_get_global_instance() { return global_engine_instance; }
 
 void engine_set_global_instance(engine *src) { global_engine_instance = src; }
 
-void engine_show_system_cursor( engine *src, bool show) { SDL_ShowCursor(show); }
+void engine_show_system_cursor(engine *src, bool show) { SDL_ShowCursor(show); }
 
 SDL_Renderer *engine_get_renderer(engine *src) { return src->sdl_renderer; }
 
