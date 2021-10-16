@@ -6,12 +6,17 @@
 #include "../scripting/scripting.h"
 #include "config.h"
 #include "lua.h"
-#include "sysfont.h"
+#include "modeboot.h"
 #include <lauxlib.h>
 #include <libabyss/log.h>
+#include <libabyss/threading.h>
 #include <lualib.h>
 #include <stdlib.h>
 #include <string.h>
+
+typedef int engine_run_mode;
+
+enum { ENGINE_RUNE_MODE_BOOT };
 
 typedef struct engine {
     bool is_running;
@@ -28,6 +33,9 @@ typedef struct engine {
     char *base_path;
     ini_file *ini_config;
     sysfont *font;
+    engine_run_mode run_mode;
+    void (*render_callback)(engine *src);
+    thread *script_thread;
 } engine;
 
 static engine *global_engine_instance;
@@ -38,17 +46,20 @@ engine *engine_create(char *base_path, ini_file *ini_config) {
     result->pixel_buffer = (uint32_t *)calloc(800 * 600, 4);
     result->base_path = strdup(base_path);
     result->ini_config = ini_config;
+    result->run_mode = ENGINE_RUNE_MODE_BOOT;
 
     // TODO: Make the language settings dynamic
     result->loader = loader_new("eng", "latin");
 
     engine_init_sdl2(result);
     engine_init_lua(result);
+    scripting_init();
 
     return result;
 }
 
 void engine_destroy(engine *src) {
+    scripting_finalize();
     engine_finalize_sdl2(src);
     engine_finalize_lua(src);
 
@@ -102,6 +113,38 @@ void engine_finalize_sdl2(engine *src) {
     SDL_Quit();
 }
 
+static void engine_script_thread_cleanup(void *data) {
+    // TODO: Any script cleanup, engine shutdown
+    log_info("Bootstrap script executed has completed.");
+}
+
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "ConstantFunctionResult"
+static void *engine_script_thread(void *data) {
+    engine *src = (engine *)data;
+
+    thread_cleanup_push(engine_script_thread_cleanup, data);
+
+    int file_size;
+    char *lua_code = loader_load(src->loader, "test.lua", &file_size);
+
+    if (lua_code == NULL) {
+        log_fatal("Could not load bootstrap script!");
+        return NULL;
+    }
+
+    if (luaL_loadbuffer(src->lua_state, lua_code, file_size, "@test.lua") || lua_pcall(src->lua_state, 0, 0, 0)) {
+        log_error(lua_tostring(src->lua_state, -1));
+        return NULL;
+    }
+    free(lua_code);
+
+    thread_cleanup_pop(1);
+
+    return NULL;
+}
+#pragma clang diagnostic pop
+
 void engine_run(engine *src) {
     SDL_Event sdl_event;
 
@@ -116,19 +159,9 @@ void engine_run(engine *src) {
 
     src->is_running = true;
 
-    int file_size;
-    char *lua_code = loader_load(src->loader, "test.lua", &file_size);
+    src->script_thread = thread_create(engine_script_thread, src);
 
-    if (lua_code == NULL) {
-        log_fatal("Could not load bootstrap script!");
-        exit(EXIT_FAILURE);
-    }
-
-    if (luaL_loadbuffer(src->lua_state, lua_code, file_size, "@test.lua") || lua_pcall(src->lua_state, 0, 0, 0)) {
-        log_error(lua_tostring(src->lua_state, -1));
-        exit(EXIT_FAILURE);
-    }
-    free(lua_code);
+    modeboot_set_callbacks(src);
 
     while (src->is_running) {
         while (SDL_PollEvent(&sdl_event)) {
@@ -151,14 +184,13 @@ void engine_handle_sdl_event(engine *src, const SDL_Event *evt) {
 void engine_shutdown(engine *src) { src->is_running = false; }
 
 void engine_render(engine *src) {
+    if (src->render_callback != NULL) {
+        mutex_lock(script_mutex);
+        src->render_callback(src);
+        mutex_unlock(script_mutex);
+        return;
+    }
     SDL_RenderClear(src->sdl_renderer);
-
-    SDL_RenderCopy(src->sdl_renderer, src->texture_logo, &src->rect_logo, &src->rect_logo);
-
-    sysfont_draw(src->font, src->sdl_renderer, 0, 0, "Hello, World!\nThis is a multi-line test!");
-    sysfont_draw(src->font, src->sdl_renderer, 0, 32, "This is a \\#FF22CC fancy \\#22FF00 test.");
-    sysfont_draw_wrap(src->font, src->sdl_renderer, 64, 64, "A long string that should be wrapped properly...", 256);
-
     SDL_RenderPresent(src->sdl_renderer);
 }
 
@@ -168,6 +200,8 @@ void engine_update(engine *src) {
     if (tick_diff <= 0) {
         return;
     }
+    mutex_lock(script_mutex);
+    
     src->last_tick = new_ticks;
 
     if ((new_ticks - src->frame_count_tick) >= 1000) {
@@ -177,6 +211,8 @@ void engine_update(engine *src) {
     } else {
         src->frame_count++;
     }
+
+    mutex_unlock(script_mutex);
 }
 
 int engine_get_fps(engine *src) { return src->fps; }
@@ -198,3 +234,14 @@ void engine_show_system_cursor(engine *src, bool show) { SDL_ShowCursor(show); }
 SDL_Renderer *engine_get_renderer(engine *src) { return src->sdl_renderer; }
 
 ini_file *engine_get_ini_configuration(engine *src) { return src->ini_config; }
+
+sysfont *engine_get_sysfont(const engine *src) { return src->font; }
+
+void engine_set_callbacks(engine *src, void (*render_callback)(engine *src)) { src->render_callback = render_callback; }
+
+SDL_Texture *engine_get_logo_texture(const engine *src, SDL_Rect *rect) {
+    if (rect != NULL) {
+        *rect = src->rect_logo;
+    }
+    return src->texture_logo;
+}

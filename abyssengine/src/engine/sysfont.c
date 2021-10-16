@@ -16,9 +16,10 @@ sysfont *sysfont_create(const void *font_gfx) {
     result->char_rects = malloc(sizeof(SDL_Rect) * 256);
 
     result->font_texture = util_load_texture_png(font_gfx, &result->width, &result->height);
-
     result->char_width = result->width / 16;
     result->char_height = result->height / 16;
+
+    SDL_SetTextureBlendMode(result->font_texture, SDL_BLENDMODE_BLEND);
 
     for (int i = 0; i < 256; i++) {
         int tx = i % 16;

@@ -11,20 +11,19 @@ find_package(SDL2 CONFIG REQUIRED)
 find_package(PNG REQUIRED)
 find_package(Lua 5.4 REQUIRED)
 
-if(MSVC)
-        set(OPTIONS WIN32)
-        set(SOURCE_EXTRA resource.rc)
-        set(APP_NAME "AbyssEngine")
-endif(MSVC)
+if (MSVC)
+    set(OPTIONS WIN32)
+    set(SOURCE_EXTRA resource.rc)
+    set(APP_NAME "AbyssEngine")
+endif (MSVC)
 
-if(APPLE)
-        set(APP_NAME "Abyss Engine")
-        set_source_files_properties(abyssbadge.icns PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
-        set(OPTIONS
-                MACOSX_BUNDLE
-                ./abyssbadge.icns
-        )
-endif(APPLE)
+if (APPLE)
+    set(APP_NAME "Abyss Engine")
+    set_source_files_properties(abyssbadge.icns PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+    set(OPTIONS
+            MACOSX_BUNDLE
+            ./abyssbadge.icns)
+endif (APPLE)
 
 add_executable(${PROJECT_NAME} ${OPTIONS})
 
@@ -45,13 +44,21 @@ configure_file(
 )
 
 
-
 target_sources(${PROJECT_NAME}
         PRIVATE
         src/abyssengine.c
         src/engine/engine.c src/engine/engine.h
         src/engine/sysfont.c src/engine/sysfont.h
+        src/engine/modeboot.c src/engine/modeboot.h
+
         src/scripting/scripting.c src/scripting/scripting.h
+        src/scripting/log.c
+        src/scripting/getconfig.c
+        src/scripting/addloaderprovider.c
+        src/scripting/shutdown.c
+        src/scripting/showsystemcursor.c
+        src/scripting/sleep.c
+
         src/misc/util.c src/misc/util.h
         src/misc/ini.c src/misc/ini.h
         src/misc/resources.c src/misc/resources.h
@@ -64,7 +71,7 @@ target_sources(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${PROJECT_BINARY_DIR}
         ${LUA_INCLUDE_DIR}
-)
+        )
 
 target_link_libraries(${PROJECT_NAME}
         PRIVATE
@@ -73,26 +80,26 @@ target_link_libraries(${PROJECT_NAME}
         SDL2::SDL2
         PNG::PNG
         ${LUA_LIBRARIES}
-)
+        )
 
-if(UNIX)
+if (UNIX)
     target_link_libraries(${PROJECT_NAME} PRIVATE m)
-endif()
+endif ()
 
-if(WIN32)
-install(TARGETS ${PROJECT_NAME}
-        RUNTIME_DEPENDENCIES
-        PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
-        POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
-        DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}
-        LIBRARY DESTINATION bin
-        ARCHIVE DESTINATION bin
-)
-endif(WIN32)
+if (WIN32)
+    install(TARGETS ${PROJECT_NAME}
+            RUNTIME_DEPENDENCIES
+            PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
+            POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
+            DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}
+            LIBRARY DESTINATION bin
+            ARCHIVE DESTINATION bin
+            )
+endif (WIN32)
 
-if(UNIX AND NOT APPLE)
-install(TARGETS ${PROJECT_NAME})
-endif(UNIX AND NOT APPLE)
+if (UNIX AND NOT APPLE)
+    install(TARGETS ${PROJECT_NAME})
+endif (UNIX AND NOT APPLE)
 
-if(APPLE)
-endif(APPLE)
+if (APPLE)
+endif (APPLE)

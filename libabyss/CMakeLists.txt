@@ -9,6 +9,15 @@ include(GNUInstallDirs)
 
 find_package(ZLIB REQUIRED)
 
+if (WIN32)
+    find_package(Threads REQUIRED)
+
+    set(THREADS_PREFER_PTHREAD_FLAG ON)
+    set(THREAD_SRC src/threading_windows.c include/libabyss/threading.h)
+else ()
+    set(THREAD_SRC src/threading_unix.c include/libabyss/threading.h)
+endif ()
+
 add_library(${PROJECT_NAME}
         src/libabyss.c include/libabyss/libabyss.h
         src/mpq.c include/libabyss/mpq.h
@@ -20,6 +29,7 @@ add_library(${PROJECT_NAME}
         src/compress.c src/compress.h
         src/streamreader.c src/streamreader.h
         src/streamwriter.c src/streamwriter.h
+        ${THREAD_SRC}
         )
 
 
@@ -28,15 +38,16 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
         )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        )
 
 target_link_libraries(${PROJECT_NAME}
         ZLIB::ZLIB
+        ${CMAKE_THREAD_LIBS_INIT}
         )
 
 install(TARGETS libabyss
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    )
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        )
