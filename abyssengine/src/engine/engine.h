@@ -6,7 +6,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-
 typedef struct engine engine;
 
 engine *engine_create();

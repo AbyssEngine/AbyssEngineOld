@@ -1,0 +1,94 @@
+#include "sysfont.h"
+#include "../misc/util.h"
+#include <stdlib.h>
+
+typedef struct sysfont {
+    SDL_Texture *font_texture;
+    int width;
+    int height;
+    int char_width;
+    int char_height;
+    SDL_Rect *char_rects;
+} sysfont;
+
+sysfont *sysfont_create(const void *font_gfx) {
+    sysfont *result = malloc(sizeof(sysfont));
+    result->char_rects = malloc(sizeof(SDL_Rect) * 256);
+
+    result->font_texture = util_load_texture_png(font_gfx, &result->width, &result->height);
+
+    result->char_width = result->width / 16;
+    result->char_height = result->height / 16;
+
+    for (int i = 0; i < 256; i++) {
+        int tx = i % 16;
+        int ty = (i - tx) / 16;
+        SDL_Rect *rect = &result->char_rects[i];
+        rect->w = result->char_width;
+        rect->h = result->char_height;
+        rect->x = tx * result->char_width;
+        rect->y = ty * result->char_height;
+    }
+
+    return result;
+}
+
+void sysfont_destroy(sysfont *source) {
+    SDL_DestroyTexture(source->font_texture);
+    free(source->char_rects);
+    free(source);
+}
+
+void sysfont_draw(sysfont *source, SDL_Renderer *renderer, const int x, const int y, char *string) {
+    sysfont_draw_wrap(source, renderer, x, y, string, -1);
+}
+
+void sysfont_draw_wrap(sysfont *source, SDL_Renderer *renderer, const int x, const int y, char *string, const int max_width) {
+    SDL_Rect target = {x, y, source->char_width, source->char_height};
+    SDL_SetTextureColorMod(source->font_texture, 0xFF, 0xFF, 0xFF);
+
+    for (char *ch = string; *ch != '\0'; ch++) {
+
+        if ((target.x > x) && (ch != string && *((char *)(ch - 1)) == ' ') && (max_width > source->char_width)) {
+            int temp_x = target.x - x;
+            for (char *ch_temp = ch; (*ch_temp != ' ') && (*ch_temp != '\0'); ch_temp++) {
+                temp_x += source->char_width;
+            }
+
+            if (((target.x - x) + temp_x) >= max_width) {
+                target.x = x;
+                target.y += source->char_height;
+            }
+        }
+
+        if (*ch == '\n') {
+            target.x = x;
+            target.y += source->char_height;
+            continue;
+        }
+
+        if ((*ch == '\\') && (*(char *)(ch + 1) == '#')) {
+            ch += 2;
+            if (strlen(ch) < 7) {
+                continue;
+            }
+
+            char *hex_str = strndup(ch, 6);
+            uint32_t hex_color = strtol(hex_str, NULL, 16);
+            free(hex_str);
+
+            SDL_SetTextureColorMod(source->font_texture, (hex_color >> 16) & 0xFF, (hex_color >> 8) & 0xFF, hex_color & 0xFF);
+            ch += 6;
+            continue;
+        }
+
+        SDL_RenderCopy(renderer, source->font_texture, &source->char_rects[*ch], &target);
+        target.x += source->char_width;
+
+        SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, SDL_ALPHA_OPAQUE);
+    }
+}
+
+int sysfont_get_character_height(const sysfont *source) { return source->height; }
+
+int sysfont_get_character_width(const sysfont *source) { return source->width; }

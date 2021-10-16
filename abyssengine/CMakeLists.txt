@@ -50,6 +50,7 @@ target_sources(${PROJECT_NAME}
         PRIVATE
         src/abyssengine.c
         src/engine/engine.c src/engine/engine.h
+        src/engine/sysfont.c src/engine/sysfont.h
         src/scripting/scripting.c src/scripting/scripting.h
         src/misc/util.c src/misc/util.h
         src/misc/ini.c src/misc/ini.h
@@ -57,7 +58,6 @@ target_sources(${PROJECT_NAME}
         src/loader/loaderprovider.c src/loader/loaderprovider.h
         src/loader/filesystemloader.c src/loader/filesystemloader.h
         src/loader/loader.c src/loader/loader.h
-
         ${SOURCE_EXTRA}
         )
 

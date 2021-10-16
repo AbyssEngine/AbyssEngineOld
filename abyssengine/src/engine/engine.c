@@ -6,6 +6,7 @@
 #include "../scripting/scripting.h"
 #include "config.h"
 #include "lua.h"
+#include "sysfont.h"
 #include <lauxlib.h>
 #include <libabyss/log.h>
 #include <lualib.h>
@@ -26,6 +27,7 @@ typedef struct engine {
     loader *loader;
     char *base_path;
     ini_file *ini_config;
+    sysfont *font;
 } engine;
 
 static engine *global_engine_instance;
@@ -51,6 +53,7 @@ void engine_destroy(engine *src) {
     engine_finalize_lua(src);
 
     loader_destroy(src->loader);
+    sysfont_destroy(src->font);
     free(src->base_path);
     free(src->pixel_buffer);
     free(src);
@@ -102,6 +105,8 @@ void engine_finalize_sdl2(engine *src) {
 void engine_run(engine *src) {
     SDL_Event sdl_event;
 
+    src->font = sysfont_create(resource_abyss_system_font);
+
     loader_add_provider(src->loader, filesystem_loader_new("./"));
 
     src->texture_logo = util_load_texture_png(resource_abyss_boot_logo, &src->rect_logo.w, &src->rect_logo.h);
@@ -149,6 +154,10 @@ void engine_render(engine *src) {
     SDL_RenderClear(src->sdl_renderer);
 
     SDL_RenderCopy(src->sdl_renderer, src->texture_logo, &src->rect_logo, &src->rect_logo);
+
+    sysfont_draw(src->font, src->sdl_renderer, 0, 0, "Hello, World!\nThis is a multi-line test!");
+    sysfont_draw(src->font, src->sdl_renderer, 0, 32, "This is a \\#FF22CC fancy \\#22FF00 test.");
+    sysfont_draw_wrap(src->font, src->sdl_renderer, 64, 64, "A long string that should be wrapped properly...", 256);
 
     SDL_RenderPresent(src->sdl_renderer);
 }
