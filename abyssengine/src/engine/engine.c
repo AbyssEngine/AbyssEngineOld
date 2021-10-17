@@ -36,6 +36,7 @@ typedef struct engine {
     engine_run_mode run_mode;
     void (*render_callback)(engine *src);
     thread *script_thread;
+    char *boot_text;
 } engine;
 
 static engine *global_engine_instance;
@@ -62,6 +63,10 @@ void engine_destroy(engine *src) {
     scripting_finalize();
     engine_finalize_sdl2(src);
     engine_finalize_lua(src);
+
+    if (src->boot_text != NULL) {
+        free(src->boot_text);
+    }
 
     loader_destroy(src->loader);
     sysfont_destroy(src->font);
@@ -201,7 +206,7 @@ void engine_update(engine *src) {
         return;
     }
     mutex_lock(script_mutex);
-    
+
     src->last_tick = new_ticks;
 
     if ((new_ticks - src->frame_count_tick) >= 1000) {
@@ -239,9 +244,28 @@ sysfont *engine_get_sysfont(const engine *src) { return src->font; }
 
 void engine_set_callbacks(engine *src, void (*render_callback)(engine *src)) { src->render_callback = render_callback; }
 
+const char *engine_get_base_path(const engine *src) { return src->base_path; }
+
+loader *engine_get_loader(const engine *src) { return src->loader; };
+
 SDL_Texture *engine_get_logo_texture(const engine *src, SDL_Rect *rect) {
     if (rect != NULL) {
         *rect = src->rect_logo;
     }
     return src->texture_logo;
 }
+
+void engine_set_boot_text(engine *src, const char *boot_text) {
+    if (boot_text == NULL) {
+        if (src->boot_text != NULL) {
+            free(src->boot_text);
+            src->boot_text = NULL;
+            return;
+        }
+    }
+
+    src->boot_text = realloc(src->boot_text, strlen(boot_text) + 1);
+    memcpy(src->boot_text, boot_text, strlen(boot_text) + 1);
+}
+
+const char *engine_get_boot_text(engine *src) { return src->boot_text; }

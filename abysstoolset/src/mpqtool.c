@@ -1,5 +1,5 @@
 #include "mpqtool.h"
-#include "common.h"
+#include "libabyss/utils.h"
 #include <libabyss/mpq.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,8 +47,8 @@ int mpqtool_run(int argc, char **argv) {
 int mpqtool_extract_single_file(mpq *source, const char *output_root_path, const char *file_path) {
     uint32_t file_size;
     char *file_path_copy = strdup(file_path);
-    char *final_path = common_fix_mpq_path(file_path_copy);
-    common_trim_end_string(final_path);
+    char *final_path = util_fix_mpq_path(file_path_copy);
+    util_trim_end_string(final_path);
 
     printf("Extracting '%s'...\n", final_path);
     char *data = mpq_read_file(source, final_path, &file_size);
@@ -64,10 +64,10 @@ int mpqtool_extract_single_file(mpq *source, const char *output_root_path, const
     strcat(output_file_path, output_root_path);
     strcat(output_file_path, "/extracted/");
     strcat(output_file_path, final_path);
-    common_trim_end_string(output_file_path);
-    common_normalize_path(output_file_path);
+    util_trim_end_string(output_file_path);
+    util_normalize_path(output_file_path);
 
-    common_create_directories_recursively(output_file_path);
+    util_create_directories_recursively(output_file_path);
 
     FILE *file = fopen(output_file_path, "w");
 
@@ -120,7 +120,7 @@ int mpqtool_extract(const char *mpq_path, char *file_path) {
         return EXIT_FAILURE;
     }
 
-    const char *cwd = common_get_cwd();
+    const char *cwd = util_get_cwd();
 
     int result = (strcmp(file_path, "*") != 0) ? mpqtool_extract_single_file(source, cwd, file_path) : mpqtool_extract_all_files(source, cwd);
 

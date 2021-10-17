@@ -20,6 +20,7 @@ endif ()
 
 add_library(${PROJECT_NAME}
         src/libabyss.c include/libabyss/libabyss.h
+        src/utils.c include/libabyss/utils.h
         src/mpq.c include/libabyss/mpq.h
         src/log.c include/libabyss/log.h
         src/crypto.c src/crypto.h

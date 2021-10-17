@@ -1,6 +1,7 @@
 #ifndef ABYSS_ENGINE_H
 #define ABYSS_ENGINE_H
 
+#include "../loader/loader.h"
 #include "../misc/ini.h"
 #include "sysfont.h"
 #include <SDL2/SDL.h>
@@ -9,7 +10,7 @@
 
 typedef struct engine engine;
 
-engine *engine_create();
+engine *engine_create(char *base_path, ini_file *ini_config);
 void engine_destroy(engine *src);
 void engine_init_sdl2(engine *src);
 void engine_finalize_sdl2(engine *src);
@@ -29,5 +30,8 @@ SDL_Renderer *engine_get_renderer(engine *src);
 ini_file *engine_get_ini_configuration(engine *src);
 void engine_set_callbacks(engine *src, void (*render_callback)(engine *src));
 SDL_Texture *engine_get_logo_texture(const engine *src, SDL_Rect *rect);
-
+void engine_set_boot_text(engine *src, const char *boot_text);
+const char *engine_get_boot_text(engine *src);
+const char *engine_get_base_path(const engine *src);
+loader *engine_get_loader(const engine *src);
 #endif // ABYSS_ENGINE_H

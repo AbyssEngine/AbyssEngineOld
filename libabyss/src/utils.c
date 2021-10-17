@@ -1,4 +1,4 @@
-#include "common.h"
+#include <libabyss/utils.h>
 #include <stdlib.h>
 #include <string.h>
 #ifdef _WIN32
@@ -8,7 +8,7 @@
 #include <unistd.h>
 #endif // _WIN32
 
-char * common_fix_mpq_path(char * path) {
+char *util_fix_mpq_path(char *path) {
     if (path[0] == '\0') {
         return path;
     }
@@ -20,12 +20,12 @@ char * common_fix_mpq_path(char * path) {
         *ch = '\\';
     }
 
-    return (path[0] == '\\')
-        ? path+1
-        : path;
+    char *result = (path[0] == '\\') ? path + 1 : path;
+    util_trim_end_string(result);
+    return result;
 }
 
-void common_normalize_path(char *path) {
+void util_normalize_path(char *path) {
     if (path[0] == '\0') {
         return;
     }
@@ -39,22 +39,22 @@ void common_normalize_path(char *path) {
     }
 }
 
-const char* common_get_cwd() {
+const char *util_get_cwd() {
     char *result = calloc(1, 2048);
 
 #ifdef _WIN32
     _getcwd(result, 2048);
-#else // _WIN32
+#else  // _WIN32
     getcwd(result, 2048);
 #endif // _WIN32
 
     return result;
 }
 
-void common_create_directory(const char *path) {
+void util_create_directory(const char *path) {
 #ifdef _WIN32
     CreateDirectoryA(path, NULL);
-#else // _WIN32
+#else  // _WIN32
     struct stat s = {0};
     if (stat(path, &s) != -1) {
         return;
@@ -63,11 +63,11 @@ void common_create_directory(const char *path) {
 #endif // _WIN32
 }
 
-void common_create_directories_recursively(const char *path) {
+void util_create_directories_recursively(const char *path) {
     char *original_path = calloc(1, 2048);
     char *new_path = calloc(1, 2048);
     strcat(original_path, path);
-    original_path[(int)(strrchr(original_path, '/')-original_path)] = '\0';
+    original_path[(int)(strrchr(original_path, '/') - original_path)] = '\0';
 
 #ifdef _WIN32
     char *token = strtok_s(original_path, "/", &original_path);
@@ -78,7 +78,7 @@ void common_create_directories_recursively(const char *path) {
     while (token != NULL) {
         strcat(new_path, "/");
         strcat(new_path, token);
-        common_create_directory(new_path);
+        util_create_directory(new_path);
 #ifdef _WIN32
         token = strtok_s(NULL, "/", &original_path);
 #else
@@ -90,25 +90,21 @@ void common_create_directories_recursively(const char *path) {
     free(new_path);
 }
 
+bool util_is_space(unsigned char ch) { return (ch == '\r') || (ch == ' ') || (ch == '\t' || (ch == '\n')); }
 
-bool common_is_space(unsigned char ch) {
-    return (ch == '\r') || (ch == ' ') || (ch == '\t' || (ch == '\n'));
-}
-
-void common_trim_end_string(char *str) {
+void util_trim_end_string(char *str) {
     char *end;
 
     end = str + strlen(str) - 1;
-    while (end > str && common_is_space((unsigned char)*end)) {
+    while (end > str && util_is_space((unsigned char)*end)) {
         end--;
     }
 
     end[1] = '\0';
 }
 
-
-char *common_trim_string(char *str) {
-    while (common_is_space((unsigned char)*str)) {
+char *util_trim_string(char *str) {
+    while (util_is_space((unsigned char)*str)) {
         str++;
     }
 
@@ -116,7 +112,7 @@ char *common_trim_string(char *str) {
         return str;
     }
 
-    common_trim_end_string(str);
+    util_trim_end_string(str);
 
     return str;
 }

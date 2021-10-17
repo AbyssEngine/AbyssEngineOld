@@ -13,6 +13,12 @@ void engine_render_boot(engine *src) {
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, logo, &logo_rect, &logo_dest);
     sysfont_draw(font, renderer, logo_dest.x, logo_dest.y + logo_dest.h + 4, "\\#888888 " ABYSS_VERSION_STRING "\nhttps://github.com/AbyssEngine");
+
+    const char *boot_text = engine_get_boot_text(src);
+    if (boot_text != NULL) {
+        sysfont_draw_wrap(font, renderer, logo_dest.x, logo_dest.y + logo_dest.h + 48, boot_text, 800 - logo_dest.x);
+    }
+
     SDL_RenderPresent(renderer);
 }
 

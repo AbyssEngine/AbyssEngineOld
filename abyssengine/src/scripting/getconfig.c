@@ -10,6 +10,16 @@ int abyss_lua_get_config(lua_State *l) {
     const char *category = lua_tostring(l, 1);
     const char *value = lua_tostring(l, 2);
 
+    if (strcmp(category, "#Abyss") == 0) {
+        if (strcmp(value, "BasePath") == 0) {
+            lua_pushstring(l, engine_get_base_path(engine_get_global_instance()));
+            return 1;
+        }
+
+        luaL_error(l, "configuration value '%s' not found in abyss environment", value);
+        return 0;
+    }
+
     ini_file *ini = engine_get_ini_configuration(engine_get_global_instance());
     const char *result = init_file_get_value(ini, category, value);
 

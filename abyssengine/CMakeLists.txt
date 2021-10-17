@@ -58,12 +58,15 @@ target_sources(${PROJECT_NAME}
         src/scripting/shutdown.c
         src/scripting/showsystemcursor.c
         src/scripting/sleep.c
+        src/scripting/setboottext.c
+        src/scripting/loadstring.c
 
         src/misc/util.c src/misc/util.h
         src/misc/ini.c src/misc/ini.h
         src/misc/resources.c src/misc/resources.h
         src/loader/loaderprovider.c src/loader/loaderprovider.h
         src/loader/filesystemloader.c src/loader/filesystemloader.h
+        src/loader/mpqloader.c src/loader/mpqloader.h
         src/loader/loader.c src/loader/loader.h
         ${SOURCE_EXTRA}
         )
@@ -100,6 +103,3 @@ endif (WIN32)
 if (UNIX AND NOT APPLE)
     install(TARGETS ${PROJECT_NAME})
 endif (UNIX AND NOT APPLE)
-
-if (APPLE)
-endif (APPLE)

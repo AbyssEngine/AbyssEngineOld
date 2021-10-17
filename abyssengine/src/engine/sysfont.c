@@ -4,8 +4,7 @@
 #include <string.h>
 
 #ifdef _WIN32
-char *strndup(char const *s, size_t n)
-{
+char *strndup(char const *s, size_t n) {
     size_t len = strnlen(s, n);
     char *new = malloc(len + 1);
     if (!new)
@@ -53,19 +52,19 @@ void sysfont_destroy(sysfont *source) {
     free(source);
 }
 
-void sysfont_draw(sysfont *source, SDL_Renderer *renderer, const int x, const int y, char *string) {
+void sysfont_draw(sysfont *source, SDL_Renderer *renderer, const int x, const int y, const char *string) {
     sysfont_draw_wrap(source, renderer, x, y, string, -1);
 }
 
-void sysfont_draw_wrap(sysfont *source, SDL_Renderer *renderer, const int x, const int y, char *string, const int max_width) {
+void sysfont_draw_wrap(sysfont *source, SDL_Renderer *renderer, const int x, const int y, const char *string, const int max_width) {
     SDL_Rect target = {x, y, source->char_width, source->char_height};
     SDL_SetTextureColorMod(source->font_texture, 0xFF, 0xFF, 0xFF);
 
-    for (char *ch = string; *ch != '\0'; ch++) {
+    for (const char *ch = string; *ch != '\0'; ch++) {
 
-        if ((target.x > x) && (ch != string && *((char *)(ch - 1)) == ' ') && (max_width > source->char_width)) {
+        if ((target.x > x) && (*((char *)(ch - 1)) == ' ') && (max_width > source->char_width)) {
             int temp_x = target.x - x;
-            for (char *ch_temp = ch; (*ch_temp != ' ') && (*ch_temp != '\0'); ch_temp++) {
+            for (const char *ch_temp = ch; (*ch_temp != ' ') && (*ch_temp != '\0'); ch_temp++) {
                 temp_x += source->char_width;
             }
 
