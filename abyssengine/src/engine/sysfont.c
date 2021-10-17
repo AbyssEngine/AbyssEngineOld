@@ -1,6 +1,19 @@
 #include "sysfont.h"
 #include "../misc/util.h"
 #include <stdlib.h>
+#include <string.h>
+
+#ifdef _WIN32
+char *strndup(char const *s, size_t n)
+{
+    size_t len = strnlen(s, n);
+    char *new = malloc(len + 1);
+    if (!new)
+        return NULL;
+    new[len] = '\0';
+    return memcpy(new, s, len);
+}
+#endif
 
 typedef struct sysfont {
     SDL_Texture *font_texture;

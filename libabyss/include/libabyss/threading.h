@@ -10,7 +10,9 @@ void thread_cancel(thread *source);
 void thread_cancel_checkpoint();
 
 #ifdef _WIN32
-
+// TODO: Is there a windows way to do this?
+#define thread_cleanup_push(func, val)
+#define thread_cleanup_pop(execute)
 #else
 #include <pthread.h>
 #define thread_cleanup_push(func, val) pthread_cleanup_push(func, val)

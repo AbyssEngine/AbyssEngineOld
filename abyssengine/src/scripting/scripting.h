@@ -25,6 +25,6 @@ extern int abyss_lua_shutdown(lua_State *l);
 extern int abyss_lua_show_system_cursor(lua_State *l);
 extern int abyss_lua_sleep(lua_State *l);
 
-LUALIB_API int luaopen_abyss(lua_State *l);
+int luaopen_abyss(lua_State *l);
 
 #endif // ABYSS_SCRIPTING_H
