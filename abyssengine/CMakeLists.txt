@@ -4,12 +4,14 @@ project(abyssengine C)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
 set(APP_NAME "abyssengine")
 
 find_package(ZLIB REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(PNG REQUIRED)
 find_package(Lua 5.4 REQUIRED)
+find_package(Threads REQUIRED)
 
 if (MSVC)
     set(OPTIONS WIN32)
@@ -79,6 +81,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_link_libraries(${PROJECT_NAME}
         PRIVATE
         libabyss
+        Threads::Threads
         SDL2::SDL2main
         SDL2::SDL2
         PNG::PNG
