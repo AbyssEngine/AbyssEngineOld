@@ -28,10 +28,12 @@ void engine_set_global_instance(engine *src);
 void engine_show_system_cursor(engine *src, bool show);
 SDL_Renderer *engine_get_renderer(engine *src);
 ini_file *engine_get_ini_configuration(engine *src);
-void engine_set_callbacks(engine *src, void (*render_callback)(engine *src));
+void engine_set_callbacks(engine *src, void (*render_callback)(engine *src), void (*update_callback)(engine *src, uint32_t tid_diff));
 SDL_Texture *engine_get_logo_texture(const engine *src, SDL_Rect *rect);
 void engine_set_boot_text(engine *src, const char *boot_text);
-const char *engine_get_boot_text(engine *src);
+const char *engine_get_boot_text(const engine *src);
+const char *engine_get_crash_text(const engine *src);
 const char *engine_get_base_path(const engine *src);
 loader *engine_get_loader(const engine *src);
+const char *engine_trigger_crash(engine *src, const char *crash_text);
 #endif // ABYSS_ENGINE_H

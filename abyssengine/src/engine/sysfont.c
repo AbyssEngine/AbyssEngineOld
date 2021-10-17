@@ -68,7 +68,7 @@ void sysfont_draw_wrap(sysfont *source, SDL_Renderer *renderer, const int x, con
                 temp_x += source->char_width;
             }
 
-            if (((target.x - x) + temp_x) >= max_width) {
+            if (temp_x >= max_width) {
                 target.x = x;
                 target.y += source->char_height;
             }

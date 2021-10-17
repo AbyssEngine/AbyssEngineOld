@@ -46,13 +46,17 @@ configure_file(
 )
 
 
-target_sources(${PROJECT_NAME}
-        PRIVATE
+target_sources(${PROJECT_NAME} PRIVATE
+        # Engine Core --------------------------------------------------
         src/abyssengine.c
         src/engine/engine.c src/engine/engine.h
         src/engine/sysfont.c src/engine/sysfont.h
-        src/engine/modeboot.c src/engine/modeboot.h
 
+        # Engine Modes -------------------------------------------------
+        src/engine/modeboot.c src/engine/modeboot.h
+        src/engine/modecrash.c src/engine/modecrash.h
+
+        # Scripting ----------------------------------------------------
         src/scripting/scripting.c src/scripting/scripting.h
         src/scripting/log.c
         src/scripting/getconfig.c
@@ -63,13 +67,18 @@ target_sources(${PROJECT_NAME}
         src/scripting/setboottext.c
         src/scripting/loadstring.c
 
-        src/misc/util.c src/misc/util.h
-        src/misc/ini.c src/misc/ini.h
-        src/misc/resources.c src/misc/resources.h
+        # Loaders ------------------------------------------------------
         src/loader/loaderprovider.c src/loader/loaderprovider.h
         src/loader/filesystemloader.c src/loader/filesystemloader.h
         src/loader/mpqloader.c src/loader/mpqloader.h
         src/loader/loader.c src/loader/loader.h
+
+        # Misc ---------------------------------------------------------
+        src/misc/util.c src/misc/util.h
+        src/misc/ini.c src/misc/ini.h
+        src/misc/resources.c src/misc/resources.h
+
+        # Dynamic ------------------------------------------------------
         ${SOURCE_EXTRA}
         )
 

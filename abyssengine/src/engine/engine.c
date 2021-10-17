@@ -1,12 +1,12 @@
 #include "engine.h"
 #include "../loader/filesystemloader.h"
-#include "../loader/loader.h"
 #include "../misc/resources.h"
 #include "../misc/util.h"
 #include "../scripting/scripting.h"
 #include "config.h"
 #include "lua.h"
 #include "modeboot.h"
+#include "modecrash.h"
 #include <lauxlib.h>
 #include <libabyss/log.h>
 #include <libabyss/threading.h>
@@ -35,8 +35,10 @@ typedef struct engine {
     sysfont *font;
     engine_run_mode run_mode;
     void (*render_callback)(engine *src);
+    void (*update_callback)(engine *src, uint32_t tick_diff);
     thread *script_thread;
     char *boot_text;
+    char *crash_text;
 } engine;
 
 static engine *global_engine_instance;
@@ -64,9 +66,11 @@ void engine_destroy(engine *src) {
     engine_finalize_sdl2(src);
     engine_finalize_lua(src);
 
-    if (src->boot_text != NULL) {
+    if (src->boot_text != NULL)
         free(src->boot_text);
-    }
+
+    if (src->crash_text != NULL)
+        free(src->crash_text);
 
     loader_destroy(src->loader);
     sysfont_destroy(src->font);
@@ -139,7 +143,9 @@ static void *engine_script_thread(void *data) {
     }
 
     if (luaL_loadbuffer(src->lua_state, lua_code, file_size, "@test.lua") || lua_pcall(src->lua_state, 0, 0, 0)) {
-        log_error(lua_tostring(src->lua_state, -1));
+        const char *crash_text = lua_tostring(src->lua_state, -1);
+        log_error(crash_text);
+        engine_trigger_crash(src, crash_text);
         return NULL;
     }
     free(lua_code);
@@ -205,7 +211,6 @@ void engine_update(engine *src) {
     if (tick_diff <= 0) {
         return;
     }
-    mutex_lock(script_mutex);
 
     src->last_tick = new_ticks;
 
@@ -217,7 +222,7 @@ void engine_update(engine *src) {
         src->frame_count++;
     }
 
-    mutex_unlock(script_mutex);
+    src->update_callback(src, tick_diff);
 }
 
 int engine_get_fps(engine *src) { return src->fps; }
@@ -242,7 +247,14 @@ ini_file *engine_get_ini_configuration(engine *src) { return src->ini_config; }
 
 sysfont *engine_get_sysfont(const engine *src) { return src->font; }
 
-void engine_set_callbacks(engine *src, void (*render_callback)(engine *src)) { src->render_callback = render_callback; }
+const char *engine_get_boot_text(const engine *src) { return src->boot_text; }
+
+const char *engine_get_crash_text(const engine *src) { return src->crash_text; }
+
+void engine_set_callbacks(engine *src, void (*render_callback)(engine *src), void (*update_callback)(engine *src, uint32_t tid_diff)) {
+    src->render_callback = render_callback;
+    src->update_callback = update_callback;
+}
 
 const char *engine_get_base_path(const engine *src) { return src->base_path; }
 
@@ -268,4 +280,7 @@ void engine_set_boot_text(engine *src, const char *boot_text) {
     memcpy(src->boot_text, boot_text, strlen(boot_text) + 1);
 }
 
-const char *engine_get_boot_text(engine *src) { return src->boot_text; }
+const char *engine_trigger_crash(engine *src, const char *crash_text) {
+    src->crash_text = strdup(crash_text);
+    modecrashset_callbacks(src);
+}
