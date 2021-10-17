@@ -21,12 +21,12 @@ jobs:
             VCPKG_ROOT: ${{ github.workspace }}/vcpkg
 
         steps:
-            -   uses: actions/checkout@latest
+            -   uses: actions/checkout@v2
 
             -   uses: lukka/get-cmake@latest
 
             -   name: Run vcpkg
-                uses: lukka/run-vcpkg@latest
+                uses: lukka/run-vcpkg@v7.4
                 with:
                     setupOnly: true
                     vcpkgDirectory: '${{ github.workspace }}/vcpkg'
@@ -36,7 +36,7 @@ jobs:
 
 
             -   name: cmake
-                uses: lukka/run-cmake@latest
+                uses: lukka/run-cmake@v3.4
                 with:
                     configurePreset: 'ninja-multi-vcpkg'
                     buildPreset: 'ninja-multi-vcpkg'
