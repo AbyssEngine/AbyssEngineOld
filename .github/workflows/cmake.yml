@@ -29,6 +29,7 @@ jobs:
                 uses: lukka/run-vcpkg@v7.4
                 with:
                     setupOnly: true
+                    vcpkgJsonGlob: '**/vcpkg.json'
                     vcpkgDirectory: '${{ github.workspace }}/vcpkg'
                     vcpkgGitCommitId: '5568f110b509a9fd90711978a7cb76bae75bb092'
                     appendedCacheKey: ${{ hashFiles( '**/vcpkg.json' ) }}
