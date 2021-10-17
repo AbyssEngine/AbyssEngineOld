@@ -39,5 +39,5 @@ jobs:
             -   name: cmake
                 uses: lukka/run-cmake@v3.4
                 with:
-                    configurePreset: 'ninja-multi-vcpkg'
-                    buildPreset: 'ninja-multi-vcpkg'
+                    vcpkgDirectory: '${{ github.workspace }}/vcpkg'
+                    vcpkgGitCommitId: '44d94c2edbd44f0c01d66c2ad95eb6982a9a61bc'
