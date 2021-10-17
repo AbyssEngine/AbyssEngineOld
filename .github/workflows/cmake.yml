@@ -38,5 +38,4 @@ jobs:
             -   name: cmake
                 uses: lukka/run-cmake@v3.4
                 with:
-                    configurePreset: 'ninja-multi-vcpkg'
-                    buildPreset: 'ninja-multi-vcpkg'
+                    buildDirectory: ${{ env.buildDir }}
