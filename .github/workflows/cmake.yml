@@ -1,38 +1,65 @@
-name: CMake
-
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
-env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Release
+name: cmake-workflow
+on: [ push ]
 
 jobs:
-  build:
-    # The CMake configure and build commands are platform agnostic and should work equally
-    # well on Windows or Mac.  You can convert this to a matrix build if you need
-    # cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-    runs-on: ubuntu-latest
+    job:
+        name: ${{ matrix.os }}-hosted-pure
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ ubuntu-latest, macos-latest, windows-latest ]
+                include:
+                    -   os: windows-latest
+                        triplet: x64-windows
+                    -   os: ubuntu-latest
+                        triplet: x64-linux
+                    -   os: macos-latest
+                        triplet: x64-osx
+        env:
+            # Indicates the CMake build directory where project files and binaries are being produced.
+            CMAKE_BUILD_DIR: ${{ github.workspace }}/builddir/
+            # Indicates the location of the vcpkg as a Git submodule of the project repository.
+            VCPKG_ROOT: ${{ github.workspace }}/vcpkg
 
-    steps:
-    - uses: actions/checkout@v2
+        steps:
+            -   uses: actions/checkout@v2
+                with:
+                    submodules: true
 
-    - name: Configure CMake
-      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-
-    - name: Build
-      # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
-
-    - name: Test
-      working-directory: ${{github.workspace}}/build
-      # Execute tests defined by the CMake configuration.  
-      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: ctest -C ${{env.BUILD_TYPE}}
-      
+            # Set up the build machine with the most recent versions of CMake and Ninja. Both are cached if not already: on subsequent runs both will be quickly restored from GitHub cache service.
+            -   uses: lukka/get-cmake@latest
+            # Restore both vcpkg and its artifacts from the GitHub cache service.
+            -   name: Restore vcpkg and its artifacts.
+                uses: actions/cache@v2
+                with:
+                    # The first path is where vcpkg generates artifacts while consuming the vcpkg.json manifest file.
+                    # The second path is the location of vcpkg (it contains the vcpkg executable and data files).
+                    # The other paths starting with '!' are exclusions: they contain termporary files generated during the build of the installed packages.
+                    path: |
+                        ${{ env.CMAKE_BUILD_DIR }}/vcpkg_installed/
+                        ${{ env.VCPKG_ROOT }}
+                        !${{ env.VCPKG_ROOT }}/buildtrees
+                        !${{ env.VCPKG_ROOT }}/packages
+                        !${{ env.VCPKG_ROOT }}/downloads
+                    # The key is composed in a way that it gets properly invalidated: this must happen whenever vcpkg's Git commit id changes, or the list of packages changes. In this case a cache miss must happen and a new entry with a new key with be pushed to GitHub the cache service.
+                    # The key includes: hash of the vcpkg.json file, the hash of the vcpkg Git commit id, and the used vcpkg's triplet. The vcpkg's commit id would suffice, but computing an hash out it does not harm.
+                    # Note: given a key, the cache content is immutable. If a cache entry has been created improperly, in order the recreate the right content the key must be changed as well, and it must be brand new (i.e. not existing already).
+                    key: |
+                        ${{ hashFiles( 'vcpkg_manifest/vcpkg.json' ) }}-${{ hashFiles( '.git/modules/vcpkg/HEAD' )}}-${{ matrix.triplet }}-invalidate
+            -   name: Show content of workspace after cache has been restored
+                run: find $RUNNER_WORKSPACE
+                shell: bash
+            # On Windows runners, let's ensure to have the Developer Command Prompt environment setup correctly. As used here the Developer Command Prompt created is targeting x64 and using the default the Windows SDK.
+            -   uses: ilammy/msvc-dev-cmd@v1
+            # Run CMake to generate Ninja project files, using the vcpkg's toolchain file to resolve and install the dependencies as specified in vcpkg.json.
+            -   name: Install dependencies and generate project files
+                run: |
+                    cmake -S "${{ github.workspace }}/vcpkg_manifest" -B "${{ env.CMAKE_BUILD_DIR }}" -GNinja -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake"
+            # Build the whole project with Ninja (which is spawn by CMake).
+            -   name: Build
+                run: |
+                    cmake --build "${{ env.CMAKE_BUILD_DIR }}"
+            -   name: Show content of workspace at its completion
+                run: find $RUNNER_WORKSPACE
+                shell: bash
