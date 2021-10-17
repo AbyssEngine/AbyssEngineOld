@@ -35,10 +35,8 @@ jobs:
                     additionalCachedPaths: ${{ env.buildDir }}/vcpkg_installed
 
 
-            -   name: Run CMake consuming CMakePreset.json and vcpkg.json by mean of vcpkg.
+            -   name: cmake
                 uses: lukka/run-cmake@v3.4
                 with:
                     configurePreset: 'ninja-multi-vcpkg'
                     buildPreset: 'ninja-multi-vcpkg'
-                    useVcpkgToolchainFile: true
-                    buildDirectory: ${{ env.buildDir }}
