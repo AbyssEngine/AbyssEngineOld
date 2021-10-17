@@ -10,7 +10,7 @@ set(APP_NAME "abyssengine")
 find_package(ZLIB REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(PNG REQUIRED)
-find_package(Lua 5.4 REQUIRED)
+find_package(Lua 5.4 EXACT REQUIRED)
 find_package(Threads REQUIRED)
 
 if (MSVC)
