@@ -1,3 +1,21 @@
+/**
+ * Copyright (C) 2021 Tim Sarbin
+ * This file is part of AbyssEngine <https://github.com/AbyssEngine>.
+ *
+ * AbyssEngine is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * AbyssEngine is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with AbyssEngine.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "util.h"
 
 #include "../engine/engine.h"
@@ -54,7 +72,7 @@ void png_warn_func(png_structp png, png_const_charp warn_message) { log_warn("Li
 
 void png_reader(png_structp png, png_bytep data_out, png_size_t to_read) {
     png_read_data_handle *data_handle = (png_read_data_handle *)png_get_io_ptr(png);
-    const png_byte *read_src = (png_byte*)data_handle->data + data_handle->pos;
+    const png_byte *read_src = (png_byte *)data_handle->data + data_handle->pos;
     memcpy(data_out, read_src, to_read);
     data_handle->pos += to_read;
 }
@@ -176,9 +194,7 @@ char *str_replace(char *string, const char *substr, const char *replacement) {
     return newstr;
 }
 
-bool is_space(unsigned char ch) {
-    return (ch == '\r') || (ch == ' ') || (ch == '\t' || (ch == '\n'));
-}
+bool is_space(unsigned char ch) { return (ch == '\r') || (ch == ' ') || (ch == '\t' || (ch == '\n')); }
 
 char *trim_string(char *str) {
     char *end;

@@ -16,19 +16,21 @@
  * along with AbyssEngine.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ABYSS_SYSFONT_H
-#define ABYSS_SYSFONT_H
+#ifndef LIBABYSS_PALETTE_H
+#define LIBABYSS_PALETTE_H
 
-#include <SDL2/SDL.h>
 #include <stdint.h>
 
-typedef struct sysfont sysfont;
+typedef struct palette_color {
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
+    uint8_t alpha;
+} palette_color;
 
-sysfont *sysfont_create(const void *font_gfx);
-void sysfont_destroy(sysfont *source);
-void sysfont_draw(sysfont *source, SDL_Renderer *renderer, int x, int y, const char *string);
-void sysfont_draw_wrap(sysfont *source, SDL_Renderer *renderer, int x, int y, const char *string, int max_width);
-int sysfont_get_character_height(const sysfont *source);
-int sysfont_get_character_width(const sysfont *source);
+typedef struct palette palette;
 
-#endif // ABYSS_SYSFONT_H
+palette *palette_new_from_bytes(const void *data, uint64_t size);
+void palette_destroy(palette *source);
+
+#endif // LIBABYSS_PALETTE_H

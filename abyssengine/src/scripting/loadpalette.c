@@ -17,35 +17,32 @@
  */
 
 #include "../engine/engine.h"
+#include "../loader/loader.h"
 #include "scripting.h"
+#include <libabyss/palette.h>
+#include <libabyss/utils.h>
+#include <string.h>
 
-int abyss_lua_get_config(lua_State *l) {
+int abyss_lua_load_palette(lua_State *l) {
     LCHECK_NUMPARAMS(2)
-
     LCHECK_STRING(1);
     LCHECK_STRING(2);
 
-    const char *category = lua_tostring(l, 1);
-    const char *value = lua_tostring(l, 2);
+    const char *palette_name = lua_tostring(l, 1);
+    const char *palette_path = lua_tostring(l, 2);
 
-    if (strcmp(category, "#Abyss") == 0) {
-        if (strcmp(value, "BasePath") == 0) {
-            lua_pushstring(l, engine_get_base_path(engine_get_global_instance()));
-            return 1;
-        }
+    char *path_tmp = strdup(palette_path);
+    char *path_new = util_fix_mpq_path(path_tmp);
 
-        luaL_error(l, "configuration value '%s' not found in abyss environment", value);
+    int size;
+    char *data = loader_load(engine_get_loader(engine_get_global_instance()), path_new, &size);
+    free(path_tmp);
+
+    if (data == NULL) {
+        luaL_error(l, "file not found: %s", palette_path);
         return 0;
     }
 
-    ini_file *ini = engine_get_ini_configuration(engine_get_global_instance());
-    const char *result = init_file_get_value(ini, category, value);
-
-    if (result == NULL) {
-        luaL_error(l, "configuration value '%s' not found for category '%s'", value, category);
-        return 0;
-    }
-
-    lua_pushstring(l, result);
-    return 1;
+    palette_new_from_bytes(data, size);
+    return 0;
 }

@@ -71,6 +71,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/scripting/setboottext.c
         src/scripting/loadstring.c
         src/scripting/exitbootmode.c
+        src/scripting/loadpalette.c
 
         # Loaders ------------------------------------------------------
         src/loader/loaderprovider.c src/loader/loaderprovider.h

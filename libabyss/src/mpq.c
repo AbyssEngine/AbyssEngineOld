@@ -1,9 +1,27 @@
+/**
+ * Copyright (C) 2021 Tim Sarbin
+ * This file is part of AbyssEngine <https://github.com/AbyssEngine>.
+ *
+ * AbyssEngine is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * AbyssEngine is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with AbyssEngine.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "crypto.h"
+#include <libabyss/commondef.h>
 #include <libabyss/log.h>
 #include <libabyss/mpq.h>
 #include <libabyss/mpqblock.h>
 #include <libabyss/mpqstream.h>
-#include <libabyss/commondef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -54,7 +72,7 @@ int mpq_get_hash_index(const mpq *source, uint32_t hash_a, uint32_t hash_b) {
     return -1;
 }
 
-mpq_block *mpq_get_block(const mpq *source, const char* filename) {
+mpq_block *mpq_get_block(const mpq *source, const char *filename) {
     int hash_index = mpq_get_hash_index(source, crypto_hash_string(filename, 1), crypto_hash_string(filename, 2));
 
     if (hash_index < 0) {
@@ -63,7 +81,6 @@ mpq_block *mpq_get_block(const mpq *source, const char* filename) {
 
     return &source->block_entries[source->hash_entries[hash_index].block_index];
 }
-
 
 mpq_hash_entry *mpq_read_hash_table(const mpq *source) {
     mpq_hash_entry *result = malloc(sizeof(mpq_hash_entry) * source->header.hash_table_entries);
@@ -136,11 +153,11 @@ void mpq_destroy(mpq *source) {
     free(source);
 }
 
-bool mpq_file_exists(const mpq *source, const char* filename) {
+bool mpq_file_exists(const mpq *source, const char *filename) {
     return mpq_get_hash_index(source, crypto_hash_string(filename, 1), crypto_hash_string(filename, 2)) >= 0;
 }
 
-void *mpq_read_file(mpq *source, const char* filename, uint32_t *file_size) {
+void *mpq_read_file(mpq *source, const char *filename, uint32_t *file_size) {
     mpq_block *block = mpq_get_block(source, filename);
 
     if (block == NULL) {
@@ -166,15 +183,8 @@ void *mpq_read_file(mpq *source, const char* filename, uint32_t *file_size) {
     return result;
 }
 
+uint32_t mpq_get_header_size(const mpq *source) { return source->header.header_size; }
 
-uint32_t mpq_get_header_size(const mpq *source) {
-    return source->header.header_size;
-}
+uint32_t mpq_get_block_size(const mpq *source) { return source->header.block_size; }
 
-uint32_t mpq_get_block_size(const mpq *source) {
-    return source->header.block_size;
-}
-
-FILE *mpq_get_file_stream(const mpq *source) {
-    return source->file;
-}
+FILE *mpq_get_file_stream(const mpq *source) { return source->file; }

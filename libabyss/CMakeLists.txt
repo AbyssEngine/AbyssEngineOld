@@ -19,13 +19,16 @@ else ()
 endif ()
 
 add_library(${PROJECT_NAME}
+        # Public
         src/libabyss.c include/libabyss/libabyss.h
         src/utils.c include/libabyss/utils.h
         src/mpq.c include/libabyss/mpq.h
         src/log.c include/libabyss/log.h
-        src/crypto.c src/crypto.h
         src/mpqstream.c include/libabyss/mpqstream.h
         src/mpqblock.c include/libabyss/mpqblock.h
+        src/palette.c include/libabyss/palette.h
+        # Private
+        src/crypto.c src/crypto.h
         src/blast.c src/blast.h
         src/compress.c src/compress.h
         src/streamreader.c src/streamreader.h
