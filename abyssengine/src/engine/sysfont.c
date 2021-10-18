@@ -62,9 +62,9 @@ void sysfont_draw_wrap(sysfont *source, SDL_Renderer *renderer, const int x, con
 
     for (const char *ch = string; *ch != '\0'; ch++) {
 
-        if ((target.x > x) && (*((char *)(ch - 1)) == ' ') && (max_width > source->char_width)) {
+        if ((target.x > x) && ((*((char *)(ch - 1)) == ' ') || (*((char *)(ch - 1)) == '\t')) && (max_width > source->char_width)) {
             int temp_x = target.x - x;
-            for (const char *ch_temp = ch; (*ch_temp != ' ') && (*ch_temp != '\0'); ch_temp++) {
+            for (const char *ch_temp = ch; ((*ch_temp != ' ') && (*ch_temp != '\t')) && (*ch_temp != '\0'); ch_temp++) {
                 temp_x += source->char_width;
             }
 
@@ -72,6 +72,11 @@ void sysfont_draw_wrap(sysfont *source, SDL_Renderer *renderer, const int x, con
                 target.x = x;
                 target.y += source->char_height;
             }
+        }
+
+        if (*ch == '\t') {
+            target.x += source->char_width * 3;
+            continue;
         }
 
         if (*ch == '\n') {

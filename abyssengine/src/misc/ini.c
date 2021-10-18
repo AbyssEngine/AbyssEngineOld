@@ -56,8 +56,8 @@ ini_file *ini_file_load(const char *file_path) {
     file = fopen(file_path, "r");
 
     if (file == NULL) {
-        log_error("Cannot load INI file: %s", file_path);
-        return result;
+        free(result);
+        return NULL;
     }
 
     size_t line_size = 0;

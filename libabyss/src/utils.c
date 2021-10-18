@@ -25,17 +25,58 @@ char *util_fix_mpq_path(char *path) {
     return result;
 }
 
+void util_get_folder_path_part(char *path) {
+    char *last_break = strrchr(path, '/');
+    if (last_break == NULL) {
+        last_break = strrchr(path, '\\');
+    }
+
+    if (last_break == NULL) {
+        return;
+    }
+
+    size_t path_end_len = strlen(last_break);
+    memset(last_break, 0, path_end_len);
+}
+
 void util_normalize_path(char *path) {
     if (path[0] == '\0') {
         return;
     }
 
+    // Switch \s to /s.
     for (char *ch = path; *ch != '\0'; ch++) {
         if (*ch != '\\') {
             continue;
         }
 
         *ch = '/';
+    }
+
+    // Resolve ../ references
+    for (char *p = strstr(path, "../"); p != NULL; p = strstr(path, "../")) {
+        size_t full_len = strlen(path);
+
+        // Get the right side of "../"
+        char *edge = p + 3;
+
+        // Start from the first letter before the previous "/" and work back until we reach the previous "/"
+        char *left = p - 2;
+        while (left > path && *left != '/') {
+            left--;
+        }
+
+        size_t edge_len = strlen(edge);
+        char *copy_left = left + 1;
+        char *copy_right = edge;
+        memcpy(copy_left, copy_right, edge_len);
+        memset(copy_left + edge_len, 0, strlen(copy_left + edge_len));
+
+        //        memcpy(left + 1, edge, edge_len);
+        //        *(p + edge_len) = '\0';
+        //        char *str_cleanup = p + edge_len + 1;
+        //        size_t cleanup_size = strlen(str_cleanup);
+        //        memset(str_cleanup, 0, cleanup_size);
     }
 }
 

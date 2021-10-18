@@ -134,11 +134,13 @@ static void *engine_script_thread(void *data) {
 
     thread_cleanup_push(engine_script_thread_cleanup, data);
 
+    scripting_inject_loaders(src->lua_state);
+
     int file_size;
     char *lua_code = loader_load(src->loader, "test.lua", &file_size);
 
     if (lua_code == NULL) {
-        log_fatal("Could not load bootstrap script!");
+        engine_trigger_crash(src, "Could not load bootstrap script!");
         return NULL;
     }
 
@@ -161,7 +163,7 @@ void engine_run(engine *src) {
 
     src->font = sysfont_create(resource_abyss_system_font);
 
-    loader_add_provider(src->loader, filesystem_loader_new("./"));
+    loader_add_provider(src->loader, filesystem_loader_new(src->base_path));
 
     src->texture_logo = util_load_texture_png(resource_abyss_boot_logo, &src->rect_logo.w, &src->rect_logo.h);
     src->last_tick = SDL_GetTicks();
@@ -173,6 +175,13 @@ void engine_run(engine *src) {
     src->script_thread = thread_create(engine_script_thread, src);
 
     modeboot_set_callbacks(src);
+
+    if (src->ini_config == NULL) {
+        char *crash_message = calloc(1, 4096);
+        sprintf(crash_message, "Could not locate ini file at %s.", src->base_path);
+        engine_trigger_crash(src, crash_message);
+        free(crash_message);
+    }
 
     while (src->is_running) {
         while (SDL_PollEvent(&sdl_event)) {
@@ -280,7 +289,7 @@ void engine_set_boot_text(engine *src, const char *boot_text) {
     memcpy(src->boot_text, boot_text, strlen(boot_text) + 1);
 }
 
-const char *engine_trigger_crash(engine *src, const char *crash_text) {
+void engine_trigger_crash(engine *src, const char *crash_text) {
     src->crash_text = strdup(crash_text);
     modecrashset_callbacks(src);
 }

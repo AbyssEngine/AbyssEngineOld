@@ -56,6 +56,9 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/engine/modeboot.c src/engine/modeboot.h
         src/engine/modecrash.c src/engine/modecrash.h
 
+        # Node ----------------------------------------------------------
+        src/node/node.c src/node/node.h
+
         # Scripting ----------------------------------------------------
         src/scripting/scripting.c src/scripting/scripting.h
         src/scripting/log.c

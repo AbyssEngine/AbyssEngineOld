@@ -1,7 +1,7 @@
 #include "config.h"
 #include "engine/engine.h"
-#include <assert.h>
 #include <libabyss/log.h>
+#include <libabyss/utils.h>
 #include <stdlib.h>
 #ifdef _WIN32
 #include <direct.h>
@@ -19,12 +19,44 @@ int main(int argc, char **argv) {
     getcwd(cwd_path, 4096);
 #endif
 
-    ini_file *ini = ini_file_load("config.ini");
-    assert(ini != NULL);
+    char *ini_file_path = calloc(1, 4096);
 
-    engine *engine = engine_create(cwd_path, ini);
+    // Try the CWD
+    strcat(ini_file_path, cwd_path);
+    strcat(ini_file_path, "/config.ini");
+    ini_file *ini = ini_file_load(ini_file_path);
+    if (ini != NULL) {
+        util_normalize_path(ini_file_path);
+        util_get_folder_path_part(ini_file_path);
+    } else {
+        // CWD didn't work, try exe path
+        memset(ini_file_path, 0, 4096);
+        strcat(ini_file_path, argv[0]);
+        util_normalize_path(ini_file_path);
+        util_get_folder_path_part(ini_file_path);
+
+        strcat(ini_file_path, "config.ini");
+        ini = ini_file_load(ini_file_path);
+        util_get_folder_path_part(ini_file_path);
+
+        // If we STILL didn't find it, we may be running as an app package on OSX. Try that...
+        if (ini == NULL) {
+            memset(ini_file_path, 0, 4096);
+            strcat(ini_file_path, argv[0]);
+            util_normalize_path(ini_file_path);
+            util_get_folder_path_part(ini_file_path);
+            strcat(ini_file_path, "/../../../");
+            util_normalize_path(ini_file_path);
+            strcat(ini_file_path, "config.ini");
+            ini = ini_file_load(ini_file_path);
+            util_get_folder_path_part(ini_file_path);
+        }
+    }
+    log_info("Engine running from location %s...\n", ini_file_path);
+    engine *engine = engine_create(ini_file_path, ini);
+    free(ini_file_path);
+
     engine_set_global_instance(engine);
-
     engine_run(engine);
     engine_destroy(engine);
     ini_file_destroy(ini);

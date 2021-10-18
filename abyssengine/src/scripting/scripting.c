@@ -1,9 +1,52 @@
 #include "scripting.h"
+#include "../engine/engine.h"
+#include "libabyss/log.h"
 #include <lualib.h>
 
 mutex *script_mutex;
 
 void scripting_init() { script_mutex = mutex_create(); }
+
+int scripting_loader(lua_State *l) {
+    const char *original_path = lua_tostring(l, 1);
+    if (strlen(original_path) == 0) {
+        return 0;
+    }
+
+    char *path = calloc(1, 4096);
+    if (original_path[0] != '/' && original_path[0] != '\\') {
+        strcat(path, "/");
+    }
+
+    strcat(path, original_path);
+    strcat(path, ".lua");
+
+    loader *loader = engine_get_loader(engine_get_global_instance());
+    int file_size;
+    char *value = loader_load(loader, path, &file_size);
+
+    if (value == NULL) {
+        lua_pushstring(l, "Module not found.");
+        return 1;
+    }
+
+    if (luaL_loadbuffer(l, value, file_size, path)) {
+        engine *src = engine_get_global_instance();
+        const char *crash_text = lua_tostring(l, -1);
+        log_error(crash_text);
+        lua_pop(l, 1);
+        engine_trigger_crash(src, crash_text);
+    }
+
+    free(path);
+    free(value);
+    return 1;
+}
+
+void scripting_inject_loaders(lua_State *l) {
+    lua_register(l, "abyss_loader", scripting_loader);
+    luaL_dostring(l, "package.searchers = {abyss_loader}");
+}
 
 void scripting_finalize() { mutex_destroy(script_mutex); }
 

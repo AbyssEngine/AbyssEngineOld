@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 char *util_fix_mpq_path(char *path);
+void util_get_folder_path_part(char *path);
 void util_normalize_path(char *path);
 const char *util_get_cwd();
 void util_create_directory(const char *path);
