@@ -62,6 +62,9 @@ jobs:
         vcpkgDirectory: '${{ github.workspace }}/vcpkg'
         vcpkgGitCommitId: '44d94c2edbd44f0c01d66c2ad95eb6982a9a61bc'
         useVcpkgToolchainFile: true
+        
+    - name: Remove vcpkg artifacts
+      run:  rm -rf ${{ github.workspace }}/vcpkg
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
