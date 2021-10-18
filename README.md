@@ -5,6 +5,8 @@
 [![Discord](https://img.shields.io/discord/515518620034662421?label=Discord&style=social)](https://discord.gg/pRy8tdc)
 [![Twitch Status](https://img.shields.io/twitch/status/essial?style=social)](https://www.twitch.tv/essial)
 
+Join us on IRC: [ircs://irc.libera.chat/#opendiablo2](ircs://irc.libera.chat/#opendiablo2)
+
 ![Abyss Engine](abyssengine/abysslogo.png)
 
 ----
