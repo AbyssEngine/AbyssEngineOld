@@ -3,11 +3,10 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <uuid/uuid.h>
 
 struct engine; // Forward declaration to prevent possible circular dependency
 typedef struct node {
-    uuid_t id;
+    uint64_t id;
     struct node *parent;
     struct node *children;
     uint32_t num_children;

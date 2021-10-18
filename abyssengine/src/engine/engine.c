@@ -7,6 +7,7 @@
 #include "lua.h"
 #include "modeboot.h"
 #include "modecrash.h"
+#include "moderun.h"
 #include <lauxlib.h>
 #include <libabyss/log.h>
 #include <libabyss/threading.h>
@@ -292,5 +293,8 @@ void engine_set_boot_text(engine *src, const char *boot_text) {
 
 void engine_trigger_crash(engine *src, const char *crash_text) {
     src->crash_text = strdup(crash_text);
-    modecrashset_callbacks(src);
+    modecrash_set_callbacks(src);
+}
+void engine_exit_boot_mode(engine *src) {
+    moderun_set_callbacks(src);
 }

@@ -29,6 +29,8 @@ extern int abyss_lua_sleep(lua_State *l);
 extern int abyss_lua_set_boot_text(lua_State *l);
 extern int abyss_lua_add_loader_provider(lua_State *l);
 extern int abyss_lua_load_string(lua_State *l);
+extern int abyss_lua_exit_boot_mode(lua_State *l);
+
 void scripting_inject_loaders(lua_State *l);
 
 int luaopen_abyss(lua_State *l);

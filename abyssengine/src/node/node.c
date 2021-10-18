@@ -1,8 +1,10 @@
 #include "node.h"
 #include "../engine/engine.h"
 
+uint64_t _next_id;
+
 void node_initialize(node *source) {
-    uuid_generate_random(source->id);
+    source->id = ++_next_id;
     source->parent = NULL;
     source->children = NULL;
     source->num_children = 0;

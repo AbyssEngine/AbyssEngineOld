@@ -32,16 +32,16 @@ void engine_render_boot(engine *src) {
 }
 
 void engine_update_boot(engine *src, uint32_t tick_diff) {
-    if (fade_duration < 1000) {
+    if (fade_duration < 2000) {
         fade_duration += tick_diff;
-        if (fade_duration >= 1000) {
-            fade_duration = 1000;
+        if (fade_duration >= 2000) {
+            fade_duration = 2000;
             fade_color.a = 0;
             engine_run_script_bootstrap(src);
             return;
         }
 
-        fade_color.a = 0xFF - (fade_duration / 4);
+        fade_color.a = 0xFF - (fade_duration / 8);
     }
 }
 

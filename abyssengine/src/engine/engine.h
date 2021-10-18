@@ -37,4 +37,5 @@ const char *engine_get_base_path(const engine *src);
 loader *engine_get_loader(const engine *src);
 void engine_trigger_crash(engine *src, const char *crash_text);
 void engine_run_script_bootstrap(engine *src);
+void engine_exit_boot_mode(engine *src);
 #endif // ABYSS_ENGINE_H

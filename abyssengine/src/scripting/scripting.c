@@ -59,8 +59,7 @@ int luaopen_abyss(lua_State *l) {
     lua_register(l, "setBootText", abyss_lua_set_boot_text);
     lua_register(l, "addLoaderProvider", abyss_lua_add_loader_provider);
     lua_register(l, "loadString", abyss_lua_load_string);
-    // exitBootMode
-    // addLoaderProvider
+    lua_register(l, "exitBootMode", abyss_lua_exit_boot_mode);
     // loadSprite
     // loadPalette
     // loadButton
@@ -69,6 +68,5 @@ int luaopen_abyss(lua_State *l) {
     // systemCursorVisible
     // targetFps
     // fullscreen
-
     return 1;
 }

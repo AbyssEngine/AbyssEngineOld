@@ -55,6 +55,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         # Engine Modes -------------------------------------------------
         src/engine/modeboot.c src/engine/modeboot.h
         src/engine/modecrash.c src/engine/modecrash.h
+        src/engine/moderun.c src/engine/moderun.h
 
         # Node ----------------------------------------------------------
         src/node/node.c src/node/node.h
@@ -69,6 +70,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/scripting/sleep.c
         src/scripting/setboottext.c
         src/scripting/loadstring.c
+        src/scripting/exitbootmode.c
 
         # Loaders ------------------------------------------------------
         src/loader/loaderprovider.c src/loader/loaderprovider.h

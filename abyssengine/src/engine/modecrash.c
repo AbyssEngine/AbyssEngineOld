@@ -15,4 +15,4 @@ void engine_render_crash(engine *src) {
 
 void engine_update_crash(engine *src, uint32_t tick_diff) {}
 
-void modecrashset_callbacks(engine *src) { engine_set_callbacks(src, engine_render_crash, engine_update_crash); }
+void modecrash_set_callbacks(engine *src) { engine_set_callbacks(src, engine_render_crash, engine_update_crash); }

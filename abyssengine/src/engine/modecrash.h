@@ -3,6 +3,6 @@
 
 #include "engine.h"
 
-void modecrashset_callbacks(engine *src);
+void modecrash_set_callbacks(engine *src);
 
 #endif // ABYSS_MODECRASH_H
