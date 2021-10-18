@@ -23,15 +23,51 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+
+/**
+ * A MoPaQ archive.
+ */
 typedef struct mpq mpq;
 
+/**
+ * Loads an instance of a MPQ archive from disk.
+ * @param file_path The file path to load the MPQ from.
+ * @return A pointer to a mpq if successful.
+ * @return NULL if the file was not successfully loaded.
+ */
 mpq *mpq_load(const char *file_path);
+
+/**
+ * Destroys an mpq archive instance.
+ * @param source The mpq instance to destroy.
+ */
 void mpq_destroy(mpq *source);
+
+/**
+ * Determines if the specified file exists in a mpq archive.
+ * @param source The mpq archive instance to check.
+ * @param filename The file path to check within the mpq archive.
+ * @return true if the file name specified exists.
+ * @return false if the file name does not exist.
+ */
 bool mpq_file_exists(const mpq *source, const char *filename);
+
+/**
+ * Reads a file in a mpq archive and returns the data.
+ * @param source  The mpq archive instance to load from.
+ * @param filename The path of the file to load.
+ * @param[out] file_size If not NULL, the size of the file will be written to this variable.
+ * @return If successfully loaded, a pointer to the data loaded.
+ * @return If loading failed, NULl is returned.
+ */
 void *mpq_read_file(mpq *source, const char *filename, uint32_t *file_size);
+
 uint32_t mpq_get_block_size(const mpq *source);
+
 FILE *mpq_get_file_stream(const mpq *source);
+
 mpq_block *mpq_get_block(const mpq *source, const char *filename);
+
 uint32_t mpq_get_header_size(const mpq *source);
 
 #endif // LIBABYSS_MPQ_H
