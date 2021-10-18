@@ -21,7 +21,7 @@ typedef struct node {
     void (*destroy_callback)(struct node *node, struct engine *engine);
 } node;
 
-void node_initialize(node *source);
-void node_get_position(node *source, int *out_x, int *out_y);
+// void node_initialize(node *source);
+// void node_get_position(node *source, int *out_x, int *out_y);
 
 #endif // ABYSS_NODE_H

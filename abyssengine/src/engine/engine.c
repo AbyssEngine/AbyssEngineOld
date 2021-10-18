@@ -112,6 +112,7 @@ void engine_init_sdl2(engine *src) {
     log_info("Using '%s' graphics rendering API", render_info.name);
 
     SDL_RenderSetLogicalSize(src->sdl_renderer, 800, 600);
+    SDL_SetRenderDrawBlendMode(src->sdl_renderer, SDL_BLENDMODE_BLEND);
 
     free(window_title);
 }
@@ -172,8 +173,6 @@ void engine_run(engine *src) {
 
     src->is_running = true;
 
-    src->script_thread = thread_create(engine_script_thread, src);
-
     modeboot_set_callbacks(src);
 
     if (src->ini_config == NULL) {
@@ -192,6 +191,8 @@ void engine_run(engine *src) {
         engine_render(src);
     }
 }
+
+void engine_run_script_bootstrap(engine *src) { src->script_thread = thread_create(engine_script_thread, src); }
 
 void engine_handle_sdl_event(engine *src, const SDL_Event *evt) {
     switch (evt->type) {
