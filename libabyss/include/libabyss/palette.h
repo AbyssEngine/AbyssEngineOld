@@ -28,7 +28,27 @@ typedef struct palette_color {
     uint8_t alpha;
 } palette_color;
 
-typedef struct palette palette;
+typedef struct palette {
+    palette_color *base_palette;
+
+    uint8_t **light_level_variations;
+    uint8_t **inv_color_variations;
+    uint8_t *selected_unit_shift;
+    uint8_t ***alpha_blend;
+    uint8_t **additive_blend;
+    uint8_t **multiplicative_blend;
+    uint8_t **hue_variations;
+    uint8_t *red_tones;
+    uint8_t *green_tones;
+    uint8_t *blue_tones;
+    uint8_t **unknown_variations;
+    uint8_t **max_component_blend;
+    uint8_t *darkened_color_shift;
+
+    palette_color *text_colors;
+    uint8_t **text_color_shifts;
+} palette;
+
 
 palette *palette_new_from_bytes(const void *data, uint64_t size);
 void palette_destroy(palette *source);

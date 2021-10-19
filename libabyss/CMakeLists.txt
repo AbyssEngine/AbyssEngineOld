@@ -27,6 +27,9 @@ add_library(${PROJECT_NAME}
         src/mpqstream.c include/libabyss/mpqstream.h
         src/mpqblock.c include/libabyss/mpqblock.h
         src/palette.c include/libabyss/palette.h
+        src/dcc.c include/libabyss/dcc.h
+        src/dc6.c include/libabyss/dc6.h
+        include/libabyss/boundsdefs.h
         # Private
         src/crypto.c src/crypto.h
         src/blast.c src/blast.h

@@ -49,6 +49,7 @@ extern int abyss_lua_add_loader_provider(lua_State *l);
 extern int abyss_lua_load_string(lua_State *l);
 extern int abyss_lua_exit_boot_mode(lua_State *l);
 extern int abyss_lua_load_palette(lua_State *l);
+extern int abyss_lua_load_sprite(lua_State *l);
 
 void scripting_inject_loaders(lua_State *l);
 

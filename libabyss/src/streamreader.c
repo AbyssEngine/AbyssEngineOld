@@ -70,7 +70,7 @@ uint64_t streamreader_get_position(const streamreader *source) { return source->
 void streamreader_set_position(streamreader *source, uint64_t position) { source->position = position; }
 
 void streamreader_get_bytes(streamreader *source, void *buffer, const uint64_t count) {
-    memcpy(buffer, source->data, count);
+    memcpy(buffer, &source->data[source->position], count);
     source->position += count;
 }
 

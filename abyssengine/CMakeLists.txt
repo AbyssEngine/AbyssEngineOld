@@ -60,6 +60,9 @@ target_sources(${PROJECT_NAME} PRIVATE
         # Node ----------------------------------------------------------
         src/node/node.c src/node/node.h
 
+        # Sprite --------------------------------------------------------
+        src/node/sprite/sprite.c src/node/sprite/sprite.h
+
         # Scripting ----------------------------------------------------
         src/scripting/scripting.c src/scripting/scripting.h
         src/scripting/log.c
@@ -72,6 +75,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/scripting/loadstring.c
         src/scripting/exitbootmode.c
         src/scripting/loadpalette.c
+        src/scripting/loadsprite.c
 
         # Loaders ------------------------------------------------------
         src/loader/loaderprovider.c src/loader/loaderprovider.h

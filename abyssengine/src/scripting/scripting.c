@@ -79,7 +79,7 @@ int luaopen_abyss(lua_State *l) {
     lua_register(l, "loadString", abyss_lua_load_string);
     lua_register(l, "exitBootMode", abyss_lua_exit_boot_mode);
     lua_register(l, "loadPalette", abyss_lua_load_palette);
-    // loadSprite
+    lua_register(l, "loadSprite", abyss_lua_load_sprite);
     // loadButton
     // loadLabel
     // cursorTexture
