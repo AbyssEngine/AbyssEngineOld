@@ -62,12 +62,33 @@ bool mpq_file_exists(const mpq *source, const char *filename);
  */
 void *mpq_read_file(mpq *source, const char *filename, uint32_t *file_size);
 
+/**
+ * Returns the size of blocks in the mpq archive.
+ * @param source The mpq archive instance.
+ * @return The size of a block in the mpq archive.
+ */
 uint32_t mpq_get_block_size(const mpq *source);
 
+/**
+ * Returns the underlying file stream for the mpq archive.
+ * @param source The mpq archive instance.
+ * @return A pointer to the underlying file stream for the MPQ.
+ */
 FILE *mpq_get_file_stream(const mpq *source);
 
+/**
+ * Returns an mpq block based on the specified file name.
+ * @param source The mpq archive instance.
+ * @param filename The name of the file who's block needs to be obtained.
+ * @return A pointer to the mpq block.
+ */
 mpq_block *mpq_get_block(const mpq *source, const char *filename);
 
+/**
+ * Returns the size of the mpq archive's header.
+ * @param source The mpq archive instance.
+ * @return The size (in bytes) of the mpq header record.
+ */
 uint32_t mpq_get_header_size(const mpq *source);
 
 #endif // LIBABYSS_MPQ_H

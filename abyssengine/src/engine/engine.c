@@ -22,6 +22,7 @@
 #include "../misc/util.h"
 #include "../scripting/scripting.h"
 #include "config.h"
+#include "libabyss/palette.h"
 #include "lua.h"
 #include "modeboot.h"
 #include "modecrash.h"
@@ -32,6 +33,11 @@
 #include <lualib.h>
 #include <stdlib.h>
 #include <string.h>
+
+typedef struct palette_item {
+    char *name;
+    palette *palette;
+} palette_item;
 
 typedef int engine_run_mode;
 
@@ -58,6 +64,8 @@ typedef struct engine {
     thread *script_thread;
     char *boot_text;
     char *crash_text;
+    palette_item *palettes;
+    uint32_t num_palettes;
 } engine;
 
 static engine *global_engine_instance;
@@ -90,6 +98,14 @@ void engine_destroy(engine *src) {
 
     if (src->crash_text != NULL)
         free(src->crash_text);
+
+    if (src->palettes != NULL) {
+        for (int i = 0; i < src->num_palettes; i++) {
+            palette_destroy(src->palettes[i].palette);
+            free(src->palettes[i].name);
+        }
+        free(src->palettes);
+    }
 
     loader_destroy(src->loader);
     sysfont_destroy(src->font);
@@ -314,3 +330,28 @@ void engine_trigger_crash(engine *src, const char *crash_text) {
     modecrash_set_callbacks(src);
 }
 void engine_exit_boot_mode(engine *src) { moderun_set_callbacks(src); }
+
+const palette *engine_get_palette(const engine *src, const char *palette_name) {
+    for (int idx = 0; idx < src->num_palettes; idx++) {
+        if (strcmp(src->palettes[idx].name, palette_name) != 0)
+            continue;
+
+        return src->palettes[idx].palette;
+    }
+
+    return NULL;
+}
+
+bool engine_add_palette(engine *src, const char *palette_name, palette *pal) {
+    const palette *test = engine_get_palette(src, palette_name);
+    if (test != NULL) {
+        log_fatal("Attempted to add palette '%s', but it already exists.", palette_name);
+        return false;
+    }
+
+    src->palettes = realloc(src->palettes, sizeof(palette_item) * (++src->num_palettes));
+    src->palettes[src->num_palettes - 1].palette = pal;
+    src->palettes[src->num_palettes - 1].name = strdup(palette_name);
+
+    return true;
+}

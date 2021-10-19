@@ -21,6 +21,7 @@
 
 #include "../loader/loader.h"
 #include "../misc/ini.h"
+#include "libabyss/palette.h"
 #include "sysfont.h"
 #include <SDL2/SDL.h>
 #include <stdbool.h>
@@ -56,4 +57,6 @@ loader *engine_get_loader(const engine *src);
 void engine_trigger_crash(engine *src, const char *crash_text);
 void engine_run_script_bootstrap(engine *src);
 void engine_exit_boot_mode(engine *src);
+const palette *engine_get_palette(const engine *src, const char *palette_name);
+bool engine_add_palette(engine *src, const char *palette_name, palette *pal);
 #endif // ABYSS_ENGINE_H

@@ -16,6 +16,7 @@
  * along with AbyssEngine.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "libabyss/log.h"
 #include "streamreader.h"
 #include <libabyss/palette.h>
 #include <stdlib.h>
@@ -25,9 +26,20 @@
 #define LIGHT_LEVEL_VARIATIONS 32
 #define INV_COLOR_VARIATIONS 16
 #define ALPHA_BLEND_COARSE 3
+#define ALPHA_BLEND_FINE 256
+#define ADDITIVE_BLENDS 256
+#define MULTIPLY_BLENDS 256
+#define HUE_VARIATIONS 111
+#define UNKNOWN_VARIATIONS 14
+#define COMPONENT_BLENDS 256
+#define TEXT_SHIFTS 13
+
+#define LOAD_COLORS(field, colors)                                                                                                                   \
+    result->field = malloc(sizeof(palette_color) * NUM_PALETTE_COLORS);                                                                              \
+    decode_colors(reader, result->field, colors);
 
 #define LOAD_TRANSFORM_SINGLE(field)                                                                                                                 \
-    result->base_palette = malloc(NUM_PALETTE_COLORS);                                                                                               \
+    result->field = malloc(NUM_PALETTE_COLORS);                                                                                                      \
     decode_transform_single(reader, result->field);
 
 #define LOAD_TRANSFORM_MULTI(field, variations)                                                                                                      \
@@ -67,10 +79,27 @@ typedef struct palette {
 void decode_colors(streamreader *reader, palette_color *dest, int color_bytes) {
     for (int idx = 0; idx < NUM_PALETTE_COLORS; idx++) {
         palette_color *color = &dest[idx];
-        color->red = streamreader_read_byte(reader);
-        color->green = streamreader_read_byte(reader);
-        color->blue = streamreader_read_byte(reader);
-        color->alpha = streamreader_read_byte(reader);
+        switch (color_bytes) {
+        case 1:
+            color->red = color->green = color->blue = streamreader_read_byte(reader);
+            color->alpha = 255;
+            continue;
+        case 3:
+            color->red = streamreader_read_byte(reader);
+            color->green = streamreader_read_byte(reader);
+            color->blue = streamreader_read_byte(reader);
+            color->alpha = 0xFF;
+            continue;
+        case 4:
+            color->red = streamreader_read_byte(reader);
+            color->green = streamreader_read_byte(reader);
+            color->blue = streamreader_read_byte(reader);
+            color->alpha = streamreader_read_byte(reader);
+            continue;
+        default:
+            log_fatal("invalid color bytes specified: %i", color_bytes);
+            exit(EXIT_FAILURE);
+        }
     }
 }
 
@@ -90,30 +119,49 @@ palette *palette_new_from_bytes(const void *data, const uint64_t size) {
     streamreader *reader = streamreader_create(data, size);
     palette *result = calloc(1, sizeof(palette));
 
-    result->base_palette = malloc(sizeof(palette_color) * NUM_PALETTE_COLORS);
-    decode_colors(reader, result->base_palette, 4);
-
-    // Lighting Transforms
+    LOAD_COLORS(base_palette, 4)
     LOAD_TRANSFORM_MULTI(light_level_variations, LIGHT_LEVEL_VARIATIONS)
     LOAD_TRANSFORM_MULTI(inv_color_variations, INV_COLOR_VARIATIONS)
     LOAD_TRANSFORM_SINGLE(selected_unit_shift)
-
-    // Blend Mode Transforms
-    LOAD_TRANSFORM_MULTI(alpha_blend, ALPHA_BLEND_COARSE)
-    // Color Variation Transforms
-    // Other Transforms
-    // Text Colors
-    // Text Color Transforms
+    result->alpha_blend = malloc(sizeof(void *) * ALPHA_BLEND_COARSE);
+    for (int blend_idx = 0; blend_idx < ALPHA_BLEND_COARSE; blend_idx++) {
+        LOAD_TRANSFORM_MULTI(alpha_blend[blend_idx], ALPHA_BLEND_FINE)
+    }
+    LOAD_TRANSFORM_MULTI(additive_blend, ADDITIVE_BLENDS)
+    LOAD_TRANSFORM_MULTI(multiplicative_blend, MULTIPLY_BLENDS)
+    LOAD_TRANSFORM_MULTI(hue_variations, HUE_VARIATIONS)
+    LOAD_TRANSFORM_SINGLE(red_tones)
+    LOAD_TRANSFORM_SINGLE(green_tones)
+    LOAD_TRANSFORM_SINGLE(blue_tones)
+    LOAD_TRANSFORM_MULTI(unknown_variations, UNKNOWN_VARIATIONS)
+    LOAD_TRANSFORM_MULTI(max_component_blend, COMPONENT_BLENDS)
+    LOAD_TRANSFORM_SINGLE(darkened_color_shift)
+    LOAD_COLORS(text_colors, 3)
+    LOAD_TRANSFORM_MULTI(text_color_shifts, TEXT_SHIFTS)
 
     streamreader_destroy(reader);
     return result;
 }
 
 void palette_destroy(palette *source) {
+    FREE_TRANSFORM_MULTI(text_color_shifts, TEXT_SHIFTS)
+    free(source->text_colors);
+    free(source->darkened_color_shift);
+    FREE_TRANSFORM_MULTI(max_component_blend, COMPONENT_BLENDS)
+    FREE_TRANSFORM_MULTI(unknown_variations, UNKNOWN_VARIATIONS)
+    free(source->blue_tones);
+    free(source->green_tones);
+    free(source->red_tones);
+    FREE_TRANSFORM_MULTI(hue_variations, HUE_VARIATIONS)
+    FREE_TRANSFORM_MULTI(multiplicative_blend, MULTIPLY_BLENDS)
+    FREE_TRANSFORM_MULTI(additive_blend, ADDITIVE_BLENDS)
+    for (int blend_idx = 0; blend_idx < ALPHA_BLEND_COARSE; blend_idx++) {
+        FREE_TRANSFORM_MULTI(alpha_blend[blend_idx], ALPHA_BLEND_FINE)
+    }
+    free(source->alpha_blend);
     free(source->selected_unit_shift);
     FREE_TRANSFORM_MULTI(inv_color_variations, INV_COLOR_VARIATIONS)
     FREE_TRANSFORM_MULTI(light_level_variations, LIGHT_LEVEL_VARIATIONS)
-    free(source->light_level_variations);
     free(source->base_palette);
     free(source);
 }
