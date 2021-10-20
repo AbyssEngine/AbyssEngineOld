@@ -28,7 +28,12 @@
 #endif
 
 int main(int argc, char **argv) {
+#ifndef NDEBUG
+    log_info("Abyss Engine v%d.%d (DEBUG BUILD)", ABYSS_VERSION_MAJOR, ABYSS_VERSION_MINOR);
+#else
     log_info("Abyss Engine v%d.%d", ABYSS_VERSION_MAJOR, ABYSS_VERSION_MINOR);
+    log_set_level(LOG_ERROR);
+#endif // NDEBUG
 
     char cwd_path[4096];
 #ifdef _WIN32
@@ -77,7 +82,7 @@ int main(int argc, char **argv) {
     engine_set_global_instance(engine);
     engine_run(engine);
     engine_destroy(engine);
-    
+
     if (ini != NULL) {
         ini_file_destroy(ini);
     }

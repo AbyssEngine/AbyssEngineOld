@@ -187,6 +187,10 @@ void engine_init_sdl2(engine *src) {
     log_info("Using '%s' graphics rendering API", render_info.name);
     log_info("Max texture size: %dx%d", src->max_texture_width, src->max_texture_height);
 
+    SDL_version sdl_version;
+    SDL_GetVersion(&sdl_version);
+    log_info("SDL Version: %d.%d.%d", sdl_version.major, sdl_version.minor, sdl_version.patch);
+
     SDL_RenderSetLogicalSize(src->sdl_renderer, 800, 600);
     SDL_SetRenderDrawBlendMode(src->sdl_renderer, SDL_BLENDMODE_BLEND);
 
