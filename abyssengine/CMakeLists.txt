@@ -32,7 +32,9 @@ add_executable(${PROJECT_NAME} ${OPTIONS})
 set_target_properties(${PROJECT_NAME} PROPERTIES
         FOLDER "Applications/"
         BUNDLE TRUE
-        MACOSX_BUNDLE_GUI_IDENTIFIER abyssengine
+        MACOSX_BUNDLE_GUI_IDENTIFIER ${APP_NAME}
+        MACOSX_PRODUCT_BUNDLE_IDENTIFIER abyssengine
+        PRODUCT_BUNDLE_IDENTIFIER ABYSSENGINE
         OUTPUT_NAME ${APP_NAME}
         MACOSX_BUNDLE_BUNDLE_NAME ${APP_NAME}
         MACOSX_BUNDLE_BUNDLE_VERSION "${abyss_VERSION_MAJOR}.${abyss_VERSION_MINOR}"
@@ -76,6 +78,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/scripting/exitbootmode.c
         src/scripting/loadpalette.c
         src/scripting/loadsprite.c
+        src/scripting/setcursor.c
 
         # Loaders ------------------------------------------------------
         src/loader/loaderprovider.c src/loader/loaderprovider.h

@@ -20,6 +20,7 @@
 #include "../loader/filesystemloader.h"
 #include "../misc/resources.h"
 #include "../misc/util.h"
+#include "../node/sprite/sprite.h"
 #include "../scripting/scripting.h"
 #include "config.h"
 #include "libabyss/palette.h"
@@ -33,6 +34,11 @@
 #include <lualib.h>
 #include <stdlib.h>
 #include <string.h>
+
+typedef struct dispatch_item {
+    void (*func)(void *data);
+    void *data;
+} dispatch_item;
 
 typedef struct palette_item {
     char *name;
@@ -66,13 +72,32 @@ typedef struct engine {
     char *crash_text;
     palette_item *palettes;
     uint32_t num_palettes;
+    mutex *dispatch_mutex;
+    dispatch_item *dispatches;
+    uint32_t num_dispatches;
+    mutex *boot_text_mutex;
+    mutex *palette_mutex;
+    int max_texture_width;
+    int max_texture_height;
+    sprite *cursor;
+    int cursor_x;
+    int cursor_y;
+    int cursor_offset_x;
+    int cursor_offset_y;
 } engine;
+
+#ifndef NDEBUG
+thread *engine_thread;
+#endif // NDEBUG
 
 static engine *global_engine_instance;
 
 engine *engine_create(char *base_path, ini_file *ini_config) {
     engine *result = (engine *)calloc(1, sizeof(engine));
 
+    result->dispatch_mutex = mutex_create();
+    result->boot_text_mutex = mutex_create();
+    result->palette_mutex = mutex_create();
     result->pixel_buffer = (uint32_t *)calloc(800 * 600, 4);
     result->base_path = strdup(base_path);
     result->ini_config = ini_config;
@@ -84,6 +109,11 @@ engine *engine_create(char *base_path, ini_file *ini_config) {
     engine_init_sdl2(result);
     engine_init_lua(result);
     scripting_init();
+
+    // Store the engine thread so that we can check it if in debug mode
+#ifndef NDEBUG
+    engine_thread = thread_get_current();
+#endif
 
     return result;
 }
@@ -111,6 +141,14 @@ void engine_destroy(engine *src) {
     sysfont_destroy(src->font);
     free(src->base_path);
     free(src->pixel_buffer);
+    mutex_destroy(src->dispatch_mutex);
+    mutex_destroy(src->boot_text_mutex);
+    mutex_destroy(src->palette_mutex);
+
+#ifndef NDEBUG
+    free(engine_thread);
+#endif
+
     free(src);
 }
 
@@ -143,8 +181,11 @@ void engine_init_sdl2(engine *src) {
 
     SDL_RendererInfo render_info;
     SDL_GetRendererInfo(src->sdl_renderer, &render_info);
+    src->max_texture_width = render_info.max_texture_width;
+    src->max_texture_height = render_info.max_texture_height;
 
     log_info("Using '%s' graphics rendering API", render_info.name);
+    log_info("Max texture size: %dx%d", src->max_texture_width, src->max_texture_height);
 
     SDL_RenderSetLogicalSize(src->sdl_renderer, 800, 600);
     SDL_SetRenderDrawBlendMode(src->sdl_renderer, SDL_BLENDMODE_BLEND);
@@ -160,7 +201,7 @@ void engine_finalize_sdl2(engine *src) {
 
 static void engine_script_thread_cleanup(void *data) {
     // TODO: Any script cleanup, engine shutdown
-    log_info("Bootstrap script executed has completed.");
+    log_info("Bootstrap script execution has completed.");
 }
 
 #pragma clang diagnostic push
@@ -168,7 +209,7 @@ static void engine_script_thread_cleanup(void *data) {
 static void *engine_script_thread(void *data) {
     engine *src = (engine *)data;
 
-    thread_cleanup_push(engine_script_thread_cleanup, data);
+    //thread_cleanup_push(engine_script_thread_cleanup, data);
 
     scripting_inject_loaders(src->lua_state);
 
@@ -188,11 +229,24 @@ static void *engine_script_thread(void *data) {
     }
     free(lua_code);
 
-    thread_cleanup_pop(1);
+    //thread_cleanup_pop(1);
 
     return NULL;
 }
 #pragma clang diagnostic pop
+
+void engine_handle_dispatches(engine *src) {
+    mutex_lock(src->dispatch_mutex);
+
+    for (int i = 0; i < src->num_dispatches; i++) {
+        dispatch_item *item = &src->dispatches[i];
+        item->func(item->data);
+    }
+
+    src->num_dispatches = 0;
+
+    mutex_unlock(src->dispatch_mutex);
+}
 
 void engine_run(engine *src) {
     SDL_Event sdl_event;
@@ -224,6 +278,7 @@ void engine_run(engine *src) {
 
         engine_update(src);
         engine_render(src);
+        engine_handle_dispatches(src);
     }
 }
 
@@ -231,6 +286,10 @@ void engine_run_script_bootstrap(engine *src) { src->script_thread = thread_crea
 
 void engine_handle_sdl_event(engine *src, const SDL_Event *evt) {
     switch (evt->type) {
+    case SDL_MOUSEMOTION:
+        src->cursor_x = evt->motion.x;
+        src->cursor_y = evt->motion.y;
+        break;
     case SDL_QUIT:
         engine_shutdown(src);
         return;
@@ -242,11 +301,20 @@ void engine_shutdown(engine *src) { src->is_running = false; }
 void engine_render(engine *src) {
     if (src->render_callback != NULL) {
         mutex_lock(script_mutex);
+        mutex_lock(src->boot_text_mutex);
         src->render_callback(src);
+        mutex_unlock(src->boot_text_mutex);
         mutex_unlock(script_mutex);
-        return;
+    } else {
+        SDL_RenderClear(src->sdl_renderer);
     }
-    SDL_RenderClear(src->sdl_renderer);
+
+    if (src->cursor != NULL) {
+        node *n = (node *)src->cursor;
+        n->x = src->cursor_x;
+        n->y = src->cursor_y;
+        n->render_callback(n, src);
+    }
     SDL_RenderPresent(src->sdl_renderer);
 }
 
@@ -284,7 +352,10 @@ engine *engine_get_global_instance() { return global_engine_instance; }
 
 void engine_set_global_instance(engine *src) { global_engine_instance = src; }
 
-void engine_show_system_cursor(engine *src, bool show) { SDL_ShowCursor(show); }
+void engine_show_system_cursor(engine *src, bool show) {
+    VERIFY_ENGINE_THREAD
+    SDL_ShowCursor(show);
+}
 
 SDL_Renderer *engine_get_renderer(engine *src) { return src->sdl_renderer; }
 
@@ -313,37 +384,55 @@ SDL_Texture *engine_get_logo_texture(const engine *src, SDL_Rect *rect) {
 }
 
 void engine_set_boot_text(engine *src, const char *boot_text) {
+    mutex_lock(src->boot_text_mutex);
+
     if (boot_text == NULL) {
         if (src->boot_text != NULL) {
             free(src->boot_text);
             src->boot_text = NULL;
             return;
         }
+
+        return;
     }
 
     src->boot_text = realloc(src->boot_text, strlen(boot_text) + 1);
     memcpy(src->boot_text, boot_text, strlen(boot_text) + 1);
+
+    mutex_unlock(src->boot_text_mutex);
 }
 
 void engine_trigger_crash(engine *src, const char *crash_text) {
+    // TODO: We should verify thread here, but in a crash scenario is it really worth it?
+
     src->crash_text = strdup(crash_text);
     modecrash_set_callbacks(src);
 }
-void engine_exit_boot_mode(engine *src) { moderun_set_callbacks(src); }
+void engine_exit_boot_mode(engine *src) {
+    VERIFY_ENGINE_THREAD
+
+    moderun_set_callbacks(src);
+}
 
 const palette *engine_get_palette(const engine *src, const char *palette_name) {
+    mutex_lock(src->palette_mutex);
+
     for (int idx = 0; idx < src->num_palettes; idx++) {
         if (strcmp(src->palettes[idx].name, palette_name) != 0)
             continue;
 
-        return src->palettes[idx].palette;
+        palette *result = src->palettes[idx].palette;
+        mutex_unlock(src->palette_mutex);
+        return result;
     }
 
+    mutex_unlock(src->palette_mutex);
     return NULL;
 }
 
 bool engine_add_palette(engine *src, const char *palette_name, palette *pal) {
     const palette *test = engine_get_palette(src, palette_name);
+    mutex_lock(src->palette_mutex);
     if (test != NULL) {
         log_fatal("Attempted to add palette '%s', but it already exists.", palette_name);
         return false;
@@ -353,5 +442,25 @@ bool engine_add_palette(engine *src, const char *palette_name, palette *pal) {
     src->palettes[src->num_palettes - 1].palette = pal;
     src->palettes[src->num_palettes - 1].name = strdup(palette_name);
 
+    mutex_unlock(src->palette_mutex);
     return true;
+}
+
+void engine_dispatch(engine *src, void (*dispatch)(void *data), void *data) {
+    mutex_lock(src->dispatch_mutex);
+
+    src->dispatches = realloc(src->dispatches, src->num_dispatches + 1);
+    dispatch_item *entry = &src->dispatches[src->num_dispatches++];
+    entry->func = dispatch;
+    entry->data = data;
+
+    mutex_unlock(src->dispatch_mutex);
+}
+
+void engine_set_cursor(engine *src, sprite *cursor, int offset_x, int offset_y) {
+    VERIFY_ENGINE_THREAD
+
+    src->cursor = cursor;
+    src->cursor_offset_x = offset_x;
+    src->cursor_offset_y = offset_y;
 }

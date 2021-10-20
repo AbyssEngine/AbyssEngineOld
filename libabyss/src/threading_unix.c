@@ -49,6 +49,8 @@ void thread_cancel(thread *source) { pthread_cancel(source->pthread); }
 
 void thread_cancel_checkpoint() { pthread_testcancel(); }
 
+bool thread_same(thread *other) { return pthread_equal(pthread_self(), other->pthread) != 0; }
+
 mutex *mutex_create() {
     mutex *result = malloc(sizeof(mutex));
     if (pthread_mutex_init(&result->lock, NULL)) {
@@ -67,3 +69,9 @@ void mutex_destroy(mutex *source) {
 void mutex_lock(mutex *mutex) { pthread_mutex_lock(&mutex->lock); }
 
 void mutex_unlock(mutex *mutex) { pthread_mutex_unlock(&mutex->lock); }
+
+thread *thread_get_current() {
+    thread *result = malloc(sizeof(thread));
+    result->pthread = pthread_self();
+    return result;
+}

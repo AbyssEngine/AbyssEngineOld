@@ -73,8 +73,6 @@ void util_normalize_path(char *path) {
 
     // Resolve ../ references
     for (char *p = strstr(path, "../"); p != NULL; p = strstr(path, "../")) {
-        size_t full_len = strlen(path);
-
         // Get the right side of "../"
         char *edge = p + 3;
 

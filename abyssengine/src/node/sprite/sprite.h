@@ -19,9 +19,17 @@
 #ifndef ABYSS_SPRITE_H
 #define ABYSS_SPRITE_H
 
+#include "../../engine/engine.h"
+#include "../node.h"
+
 typedef struct sprite sprite;
 
 sprite *sprite_load(const char *file_path, const char *palette_name);
 void sprite_destroy(sprite *source);
+void sprite_regenerate_atlas(sprite *source);
+void sprite_render_callback(node *node, engine *source);
+void sprite_remove_callback(node *node, engine *source);
+void sprite_destroy_callback(node *node, engine *source);
+void sprite_update_callback(node *node, engine *source, uint32_t ticks);
 
 #endif // ABYSS_SPRITE_H

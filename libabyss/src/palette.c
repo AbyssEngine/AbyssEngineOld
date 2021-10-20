@@ -61,7 +61,7 @@ void decode_colors(streamreader *reader, palette_color *dest, int color_bytes) {
         switch (color_bytes) {
         case 1:
             color->red = color->green = color->blue = streamreader_read_byte(reader);
-            color->alpha = 255;
+            color->alpha = 0xFF;
             continue;
         case 3:
             color->red = streamreader_read_byte(reader);
@@ -73,13 +73,17 @@ void decode_colors(streamreader *reader, palette_color *dest, int color_bytes) {
             color->red = streamreader_read_byte(reader);
             color->green = streamreader_read_byte(reader);
             color->blue = streamreader_read_byte(reader);
-            color->alpha = streamreader_read_byte(reader);
+            color->alpha = 0xFF;
+            streamreader_skip_bytes(reader, 1); // TODO: Not sure if this is ok...
+            // color->alpha = streamreader_read_byte(reader);
             continue;
         default:
             log_fatal("invalid color bytes specified: %i", color_bytes);
             exit(EXIT_FAILURE);
         }
     }
+
+    dest[0].alpha = 0x00;
 }
 
 void decode_transform_single(streamreader *reader, uint8_t *dest) {

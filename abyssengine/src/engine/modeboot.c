@@ -45,8 +45,6 @@ void engine_render_boot(engine *src) {
         SDL_SetRenderDrawColor(renderer, fade_color.r, fade_color.g, fade_color.b, fade_color.a);
         SDL_RenderFillRect(renderer, NULL);
     }
-
-    SDL_RenderPresent(renderer);
 }
 
 void engine_update_boot(engine *src, uint32_t tick_diff) {

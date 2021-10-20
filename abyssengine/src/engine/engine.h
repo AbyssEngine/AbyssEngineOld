@@ -22,12 +22,25 @@
 #include "../loader/loader.h"
 #include "../misc/ini.h"
 #include "libabyss/palette.h"
+#include "libabyss/threading.h"
 #include "sysfont.h"
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 #include <stddef.h>
 
 typedef struct engine engine;
+typedef struct sprite sprite;
+
+#ifndef NDEBUG
+extern thread *engine_thread;
+#define VERIFY_ENGINE_THREAD                                                                                                                         \
+    if (!thread_same(engine_thread)) {                                                                                                               \
+        log_fatal("engine called on a non main thread!");                                                                                            \
+        exit(-1);                                                                                                                                    \
+    }
+#else
+#define VERIFY_ENGINE_THREAD
+#endif
 
 engine *engine_create(char *base_path, ini_file *ini_config);
 void engine_destroy(engine *src);
@@ -59,4 +72,6 @@ void engine_run_script_bootstrap(engine *src);
 void engine_exit_boot_mode(engine *src);
 const palette *engine_get_palette(const engine *src, const char *palette_name);
 bool engine_add_palette(engine *src, const char *palette_name, palette *pal);
+void engine_dispatch(engine *src, void (*dispatch)(void *data), void *data);
+void engine_set_cursor(engine *src, sprite *cursor, int offset_x, int offset_y);
 #endif // ABYSS_ENGINE_H

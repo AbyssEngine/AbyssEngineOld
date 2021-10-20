@@ -16,23 +16,36 @@
  * along with AbyssEngine.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../engine/engine.h"
+#include "../node/sprite/sprite.h"
 #include "scripting.h"
-#include <assert.h>
 
-void abyss_lua_show_system_cursor_dispatch(void *data) { engine_show_system_cursor(engine_get_global_instance(), (bool)data); }
+typedef struct abyss_lua_set_cursor_request {
+    int offset_x;
+    int offset_y;
+    sprite *source;
+} abyss_lua_set_cursor_request;
+
+void abyss_lua_set_cursor_dispatch(void *data) {
+    abyss_lua_set_cursor_request *request = (abyss_lua_set_cursor_request *)data;
+    engine_set_cursor(engine_get_global_instance(), request->source, request->offset_x, request->offset_y);
+    free(data);
+}
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "ConstantFunctionResult"
-int abyss_lua_show_system_cursor(lua_State *l) {
+int abyss_lua_set_cursor(lua_State *l) {
+    LCHECK_NUMPARAMS(3)
+    LCHECK_LIGHTUSERDATA(1);
+    LCHECK_NUMBER(2);
+    LCHECK_NUMBER(3);
 
-    // It'll _never_ happen, unless I check for this explicitly...
-    static_assert(sizeof(int) < sizeof(void *), "pointers must be at least the size of integers.");
+    abyss_lua_set_cursor_request *request = malloc(sizeof(abyss_lua_set_cursor_request));
+    request->source = (sprite *)lua_touserdata(l, 1);
+    request->offset_x = lua_tonumber(l, 2);
+    request->offset_y = lua_tonumber(l, 3);
 
-    LCHECK_NUMPARAMS(1)
-    LCHECK_BOOLEAN(1);
+    engine_dispatch(engine_get_global_instance(), abyss_lua_set_cursor_dispatch, (void *)request);
 
-    engine_dispatch(engine_get_global_instance(), abyss_lua_show_system_cursor_dispatch, (void *)lua_toboolean(l, 1));
     return 0;
 }
 #pragma clang diagnostic pop

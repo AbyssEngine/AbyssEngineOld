@@ -27,8 +27,6 @@ void engine_render_crash(engine *src) {
 
     sysfont_draw_wrap(font, renderer, 100, 100, "AbyssEngine has ran into an error!", 600);
     sysfont_draw_wrap(font, renderer, 100, 150, engine_get_crash_text(src), 600);
-
-    SDL_RenderPresent(renderer);
 }
 
 void engine_update_crash(engine *src, uint32_t tick_diff) {}

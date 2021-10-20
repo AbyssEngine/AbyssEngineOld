@@ -21,6 +21,7 @@
 #include "streamwriter.h"
 #include <stdlib.h>
 #include <string.h>
+#include <libabyss/log.h>
 
 void *compress_decompress_wav(void *buffer, uint32_t buffer_size, int channel_count) {
     int array_1[] = {0x2C, 0x2C};
@@ -45,6 +46,10 @@ void *compress_decompress_wav(void *buffer, uint32_t buffer_size, int channel_co
     }
 
     int channel = channel_count - 1;
+    if (channel > 1) {
+        log_fatal("invalid channel id: %d", channel);
+        exit(-1);
+    }
 
     while (!streamreader_eof(input)) {
         uint8_t value = streamreader_read_byte(input);

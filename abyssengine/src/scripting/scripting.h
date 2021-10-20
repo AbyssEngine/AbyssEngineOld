@@ -34,6 +34,7 @@ typedef struct engine engine;
 #define LCHECK_STRING(IDX) luaL_argcheck(l, lua_isstring(l, IDX), IDX, "string expected")
 #define LCHECK_NUMBER(IDX) luaL_argcheck(l, lua_isnumber(l, IDX), IDX, "number expected")
 #define LCHECK_BOOLEAN(IDX) luaL_argcheck(l, lua_isboolean(l, IDX), IDX, "boolean expected")
+#define LCHECK_LIGHTUSERDATA(IDX) luaL_argcheck(l, lua_islightuserdata(l, IDX), IDX, "reference to engine object expected")
 
 extern mutex *script_mutex;
 
@@ -50,6 +51,7 @@ extern int abyss_lua_load_string(lua_State *l);
 extern int abyss_lua_exit_boot_mode(lua_State *l);
 extern int abyss_lua_load_palette(lua_State *l);
 extern int abyss_lua_load_sprite(lua_State *l);
+extern int abyss_lua_set_cursor(lua_State *l);
 
 void scripting_inject_loaders(lua_State *l);
 

@@ -19,11 +19,14 @@
 #include "../engine/engine.h"
 #include "scripting.h"
 
+void abyss_lua_exit_boot_mode_dispatch(void *data) { engine_exit_boot_mode(engine_get_global_instance()); }
+
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "ConstantFunctionResult"
 int abyss_lua_exit_boot_mode(lua_State *l) {
     LCHECK_NUMPARAMS(0)
-    engine_exit_boot_mode(engine_get_global_instance());
+
+    engine_dispatch(engine_get_global_instance(), abyss_lua_exit_boot_mode_dispatch, NULL);
 
     return 0;
 }

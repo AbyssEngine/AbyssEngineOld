@@ -19,6 +19,8 @@
 #ifndef LIBABYSS_THREADING_H
 #define LIBABYSS_THREADING_H
 
+#include <stdbool.h>
+
 typedef struct thread thread;
 typedef struct mutex mutex;
 
@@ -26,6 +28,8 @@ thread *thread_create(void *(*thread_func)(void *arg), void *arg);
 void thread_join(thread *source);
 void thread_cancel(thread *source);
 void thread_cancel_checkpoint();
+bool thread_same(thread *other);
+thread *thread_get_current();
 
 #ifdef _WIN32
 // TODO: Is there a windows way to do this?

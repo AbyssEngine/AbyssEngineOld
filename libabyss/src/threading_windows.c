@@ -42,6 +42,20 @@ void thread_join(thread *source) {
     free(source);
 }
 
+bool thread_same(thread *other) {
+    DWORD source_id = GetThreadId(GetCurrentThread());
+    return source_id == other->thread_id;
+}
+
+thread *thread_get_current() {
+    thread *result = malloc(sizeof(thread));
+    result->thread = GetCurrentThread();
+    result->thread_id = GetThreadId(thread->thread);
+    result->cancelled = false;
+
+    return result;
+}
+
 void thread_cancel(thread *source) {
     // TODO: This is the ~worst~ way to end a thread, and will leak memory.
     TerminateThread(source->thread, 0);

@@ -77,7 +77,10 @@ int main(int argc, char **argv) {
     engine_set_global_instance(engine);
     engine_run(engine);
     engine_destroy(engine);
-    ini_file_destroy(ini);
+    
+    if (ini != NULL) {
+        ini_file_destroy(ini);
+    }
 
     return EXIT_SUCCESS;
 }

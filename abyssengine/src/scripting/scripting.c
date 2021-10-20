@@ -44,6 +44,7 @@ int scripting_loader(lua_State *l) {
     char *value = loader_load(loader, path, &file_size);
 
     if (value == NULL) {
+        free(path);
         lua_pushstring(l, "Module not found.");
         return 1;
     }
@@ -80,6 +81,7 @@ int luaopen_abyss(lua_State *l) {
     lua_register(l, "exitBootMode", abyss_lua_exit_boot_mode);
     lua_register(l, "loadPalette", abyss_lua_load_palette);
     lua_register(l, "loadSprite", abyss_lua_load_sprite);
+    lua_register(l, "setCursor", abyss_lua_set_cursor);
     // loadButton
     // loadLabel
     // cursorTexture

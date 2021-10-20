@@ -39,5 +39,6 @@ int abyss_lua_load_sprite(lua_State *l) {
         return 0;
     }
 
-    return 0;
+    lua_pushlightuserdata(l, result);
+    return 1;
 }

@@ -21,6 +21,12 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#define END_OF_SCANLINE 0x80
+#define MAX_RUN_LENGTH 0x7F
+#define END_OF_LINE 1
+#define RUN_OF_TRANSPARENT_PIXELS 2
+#define RUN_OF_OPAQUE_PIXELS 3
+
 #define READ_BYTE(field) field = streamreader_read_byte(reader);
 #define READ_UINT32(field) field = streamreader_read_uint32(reader);
 #define READ_INT32(field) field = streamreader_read_int32(reader);
@@ -36,7 +42,7 @@ void dc6_decode_header(dc6 *source, streamreader *reader) {
     READ_BYTES(source->termination, 4)
 }
 
-bool dc6_decode_footer(dc6 *source, streamreader *reader) {
+void dc6_decode_footer(dc6 *source, streamreader *reader) {
     READ_UINT32(source->number_of_directions)
     READ_UINT32(source->frames_per_direction)
 
@@ -61,12 +67,53 @@ bool dc6_decode_footer(dc6 *source, streamreader *reader) {
             READ_UINT32(frame->unknown)
             READ_UINT32(frame->next_block)
             READ_UINT32(frame->length)
-            frame->frame_data = calloc(1, sizeof(frame->length));
+            frame->frame_data = calloc(1, frame->length);
             streamreader_get_bytes(reader, frame->frame_data, frame->length);
             READ_BYTES(frame->terminator, 3)
         }
     }
-    return true;
+}
+
+int dc6_get_scanline_type(int b) {
+    if (b == END_OF_SCANLINE)
+        return END_OF_LINE;
+
+    if ((b & END_OF_SCANLINE) > 0)
+        return RUN_OF_TRANSPARENT_PIXELS;
+
+    return RUN_OF_OPAQUE_PIXELS;
+}
+
+void dc6_decode_frame(dc6_frame *frame) {
+    frame->index_data = calloc(1, frame->width * frame->height);
+    int x = 0;
+    int y = (int)frame->height - 1;
+    int offset = 0;
+
+    bool run = true;
+    while (run) {
+        int b = frame->frame_data[offset++];
+
+        switch (dc6_get_scanline_type(b)) {
+        case END_OF_LINE:
+            if (y == 0) {
+                run = false;
+                continue;
+            }
+            y--;
+            x = 0;
+            break;
+        case RUN_OF_TRANSPARENT_PIXELS:
+            x += (b & MAX_RUN_LENGTH);
+            break;
+        case RUN_OF_OPAQUE_PIXELS:
+            for (int i = 0; i < b; i++) {
+                frame->index_data[x + (y * frame->width) + i] = frame->frame_data[offset++];
+            }
+            x += b;
+            break;
+        }
+    }
 }
 
 dc6 *dc6_new_from_bytes(const void *data, uint64_t size) {
@@ -74,11 +121,13 @@ dc6 *dc6_new_from_bytes(const void *data, uint64_t size) {
     streamreader *reader = streamreader_create(data, size);
 
     dc6_decode_header(result, reader);
+    dc6_decode_footer(result, reader);
 
-    if (!dc6_decode_footer(result, reader)) {
-        free(result);
-        streamreader_destroy(reader);
-        return NULL;
+    for (int dir_idx = 0; dir_idx < result->number_of_directions; dir_idx++) {
+        dc6_direction *direction = &result->directions[dir_idx];
+        for (int frame_idx = 0; frame_idx < result->frames_per_direction; frame_idx++) {
+            dc6_decode_frame(&direction->frames[frame_idx]);
+        }
     }
 
     streamreader_destroy(reader);
@@ -91,6 +140,8 @@ void dc6_destroy(dc6 *source) {
             dc6_direction *direction = &source->directions[dir_idx];
             for (int frame_idx = 0; frame_idx < source->frames_per_direction; frame_idx++) {
                 dc6_frame *frame = &direction->frames[frame_idx];
+                if (frame->index_data != NULL)
+                    free(frame->index_data);
                 free(frame->frame_data);
             }
             free(direction->frames);

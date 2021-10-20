@@ -21,7 +21,7 @@
 
 int abyss_lua_sleep(lua_State *l) {
     LCHECK_NUMPARAMS(1)
-    LCHECK_STRING(1);
+    LCHECK_NUMBER(1);
 
     const int sleep_msec = lua_tointeger(l, 1);
 
