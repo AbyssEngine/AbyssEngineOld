@@ -18,7 +18,9 @@
 
 #include "config.h"
 #include "engine/engine.h"
+#ifdef __APPLE__
 #include "misc/appcompat.h"
+#endif
 #include <libabyss/log.h>
 #include <libabyss/utils.h>
 #include <stdlib.h>
