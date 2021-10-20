@@ -36,8 +36,9 @@ int main(int argc, char **argv) {
 #else
     log_info("Abyss Engine v%d.%d", ABYSS_VERSION_MAJOR, ABYSS_VERSION_MINOR);
     log_set_level(LOG_ERROR);
-
 #endif // NDEBUG
+
+    check_app_compat(); // Ahh macOS you pain in the ass
 
     char cwd_path[4096];
 #ifdef _WIN32
@@ -45,12 +46,6 @@ int main(int argc, char **argv) {
 #else
     getcwd(cwd_path, 4096);
 #endif
-
-// This checks if the app "Magnet" is running as it causes issues with SDL, hopefully this can be removed later
-#ifdef __APPLE__
-    check_app_compat(); // Ahh macOS you pain in the ass
-#endif
-
     char *ini_file_path = calloc(1, 4096);
 
     // Try the CWD

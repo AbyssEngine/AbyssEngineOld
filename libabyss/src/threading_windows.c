@@ -50,7 +50,7 @@ bool thread_same(thread *other) {
 thread *thread_get_current() {
     thread *result = malloc(sizeof(thread));
     result->thread = GetCurrentThread();
-    result->thread_id = GetThreadId(thread->thread);
+    result->thread_id = GetThreadId(result->thread);
     result->cancelled = false;
 
     return result;

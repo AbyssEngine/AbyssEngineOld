@@ -17,32 +17,42 @@
  */
 
 #include <libabyss/log.h>
+#include <libgen.h>
 #include <stdio.h>
 #include <string.h>
-#include <libgen.h>
 
-void check_app_compat() {
+#ifdef __APPLE__
+void check_app_compat_apple() {
     FILE *fp;
     char line[2048];
     char *token;
-    /* Open the command for reading. */
+
+    // Open the command for reading.
     fp = popen("/usr/bin/locate .app | grep '\\.app$' | grep Steam", "r");
     if (fp == NULL) {
         log_warn("Failed To Check For App Incompatibilities :(");
     }
     const char s[3] = ", ";
-    /* Read the output a line at a time - output it. */
+    // Read the output a line at a time - output it.
     if (fgets(line, sizeof(line), fp) != NULL) {
         token = basename(strtok(line, s));
 
         /* walk through other tokens */
         while (token != NULL) {
             if (strcmp(token, "Magnet.app") == 0) {
-                log_warn("Detected Installation Of Magnet Window Manager, This may cause lag issues with window dragging, It is recommended to disable magnet while using Abyss Engine due to these issues.");
+                log_warn("Detected Installation Of Magnet Window Manager, This may cause lag issues with window dragging, It is recommended to "
+                         "disable magnet while using Abyss Engine due to these issues.");
             }
             token = strtok(NULL, s);
         }
         /* close */
         pclose(fp);
     }
+}
+#endif // __APPLE__
+
+void check_app_compat() {
+#ifdef __APPLE__
+    check_app_compat_apple();
+#endif // __APPLE__
 }
