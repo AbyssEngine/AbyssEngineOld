@@ -37,7 +37,7 @@ void check_app_compat() {
 
         /* walk through other tokens */
         while (token != NULL) {
-            if (strcmp(token, "Spotify.app") == 0) {
+            if (strcmp(token, "Magnet.app") == 0) {
                 log_warn("Detected Installation Of Magnet Window Manager, This may cause lag issues with window dragging, It is recommended to disable magnet while using Abyss Engine due to these issues.");
             }
             token = strtok(NULL, s);
