@@ -18,6 +18,7 @@
 
 #include "config.h"
 #include "engine/engine.h"
+#include "misc/appcompat.h"
 #include <libabyss/log.h>
 #include <libabyss/utils.h>
 #include <stdlib.h>
@@ -41,6 +42,11 @@ int main(int argc, char **argv) {
     _getcwd(cwd_path, 4096);
 #else
     getcwd(cwd_path, 4096);
+#endif
+
+// This checks if the app "Magnet" is running as it causes issues with SDL, hopefully this can be removed later
+#ifdef __APPLE__
+    check_app_compat(); // Ahh macOS you pain in the ass
 #endif
 
     char *ini_file_path = calloc(1, 4096);

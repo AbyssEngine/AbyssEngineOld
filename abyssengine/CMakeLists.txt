@@ -90,6 +90,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/misc/util.c src/misc/util.h
         src/misc/ini.c src/misc/ini.h
         src/misc/resources.c src/misc/resources.h
+        src/misc/appcompat.c src/misc/appcompat.h
 
         # Dynamic ------------------------------------------------------
         ${SOURCE_EXTRA}
