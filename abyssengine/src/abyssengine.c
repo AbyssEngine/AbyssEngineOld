@@ -33,6 +33,7 @@ int main(int argc, char **argv) {
 #else
     log_info("Abyss Engine v%d.%d", ABYSS_VERSION_MAJOR, ABYSS_VERSION_MINOR);
     log_set_level(LOG_ERROR);
+
 #endif // NDEBUG
 
     char cwd_path[4096];
