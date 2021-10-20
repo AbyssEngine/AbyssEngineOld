@@ -34,9 +34,9 @@
 #define COMPONENT_BLENDS 256
 #define TEXT_SHIFTS 13
 
-#define LOAD_COLORS(field, colors)                                                                                                                   \
-    result->field = malloc(sizeof(palette_color) * NUM_PALETTE_COLORS);                                                                              \
-    decode_colors(reader, result->field, colors);
+#define LOAD_COLORS(field, colors, num_colors)                                                                                                       \
+    result->field = malloc(sizeof(palette_color) * num_colors);                                                                                      \
+    decode_colors(reader, result->field, colors, num_colors);
 
 #define LOAD_TRANSFORM_SINGLE(field)                                                                                                                 \
     result->field = malloc(NUM_PALETTE_COLORS);                                                                                                      \
@@ -55,8 +55,8 @@
     }                                                                                                                                                \
     free(source->field);
 
-void decode_colors(streamreader *reader, palette_color *dest, int color_bytes) {
-    for (int idx = 0; idx < NUM_PALETTE_COLORS; idx++) {
+void decode_colors(streamreader *reader, palette_color *dest, int color_bytes, int num_colors) {
+    for (int idx = 0; idx < num_colors; idx++) {
         palette_color *color = &dest[idx];
         switch (color_bytes) {
         case 1:
@@ -102,7 +102,7 @@ palette *palette_new_from_bytes(const void *data, const uint64_t size) {
     streamreader *reader = streamreader_create(data, size);
     palette *result = calloc(1, sizeof(palette));
 
-    LOAD_COLORS(base_palette, 4)
+    LOAD_COLORS(base_palette, 4, NUM_PALETTE_COLORS)
     LOAD_TRANSFORM_MULTI(light_level_variations, LIGHT_LEVEL_VARIATIONS)
     LOAD_TRANSFORM_MULTI(inv_color_variations, INV_COLOR_VARIATIONS)
     LOAD_TRANSFORM_SINGLE(selected_unit_shift)
@@ -119,7 +119,9 @@ palette *palette_new_from_bytes(const void *data, const uint64_t size) {
     LOAD_TRANSFORM_MULTI(unknown_variations, UNKNOWN_VARIATIONS)
     LOAD_TRANSFORM_MULTI(max_component_blend, COMPONENT_BLENDS)
     LOAD_TRANSFORM_SINGLE(darkened_color_shift)
-    LOAD_COLORS(text_colors, 3)
+    LOAD_COLORS(text_colors, 3, TEXT_SHIFTS)
+
+    // TODO: This is broken
     LOAD_TRANSFORM_MULTI(text_color_shifts, TEXT_SHIFTS)
 
     streamreader_destroy(reader);
@@ -127,7 +129,7 @@ palette *palette_new_from_bytes(const void *data, const uint64_t size) {
 }
 
 void palette_destroy(palette *source) {
-    FREE_TRANSFORM_MULTI(text_color_shifts, TEXT_SHIFTS)
+    // FREE_TRANSFORM_MULTI(text_color_shifts, TEXT_SHIFTS)
     free(source->text_colors);
     free(source->darkened_color_shift);
     FREE_TRANSFORM_MULTI(max_component_blend, COMPONENT_BLENDS)

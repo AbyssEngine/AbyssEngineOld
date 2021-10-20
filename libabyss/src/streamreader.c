@@ -17,6 +17,7 @@
  */
 
 #include "streamreader.h"
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -29,6 +30,8 @@ typedef struct streamreader {
 streamreader *streamreader_create(const void *data, const uint64_t data_size) {
     streamreader *result = malloc(sizeof(streamreader));
 
+    assert(data_size > 0);
+
     result->data = (char *)data;
     result->position = 0;
     result->data_size = data_size;
@@ -38,7 +41,13 @@ streamreader *streamreader_create(const void *data, const uint64_t data_size) {
 
 void streamreader_destroy(streamreader *source) { free(source); }
 
-uint8_t streamreader_read_byte(streamreader *source) { return source->data[source->position++]; }
+uint8_t streamreader_read_byte(streamreader *source) {
+    assert(source->position < source->data_size);
+    if (source->position >= source->data_size) {
+        exit(-1);
+    }
+    return source->data[source->position++];
+}
 
 int16_t streamreader_read_int16(streamreader *source) { return (int16_t)streamreader_read_uint16(source); }
 
@@ -70,10 +79,14 @@ uint64_t streamreader_get_position(const streamreader *source) { return source->
 void streamreader_set_position(streamreader *source, uint64_t position) { source->position = position; }
 
 void streamreader_get_bytes(streamreader *source, void *buffer, const uint64_t count) {
+    assert(source->position + count < source->data_size);
     memcpy(buffer, &source->data[source->position], count);
     source->position += count;
 }
 
-void streamreader_skip_bytes(streamreader *source, const uint64_t count) { source->position += count; }
+void streamreader_skip_bytes(streamreader *source, const uint64_t count) {
+    assert(source->position + count < source->data_size);
+    source->position += count;
+}
 
 bool streamreader_eof(const streamreader *source) { return source->position >= source->data_size; }

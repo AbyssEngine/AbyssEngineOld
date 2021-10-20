@@ -31,15 +31,26 @@ typedef uint8_t e_sprite_type;
 
 enum e_sprite_type { sprite_type_dc6, sprite_type_dcc };
 
+typedef struct sprite_frame_pos {
+    SDL_Rect rect;
+    int offset_x;
+    int offset_y;
+} sprite_frame_pos;
+
 typedef struct sprite {
     node node;
     e_sprite_type sprite_type;
     SDL_Texture *atlas;
+    sprite_frame_pos *frame_rects;
     const palette *palette;
     union {
         dcc *dcc_data;
         dc6 *dc6_data;
     } image_data;
+    uint32_t current_frame;
+    uint32_t total_frames;
+    uint32_t current_direction;
+    uint32_t total_directions;
 } sprite;
 
 void sprite_regenerate_atlas_dispatch(void *data) { sprite_regenerate_atlas((sprite *)data); }
@@ -102,6 +113,8 @@ sprite *sprite_load(const char *file_path, const char *palette_name) {
         }
 
         result->image_data.dc6_data = dc6_new_from_bytes(data, size);
+        result->total_frames = result->image_data.dc6_data->frames_per_direction;
+        result->total_directions = result->image_data.dc6_data->number_of_directions;
 
         free(path_ext);
     } else {
@@ -121,6 +134,8 @@ sprite *sprite_load(const char *file_path, const char *palette_name) {
     return result;
 }
 void sprite_regenerate_atlas_dc6(sprite *source) {
+    VERIFY_ENGINE_THREAD
+
     if (source->atlas != NULL) {
         SDL_DestroyTexture(source->atlas);
     }
@@ -137,18 +152,26 @@ void sprite_regenerate_atlas_dc6(sprite *source) {
         for (int frame_idx = 0; frame_idx < dc6->frames_per_direction; frame_idx++) {
             dc6_frame *frame = &direction->frames[frame_idx];
 
-            direction_max_width += frame->width;
-            direction_max_height = (direction_max_height < frame->height) ? frame->height : direction_max_height;
+            direction_max_width += (int)frame->width;
+            direction_max_height = (direction_max_height < frame->height) ? (int)frame->height : (int)direction_max_height;
         }
 
         atlas_width = (atlas_width < direction_max_width) ? direction_max_width : atlas_width;
         atlas_height += direction_max_height;
     }
 
+    if (source->atlas != NULL) {
+        SDL_DestroyTexture(source->atlas);
+    }
     source->atlas = SDL_CreateTexture(engine_get_renderer(engine_get_global_instance()), SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC,
                                       atlas_width, atlas_height);
 
-    uint8_t *buffer = calloc(1, 4 * atlas_width * atlas_height);
+    if (source->frame_rects != NULL) {
+        free(source->frame_rects);
+    }
+    source->frame_rects =
+        malloc(sizeof(sprite_frame_pos) * source->image_data.dc6_data->frames_per_direction * source->image_data.dc6_data->number_of_directions);
+    uint32_t *buffer = malloc(sizeof(uint32_t) * atlas_width * atlas_height);
 
     int start_x = 0;
     int start_y = 0;
@@ -159,25 +182,22 @@ void sprite_regenerate_atlas_dc6(sprite *source) {
 
         for (int frame_idx = 0; frame_idx < dc6->frames_per_direction; frame_idx++) {
             dc6_frame *frame = &direction->frames[frame_idx];
+            sprite_frame_pos *frame_rect = &source->frame_rects[(dir_idx * dc6->frames_per_direction) + frame_idx];
+            frame_rect->rect.x = start_x;
+            frame_rect->rect.y = start_y;
+            frame_rect->rect.w = (int)frame->width;
+            frame_rect->rect.h = (int)frame->height;
+            frame_rect->offset_x = frame->offset_x;
+            frame_rect->offset_y = frame->offset_y;
 
             for (int y = 0; y < frame->height; y++) {
                 for (int x = 0; x < frame->width; x++) {
-//                    palette_color *color = &source->palette->base_palette[frame->index_data[palette_idx]];
-//                    int buffer_idx = ((start_x + x) + ((start_y + y) * atlas_width)) * 4;
-//                    if (buffer_idx >= (atlas_width * atlas_height * 4)) {
-//                        break;
-//                    }
-                    //                    buffer[buffer_idx] = 0x00;
-                    //                    buffer[buffer_idx + 1] = 0x00;
-                    //                    buffer[buffer_idx + 2] = 0x00;
-                    //                    buffer[buffer_idx + 3] = 0xFF;
-                    //                    buffer[buffer_idx] =
-                    //                        ((uint32_t)color->blue << 24) | ((uint32_t)color->green << 16) | ((uint32_t)color->red << 8) |
-                    //                        ((uint32_t)color->alpha);
+                    palette_color *color = &source->palette->base_palette[frame->index_data[x + (y * frame->width)]];
+                    buffer[(start_x + x) + ((start_y + y) * atlas_width)] = *(uint32_t *)color;
                 }
             }
 
-            direction_max_height = (direction_max_height < frame->height) ? frame->height : direction_max_height;
+            direction_max_height = (direction_max_height < frame->height) ? (int)frame->height : (int)direction_max_height;
             start_x += (int)frame->width;
         }
 
@@ -186,6 +206,7 @@ void sprite_regenerate_atlas_dc6(sprite *source) {
     }
 
     SDL_UpdateTexture(source->atlas, NULL, buffer, atlas_width * 4);
+    SDL_SetTextureBlendMode(source->atlas, SDL_BLENDMODE_BLEND);
     free(buffer);
 }
 
@@ -206,7 +227,12 @@ void sprite_render_callback(node *node, engine *e) {
     sprite *source = (sprite *)node;
     SDL_Renderer *renderer = engine_get_renderer(e);
 
-    SDL_RenderCopy(renderer, source->atlas, NULL, NULL);
+    sprite_frame_pos *pos = &source->frame_rects[(source->current_direction * source->total_frames) + source->current_frame];
+    SDL_Rect *source_rect = &pos->rect;
+    SDL_Rect dest_rect = *source_rect;
+    dest_rect.x = source->node.x + pos->offset_x;
+    dest_rect.y = source->node.y + pos->offset_y;
+    SDL_RenderCopy(renderer, source->atlas, source_rect, &dest_rect);
     // TODO: Render
 }
 
@@ -240,5 +266,7 @@ void sprite_destroy(sprite *source) {
         log_fatal("undefined sprite type");
         exit(-1);
     }
+
+    free(source->frame_rects);
     free(source);
 }

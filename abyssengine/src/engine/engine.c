@@ -209,7 +209,7 @@ static void engine_script_thread_cleanup(void *data) {
 static void *engine_script_thread(void *data) {
     engine *src = (engine *)data;
 
-    //thread_cleanup_push(engine_script_thread_cleanup, data);
+    // thread_cleanup_push(engine_script_thread_cleanup, data);
 
     scripting_inject_loaders(src->lua_state);
 
@@ -229,7 +229,7 @@ static void *engine_script_thread(void *data) {
     }
     free(lua_code);
 
-    //thread_cleanup_pop(1);
+    // thread_cleanup_pop(1);
 
     return NULL;
 }
@@ -311,8 +311,8 @@ void engine_render(engine *src) {
 
     if (src->cursor != NULL) {
         node *n = (node *)src->cursor;
-        n->x = src->cursor_x;
-        n->y = src->cursor_y;
+        n->x = src->cursor_x + src->cursor_offset_x;
+        n->y = src->cursor_y + src->cursor_offset_y;
         n->render_callback(n, src);
     }
     SDL_RenderPresent(src->sdl_renderer);
@@ -449,7 +449,7 @@ bool engine_add_palette(engine *src, const char *palette_name, palette *pal) {
 void engine_dispatch(engine *src, void (*dispatch)(void *data), void *data) {
     mutex_lock(src->dispatch_mutex);
 
-    src->dispatches = realloc(src->dispatches, src->num_dispatches + 1);
+    src->dispatches = realloc(src->dispatches, sizeof(dispatch_item) * (src->num_dispatches + 1));
     dispatch_item *entry = &src->dispatches[src->num_dispatches++];
     entry->func = dispatch;
     entry->data = data;
