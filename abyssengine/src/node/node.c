@@ -20,6 +20,16 @@
 #include "../engine/engine.h"
 #include <assert.h>
 
+void node_default_update_callback(node *source, engine *engine, uint32_t ticks) {
+    for (int idx = 0; idx < source->num_children; idx++) {
+        node *child = source->children[idx];
+        if (!child->active || child->update_callback == NULL)
+            continue;
+
+        child->update_callback(child, engine, ticks);
+    }
+}
+
 void node_default_render_callback(node *source, engine *engine) {
     for (int idx = 0; idx < source->num_children; idx++) {
         node *child = source->children[idx];
@@ -39,7 +49,7 @@ void node_initialize(node *source) {
     source->x = 0;
     source->y = 0;
     source->render_callback = node_default_render_callback;
-    source->update_callback = NULL;
+    source->update_callback = node_default_update_callback;
     source->remove_callback = NULL;
     source->destroy_callback = NULL;
 }

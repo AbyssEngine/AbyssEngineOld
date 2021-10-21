@@ -119,6 +119,10 @@ Functions:
         Gets/Sets the blend mode of the sprite.
         Mode is "none", "blend", "additive", "modulate", "multiply"
 
+    playMode(): string
+    playMode(mode)
+        Gets/Sets the play mode of the sprite.
+        Mode is "paused", "forwards", 'backwards"
 -----------------------------------------------------------------------
 NODE
 -----------------------------------------------------------------------

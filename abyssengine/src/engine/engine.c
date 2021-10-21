@@ -154,6 +154,7 @@ void engine_destroy(engine *src) {
     mutex_destroy(src->boot_text_mutex);
     mutex_destroy(src->palette_mutex);
     mutex_destroy(src->node_mutex);
+    thread_join(src->script_thread);
 
 #ifndef NDEBUG
     free(engine_thread);

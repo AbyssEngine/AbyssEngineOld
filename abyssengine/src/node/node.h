@@ -39,5 +39,7 @@ typedef struct node {
 
 void node_initialize(node *source);
 void node_append_child(node *source, node *child);
+void node_default_update_callback(node *source, struct engine *engine, uint32_t ticks);
+void node_default_render_callback(node *source, struct engine *engine);
 
 #endif // ABYSS_NODE_H

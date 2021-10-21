@@ -36,6 +36,12 @@ enum e_sprite_blend_mode {
 const char *blend_mode_to_string(enum e_sprite_blend_mode blend_mode);
 enum e_sprite_blend_mode string_to_blend_mode(const char *string);
 
+typedef int e_sprite_play_mode;
+
+enum e_sprite_play_mode { sprite_play_mode_paused, sprite_play_mode_forwards, sprite_play_mode_backwards, sprite_play_mode_unknown };
+const char *play_mode_to_string(enum e_sprite_play_mode play_mode);
+enum e_sprite_play_mode string_to_play_mode(const char *string);
+
 typedef struct sprite sprite;
 
 sprite *sprite_load(const char *file_path, const char *palette_name);
@@ -49,6 +55,8 @@ void sprite_set_bottom_origin(sprite *source, bool is_bottom_origin);
 bool sprite_get_bottom_origin(const sprite *source);
 void sprite_set_blend_mode(sprite *source, enum e_sprite_blend_mode blend_mode);
 e_sprite_blend_mode sprite_get_blend_mode(const sprite *source);
+void sprite_set_play_mode(sprite *source, enum e_sprite_play_mode play_mode);
+e_sprite_play_mode sprite_get_play_mode(const sprite *source);
 
 void sprite_render_callback(node *node, engine *source);
 void sprite_remove_callback(node *node, engine *source);

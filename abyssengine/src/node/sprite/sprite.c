@@ -53,9 +53,11 @@ typedef struct sprite {
     uint32_t cell_size_y;
     bool bottom_origin;
     e_sprite_blend_mode blend_mode;
+    enum e_sprite_play_mode play_mode;
+    bool loop_animation;
+    float last_frame_time;
+    float play_length;
 } sprite;
-
-void sprite_regenerate_atlas_dispatch(void *data) { sprite_regenerate_atlas((sprite *)data); }
 
 sprite *sprite_load(const char *file_path, const char *palette_name) {
     size_t path_len = strlen(file_path) - 4;
@@ -133,14 +135,83 @@ sprite *sprite_load(const char *file_path, const char *palette_name) {
     result->cell_size_y = 1;
     result->bottom_origin = false;
     result->blend_mode = sprite_blend_mode_blend;
+    result->play_mode = sprite_play_mode_paused;
+    result->loop_animation = true;
+    result->play_length = 1.f;
     result->node.render_callback = sprite_render_callback;
     result->node.update_callback = sprite_update_callback;
     result->node.remove_callback = sprite_remove_callback;
     result->node.destroy_callback = sprite_destroy_callback;
 
-    engine_dispatch(engine_get_global_instance(), sprite_regenerate_atlas_dispatch, result);
     return result;
 }
+
+void sprite_advance_frame_dc6(sprite *source) {
+    if (source->play_mode == sprite_play_mode_paused || source->play_mode == sprite_play_mode_unknown)
+        return;
+
+    uint32_t start_index = 0;
+    uint32_t end_index = source->image_data.dc6_data->frames_per_direction;
+
+    //    if s.hasSubLoop && s.playedCount > 0 {
+    //        startIndex = s.subStartingFrame
+    //        endIndex = s.subEndingFrame
+    //    }
+
+    if (source->play_mode == sprite_play_mode_forwards) {
+        source->current_frame++;
+
+        if (source->current_frame < end_index)
+            return;
+
+        source->current_frame = (source->loop_animation) ? start_index : end_index - 1;
+
+        return;
+    }
+
+    if (source->current_frame > start_index) {
+        source->current_frame--;
+        return;
+    }
+
+    source->current_frame = (source->loop_animation) ? end_index - 1 : start_index;
+}
+
+void sprite_advance_frame(sprite *source) {
+    switch (source->sprite_type) {
+    case sprite_type_dc6:
+        sprite_advance_frame_dc6(source);
+        return;
+    default:
+        log_fatal("unsupported sprite type");
+        exit(-1);
+    }
+}
+
+void sprite_animate(sprite *source, float time_elapsed) {
+    if (source->play_mode == sprite_play_mode_paused)
+        return;
+
+    uint32_t frame_count = 0;
+
+    switch (source->sprite_type) {
+    case sprite_type_dc6:
+        frame_count = source->image_data.dc6_data->frames_per_direction;
+        break;
+    default:
+        log_fatal("sprite type not supported");
+        exit(EXIT_FAILURE);
+    }
+
+    float frame_length = source->play_length / (float)frame_count;
+    source->last_frame_time += time_elapsed;
+    uint32_t frames_advanced = (uint32_t)(source->last_frame_time / frame_length);
+    source->last_frame_time -= (float)frames_advanced * frame_length;
+
+    for (int i = 0; i < frames_advanced; i++)
+        sprite_advance_frame(source);
+}
+
 void sprite_regenerate_atlas_dc6(sprite *source) {
     VERIFY_ENGINE_THREAD
 
@@ -275,6 +346,9 @@ void sprite_render_callback(node *node, engine *e) {
     if (!node->visible || !node->active)
         return;
 
+    if (source->atlas == NULL)
+        sprite_regenerate_atlas(source);
+
     uint32_t frame_height;
     uint32_t frame_width;
     sprite_frame_size(source, &frame_width, &frame_height);
@@ -313,6 +387,8 @@ void sprite_render_callback(node *node, engine *e) {
         pos_x = start_x;
         pos_y += last_height;
     }
+
+    node_default_render_callback(node, e);
 }
 
 void sprite_remove_callback(node *node, engine *e) {
@@ -327,7 +403,10 @@ void sprite_destroy_callback(node *node, engine *e) {
 
 void sprite_update_callback(node *node, engine *e, uint32_t ticks) {
     sprite *source = (sprite *)node;
-    // TODO: Animations
+
+    sprite_animate(source, (float)ticks / 1000.f);
+
+    node_default_update_callback(node, e, ticks);
 }
 
 void sprite_destroy(sprite *source) {
@@ -430,6 +509,13 @@ const char *blend_mode_to_string(enum e_sprite_blend_mode blend_mode) {
     }
 }
 
+void sprite_set_play_mode(sprite *source, enum e_sprite_play_mode play_mode) {
+    source->play_mode = play_mode;
+    source->last_frame_time = 0.0f;
+}
+
+e_sprite_play_mode sprite_get_play_mode(const sprite *source) { return source->play_mode; }
+
 enum e_sprite_blend_mode string_to_blend_mode(const char *string) {
     char *mode_str = strdup(string);
     for (char *ch = mode_str; *ch != '\0'; ch++)
@@ -455,4 +541,37 @@ enum e_sprite_blend_mode string_to_blend_mode(const char *string) {
     free(mode_str);
 
     return blend_mode;
+}
+
+const char *play_mode_to_string(enum e_sprite_play_mode play_mode) {
+    switch (play_mode) {
+    case sprite_play_mode_paused:
+        return "paused";
+    case sprite_play_mode_forwards:
+        return "forwards";
+    case sprite_play_mode_backwards:
+        return "backwards";
+    default:
+        return NULL;
+    }
+}
+
+enum e_sprite_play_mode string_to_play_mode(const char *string) {
+    char *mode_str = strdup(string);
+    for (char *ch = mode_str; *ch != '\0'; ch++)
+        *ch = (char)tolower(*ch);
+
+    enum e_sprite_play_mode play_mode = sprite_play_mode_unknown;
+    if (strcmp(mode_str, "paused") == 0)
+        play_mode = sprite_play_mode_paused;
+
+    if (strcmp(mode_str, "forwards") == 0)
+        play_mode = sprite_play_mode_forwards;
+
+    if (strcmp(mode_str, "backwards") == 0)
+        play_mode = sprite_play_mode_backwards;
+
+    free(mode_str);
+
+    return play_mode;
 }
