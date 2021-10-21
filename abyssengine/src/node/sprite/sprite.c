@@ -52,6 +52,7 @@ typedef struct sprite {
     uint32_t cell_size_x;
     uint32_t cell_size_y;
     bool bottom_origin;
+    e_sprite_blend_mode blend_mode;
 } sprite;
 
 void sprite_regenerate_atlas_dispatch(void *data) { sprite_regenerate_atlas((sprite *)data); }
@@ -131,6 +132,7 @@ sprite *sprite_load(const char *file_path, const char *palette_name) {
     result->cell_size_x = 1;
     result->cell_size_y = 1;
     result->bottom_origin = false;
+    result->blend_mode = sprite_blend_mode_blend;
     result->node.render_callback = sprite_render_callback;
     result->node.update_callback = sprite_update_callback;
     result->node.remove_callback = sprite_remove_callback;
@@ -212,7 +214,8 @@ void sprite_regenerate_atlas_dc6(sprite *source) {
     }
 
     SDL_UpdateTexture(source->atlas, NULL, buffer, atlas_width * 4);
-    SDL_SetTextureBlendMode(source->atlas, SDL_BLENDMODE_BLEND);
+
+    sprite_set_blend_mode(source, source->blend_mode);
     free(buffer);
 }
 
@@ -379,3 +382,77 @@ void sprite_get_cell_size(sprite *source, int *cell_size_x, int *cell_size_y) {
 void sprite_set_bottom_origin(sprite *source, bool is_bottom_origin) { source->bottom_origin = is_bottom_origin; }
 
 bool sprite_get_bottom_origin(const sprite *source) { return source->bottom_origin; }
+
+void sprite_set_blend_mode(sprite *source, enum e_sprite_blend_mode blend_mode) {
+    source->blend_mode = blend_mode;
+
+    SDL_BlendMode new_mode;
+    switch (blend_mode) {
+    case sprite_blend_mode_none:
+        new_mode = SDL_BLENDMODE_NONE;
+        break;
+    case sprite_blend_mode_blend:
+        new_mode = SDL_BLENDMODE_BLEND;
+        break;
+    case sprite_blend_mode_add:
+        new_mode = SDL_BLENDMODE_ADD;
+        break;
+    case sprite_blend_mode_mod:
+        new_mode = SDL_BLENDMODE_MOD;
+        break;
+    case sprite_blend_mode_mul:
+        new_mode = SDL_BLENDMODE_MUL;
+        break;
+    default:
+        log_fatal("invalid blend mode");
+        exit(EXIT_FAILURE);
+    }
+
+    SDL_SetTextureBlendMode(source->atlas, new_mode);
+}
+
+e_sprite_blend_mode sprite_get_blend_mode(const sprite *source) { return source->blend_mode; }
+
+const char *blend_mode_to_string(enum e_sprite_blend_mode blend_mode) {
+    switch (blend_mode) {
+    case sprite_blend_mode_none:
+        return "none";
+    case sprite_blend_mode_blend:
+        return "blend";
+    case sprite_blend_mode_add:
+        return "additive";
+    case sprite_blend_mode_mod:
+        return "modulate";
+    case sprite_blend_mode_mul:
+        return "multiply";
+    default:
+        return NULL;
+    }
+}
+
+enum e_sprite_blend_mode string_to_blend_mode(const char *string) {
+    char *mode_str = strdup(string);
+    for (char *ch = mode_str; *ch != '\0'; ch++)
+        *ch = (char)tolower(*ch);
+
+    enum e_sprite_blend_mode blend_mode = sprite_blend_mode_unknown;
+
+    if (strcmp(mode_str, "none") == 0)
+        blend_mode = sprite_blend_mode_none;
+
+    else if (strcmp(mode_str, "blend") == 0)
+        blend_mode = sprite_blend_mode_blend;
+
+    else if (strcmp(mode_str, "additive") == 0)
+        blend_mode = sprite_blend_mode_add;
+
+    else if (strcmp(mode_str, "modulate") == 0)
+        blend_mode = sprite_blend_mode_mod;
+
+    else if (strcmp(mode_str, "multiply") == 0)
+        blend_mode = sprite_blend_mode_mul;
+
+    free(mode_str);
+
+    return blend_mode;
+}

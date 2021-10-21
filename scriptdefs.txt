@@ -114,6 +114,11 @@ Functions:
         Gets/Sets the indicator that the bottom left of the sprite
         should be where the X/Y location is oriented.
 
+    blendMode(): string
+    blendMode(mode)
+        Gets/Sets the blend mode of the sprite.
+        Mode is "none", "blend", "additive", "modulate", "multiply"
+
 -----------------------------------------------------------------------
 NODE
 -----------------------------------------------------------------------

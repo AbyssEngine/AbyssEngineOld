@@ -70,6 +70,30 @@ int abyss_lua_sprite_bottom_origin(lua_State *l) {
     return 0;
 }
 
+int abyss_lua_sprite_blend_mode(lua_State *l) {
+    if (lua_gettop(l) == 1) {
+        SCRIPT_GET_LUA_THIS(source, sprite)
+        lua_pushstring(l, blend_mode_to_string(sprite_get_blend_mode(source)));
+        return 1;
+    }
+
+    LCHECK_NUMPARAMS(2)
+    LCHECK_STRING(2);
+
+    SCRIPT_GET_LUA_THIS(source, sprite)
+
+    enum e_sprite_blend_mode blend_mode = string_to_blend_mode(lua_tostring(l, 2));
+
+    if (blend_mode == sprite_blend_mode_unknown) {
+        luaL_error(l, "unknown blend mode");
+        return 0;
+    }
+
+    sprite_set_blend_mode(source, blend_mode);
+
+    return 0;
+}
+
 int abyss_lua_load_sprite(lua_State *l) {
     LCHECK_NUMPARAMS(2)
     LCHECK_STRING(1);
@@ -88,6 +112,7 @@ int abyss_lua_load_sprite(lua_State *l) {
     SCRIPT_CLASS_RESULT_START(result)
     SCRIPT_CLASS_RESULT_PROPERTY("cellSize", abyss_lua_sprite_cell_size)
     SCRIPT_CLASS_RESULT_PROPERTY("bottomOrigin", abyss_lua_sprite_bottom_origin)
+    SCRIPT_CLASS_RESULT_PROPERTY("blendMode", abyss_lua_sprite_blend_mode)
     ADD_NODE_SCRIPT_CLASS_RESULT_PROPERTIES
 
     return 1;
