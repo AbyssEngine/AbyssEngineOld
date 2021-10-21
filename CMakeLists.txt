@@ -6,7 +6,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 if (CMAKE_BUILD_TYPE EQUAL "DEBUG")
     message("Building with address checking/sanitization")
-    add_compile_options(-fsanitize=address)
+    add_compile_options(-fsanitize=address -fsanitize-address-use-after-return=runtime)
     add_link_options(-fsanitize=address)
 endif ()
 

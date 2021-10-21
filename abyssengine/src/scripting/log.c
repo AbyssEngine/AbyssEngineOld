@@ -45,7 +45,6 @@ int abyss_lua_log(lua_State *l) {
     } else if (strcmp(logType, "trace") == 0) {
         log_level = LOG_TRACE;
     } else {
-        log_error("bla");
         luaL_argerror(l, 1, "unexpected log type");
         return 0;
     }

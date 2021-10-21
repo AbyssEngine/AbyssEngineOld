@@ -1,0 +1,148 @@
+=======================================================================
+= ENGINE FUNCTIONS
+= ---------------------------------------------------------------------
+= These functions are always available to any script running in the
+= engine.
+=======================================================================
+
+-----------------------------------------------------------------------
+
+getConfig(category, value)
+    Returns the value of a configuration element.
+    Category/Value is based on the INI file.
+
+    A system category "#Abyss" has the following properties:
+        "BasePath" - The base path of the engine
+
+-----------------------------------------------------------------------
+
+log(level, message)
+    Writes message to the log
+    Level is "info", "error", "fatal", "warn", debug", "trace"
+    "info" does not show on release mode builds of the engine.
+
+-----------------------------------------------------------------------
+
+showSystemCursor(show)
+    Shows/hides the system cursor
+
+-----------------------------------------------------------------------
+
+shutdown()
+    Shuts down the engine
+
+-----------------------------------------------------------------------
+
+sleep(msec)
+    Sleeps the specified number of milliseconds
+
+-----------------------------------------------------------------------
+
+setBootText(text)
+    Sets the boot text (in boot mode)
+
+-----------------------------------------------------------------------
+
+addLoaderProvider(type, path)
+    Type is "mpq" or "filesystem"
+
+-----------------------------------------------------------------------
+
+loadString(path) :string
+    Loads a resource and returns the data as a string
+
+-----------------------------------------------------------------------
+
+exitBootMode()
+    Exits boot mode and begins run mode.
+
+-----------------------------------------------------------------------
+
+loadPalette(paletteName, path)
+    Loads a palette from the specified path and assigns it to the name.
+
+-----------------------------------------------------------------------
+
+loadSprite(path, paletteName) :sprite
+    Loads a sprite based on the specified path and assigns the named
+    palette to it.
+
+-----------------------------------------------------------------------
+
+setCursor(sprite, offsetX, offsetY)
+    Sets the engine cursor to the specified sprite.
+    Offset X/Y offsets the sprite relative to the actual mouse position.
+
+-----------------------------------------------------------------------
+
+getRootNode() :node
+    Returns the root node in the engine's scene graph.
+
+-----------------------------------------------------------------------
+
+
+
+
+
+
+=======================================================================
+= OBJECT TYPES
+= ---------------------------------------------------------------------
+= The following are object types that are defined by the system.
+=======================================================================
+
+
+-----------------------------------------------------------------------
+SPRITE <NODE>
+-----------------------------------------------------------------------
+Description:
+
+    Represents a sprite.
+    Sprites are a child class of nodes.
+
+
+Functions:
+
+    cellSize(): x, y
+    cellSize(x, y)
+        Gets/Sets the cell size of the sprite.
+        The cell size is the number of frames (in x by y grid) to draw
+        at the same time.
+
+    bottomOrigin()
+    bottomOrigin(isBottomOrigin)
+        Gets/Sets the indicator that the bottom left of the sprite
+        should be where the X/Y location is oriented.
+
+-----------------------------------------------------------------------
+NODE
+-----------------------------------------------------------------------
+Description:
+
+    Represents an object on the render graph. This is the base type for
+    all rendering objects.
+
+
+Functions:
+
+    visible()
+    visible(show)
+        Gets/Sets visibility of the node.
+        Nodes that are not visible will not be rendered (nor will the
+        child nodes)
+
+
+    active()
+    active(isActive)
+        Gets/Sets activate state of the node.
+        Nodes that are not active will neither render nor update (nor
+        will the child nodes)
+
+
+    position(): x, y
+    position(x, y)
+        Gets/Sets the position of the node.
+
+
+    appendchild(childNode)
+        Appends the child node to this node.

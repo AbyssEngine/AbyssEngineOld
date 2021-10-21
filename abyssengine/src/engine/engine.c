@@ -90,11 +90,6 @@ typedef struct engine {
     int cursor_offset_x;
     int cursor_offset_y;
     node *root_node;
-    float window_scale;
-    float window_origin_x;
-    float window_origin_y;
-    int window_last_width;
-    int window_last_height;
 } engine;
 
 #ifndef NDEBUG
@@ -115,10 +110,6 @@ engine *engine_create(char *base_path, ini_file *ini_config) {
     result->ini_config = ini_config;
     result->run_mode = ENGINE_RUNE_MODE_BOOT;
     result->root_node = malloc(sizeof(node));
-    result->window_scale = 1.0f;
-    result->window_origin_x = 0;
-    result->window_origin_y = 0;
-
     node_initialize(result->root_node);
 
     // TODO: Make the language settings dynamic
@@ -211,11 +202,12 @@ void engine_init_sdl2(engine *src) {
 
     SDL_RenderSetLogicalSize(src->sdl_renderer, 800, 600);
     SDL_SetRenderDrawBlendMode(src->sdl_renderer, SDL_BLENDMODE_BLEND);
-
+    SDL_CaptureMouse(true);
     free(window_title);
 }
 
 void engine_finalize_sdl2(engine *src) {
+    SDL_CaptureMouse(false);
     SDL_DestroyRenderer(src->sdl_renderer);
     SDL_DestroyWindow(src->sdl_window);
     SDL_Quit();
@@ -306,28 +298,11 @@ void engine_run(engine *src) {
 
 void engine_run_script_bootstrap(engine *src) { src->script_thread = thread_create(engine_script_thread, src); }
 
-void engine_update_mouse_coords(engine *src, int mouse_x, int mouse_y) {
-    int new_width;
-    int new_height;
-    SDL_GetWindowSize(src->sdl_window, &new_width, &new_height);
-
-    if ((new_width != src->window_last_width) || (new_height != src->window_last_height)) {
-        src->window_last_width = new_width;
-        src->window_last_height = new_height;
-
-        src->window_scale = min((float)new_width / 800.f, (float)new_height / 600.f);
-        src->window_origin_x = ((float)new_width - (800.f * src->window_scale)) * 0.5f;
-        src->window_origin_y = ((float)new_height - (600.f * src->window_scale)) * 0.5f;
-    }
-
-    src->cursor_x = (int)((float)((float)mouse_x - src->window_origin_x) * (1.0f / src->window_scale));
-    src->cursor_y = (int)((float)((float)mouse_y - src->window_origin_y) * (1.0f / src->window_scale));
-}
-
 void engine_handle_sdl_event(engine *src, const SDL_Event *evt) {
     switch (evt->type) {
     case SDL_MOUSEMOTION: {
-        engine_update_mouse_coords(src, evt->motion.x, evt->motion.y);
+        src->cursor_x = evt->motion.x;
+        src->cursor_y = evt->motion.y;
     } break;
     case SDL_QUIT:
         engine_shutdown(src);
@@ -415,7 +390,7 @@ void engine_set_callbacks(engine *src, void (*render_callback)(engine *src), voi
 
 const char *engine_get_base_path(const engine *src) { return src->base_path; }
 
-loader *engine_get_loader(const engine *src) { return src->loader; };
+loader *engine_get_loader(const engine *src) { return src->loader; }
 
 SDL_Texture *engine_get_logo_texture(const engine *src, SDL_Rect *rect) {
     if (rect != NULL) {

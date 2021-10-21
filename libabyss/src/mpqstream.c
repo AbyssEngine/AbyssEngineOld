@@ -131,7 +131,7 @@ bool mpq_stream_load_single_unit(mpq_stream *source) {
     if (source->size != source->block->file_size_uncompressed) {
         if (mpq_stream_decompress_multi(source, data, source->block->file_size_compressed, source->block->file_size_uncompressed) == NULL) {
             return false;
-        };
+        }
     }
 
     if (source->data != NULL) {
