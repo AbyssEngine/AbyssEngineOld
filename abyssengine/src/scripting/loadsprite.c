@@ -48,6 +48,28 @@ int abyss_lua_sprite_cell_size(lua_State *l) {
     return 0;
 }
 
+int abyss_lua_sprite_bottom_origin(lua_State *l) {
+    if (lua_gettop(l) == 1) {
+        SCRIPT_GET_LUA_THIS(source, sprite)
+
+        lua_pushboolean(l, sprite_get_bottom_origin(source));
+
+        return 1;
+    }
+
+    if (lua_gettop(l) != 2) {
+        luaL_error(l, "expected origin boolean");
+        return 0;
+    }
+
+    LCHECK_BOOLEAN(2);
+    SCRIPT_GET_LUA_THIS(source, sprite)
+
+    sprite_set_bottom_origin(source, lua_toboolean(l, 2));
+
+    return 0;
+}
+
 int abyss_lua_load_sprite(lua_State *l) {
     LCHECK_NUMPARAMS(2)
     LCHECK_STRING(1);
@@ -65,6 +87,7 @@ int abyss_lua_load_sprite(lua_State *l) {
 
     SCRIPT_CLASS_RESULT_START(result)
     SCRIPT_CLASS_RESULT_PROPERTY("cellSize", abyss_lua_sprite_cell_size)
+    SCRIPT_CLASS_RESULT_PROPERTY("bottomOrigin", abyss_lua_sprite_bottom_origin)
     ADD_NODE_SCRIPT_CLASS_RESULT_PROPERTIES
 
     return 1;
