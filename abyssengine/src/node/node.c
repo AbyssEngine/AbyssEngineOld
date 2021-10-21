@@ -50,7 +50,7 @@ void node_append_child(node *source, node *child) {
     assert(child->parent == NULL);
     assert(child != source);
 
-    source->children = realloc(source->children, source->num_children + 1);
+    source->children = realloc(source->children, sizeof(node) * (source->num_children + 1));
     source->children[source->num_children++] = child;
     child->parent = source;
 }
