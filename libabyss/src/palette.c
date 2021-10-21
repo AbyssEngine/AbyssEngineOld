@@ -120,8 +120,6 @@ palette *palette_new_from_bytes(const void *data, const uint64_t size) {
     LOAD_TRANSFORM_MULTI(max_component_blend, COMPONENT_BLENDS)
     LOAD_TRANSFORM_SINGLE(darkened_color_shift)
     LOAD_COLORS(text_colors, 3, TEXT_SHIFTS)
-
-    // TODO: This is broken
     LOAD_TRANSFORM_MULTI(text_color_shifts, TEXT_SHIFTS)
 
     streamreader_destroy(reader);
@@ -129,7 +127,7 @@ palette *palette_new_from_bytes(const void *data, const uint64_t size) {
 }
 
 void palette_destroy(palette *source) {
-    // FREE_TRANSFORM_MULTI(text_color_shifts, TEXT_SHIFTS)
+    FREE_TRANSFORM_MULTI(text_color_shifts, TEXT_SHIFTS)
     free(source->text_colors);
     free(source->darkened_color_shift);
     FREE_TRANSFORM_MULTI(max_component_blend, COMPONENT_BLENDS)

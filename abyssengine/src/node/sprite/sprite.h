@@ -27,9 +27,15 @@ typedef struct sprite sprite;
 sprite *sprite_load(const char *file_path, const char *palette_name);
 void sprite_destroy(sprite *source);
 void sprite_regenerate_atlas(sprite *source);
+void sprite_set_animation(sprite *source, int animation_idx);
+void sprite_set_frame(sprite *source, int frame_idx);
+void sprite_set_cell_size(sprite *source, int cell_size_x, int cell_size_y);
+void sprite_get_cell_size(sprite *source, int *cell_size_x, int *cell_size_y);
+void sprite_set_bottom_origin(sprite *source, bool is_bottom_origin);
+bool sprite_get_bottom_origin(const sprite *source);
+
 void sprite_render_callback(node *node, engine *source);
 void sprite_remove_callback(node *node, engine *source);
 void sprite_destroy_callback(node *node, engine *source);
 void sprite_update_callback(node *node, engine *source, uint32_t ticks);
-
 #endif // ABYSS_SPRITE_H

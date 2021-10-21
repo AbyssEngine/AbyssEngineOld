@@ -18,11 +18,19 @@
 
 #include "node.h"
 #include "../engine/engine.h"
+#include <assert.h>
 
-uint64_t _next_id;
+void node_default_render_callback(node *source, engine *engine) {
+    for (int idx = 0; idx < source->num_children; idx++) {
+        node *child = source->children[idx];
+        if (!child->active || !child->visible || child->render_callback == NULL)
+            continue;
+
+        child->render_callback(child, engine);
+    }
+}
 
 void node_initialize(node *source) {
-    source->id = ++_next_id;
     source->parent = NULL;
     source->children = NULL;
     source->num_children = 0;
@@ -30,8 +38,22 @@ void node_initialize(node *source) {
     source->visible = true;
     source->x = 0;
     source->y = 0;
-    source->render_callback = NULL;
+    source->render_callback = node_default_render_callback;
     source->update_callback = NULL;
     source->remove_callback = NULL;
     source->destroy_callback = NULL;
+}
+
+void node_append_child(node *source, node *child) {
+    mutex *node_mutex = engine_get_node_mutex(engine_get_global_instance());
+    mutex_lock(node_mutex);
+
+    assert(child->parent == NULL);
+    assert(child != source);
+
+    source->children = realloc(source->children, source->num_children + 1);
+    source->children[source->num_children++] = child;
+    child->parent = source;
+
+    mutex_unlock(node_mutex);
 }

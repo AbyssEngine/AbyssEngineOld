@@ -21,6 +21,7 @@
 
 #include "../loader/loader.h"
 #include "../misc/ini.h"
+#include "../node/node.h"
 #include "libabyss/palette.h"
 #include "libabyss/threading.h"
 #include "sysfont.h"
@@ -74,4 +75,6 @@ const palette *engine_get_palette(const engine *src, const char *palette_name);
 bool engine_add_palette(engine *src, const char *palette_name, palette *pal);
 void engine_dispatch(engine *src, void (*dispatch)(void *data), void *data);
 void engine_set_cursor(engine *src, sprite *cursor, int offset_x, int offset_y);
+node *engine_get_root_node(engine *src);
+mutex *engine_get_node_mutex(engine *src);
 #endif // ABYSS_ENGINE_H

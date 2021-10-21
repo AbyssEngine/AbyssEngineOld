@@ -17,9 +17,7 @@
  */
 
 #include "sprite.h"
-#include "../../engine/engine.h"
 #include "../../scripting/scripting.h"
-#include "../node.h"
 #include "libabyss/dc6.h"
 #include "libabyss/dcc.h"
 #include "libabyss/log.h"
@@ -49,8 +47,11 @@ typedef struct sprite {
     } image_data;
     uint32_t current_frame;
     uint32_t total_frames;
-    uint32_t current_direction;
-    uint32_t total_directions;
+    uint32_t current_animation;
+    uint32_t total_animations;
+    uint32_t cell_size_x;
+    uint32_t cell_size_y;
+    bool bottom_origin;
 } sprite;
 
 void sprite_regenerate_atlas_dispatch(void *data) { sprite_regenerate_atlas((sprite *)data); }
@@ -70,6 +71,8 @@ sprite *sprite_load(const char *file_path, const char *palette_name) {
     }
 
     sprite *result = calloc(1, sizeof(sprite));
+    node_initialize(&result->node);
+
     result->palette = palette;
 
     const char *path_end = &file_path[path_len];
@@ -114,7 +117,7 @@ sprite *sprite_load(const char *file_path, const char *palette_name) {
 
         result->image_data.dc6_data = dc6_new_from_bytes(data, size);
         result->total_frames = result->image_data.dc6_data->frames_per_direction;
-        result->total_directions = result->image_data.dc6_data->number_of_directions;
+        result->total_animations = result->image_data.dc6_data->number_of_directions;
 
         free(path_ext);
     } else {
@@ -125,6 +128,9 @@ sprite *sprite_load(const char *file_path, const char *palette_name) {
 
     result->node.active = true;
     result->node.visible = true;
+    result->cell_size_x = 1;
+    result->cell_size_y = 1;
+    result->bottom_origin = false;
     result->node.render_callback = sprite_render_callback;
     result->node.update_callback = sprite_update_callback;
     result->node.remove_callback = sprite_remove_callback;
@@ -223,17 +229,87 @@ void sprite_regenerate_atlas(sprite *source) {
     }
 }
 
+void sprite_frame_offset(sprite *source, int *offset_x, int *offset_y) {
+    switch (source->sprite_type) {
+    case sprite_type_dc6: {
+        dc6_frame *item = &source->image_data.dc6_data->directions[source->current_animation].frames[source->current_frame];
+        if (offset_x != NULL)
+            *offset_x = item->offset_x;
+
+        if (offset_y != NULL)
+            *offset_y = item->offset_y;
+    } break;
+    default:
+        log_fatal("invalid sprite type");
+        exit(-1);
+    }
+}
+
+void sprite_frame_size(sprite *source, uint32_t *frame_size_x, uint32_t *frame_size_y) {
+    switch (source->sprite_type) {
+    case sprite_type_dc6: {
+        if (frame_size_x != NULL) {
+            *frame_size_x = 0;
+            for (int i = 0; i < source->cell_size_x; i++)
+                *frame_size_x += source->image_data.dc6_data->directions[source->current_animation].frames[source->current_frame + i].width;
+        }
+
+        if (frame_size_y != NULL) {
+            *frame_size_y = 0;
+            for (int i = 0; i < source->cell_size_y; i++)
+                *frame_size_y += source->image_data.dc6_data->directions[source->current_animation].frames[source->current_frame + i].height;
+        }
+    } break;
+    default:
+        log_fatal("invalid sprite type");
+        exit(-1);
+    }
+}
+
 void sprite_render_callback(node *node, engine *e) {
     sprite *source = (sprite *)node;
+
+    if (!node->visible || !node->active)
+        return;
+
+    int frame_offset_x;
+    int frame_offset_y;
+    sprite_frame_offset(source, &frame_offset_x, &frame_offset_y);
+
+    uint32_t frame_height;
+    uint32_t frame_width;
+    sprite_frame_size(source, &frame_width, &frame_height);
+
+    int pos_x = node->x + frame_offset_x;
+    int pos_y = node->y + frame_offset_y;
+
+    if (source->bottom_origin)
+        pos_y -= (int)frame_height;
+
     SDL_Renderer *renderer = engine_get_renderer(e);
 
-    sprite_frame_pos *pos = &source->frame_rects[(source->current_direction * source->total_frames) + source->current_frame];
-    SDL_Rect *source_rect = &pos->rect;
-    SDL_Rect dest_rect = *source_rect;
-    dest_rect.x = source->node.x + pos->offset_x;
-    dest_rect.y = source->node.y + pos->offset_y;
-    SDL_RenderCopy(renderer, source->atlas, source_rect, &dest_rect);
-    // TODO: Render
+    int start_x = pos_x;
+
+    for (int cell_offset_y = 0; cell_offset_y < source->cell_size_y; cell_offset_y++) {
+        int last_height = 0;
+
+        for (int cell_offset_x = 0; cell_offset_x < source->cell_size_x; cell_offset_x++) {
+            uint32_t cell_index = source->current_frame + (cell_offset_x + (cell_offset_y * source->cell_size_x));
+
+            sprite_frame_pos *pos = &source->frame_rects[(source->current_animation * source->total_frames) + cell_index];
+            SDL_Rect *source_rect = &pos->rect;
+            SDL_Rect dest_rect = *source_rect;
+            dest_rect.x = pos->offset_x + pos_x;
+            dest_rect.y = pos->offset_y + pos_y;
+            SDL_RenderCopy(renderer, source->atlas, source_rect, &dest_rect);
+
+            pos_x += source_rect->w;
+            last_height = source_rect->h;
+        }
+
+        pos_x = start_x;
+        pos_y += last_height;
+    }
 }
 
 void sprite_remove_callback(node *node, engine *e) {
@@ -270,3 +346,36 @@ void sprite_destroy(sprite *source) {
     free(source->frame_rects);
     free(source);
 }
+
+void sprite_set_animation(sprite *source, int animation_idx) {
+    source->current_animation = animation_idx;
+    if (source->current_animation < source->total_animations)
+        return;
+
+    source->current_animation = source->total_animations - 1;
+}
+
+void sprite_set_frame(sprite *source, int frame_idx) {
+    source->current_frame = frame_idx;
+    if (source->current_frame < source->total_frames)
+        return;
+
+    source->current_frame = source->total_frames - 1;
+}
+
+void sprite_set_cell_size(sprite *source, int cell_size_x, int cell_size_y) {
+    source->cell_size_x = cell_size_x;
+    source->cell_size_y = cell_size_y;
+}
+
+void sprite_get_cell_size(sprite *source, int *cell_size_x, int *cell_size_y) {
+    if (cell_size_x != NULL)
+        *cell_size_x = (int)source->cell_size_x;
+
+    if (cell_size_x != NULL)
+        *cell_size_y = (int)source->cell_size_x;
+}
+
+void sprite_set_bottom_origin(sprite *source, bool is_bottom_origin) { source->bottom_origin = is_bottom_origin; }
+
+bool sprite_get_bottom_origin(const sprite *source) { return source->bottom_origin; }

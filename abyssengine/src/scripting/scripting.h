@@ -36,6 +36,25 @@ typedef struct engine engine;
 #define LCHECK_BOOLEAN(IDX) luaL_argcheck(l, lua_isboolean(l, IDX), IDX, "boolean expected")
 #define LCHECK_LIGHTUSERDATA(IDX) luaL_argcheck(l, lua_islightuserdata(l, IDX), IDX, "reference to engine object expected")
 
+#define SCRIPT_GET_LUA_CLASS(out, type, idx)                                                                                                         \
+    lua_getfield(l, idx, "cid");                                                                                                                     \
+    type *out = (type *)lua_touserdata(l, -1);
+
+#define SCRIPT_GET_LUA_THIS(out, type) SCRIPT_GET_LUA_CLASS(out, type, 1)
+
+#define SCRIPT_CLASS_RESULT_START(source)                                                                                                            \
+    lua_newtable(l);                                                                                                                                 \
+    lua_pushstring(l, "cid");                                                                                                                        \
+    lua_pushlightuserdata(l, source);                                                                                                                \
+    lua_settable(l, -3);
+
+#define SCRIPT_CLASS_RESULT_PROPERTY(name, func)                                                                                                     \
+    lua_pushstring(l, name);                                                                                                                         \
+    lua_pushcfunction(l, func);                                                                                                                      \
+    lua_settable(l, -3);
+
+#define SCRIPT_NEW_RESULT_
+
 extern mutex *script_mutex;
 
 void scripting_init();
@@ -52,6 +71,7 @@ extern int abyss_lua_exit_boot_mode(lua_State *l);
 extern int abyss_lua_load_palette(lua_State *l);
 extern int abyss_lua_load_sprite(lua_State *l);
 extern int abyss_lua_set_cursor(lua_State *l);
+extern int abyss_lua_get_root_node(lua_State *l);
 
 void scripting_inject_loaders(lua_State *l);
 

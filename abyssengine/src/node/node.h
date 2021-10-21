@@ -24,9 +24,8 @@
 
 struct engine; // Forward declaration to prevent possible circular dependency
 typedef struct node {
-    uint64_t id;
     struct node *parent;
-    struct node *children;
+    struct node **children;
     uint32_t num_children;
     bool active;
     bool visible;
@@ -38,7 +37,7 @@ typedef struct node {
     void (*destroy_callback)(struct node *node, struct engine *engine);
 } node;
 
-// void node_initialize(node *source);
-// void node_get_position(node *source, int *out_x, int *out_y);
+void node_initialize(node *source);
+void node_append_child(node *source, node *child);
 
 #endif // ABYSS_NODE_H

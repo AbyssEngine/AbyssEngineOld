@@ -35,12 +35,13 @@ void abyss_lua_set_cursor_dispatch(void *data) {
 #pragma ide diagnostic ignored "ConstantFunctionResult"
 int abyss_lua_set_cursor(lua_State *l) {
     LCHECK_NUMPARAMS(3)
-    LCHECK_LIGHTUSERDATA(1);
+    // LCHECK_LIGHTUSERDATA(1);
     LCHECK_NUMBER(2);
     LCHECK_NUMBER(3);
 
+    lua_getfield(l, -3, "cid");
     abyss_lua_set_cursor_request *request = malloc(sizeof(abyss_lua_set_cursor_request));
-    request->source = (sprite *)lua_touserdata(l, 1);
+    request->source = (sprite *)lua_touserdata(l, -1);
     request->offset_x = lua_tonumber(l, 2);
     request->offset_y = lua_tonumber(l, 3);
 

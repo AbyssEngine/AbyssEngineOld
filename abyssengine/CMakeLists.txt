@@ -67,6 +67,7 @@ target_sources(${PROJECT_NAME} PRIVATE
 
         # Scripting ----------------------------------------------------
         src/scripting/scripting.c src/scripting/scripting.h
+        src/scripting/node.c src/scripting/node.h
         src/scripting/log.c
         src/scripting/getconfig.c
         src/scripting/addloaderprovider.c
@@ -79,6 +80,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/scripting/loadpalette.c
         src/scripting/loadsprite.c
         src/scripting/setcursor.c
+        src/scripting/getrootnode.c
 
         # Loaders ------------------------------------------------------
         src/loader/loaderprovider.c src/loader/loaderprovider.h

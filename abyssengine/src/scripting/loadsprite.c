@@ -17,12 +17,36 @@
  */
 
 #include "../engine/engine.h"
-#include "../loader/loader.h"
 #include "../node/sprite/sprite.h"
+#include "node.h"
 #include "scripting.h"
-#include <libabyss/palette.h>
-#include <libabyss/utils.h>
-#include <string.h>
+int abyss_lua_sprite_cell_size(lua_State *l) {
+    if (lua_gettop(l) == 1) {
+        SCRIPT_GET_LUA_THIS(source, sprite)
+
+        int cell_size_x;
+        int cell_size_y;
+        sprite_get_cell_size(source, &cell_size_x, &cell_size_y);
+
+        lua_pushnumber(l, cell_size_x);
+        lua_pushnumber(l, cell_size_y);
+
+        return 2;
+    }
+
+    if (lua_gettop(l) != 3) {
+        luaL_error(l, "expected cell sizes");
+        return 0;
+    }
+
+    LCHECK_NUMBER(2);
+    LCHECK_NUMBER(3);
+    SCRIPT_GET_LUA_THIS(source, sprite)
+
+    sprite_set_cell_size(source, lua_tonumber(l, 2), lua_tonumber(l, 3));
+
+    return 0;
+}
 
 int abyss_lua_load_sprite(lua_State *l) {
     LCHECK_NUMPARAMS(2)
@@ -39,6 +63,9 @@ int abyss_lua_load_sprite(lua_State *l) {
         return 0;
     }
 
-    lua_pushlightuserdata(l, result);
+    SCRIPT_CLASS_RESULT_START(result)
+    SCRIPT_CLASS_RESULT_PROPERTY("cellSize", abyss_lua_sprite_cell_size)
+    ADD_NODE_SCRIPT_CLASS_RESULT_PROPERTIES
+
     return 1;
 }

@@ -16,19 +16,20 @@
  * along with AbyssEngine.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "moderun.h"
+#include "../engine/engine.h"
+#include "node.h"
+#include "scripting.h"
 
-void engine_render_run(engine *src) {
-    SDL_Renderer *renderer = engine_get_renderer(src);
-    SDL_RenderClear(renderer);
-    node *root_node = engine_get_root_node(src);
+int abyss_lua_get_root_node(lua_State *l) {
+    if (lua_gettop(l) != 0) {
+        lua_error(l);
+        return 0;
+    }
 
-    if (root_node == NULL || root_node->render_callback == NULL)
-        return;
+    node *result = engine_get_root_node(engine_get_global_instance());
 
-    root_node->render_callback(root_node, src);
+    SCRIPT_CLASS_RESULT_START(result)
+    ADD_NODE_SCRIPT_CLASS_RESULT_PROPERTIES
+
+    return 1;
 }
-
-void engine_update_run(engine *src, uint32_t tick_diff) {}
-
-void moderun_set_callbacks(engine *src) { engine_set_callbacks(src, engine_render_run, engine_update_run); }

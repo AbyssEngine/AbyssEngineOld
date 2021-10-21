@@ -35,6 +35,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef min
+#define min(a, b) (((a) < (b)) ? (a) : (b))
+#endif // min
+
 typedef struct dispatch_item {
     void (*func)(void *data);
     void *data;
@@ -77,6 +81,7 @@ typedef struct engine {
     uint32_t num_dispatches;
     mutex *boot_text_mutex;
     mutex *palette_mutex;
+    mutex *node_mutex;
     int max_texture_width;
     int max_texture_height;
     sprite *cursor;
@@ -84,6 +89,12 @@ typedef struct engine {
     int cursor_y;
     int cursor_offset_x;
     int cursor_offset_y;
+    node *root_node;
+    float window_scale;
+    float window_origin_x;
+    float window_origin_y;
+    int window_last_width;
+    int window_last_height;
 } engine;
 
 #ifndef NDEBUG
@@ -98,10 +109,17 @@ engine *engine_create(char *base_path, ini_file *ini_config) {
     result->dispatch_mutex = mutex_create();
     result->boot_text_mutex = mutex_create();
     result->palette_mutex = mutex_create();
+    result->node_mutex = mutex_create();
     result->pixel_buffer = (uint32_t *)calloc(800 * 600, 4);
     result->base_path = strdup(base_path);
     result->ini_config = ini_config;
     result->run_mode = ENGINE_RUNE_MODE_BOOT;
+    result->root_node = malloc(sizeof(node));
+    result->window_scale = 1.0f;
+    result->window_origin_x = 0;
+    result->window_origin_y = 0;
+
+    node_initialize(result->root_node);
 
     // TODO: Make the language settings dynamic
     result->loader = loader_new("eng", "latin");
@@ -144,6 +162,7 @@ void engine_destroy(engine *src) {
     mutex_destroy(src->dispatch_mutex);
     mutex_destroy(src->boot_text_mutex);
     mutex_destroy(src->palette_mutex);
+    mutex_destroy(src->node_mutex);
 
 #ifndef NDEBUG
     free(engine_thread);
@@ -160,8 +179,7 @@ void engine_init_sdl2(engine *src) {
 
     char *window_title = calloc(1, 128);
     sprintf(window_title, "Abyss Engine v%d.%d", ABYSS_VERSION_MAJOR, ABYSS_VERSION_MINOR);
-    src->sdl_window =
-        SDL_CreateWindow(window_title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+    src->sdl_window = SDL_CreateWindow(window_title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_RESIZABLE);
     if (src->sdl_window == 0) {
         log_fatal(SDL_GetError());
         exit(-1);
@@ -172,7 +190,7 @@ void engine_init_sdl2(engine *src) {
         exit(-1);
     }
 
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
+    // SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
 
     if (src->sdl_renderer == 0) {
         log_fatal(SDL_GetError());
@@ -218,14 +236,14 @@ static void *engine_script_thread(void *data) {
     scripting_inject_loaders(src->lua_state);
 
     int file_size;
-    char *lua_code = loader_load(src->loader, "test.lua", &file_size);
+    char *lua_code = loader_load(src->loader, "bootstrap.lua", &file_size);
 
     if (lua_code == NULL) {
         engine_trigger_crash(src, "Could not load bootstrap script!");
         return NULL;
     }
 
-    if (luaL_loadbuffer(src->lua_state, lua_code, file_size, "@test.lua") || lua_pcall(src->lua_state, 0, 0, 0)) {
+    if (luaL_loadbuffer(src->lua_state, lua_code, file_size, "@bootstrap.lua") || lua_pcall(src->lua_state, 0, 0, 0)) {
         const char *crash_text = lua_tostring(src->lua_state, -1);
         log_error(crash_text);
         engine_trigger_crash(src, crash_text);
@@ -288,12 +306,29 @@ void engine_run(engine *src) {
 
 void engine_run_script_bootstrap(engine *src) { src->script_thread = thread_create(engine_script_thread, src); }
 
+void engine_update_mouse_coords(engine *src, int mouse_x, int mouse_y) {
+    int new_width;
+    int new_height;
+    SDL_GetWindowSize(src->sdl_window, &new_width, &new_height);
+
+    if ((new_width != src->window_last_width) || (new_height != src->window_last_height)) {
+        src->window_last_width = new_width;
+        src->window_last_height = new_height;
+
+        src->window_scale = min((float)new_width / 800.f, (float)new_height / 600.f);
+        src->window_origin_x = ((float)new_width - (800.f * src->window_scale)) * 0.5f;
+        src->window_origin_y = ((float)new_height - (600.f * src->window_scale)) * 0.5f;
+    }
+
+    src->cursor_x = (int)((float)((float)mouse_x - src->window_origin_x) * (1.0f / src->window_scale));
+    src->cursor_y = (int)((float)((float)mouse_y - src->window_origin_y) * (1.0f / src->window_scale));
+}
+
 void engine_handle_sdl_event(engine *src, const SDL_Event *evt) {
     switch (evt->type) {
-    case SDL_MOUSEMOTION:
-        src->cursor_x = evt->motion.x;
-        src->cursor_y = evt->motion.y;
-        break;
+    case SDL_MOUSEMOTION: {
+        engine_update_mouse_coords(src, evt->motion.x, evt->motion.y);
+    } break;
     case SDL_QUIT:
         engine_shutdown(src);
         return;
@@ -306,7 +341,9 @@ void engine_render(engine *src) {
     if (src->render_callback != NULL) {
         mutex_lock(script_mutex);
         mutex_lock(src->boot_text_mutex);
+        mutex_lock(src->node_mutex);
         src->render_callback(src);
+        mutex_unlock(src->node_mutex);
         mutex_unlock(src->boot_text_mutex);
         mutex_unlock(script_mutex);
     } else {
@@ -468,3 +505,7 @@ void engine_set_cursor(engine *src, sprite *cursor, int offset_x, int offset_y) 
     src->cursor_offset_x = offset_x;
     src->cursor_offset_y = offset_y;
 }
+
+node *engine_get_root_node(engine *src) { return src->root_node; }
+
+mutex *engine_get_node_mutex(engine *src) { return src->node_mutex; }
