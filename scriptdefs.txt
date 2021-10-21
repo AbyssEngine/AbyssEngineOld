@@ -7,7 +7,7 @@
 
 -----------------------------------------------------------------------
 
-getConfig(category, value)
+getConfig(category, value): string
     Returns the value of a configuration element.
     Category/Value is based on the INI file.
 
@@ -48,7 +48,7 @@ addLoaderProvider(type, path)
 
 -----------------------------------------------------------------------
 
-loadString(path) :string
+loadString(path): string
     Loads a resource and returns the data as a string
 
 -----------------------------------------------------------------------
@@ -63,7 +63,7 @@ loadPalette(paletteName, path)
 
 -----------------------------------------------------------------------
 
-loadSprite(path, paletteName) :sprite
+loadSprite(path, paletteName): sprite
     Loads a sprite based on the specified path and assigns the named
     palette to it.
 
@@ -75,7 +75,7 @@ setCursor(sprite, offsetX, offsetY)
 
 -----------------------------------------------------------------------
 
-getRootNode() :node
+getRootNode(): node
     Returns the root node in the engine's scene graph.
 
 -----------------------------------------------------------------------
@@ -109,7 +109,7 @@ Functions:
         The cell size is the number of frames (in x by y grid) to draw
         at the same time.
 
-    bottomOrigin()
+    bottomOrigin(): bool
     bottomOrigin(isBottomOrigin)
         Gets/Sets the indicator that the bottom left of the sprite
         should be where the X/Y location is oriented.
@@ -125,14 +125,14 @@ Description:
 
 Functions:
 
-    visible()
+    visible(): bool
     visible(show)
         Gets/Sets visibility of the node.
         Nodes that are not visible will not be rendered (nor will the
         child nodes)
 
 
-    active()
+    active(): bool
     active(isActive)
         Gets/Sets activate state of the node.
         Nodes that are not active will neither render nor update (nor
@@ -144,5 +144,5 @@ Functions:
         Gets/Sets the position of the node.
 
 
-    appendchild(childNode)
+    appendChild(childNode)
         Appends the child node to this node.
