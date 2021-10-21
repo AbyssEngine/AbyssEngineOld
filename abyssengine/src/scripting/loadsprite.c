@@ -20,6 +20,7 @@
 #include "../node/sprite/sprite.h"
 #include "node.h"
 #include "scripting.h"
+
 int abyss_lua_sprite_cell_size(lua_State *l) {
     if (lua_gettop(l) == 1) {
         SCRIPT_GET_LUA_THIS(source, sprite)
@@ -118,6 +119,73 @@ int abyss_lua_sprite_play_mode(lua_State *l) {
     return 0;
 }
 
+int abyss_lua_sprite_play_length(lua_State *l) {
+    if (lua_gettop(l) == 1) {
+        SCRIPT_GET_LUA_THIS(source, sprite)
+        lua_pushnumber(l, sprite_get_play_length(source));
+        return 1;
+    }
+
+    LCHECK_NUMPARAMS(2)
+    LCHECK_NUMBER(2);
+
+    SCRIPT_GET_LUA_THIS(source, sprite)
+
+    sprite_set_play_length(source, lua_tonumber(l, 2));
+
+    return 0;
+}
+
+int abyss_lua_sprite_animation(lua_State *l) {
+    if (lua_gettop(l) == 1) {
+        SCRIPT_GET_LUA_THIS(source, sprite)
+        lua_pushnumber(l, sprite_get_animation(source));
+        return 1;
+    }
+
+    LCHECK_NUMPARAMS(2)
+    LCHECK_NUMBER(2);
+
+    SCRIPT_GET_LUA_THIS(source, sprite)
+
+    sprite_set_animation(source, lua_tonumber(l, 2));
+
+    return 0;
+}
+
+int abyss_lua_sprite_frame(lua_State *l) {
+    if (lua_gettop(l) == 1) {
+        SCRIPT_GET_LUA_THIS(source, sprite)
+        lua_pushnumber(l, sprite_get_frame(source));
+        return 1;
+    }
+
+    LCHECK_NUMPARAMS(2)
+    LCHECK_NUMBER(2);
+
+    SCRIPT_GET_LUA_THIS(source, sprite)
+
+    sprite_set_frame(source, lua_tonumber(l, 2));
+
+    return 0;
+}
+
+int abyss_lua_sprite_total_animations(lua_State *l) {
+    LCHECK_NUMPARAMS(1)
+    SCRIPT_GET_LUA_THIS(source, sprite)
+    lua_pushnumber(l, sprite_get_animation_count(source));
+
+    return 1;
+}
+
+int abyss_lua_sprite_frames_per_animation(lua_State *l) {
+    LCHECK_NUMPARAMS(1)
+    SCRIPT_GET_LUA_THIS(source, sprite)
+    lua_pushnumber(l, sprite_get_frames_per_animation(source));
+
+    return 1;
+}
+
 int abyss_lua_load_sprite(lua_State *l) {
     LCHECK_NUMPARAMS(2)
     LCHECK_STRING(1);
@@ -138,6 +206,11 @@ int abyss_lua_load_sprite(lua_State *l) {
     SCRIPT_CLASS_RESULT_PROPERTY("bottomOrigin", abyss_lua_sprite_bottom_origin)
     SCRIPT_CLASS_RESULT_PROPERTY("blendMode", abyss_lua_sprite_blend_mode)
     SCRIPT_CLASS_RESULT_PROPERTY("playMode", abyss_lua_sprite_play_mode)
+    SCRIPT_CLASS_RESULT_PROPERTY("playLength", abyss_lua_sprite_play_length)
+    SCRIPT_CLASS_RESULT_PROPERTY("animation", abyss_lua_sprite_animation)
+    SCRIPT_CLASS_RESULT_PROPERTY("frame", abyss_lua_sprite_frame)
+    SCRIPT_CLASS_RESULT_PROPERTY("totalAnimations", abyss_lua_sprite_total_animations)
+    SCRIPT_CLASS_RESULT_PROPERTY("framesPerAnimation", abyss_lua_sprite_frames_per_animation)
     ADD_NODE_SCRIPT_CLASS_RESULT_PROPERTIES
 
     return 1;

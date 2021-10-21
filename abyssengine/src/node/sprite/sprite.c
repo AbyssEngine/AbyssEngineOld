@@ -21,7 +21,6 @@
 #include "libabyss/dc6.h"
 #include "libabyss/dcc.h"
 #include "libabyss/log.h"
-#include "libabyss/threading.h"
 #include "libabyss/utils.h"
 #include <stdlib.h>
 
@@ -146,12 +145,12 @@ sprite *sprite_load(const char *file_path, const char *palette_name) {
     return result;
 }
 
-void sprite_advance_frame_dc6(sprite *source) {
+void sprite_advance_frame(sprite *source) {
     if (source->play_mode == sprite_play_mode_paused || source->play_mode == sprite_play_mode_unknown)
         return;
 
     uint32_t start_index = 0;
-    uint32_t end_index = source->image_data.dc6_data->frames_per_direction;
+    uint32_t end_index = sprite_get_frames_per_animation(source);
 
     //    if s.hasSubLoop && s.playedCount > 0 {
     //        startIndex = s.subStartingFrame
@@ -177,32 +176,11 @@ void sprite_advance_frame_dc6(sprite *source) {
     source->current_frame = (source->loop_animation) ? end_index - 1 : start_index;
 }
 
-void sprite_advance_frame(sprite *source) {
-    switch (source->sprite_type) {
-    case sprite_type_dc6:
-        sprite_advance_frame_dc6(source);
-        return;
-    default:
-        log_fatal("unsupported sprite type");
-        exit(-1);
-    }
-}
-
 void sprite_animate(sprite *source, float time_elapsed) {
     if (source->play_mode == sprite_play_mode_paused)
         return;
 
-    uint32_t frame_count = 0;
-
-    switch (source->sprite_type) {
-    case sprite_type_dc6:
-        frame_count = source->image_data.dc6_data->frames_per_direction;
-        break;
-    default:
-        log_fatal("sprite type not supported");
-        exit(EXIT_FAILURE);
-    }
-
+    uint32_t frame_count = sprite_get_frames_per_animation(source);
     float frame_length = source->play_length / (float)frame_count;
     source->last_frame_time += time_elapsed;
     uint32_t frames_advanced = (uint32_t)(source->last_frame_time / frame_length);
@@ -429,15 +407,20 @@ void sprite_destroy(sprite *source) {
     free(source);
 }
 
-void sprite_set_animation(sprite *source, int animation_idx) {
+uint32_t sprite_get_animation(sprite *source) { return source->current_animation; }
+
+void sprite_set_animation(sprite *source, uint32_t animation_idx) {
     source->current_animation = animation_idx;
+    source->current_frame = 0;
     if (source->current_animation < source->total_animations)
         return;
 
     source->current_animation = source->total_animations - 1;
 }
 
-void sprite_set_frame(sprite *source, int frame_idx) {
+uint32_t sprite_get_frame(sprite *source) { return source->current_frame; }
+
+void sprite_set_frame(sprite *source, uint32_t frame_idx) {
     source->current_frame = frame_idx;
     if (source->current_frame < source->total_frames)
         return;
@@ -574,4 +557,28 @@ enum e_sprite_play_mode string_to_play_mode(const char *string) {
     free(mode_str);
 
     return play_mode;
+}
+
+void sprite_set_play_length(sprite *source, float play_length) { source->play_length = play_length; }
+
+float sprite_get_play_length(sprite *source) { return source->play_length; }
+
+uint32_t sprite_get_animation_count(const sprite *source) {
+    switch (source->sprite_type) {
+    case sprite_type_dc6:
+        return source->image_data.dc6_data->number_of_directions;
+    default:
+        log_fatal("unsupported animation type");
+        exit(EXIT_FAILURE);
+    }
+}
+
+uint32_t sprite_get_frames_per_animation(const sprite *source) {
+    switch (source->sprite_type) {
+    case sprite_type_dc6:
+        return source->image_data.dc6_data->frames_per_direction;
+    default:
+        log_fatal("unsupported animation type");
+        exit(EXIT_FAILURE);
+    }
 }

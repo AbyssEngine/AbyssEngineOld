@@ -32,7 +32,7 @@ int abyss_lua_show_system_cursor(lua_State *l) {
     LCHECK_NUMPARAMS(1)
     LCHECK_BOOLEAN(1);
 
-    engine_dispatch(engine_get_global_instance(), abyss_lua_show_system_cursor_dispatch, (void *)lua_toboolean(l, 1));
+    engine_dispatch(engine_get_global_instance(), abyss_lua_show_system_cursor_dispatch, (void *)(size_t)lua_toboolean(l, 1));
     return 0;
 }
 #pragma clang diagnostic pop
