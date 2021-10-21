@@ -17,6 +17,7 @@
  */
 
 #include "node.h"
+#include "../engine/engine.h"
 #include "../node/node.h"
 
 int abyss_lua_node_visible(lua_State *l) {
@@ -72,6 +73,17 @@ int abyss_lua_node_position(lua_State *l) {
     return 0;
 }
 
+typedef struct append_child_dispatch_item {
+    node *source;
+    node *child;
+} append_child_dispatch_item;
+
+void abyss_lua_node_append_child_dispatch(void *data) {
+    append_child_dispatch_item *item = (append_child_dispatch_item *)data;
+    node_append_child(item->source, item->child);
+    free(item);
+}
+
 int abyss_lua_node_append_child(lua_State *l) {
     if (lua_gettop(l) != 2) {
         lua_error(l);
@@ -86,7 +98,10 @@ int abyss_lua_node_append_child(lua_State *l) {
         return 0;
     }
 
-    node_append_child(source, child);
+    append_child_dispatch_item *data = malloc(sizeof(append_child_dispatch_item));
+    data->source = source;
+    data->child = child;
+    engine_dispatch(engine_get_global_instance(), abyss_lua_node_append_child_dispatch, data);
 
     return 0;
 }

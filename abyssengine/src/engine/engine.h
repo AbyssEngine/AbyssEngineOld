@@ -26,6 +26,7 @@
 #include "libabyss/threading.h"
 #include "sysfont.h"
 #include <SDL2/SDL.h>
+#include <libabyss/log.h>
 #include <stdbool.h>
 #include <stddef.h>
 
@@ -76,5 +77,5 @@ bool engine_add_palette(engine *src, const char *palette_name, palette *pal);
 void engine_dispatch(engine *src, void (*dispatch)(void *data), void *data);
 void engine_set_cursor(engine *src, sprite *cursor, int offset_x, int offset_y);
 node *engine_get_root_node(engine *src);
-mutex *engine_get_node_mutex(engine *src);
+
 #endif // ABYSS_ENGINE_H

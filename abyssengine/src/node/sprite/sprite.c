@@ -229,10 +229,10 @@ void sprite_regenerate_atlas(sprite *source) {
     }
 }
 
-void sprite_frame_offset(sprite *source, int *offset_x, int *offset_y) {
+void sprite_frame_offset(sprite *source, uint32_t frame, int *offset_x, int *offset_y) {
     switch (source->sprite_type) {
     case sprite_type_dc6: {
-        dc6_frame *item = &source->image_data.dc6_data->directions[source->current_animation].frames[source->current_frame];
+        dc6_frame *item = &source->image_data.dc6_data->directions[source->current_animation].frames[frame];
         if (offset_x != NULL)
             *offset_x = item->offset_x;
 
@@ -272,16 +272,12 @@ void sprite_render_callback(node *node, engine *e) {
     if (!node->visible || !node->active)
         return;
 
-    int frame_offset_x;
-    int frame_offset_y;
-    sprite_frame_offset(source, &frame_offset_x, &frame_offset_y);
-
     uint32_t frame_height;
     uint32_t frame_width;
     sprite_frame_size(source, &frame_width, &frame_height);
 
-    int pos_x = node->x + frame_offset_x;
-    int pos_y = node->y + frame_offset_y;
+    int pos_x = node->x;
+    int pos_y = node->y;
 
     if (source->bottom_origin)
         pos_y -= (int)frame_height;
@@ -295,6 +291,10 @@ void sprite_render_callback(node *node, engine *e) {
 
         for (int cell_offset_x = 0; cell_offset_x < source->cell_size_x; cell_offset_x++) {
             uint32_t cell_index = source->current_frame + (cell_offset_x + (cell_offset_y * source->cell_size_x));
+
+            int frame_offset_x;
+            int frame_offset_y;
+            sprite_frame_offset(source, cell_index, &frame_offset_x, &frame_offset_y);
 
             sprite_frame_pos *pos = &source->frame_rects[(source->current_animation * source->total_frames) + cell_index];
             SDL_Rect *source_rect = &pos->rect;

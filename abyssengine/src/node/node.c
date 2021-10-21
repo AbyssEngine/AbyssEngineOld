@@ -45,8 +45,7 @@ void node_initialize(node *source) {
 }
 
 void node_append_child(node *source, node *child) {
-    mutex *node_mutex = engine_get_node_mutex(engine_get_global_instance());
-    mutex_lock(node_mutex);
+    VERIFY_ENGINE_THREAD
 
     assert(child->parent == NULL);
     assert(child != source);
@@ -54,6 +53,4 @@ void node_append_child(node *source, node *child) {
     source->children = realloc(source->children, source->num_children + 1);
     source->children[source->num_children++] = child;
     child->parent = source;
-
-    mutex_unlock(node_mutex);
 }
