@@ -15,8 +15,8 @@ configure_file(
 target_sources(${PROJECT_NAME}
         PRIVATE
         src/abt.c
-        src/help.c src/help.h
-        src/mpqtool.c src/mpqtool.h
+        src/help.c
+        src/mpqtool.c
         )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES

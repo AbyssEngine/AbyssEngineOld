@@ -51,23 +51,23 @@ configure_file(
 target_sources(${PROJECT_NAME} PRIVATE
         # Engine Core --------------------------------------------------
         src/abyssengine.c
-        src/engine/engine.c src/engine/engine.h
-        src/engine/sysfont.c src/engine/sysfont.h
+        src/engine/engine.c
+        src/engine/sysfont.c
 
         # Engine Modes -------------------------------------------------
-        src/engine/modeboot.c src/engine/modeboot.h
-        src/engine/modecrash.c src/engine/modecrash.h
-        src/engine/moderun.c src/engine/moderun.h
+        src/engine/modeboot.c
+        src/engine/modecrash.c
+        src/engine/moderun.c
 
         # Node ----------------------------------------------------------
-        src/node/node.c src/node/node.h
+        src/node/node.c
 
         # Sprite --------------------------------------------------------
-        src/node/sprite/sprite.c src/node/sprite/sprite.h
+        src/node/sprite/sprite.c
 
         # Scripting ----------------------------------------------------
-        src/scripting/scripting.c src/scripting/scripting.h
-        src/scripting/node.c src/scripting/node.h
+        src/scripting/scripting.c
+        src/scripting/node.c
         src/scripting/log.c
         src/scripting/getconfig.c
         src/scripting/addloaderprovider.c
@@ -83,16 +83,16 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/scripting/getrootnode.c
 
         # Loaders ------------------------------------------------------
-        src/loader/loaderprovider.c src/loader/loaderprovider.h
-        src/loader/filesystemloader.c src/loader/filesystemloader.h
-        src/loader/mpqloader.c src/loader/mpqloader.h
-        src/loader/loader.c src/loader/loader.h
+        src/loader/loaderprovider.c
+        src/loader/filesystemloader.c
+        src/loader/mpqloader.c
+        src/loader/loader.c
 
         # Misc ---------------------------------------------------------
-        src/misc/util.c src/misc/util.h
-        src/misc/ini.c src/misc/ini.h
-        src/misc/resources.c src/misc/resources.h
-        src/misc/appcompat.c src/misc/appcompat.h
+        src/misc/util.c
+        src/misc/ini.c
+        src/misc/resources.c
+        src/misc/appcompat.c
 
         # Dynamic ------------------------------------------------------
         ${SOURCE_EXTRA}

@@ -13,29 +13,28 @@ if (WIN32)
     find_package(Threads REQUIRED)
 
     set(THREADS_PREFER_PTHREAD_FLAG ON)
-    set(THREAD_SRC src/threading_windows.c include/libabyss/threading.h)
+    set(THREAD_SRC src/threading_windows.c)
 else ()
-    set(THREAD_SRC src/threading_unix.c include/libabyss/threading.h)
+    set(THREAD_SRC src/threading_unix.c)
 endif ()
 
 add_library(${PROJECT_NAME}
         # Public
-        src/libabyss.c include/libabyss/libabyss.h
-        src/utils.c include/libabyss/utils.h
-        src/mpq.c include/libabyss/mpq.h
-        src/log.c include/libabyss/log.h
-        src/mpqstream.c include/libabyss/mpqstream.h
-        src/mpqblock.c include/libabyss/mpqblock.h
-        src/palette.c include/libabyss/palette.h
-        src/dcc.c include/libabyss/dcc.h
-        src/dc6.c include/libabyss/dc6.h
-        include/libabyss/boundsdefs.h
+        src/libabyss.c
+        src/utils.c
+        src/mpq.c
+        src/log.c
+        src/mpqstream.c
+        src/mpqblock.c
+        src/palette.c
+        src/dcc.c
+        src/dc6.c
         # Private
-        src/crypto.c src/crypto.h
-        src/blast.c src/blast.h
-        src/compress.c src/compress.h
-        src/streamreader.c src/streamreader.h
-        src/streamwriter.c src/streamwriter.h
+        src/crypto.c
+        src/blast.c
+        src/compress.c
+        src/streamreader.c
+        src/streamwriter.c
         ${THREAD_SRC}
         )
 
