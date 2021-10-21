@@ -181,7 +181,7 @@ void engine_init_sdl2(engine *src) {
         exit(-1);
     }
 
-    // SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
 
     if (src->sdl_renderer == 0) {
         log_fatal(SDL_GetError());

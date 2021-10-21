@@ -31,6 +31,10 @@
 #endif
 
 int main(int argc, char **argv) {
+    if (argc == 2 && strcmp(argv[1], "--version") == 0) {
+        printf("%d.%d", ABYSS_VERSION_MAJOR, ABYSS_VERSION_MINOR);
+        return 0;
+    }
 #ifndef NDEBUG
     log_info("Abyss Engine v%d.%d (DEBUG BUILD)", ABYSS_VERSION_MAJOR, ABYSS_VERSION_MINOR);
 #else
