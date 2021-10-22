@@ -78,6 +78,7 @@ Gets/Sets the current frame index for the current animation.
     function animation(): number
     function animation(index)
 ```
+
 Gets/Sets the current animation for the current  animation.  
 When setting an animation, the frame index is automatically
 set to 0.
@@ -118,7 +119,7 @@ Nodes that are not visible will not be rendered (nor will the child nodes)
 
 ---
 
-```lua 
+```lua
     function active(): bool
     function active(isActive)
 ```
