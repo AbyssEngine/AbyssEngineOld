@@ -112,7 +112,7 @@ function setBootText(text)
 
 Sets the boot text (in boot mode), i.e the text before the main menu
 
-**Note: You can add colour by escaping a html colour hex value, e.g `\#FFFF00`**
+**Note**: You can add colour by escaping a html colour hex value, e.g `\#FFFF00`
 
 ### setBootText Example
 
@@ -124,21 +124,25 @@ showSystemCursor(false)
 setBootText("Hello World")
 ```
 
+This gets displayed like this:
+
+![setBootText screenshot](screenshots/setBootTextScreenshot.png)
+
 ---
 
 ## addLoaderProvider
-
-**TODO**: check with essial on how the filesystem provider works
 
 ```lua
 function addLoaderProvider(type, path)
 ```
 
-Adds a location that resources can be loaded from
+Adds a location that resources can be loaded from, resources are loaded from the earliest added loader provider
 
 `type is "mpq" or "filesystem"`
 
 `path is either a path to an mpq file or a directory`
+
+**Note**: The base directory is always loaded as a filesytem provider with the highest priority
 
 ### addLoaderProvider Example
 
