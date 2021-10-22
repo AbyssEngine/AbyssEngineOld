@@ -129,10 +129,10 @@ setBootText("Hello World")
 
 ## addLoaderProvider
 
-TODO: check with essial on how the filesystem provider works
+**TODO**: check with essial on how the filesystem provider works
 
 ```lua
-addLoaderProvider(type, path)
+function addLoaderProvider(type, path)
 ```
 
 Adds a location that resources can be loaded from
@@ -161,3 +161,69 @@ for i in pairs(mpqs) do
     addLoaderProvider("mpq", mpqPath)
 end
 ```
+
+---
+
+## loadString
+
+**TODO**: Add Example For loadString
+
+```lua
+function loadString(path): string
+```
+
+Loads a resource and returns the data as a string
+
+`path is the resource location to load`
+
+---
+
+## exitBootMode
+
+```lua
+function exitBootMode()
+```
+
+Exits boot mode and enters run mode
+
+---
+
+## loadPalette
+
+```lua
+function loadPalette(paletteName, path)
+```
+
+Loads a palette from the specified path and assigns it to the name.
+
+---
+
+## loadSprite
+
+```lua
+function loadSprite(path, paletteName): sprite
+```
+
+Loads a sprite based on the specified path and assigns the named palette to it.
+
+---
+
+## setCursor
+
+```lua
+function setCursor(sprite, offsetX, offsetY)
+```
+
+Sets the engine cursor to the specified sprite.
+
+Offset X/Y offsets the sprite relative to the actual mouse position.
+
+---
+
+## getRootNode
+
+```lua
+function getRootNode(): node
+```
+
+Returns the root node in the engine's scene graph.
