@@ -10,18 +10,17 @@ These are the functions available from lua in the Abyss Engine scripting environ
 function getConfig(category, value): string
 ```
 
-Returns the value of a configuration element.
-    Category/Value is based on the INI file.
-
-A system category "#Abyss" has the following properties:
+Returns the value of a configuration element.  
+Category/Value is based on the INI file.  
+A system category `"#Abyss"` has the following properties:
 
 `"BasePath" - The base path of the engine`
 
 ### getConfig Example
 
 ```lua
-function testConfigGet()
-    log("info", getConfig("Foo", "Bar"))
+function testConfigGet(): string
+    return getConfig("Foo", "Bar")
 end
 ```
 
@@ -30,7 +29,7 @@ end
 Bar=test
 ```
 
-Would return `"test"`
+Would return a string with the value `"test"`
 
 ---
 
