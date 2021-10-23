@@ -19,6 +19,7 @@
 #ifndef ABYSS_ENGINE_H
 #define ABYSS_ENGINE_H
 
+#include "../commondef.h"
 #include "../loader/loader.h"
 #include "../misc/ini.h"
 #include "../node/node.h"
@@ -27,8 +28,12 @@
 #include "sysfont.h"
 #include <SDL2/SDL.h>
 #include <libabyss/log.h>
+#include <lua.h>
 #include <stdbool.h>
 #include <stddef.h>
+
+#define GAME_WIDTH 800
+#define GAME_HEIGHT 600
 
 typedef struct engine engine;
 typedef struct sprite sprite;
@@ -76,6 +81,10 @@ const palette *engine_get_palette(const engine *src, const char *palette_name);
 bool engine_add_palette(engine *src, const char *palette_name, palette *pal);
 void engine_dispatch(engine *src, void (*dispatch)(void *data), void *data);
 void engine_set_cursor(engine *src, sprite *cursor, int offset_x, int offset_y);
+void engine_get_cursor_position(const engine *src, int *pos_x, int *pos_y);
 node *engine_get_root_node(engine *src);
+e_mouse_button engine_get_mouse_button_state(const engine *src);
+void engine_set_mouse_button_state(engine *src, enum e_mouse_button new_state);
+lua_State *engine_get_lua_state(const engine *src);
 
 #endif // ABYSS_ENGINE_H

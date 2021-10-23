@@ -16,26 +16,36 @@
  * along with AbyssEngine.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "moderun.h"
+#ifndef ABYSS_COMMONDEF_H
+#define ABYSS_COMMONDEF_H
 
-void engine_render_run(engine *src) {
-    SDL_Renderer *renderer = engine_get_renderer(src);
-    SDL_RenderClear(renderer);
-    node *root_node = engine_get_root_node(src);
+#include <stdbool.h>
+#include <stdint.h>
 
-    if (root_node == NULL || root_node->render_callback == NULL)
-        return;
+typedef uint8_t e_mouse_button;
+enum e_mouse_button { mouse_button_left = 0x01, mouse_button_right = 0x02, mouse_button_middle = 0x04 };
 
-    root_node->render_callback(root_node, src, 0, 0);
-}
+typedef uint8_t e_mouse_event_type;
+enum e_mouse_event_type {
+    mouse_event_type_move,
+    mouse_event_type_button,
+};
 
-void engine_update_run(engine *src, uint32_t tick_diff) {
-    node *root_node = engine_get_root_node(src);
+typedef struct mouse_move_event {
+    int x;
+    int y;
+} mouse_move_event;
 
-    if (root_node == NULL || root_node->update_callback == NULL)
-        return;
+typedef struct mouse_button_event {
+    enum e_mouse_button button;
+    bool pressed;
+} mouse_button_event;
 
-    root_node->update_callback(root_node, src, tick_diff);
-}
+typedef struct mouse_event_info {
+    union {
+        mouse_move_event move_event;
+        mouse_button_event button_event;
+    };
+} mouse_event_info;
 
-void moderun_set_callbacks(engine *src) { engine_set_callbacks(src, engine_render_run, engine_update_run); }
+#endif // ABYSS_COMMONDEF_H

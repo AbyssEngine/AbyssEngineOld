@@ -29,7 +29,7 @@ void engine_render_boot(engine *src) {
     sysfont *font = engine_get_sysfont(src);
     SDL_Rect logo_rect;
     SDL_Texture *logo = engine_get_logo_texture(src, &logo_rect);
-    SDL_Rect logo_dest = {400 - (logo_rect.w / 2), 300 - logo_rect.h, logo_rect.w, logo_rect.h};
+    SDL_Rect logo_dest = {(GAME_WIDTH / 2) - (logo_rect.w / 2), (GAME_HEIGHT / 2) - logo_rect.h, logo_rect.w, logo_rect.h};
 
     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
     SDL_RenderClear(renderer);
@@ -38,7 +38,7 @@ void engine_render_boot(engine *src) {
 
     const char *boot_text = engine_get_boot_text(src);
     if (boot_text != NULL) {
-        sysfont_draw_wrap(font, renderer, logo_dest.x, logo_dest.y + logo_dest.h + 48, boot_text, 800 - logo_dest.x);
+        sysfont_draw_wrap(font, renderer, logo_dest.x, logo_dest.y + logo_dest.h + 48, boot_text, GAME_WIDTH - logo_dest.x);
     }
 
     if (fade_color.a > 0) {

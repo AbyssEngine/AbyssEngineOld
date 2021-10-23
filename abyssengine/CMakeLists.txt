@@ -51,6 +51,7 @@ configure_file(
 target_sources(${PROJECT_NAME} PRIVATE
         # Engine Core --------------------------------------------------
         src/abyssengine.c
+        src/commondef.h
         src/engine/engine.c src/engine/engine.h
         src/engine/sysfont.c src/engine/sysfont.h
 

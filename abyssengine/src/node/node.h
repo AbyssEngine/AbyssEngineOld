@@ -19,6 +19,7 @@
 #ifndef ABYSS_NODE_H
 #define ABYSS_NODE_H
 
+#include "../commondef.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -31,15 +32,17 @@ typedef struct node {
     bool visible;
     int x;
     int y;
-    void (*render_callback)(struct node *node, struct engine *source);
-    void (*update_callback)(struct node *node, struct engine *source, uint32_t ticks);
+    void (*render_callback)(struct node *node, struct engine *source, int offset_x, int offset_y);
+    bool (*update_callback)(struct node *node, struct engine *source, uint32_t ticks);
     void (*remove_callback)(struct node *node, struct engine *engine);
     void (*destroy_callback)(struct node *node, struct engine *engine);
+    bool (*mouse_event_callback)(struct node *node, struct engine *engine, enum e_mouse_event_type event_type, const mouse_event_info *event_info);
 } node;
 
 void node_initialize(node *source);
 void node_append_child(node *source, node *child);
-void node_default_update_callback(node *source, struct engine *engine, uint32_t ticks);
-void node_default_render_callback(node *source, struct engine *engine);
-
+bool node_default_update_callback(node *source, struct engine *engine, uint32_t ticks);
+void node_default_render_callback(node *source, struct engine *engine, int offset_x, int offset_y);
+bool node_default_mouse_event_callback(struct node *node, struct engine *engine, enum e_mouse_event_type event_type,
+                                       const mouse_event_info *event_info);
 #endif // ABYSS_NODE_H

@@ -186,6 +186,86 @@ int abyss_lua_sprite_frames_per_animation(lua_State *l) {
     return 1;
 }
 
+int abyss_lua_sprite_on_mouse_enter(lua_State *l) {
+    LCHECK_NUMPARAMS(2)
+
+    if (!lua_isfunction(l, 2)) {
+        luaL_error(l, "a function must be supplied");
+        return 0;
+    }
+
+    int ref = luaL_ref(l, LUA_REGISTRYINDEX);
+    SCRIPT_GET_LUA_THIS(source, sprite);
+
+    sprite_set_lua_mouse_enter_callback(source, ref);
+
+    return 0;
+}
+
+int abyss_lua_sprite_on_mouse_leave(lua_State *l) {
+    LCHECK_NUMPARAMS(2)
+
+    if (!lua_isfunction(l, 2)) {
+        luaL_error(l, "a function must be supplied");
+        return 0;
+    }
+
+    int ref = luaL_ref(l, LUA_REGISTRYINDEX);
+    SCRIPT_GET_LUA_THIS(source, sprite);
+
+    sprite_set_lua_mouse_leave_callback(source, ref);
+
+    return 0;
+}
+
+int abyss_lua_sprite_on_mouse_move(lua_State *l) {
+    LCHECK_NUMPARAMS(2)
+
+    if (!lua_isfunction(l, 2)) {
+        luaL_error(l, "a function must be supplied");
+        return 0;
+    }
+
+    int ref = luaL_ref(l, LUA_REGISTRYINDEX);
+    SCRIPT_GET_LUA_THIS(source, sprite);
+
+    sprite_set_lua_mouse_move_callback(source, ref);
+
+    return 0;
+}
+
+int abyss_lua_sprite_on_mouse_button_up(lua_State *l) {
+    LCHECK_NUMPARAMS(2)
+
+    if (!lua_isfunction(l, 2)) {
+        luaL_error(l, "a function must be supplied");
+        return 0;
+    }
+
+    int ref = luaL_ref(l, LUA_REGISTRYINDEX);
+    SCRIPT_GET_LUA_THIS(source, sprite);
+
+    sprite_set_lua_mouse_up_callback(source, ref);
+
+    return 0;
+}
+
+int abyss_lua_sprite_on_mouse_button_down(lua_State *l) {
+    LCHECK_NUMPARAMS(2)
+
+    if (!lua_isfunction(l, 2)) {
+        luaL_error(l, "a function must be supplied");
+        return 0;
+    }
+
+    int ref = luaL_ref(l, LUA_REGISTRYINDEX);
+    SCRIPT_GET_LUA_THIS(source, sprite);
+
+    sprite_set_lua_mouse_down_callback(source, ref);
+
+    return 0;
+}
+
 int abyss_lua_load_sprite(lua_State *l) {
     LCHECK_NUMPARAMS(2)
     LCHECK_STRING(1);
@@ -211,6 +291,11 @@ int abyss_lua_load_sprite(lua_State *l) {
     SCRIPT_CLASS_RESULT_PROPERTY("frame", abyss_lua_sprite_frame)
     SCRIPT_CLASS_RESULT_PROPERTY("totalAnimations", abyss_lua_sprite_total_animations)
     SCRIPT_CLASS_RESULT_PROPERTY("framesPerAnimation", abyss_lua_sprite_frames_per_animation)
+    SCRIPT_CLASS_RESULT_PROPERTY("onMouseEnter", abyss_lua_sprite_on_mouse_enter)
+    SCRIPT_CLASS_RESULT_PROPERTY("onMouseLeave", abyss_lua_sprite_on_mouse_leave)
+    SCRIPT_CLASS_RESULT_PROPERTY("onMouseMove", abyss_lua_sprite_on_mouse_move)
+    SCRIPT_CLASS_RESULT_PROPERTY("onMouseButtonDown", abyss_lua_sprite_on_mouse_button_down)
+    SCRIPT_CLASS_RESULT_PROPERTY("onMouseButtonUp", abyss_lua_sprite_on_mouse_button_up)
     ADD_NODE_SCRIPT_CLASS_RESULT_PROPERTIES
 
     return 1;

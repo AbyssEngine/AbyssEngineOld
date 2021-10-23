@@ -64,9 +64,21 @@ float sprite_get_play_length(sprite *source);
 uint32_t sprite_get_animation_count(const sprite *source);
 uint32_t sprite_get_frames_per_animation(const sprite *source);
 
-void sprite_render_callback(node *node, engine *source);
+void sprite_set_lua_mouse_enter_callback(sprite *source, int lua_function_ref);
+int sprite_get_lua_mouse_enter_callback(const sprite *source);
+void sprite_set_lua_mouse_leave_callback(sprite *source, int lua_function_ref);
+int sprite_get_lua_mouse_leave_callback(const sprite *source);
+void sprite_set_lua_mouse_up_callback(sprite *source, int lua_function_ref);
+int sprite_get_lua_mouse_up_callback(const sprite *source);
+void sprite_set_lua_mouse_down_callback(sprite *source, int lua_function_ref);
+int sprite_get_lua_mouse_down_callback(const sprite *source);
+void sprite_set_lua_mouse_move_callback(sprite *source, int lua_function_ref);
+int sprite_get_lua_mouse_move_callback(const sprite *source);
+
+void sprite_render_callback(node *node, engine *source, int offset_x, int offset_y);
 void sprite_remove_callback(node *node, engine *source);
 void sprite_destroy_callback(node *node, engine *source);
-void sprite_update_callback(node *node, engine *source, uint32_t ticks);
+bool sprite_update_callback(node *node, engine *source, uint32_t ticks);
+bool sprite_mouse_event_callback(node *node, struct engine *e, enum e_mouse_event_type event_type, const mouse_event_info *event_info);
 
 #endif // ABYSS_SPRITE_H

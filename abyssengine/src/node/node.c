@@ -20,23 +20,26 @@
 #include "../engine/engine.h"
 #include <assert.h>
 
-void node_default_update_callback(node *source, engine *engine, uint32_t ticks) {
+bool node_default_update_callback(node *source, engine *engine, uint32_t ticks) {
     for (int idx = 0; idx < source->num_children; idx++) {
         node *child = source->children[idx];
         if (!child->active || child->update_callback == NULL)
             continue;
 
-        child->update_callback(child, engine, ticks);
+        if (child->update_callback(child, engine, ticks))
+            return true;
     }
+
+    return false;
 }
 
-void node_default_render_callback(node *source, engine *engine) {
+void node_default_render_callback(node *source, engine *engine, int offset_x, int offset_y) {
     for (int idx = 0; idx < source->num_children; idx++) {
         node *child = source->children[idx];
         if (!child->active || !child->visible || child->render_callback == NULL)
             continue;
 
-        child->render_callback(child, engine);
+        child->render_callback(child, engine, source->x + offset_x, source->y + offset_y);
     }
 }
 
@@ -63,4 +66,20 @@ void node_append_child(node *source, node *child) {
     source->children = realloc(source->children, sizeof(node) * (source->num_children + 1));
     source->children[source->num_children++] = child;
     child->parent = source;
+}
+
+bool node_default_mouse_event_callback(struct node *source, struct engine *e, enum e_mouse_event_type event_type,
+                                       const mouse_event_info *event_info) {
+
+    for (int idx = 0; idx < source->num_children; idx++) {
+        node *child = source->children[idx];
+        if (!child->active || !child->visible || child->mouse_event_callback == NULL)
+            continue;
+
+        if (child->mouse_event_callback(child, e, event_type, event_info)) {
+            return true;
+        }
+    }
+
+    return false;
 }

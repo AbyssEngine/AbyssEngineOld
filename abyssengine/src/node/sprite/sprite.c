@@ -51,11 +51,17 @@ typedef struct sprite {
     uint32_t cell_size_x;
     uint32_t cell_size_y;
     bool bottom_origin;
+    bool mouse_in_sprite;
     e_sprite_blend_mode blend_mode;
     enum e_sprite_play_mode play_mode;
     bool loop_animation;
     float last_frame_time;
     float play_length;
+    int lua_mouse_down_callback_func;
+    int lua_mouse_up_callback_func;
+    int lua_mouse_enter_callback_func;
+    int lua_mouse_leave_callback_func;
+    int lua_mouse_move_callback_func;
 } sprite;
 
 sprite *sprite_load(const char *file_path, const char *palette_name) {
@@ -141,6 +147,7 @@ sprite *sprite_load(const char *file_path, const char *palette_name) {
     result->node.update_callback = sprite_update_callback;
     result->node.remove_callback = sprite_remove_callback;
     result->node.destroy_callback = sprite_destroy_callback;
+    result->node.mouse_event_callback = sprite_mouse_event_callback;
 
     return result;
 }
@@ -318,7 +325,7 @@ void sprite_frame_size(sprite *source, uint32_t *frame_size_x, uint32_t *frame_s
     }
 }
 
-void sprite_render_callback(node *node, engine *e) {
+void sprite_render_callback(node *node, engine *e, int offset_x, int offset_y) {
     sprite *source = (sprite *)node;
 
     if (!node->visible || !node->active)
@@ -331,8 +338,8 @@ void sprite_render_callback(node *node, engine *e) {
     uint32_t frame_width;
     sprite_frame_size(source, &frame_width, &frame_height);
 
-    int pos_x = node->x;
-    int pos_y = node->y;
+    int pos_x = node->x + offset_x;
+    int pos_y = node->y + offset_y;
 
     if (source->bottom_origin)
         pos_y -= (int)frame_height;
@@ -366,7 +373,7 @@ void sprite_render_callback(node *node, engine *e) {
         pos_y += last_height;
     }
 
-    node_default_render_callback(node, e);
+    node_default_render_callback(node, e, offset_x, offset_y);
 }
 
 void sprite_remove_callback(node *node, engine *e) {
@@ -379,18 +386,33 @@ void sprite_destroy_callback(node *node, engine *e) {
     sprite_destroy(source);
 }
 
-void sprite_update_callback(node *node, engine *e, uint32_t ticks) {
+bool sprite_update_callback(node *node, engine *e, uint32_t ticks) {
     sprite *source = (sprite *)node;
 
     sprite_animate(source, (float)ticks / 1000.f);
 
-    node_default_update_callback(node, e, ticks);
+    return node_default_update_callback(node, e, ticks);
 }
 
 void sprite_destroy(sprite *source) {
-    if (source->atlas != NULL) {
+    if (source->atlas != NULL)
         SDL_DestroyTexture(source->atlas);
-    }
+
+    if (source->lua_mouse_down_callback_func != 0)
+        luaL_unref(engine_get_lua_state(engine_get_global_instance()), LUA_REGISTRYINDEX, source->lua_mouse_down_callback_func);
+
+    if (source->lua_mouse_up_callback_func != 0)
+        luaL_unref(engine_get_lua_state(engine_get_global_instance()), LUA_REGISTRYINDEX, source->lua_mouse_up_callback_func);
+
+    if (source->lua_mouse_enter_callback_func != 0)
+        luaL_unref(engine_get_lua_state(engine_get_global_instance()), LUA_REGISTRYINDEX, source->lua_mouse_enter_callback_func);
+
+    if (source->lua_mouse_leave_callback_func != 0)
+        luaL_unref(engine_get_lua_state(engine_get_global_instance()), LUA_REGISTRYINDEX, source->lua_mouse_leave_callback_func);
+
+    if (source->lua_mouse_move_callback_func != 0)
+        luaL_unref(engine_get_lua_state(engine_get_global_instance()), LUA_REGISTRYINDEX, source->lua_mouse_move_callback_func);
+
     switch (source->sprite_type) {
     case sprite_type_dc6:
         dc6_destroy(source->image_data.dc6_data);
@@ -581,4 +603,130 @@ uint32_t sprite_get_frames_per_animation(const sprite *source) {
         log_fatal("unsupported animation type");
         exit(EXIT_FAILURE);
     }
+}
+
+void sprite_set_lua_mouse_move_callback(sprite *source, int lua_function_ref) {
+    if (source->lua_mouse_move_callback_func != 0)
+        luaL_unref(engine_get_lua_state(engine_get_global_instance()), LUA_REGISTRYINDEX, source->lua_mouse_move_callback_func);
+
+    source->lua_mouse_move_callback_func = lua_function_ref;
+}
+
+int sprite_get_lua_mouse_move_callback(const sprite *source) { return source->lua_mouse_move_callback_func; }
+
+void sprite_set_lua_mouse_enter_callback(sprite *source, int lua_function_ref) {
+    if (source->lua_mouse_enter_callback_func != 0)
+        luaL_unref(engine_get_lua_state(engine_get_global_instance()), LUA_REGISTRYINDEX, source->lua_mouse_enter_callback_func);
+
+    source->lua_mouse_enter_callback_func = lua_function_ref;
+}
+
+int sprite_get_lua_mouse_enter_callback(const sprite *source) { return source->lua_mouse_enter_callback_func; }
+
+void sprite_set_lua_mouse_leave_callback(sprite *source, int lua_function_ref) {
+    if (source->lua_mouse_leave_callback_func != 0)
+        luaL_unref(engine_get_lua_state(engine_get_global_instance()), LUA_REGISTRYINDEX, source->lua_mouse_leave_callback_func);
+
+    source->lua_mouse_leave_callback_func = lua_function_ref;
+}
+
+int sprite_get_lua_mouse_leave_callback(const sprite *source) { return source->lua_mouse_leave_callback_func; }
+
+void sprite_set_lua_mouse_up_callback(sprite *source, int lua_function_ref) {
+    if (source->lua_mouse_up_callback_func != 0)
+        luaL_unref(engine_get_lua_state(engine_get_global_instance()), LUA_REGISTRYINDEX, source->lua_mouse_up_callback_func);
+
+    source->lua_mouse_up_callback_func = lua_function_ref;
+}
+
+int sprite_get_lua_mouse_up_callback(const sprite *source) { return source->lua_mouse_up_callback_func; }
+
+void sprite_set_lua_mouse_down_callback(sprite *source, int lua_function_ref) {
+    if (source->lua_mouse_down_callback_func != 0)
+        luaL_unref(engine_get_lua_state(engine_get_global_instance()), LUA_REGISTRYINDEX, source->lua_mouse_down_callback_func);
+
+    source->lua_mouse_down_callback_func = lua_function_ref;
+}
+
+int sprite_get_lua_mouse_down_callback(const sprite *source) { return source->lua_mouse_down_callback_func; }
+
+bool sprite_mouse_event_callback(node *node, struct engine *e, enum e_mouse_event_type event_type, const mouse_event_info *event_info) {
+    sprite *source = (sprite *)node;
+    lua_State *l = engine_get_lua_state(e);
+    bool handle_input_event = false;
+
+    switch (event_type) {
+    case mouse_event_type_button: {
+        if (!source->mouse_in_sprite)
+            break;
+
+        int lua_func = (event_info->button_event.pressed) ? source->lua_mouse_down_callback_func : source->lua_mouse_up_callback_func;
+        if (lua_func != 0) {
+            lua_rawgeti(l, LUA_REGISTRYINDEX, lua_func);
+            lua_pushnumber(l, event_info->button_event.button);
+            lua_call(l, 1, 1);
+            handle_input_event = lua_toboolean(l, -1);
+        }
+
+    } break;
+    case mouse_event_type_move: {
+        int mx = event_info->move_event.x;
+        int my = event_info->move_event.y;
+        
+        int sx = node->x;
+        int sy = node->y;
+        int sx2 = sx;
+        int sy2 = sy;
+        uint32_t fx;
+        uint32_t fy;
+        sprite_frame_size(source, &fx, &fy);
+        sx2 += (int)fx;
+        sy2 += (int)fy;
+
+        if ((mx < sx) || (mx >= sx2) || (my < sy) || (my >= sy2)) {
+            if (source->mouse_in_sprite) {
+                source->mouse_in_sprite = false;
+
+                if (source->lua_mouse_leave_callback_func != 0) {
+                    lua_rawgeti(l, LUA_REGISTRYINDEX, source->lua_mouse_leave_callback_func);
+                    lua_pushnumber(l, event_info->move_event.x);
+                    lua_pushnumber(l, event_info->move_event.y);
+                    lua_call(l, 2, 1);
+                    handle_input_event = lua_toboolean(l, -1);
+                }
+            }
+            break;
+        }
+
+        if (!source->mouse_in_sprite) {
+            source->mouse_in_sprite = true;
+
+            if (source->lua_mouse_enter_callback_func != 0) {
+                lua_rawgeti(l, LUA_REGISTRYINDEX, source->lua_mouse_enter_callback_func);
+                lua_pushnumber(l, event_info->move_event.x);
+                lua_pushnumber(l, event_info->move_event.y);
+                lua_call(l, 2, 1);
+                handle_input_event = lua_toboolean(l, -1);
+            }
+            if (handle_input_event)
+                break;
+        }
+
+        if (source->lua_mouse_move_callback_func != 0) {
+            lua_rawgeti(l, LUA_REGISTRYINDEX, source->lua_mouse_move_callback_func);
+            lua_pushnumber(l, event_info->move_event.x);
+            lua_pushnumber(l, event_info->move_event.y);
+            lua_call(l, 2, 1);
+            handle_input_event = lua_toboolean(l, -1);
+        }
+
+    } break;
+    default:
+        break;
+    }
+
+    if (handle_input_event)
+        return true;
+
+    return node_default_mouse_event_callback(node, e, event_type, event_info);
 }

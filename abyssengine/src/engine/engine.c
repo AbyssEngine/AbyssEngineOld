@@ -90,6 +90,7 @@ typedef struct engine {
     int cursor_offset_x;
     int cursor_offset_y;
     node *root_node;
+    e_mouse_button mouse_button_state;
 } engine;
 
 #ifndef NDEBUG
@@ -105,7 +106,7 @@ engine *engine_create(char *base_path, ini_file *ini_config) {
     result->boot_text_mutex = mutex_create();
     result->palette_mutex = mutex_create();
     result->node_mutex = mutex_create();
-    result->pixel_buffer = (uint32_t *)calloc(800 * 600, 4);
+    result->pixel_buffer = (uint32_t *)calloc(GAME_WIDTH * GAME_HEIGHT, 4);
     result->base_path = strdup(base_path);
     result->ini_config = ini_config;
     result->run_mode = ENGINE_RUNE_MODE_BOOT;
@@ -171,7 +172,8 @@ void engine_init_sdl2(engine *src) {
 
     char *window_title = calloc(1, 128);
     sprintf(window_title, "Abyss Engine v%d.%d", ABYSS_VERSION_MAJOR, ABYSS_VERSION_MINOR);
-    src->sdl_window = SDL_CreateWindow(window_title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_RESIZABLE);
+    src->sdl_window = SDL_CreateWindow(window_title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, GAME_WIDTH, GAME_HEIGHT,
+                                       SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
     if (src->sdl_window == 0) {
         log_fatal(SDL_GetError());
         exit(-1);
@@ -201,14 +203,12 @@ void engine_init_sdl2(engine *src) {
     SDL_GetVersion(&sdl_version);
     log_info("SDL Version: %d.%d.%d", sdl_version.major, sdl_version.minor, sdl_version.patch);
 
-    SDL_RenderSetLogicalSize(src->sdl_renderer, 800, 600);
+    SDL_RenderSetLogicalSize(src->sdl_renderer, GAME_WIDTH, GAME_HEIGHT);
     SDL_SetRenderDrawBlendMode(src->sdl_renderer, SDL_BLENDMODE_BLEND);
-    SDL_CaptureMouse(true);
     free(window_title);
 }
 
 void engine_finalize_sdl2(engine *src) {
-    SDL_CaptureMouse(false);
     SDL_DestroyRenderer(src->sdl_renderer);
     SDL_DestroyWindow(src->sdl_window);
     SDL_Quit();
@@ -304,6 +304,54 @@ void engine_handle_sdl_event(engine *src, const SDL_Event *evt) {
     case SDL_MOUSEMOTION: {
         src->cursor_x = evt->motion.x;
         src->cursor_y = evt->motion.y;
+
+        mouse_event_info info;
+        info.move_event.x = evt->motion.x;
+        info.move_event.y = evt->motion.y;
+
+        node_default_mouse_event_callback(src->root_node, src, mouse_event_type_move, &info);
+    } break;
+    case SDL_MOUSEBUTTONUP: {
+        mouse_event_info info;
+        info.button_event.pressed = false;
+
+        switch (evt->button.button) {
+        case SDL_BUTTON_LEFT:
+            info.button_event.button = mouse_button_left;
+            src->mouse_button_state &= ~mouse_button_left;
+            break;
+        case SDL_BUTTON_RIGHT:
+            info.button_event.button = mouse_button_right;
+            src->mouse_button_state &= ~mouse_button_right;
+            break;
+        case SDL_BUTTON_MIDDLE:
+            info.button_event.button = mouse_button_middle;
+            src->mouse_button_state &= ~mouse_button_middle;
+            break;
+        }
+
+        node_default_mouse_event_callback(src->root_node, src, mouse_event_type_button, &info);
+    } break;
+    case SDL_MOUSEBUTTONDOWN: {
+        mouse_event_info info;
+        info.button_event.pressed = true;
+
+        switch (evt->button.button) {
+        case SDL_BUTTON_LEFT:
+            info.button_event.button = mouse_button_left;
+            src->mouse_button_state |= mouse_button_left;
+            break;
+        case SDL_BUTTON_RIGHT:
+            info.button_event.button = mouse_button_right;
+            src->mouse_button_state |= mouse_button_right;
+            break;
+        case SDL_BUTTON_MIDDLE:
+            info.button_event.button = mouse_button_middle;
+            src->mouse_button_state |= mouse_button_middle;
+            break;
+        }
+
+        node_default_mouse_event_callback(src->root_node, src, mouse_event_type_button, &info);
     } break;
     case SDL_QUIT:
         engine_shutdown(src);
@@ -330,7 +378,7 @@ void engine_render(engine *src) {
         node *n = (node *)src->cursor;
         n->x = src->cursor_x + src->cursor_offset_x;
         n->y = src->cursor_y + src->cursor_offset_y;
-        n->render_callback(n, src);
+        n->render_callback(n, src, 0, 0);
     }
     SDL_RenderPresent(src->sdl_renderer);
 }
@@ -485,3 +533,15 @@ void engine_set_cursor(engine *src, sprite *cursor, int offset_x, int offset_y) 
 node *engine_get_root_node(engine *src) { return src->root_node; }
 
 mutex *engine_get_node_mutex(engine *src) { return src->node_mutex; }
+
+e_mouse_button engine_get_mouse_button_state(const engine *src) { return src->mouse_button_state; }
+
+void engine_set_mouse_button_state(engine *src, enum e_mouse_button new_state) { src->mouse_button_state = new_state; }
+
+void engine_get_cursor_position(const engine *src, int *pos_x, int *pos_y) {
+    if (pos_x != NULL)
+        *pos_x = src->cursor_x;
+    if (pos_y != NULL)
+        *pos_x = src->cursor_y;
+}
+lua_State *engine_get_lua_state(const engine *src) { return src->lua_state; }
