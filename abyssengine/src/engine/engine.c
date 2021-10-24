@@ -28,9 +28,11 @@
 #include "modeboot.h"
 #include "modecrash.h"
 #include "moderun.h"
+#include "modevideo.h"
 #include <lauxlib.h>
 #include <libabyss/log.h>
 #include <libabyss/threading.h>
+#include <libavformat/avformat.h>
 #include <lualib.h>
 #include <stdlib.h>
 #include <string.h>
@@ -76,12 +78,13 @@ typedef struct engine {
     char *crash_text;
     palette_item *palettes;
     uint32_t num_palettes;
-    mutex *dispatch_mutex;
     dispatch_item *dispatches;
     uint32_t num_dispatches;
+    mutex *dispatch_mutex;
     mutex *boot_text_mutex;
     mutex *palette_mutex;
     mutex *node_mutex;
+    mutex *video_playback_mutex;
     int max_texture_width;
     int max_texture_height;
     sprite *cursor;
@@ -91,6 +94,8 @@ typedef struct engine {
     int cursor_offset_y;
     node *root_node;
     e_mouse_button mouse_button_state;
+    bool video_playing;
+    char *video_file_path;
 } engine;
 
 #ifndef NDEBUG
@@ -106,6 +111,8 @@ engine *engine_create(char *base_path, ini_file *ini_config) {
     result->boot_text_mutex = mutex_create();
     result->palette_mutex = mutex_create();
     result->node_mutex = mutex_create();
+    result->video_playback_mutex = mutex_create();
+
     result->pixel_buffer = (uint32_t *)calloc(GAME_WIDTH * GAME_HEIGHT, 4);
     result->base_path = strdup(base_path);
     result->ini_config = ini_config;
@@ -129,6 +136,10 @@ engine *engine_create(char *base_path, ini_file *ini_config) {
 }
 
 void engine_destroy(engine *src) {
+
+    if (src->video_playing) {
+        engine_end_video(src);
+    }
     scripting_finalize();
     engine_finalize_sdl2(src);
     engine_finalize_lua(src);
@@ -155,11 +166,15 @@ void engine_destroy(engine *src) {
     mutex_destroy(src->boot_text_mutex);
     mutex_destroy(src->palette_mutex);
     mutex_destroy(src->node_mutex);
+    mutex_destroy(src->video_playback_mutex);
     thread_join(src->script_thread);
 
 #ifndef NDEBUG
     free(engine_thread);
 #endif
+
+    if (src->video_file_path != NULL)
+        free(src->video_file_path);
 
     free(src);
 }
@@ -250,6 +265,33 @@ static void *engine_script_thread(void *data) {
 }
 #pragma clang diagnostic pop
 
+void ffmpeg_log_callback(void *avcl, int level, const char *fmt, va_list args) {
+    int l;
+    switch (level) {
+    case AV_LOG_PANIC:
+        l = LOG_FATAL;
+        break;
+    case AV_LOG_ERROR:
+        l = LOG_ERROR;
+        break;
+    case AV_LOG_WARNING:
+        l = LOG_WARN;
+        break;
+    default:
+    case AV_LOG_INFO:
+        l = LOG_INFO;
+        break;
+    case AV_LOG_VERBOSE:
+        l = LOG_DEBUG;
+        break;
+    case AV_LOG_TRACE:
+        l = LOG_TRACE;
+        break;
+    }
+
+    log_log(l, __FILE__, __LINE__, fmt, args);
+}
+
 void engine_handle_dispatches(engine *src) {
     mutex_lock(src->dispatch_mutex);
 
@@ -264,6 +306,14 @@ void engine_handle_dispatches(engine *src) {
 }
 
 void engine_run(engine *src) {
+#ifdef NDEBUG
+    av_log_set_level(AV_LOG_ERROR);
+#else
+    av_log_set_level(AV_LOG_INFO);
+#endif
+    // TODO: The callback breaks sometimes and I don't know why...
+    // av_log_set_callback(ffmpeg_log_callback);
+
     SDL_Event sdl_event;
 
     src->font = sysfont_create(resource_abyss_system_font);
@@ -541,7 +591,38 @@ void engine_set_mouse_button_state(engine *src, enum e_mouse_button new_state) {
 void engine_get_cursor_position(const engine *src, int *pos_x, int *pos_y) {
     if (pos_x != NULL)
         *pos_x = src->cursor_x;
+
     if (pos_y != NULL)
-        *pos_x = src->cursor_y;
+        *pos_y = src->cursor_y;
 }
 lua_State *engine_get_lua_state(const engine *src) { return src->lua_state; }
+
+void engine_play_video(engine *src, const char *path) {
+    VERIFY_ENGINE_THREAD
+
+    mutex_lock(src->video_playback_mutex);
+    src->video_playing = true;
+
+    if (src->video_file_path != NULL)
+        free(src->video_file_path);
+
+    src->video_file_path = strdup(path);
+    modevideo_set_callbacks(src);
+    modevideo_load_file(src, path);
+}
+
+void engine_end_video(engine *src) {
+    VERIFY_ENGINE_THREAD
+
+    src->video_playing = false;
+    mutex_unlock(src->video_playback_mutex);
+    moderun_set_callbacks(src);
+}
+
+void engine_video_mutex_wait(engine *src) {
+    mutex_lock(src->video_playback_mutex);
+    mutex_unlock(src->video_playback_mutex);
+}
+
+bool engine_is_video_playing(const engine *src) { return src->video_playing; }
+bool engine_get_is_running(const engine *src) { return src->is_running; }

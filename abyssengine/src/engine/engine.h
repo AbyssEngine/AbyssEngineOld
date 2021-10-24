@@ -86,5 +86,9 @@ node *engine_get_root_node(engine *src);
 e_mouse_button engine_get_mouse_button_state(const engine *src);
 void engine_set_mouse_button_state(engine *src, enum e_mouse_button new_state);
 lua_State *engine_get_lua_state(const engine *src);
-
+void engine_play_video(engine *src, const char *path);
+bool engine_is_video_playing(const engine *src);
+void engine_end_video(engine *src);
+void engine_video_mutex_wait(engine *src);
+bool engine_get_is_running(const engine *src);
 #endif // ABYSS_ENGINE_H

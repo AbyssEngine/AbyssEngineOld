@@ -80,9 +80,10 @@ getRootNode(): node
 
 -----------------------------------------------------------------------
 
-
-
-
+playVideo(path, wait)
+    Plays a video. This will pause all updates/rendering in the engine.
+    If wait is true, the function will not return until the video
+    finishes playing.
 
 
 =======================================================================

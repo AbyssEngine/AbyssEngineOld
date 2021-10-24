@@ -75,10 +75,14 @@ int mpq_get_hash_index(const mpq *source, uint32_t hash_a, uint32_t hash_b) {
 mpq_block *mpq_get_block(const mpq *source, const char *filename) {
     int hash_index = mpq_get_hash_index(source, crypto_hash_string(filename, 1), crypto_hash_string(filename, 2));
 
-    if (hash_index < 0) {
+    if ((hash_index < 0) || (hash_index >= source->header.hash_table_entries)) {
         return NULL;
     }
 
+    if ((source->hash_entries[hash_index].block_index < 0) || (source->hash_entries[hash_index].block_index >= source->header.block_table_entries)) {
+        return NULL;
+    }
+    
     return &source->block_entries[source->hash_entries[hash_index].block_index];
 }
 
@@ -154,7 +158,15 @@ void mpq_destroy(mpq *source) {
 }
 
 bool mpq_file_exists(const mpq *source, const char *filename) {
-    return mpq_get_hash_index(source, crypto_hash_string(filename, 1), crypto_hash_string(filename, 2)) >= 0;
+    if (mpq_get_hash_index(source, crypto_hash_string(filename, 1), crypto_hash_string(filename, 2)) < 0)
+        return false;
+
+    mpq_block *block = mpq_get_block(source, filename);
+
+    if (block == NULL)
+        return false;
+
+    return mpq_block_has_flag(block, MPQ_BLOCK_FLAG_EXISTS) && !mpq_block_has_flag(block, MPQ_BLOCK_FLAG_DELETE_MARKER);
 }
 
 void *mpq_read_file(mpq *source, const char *filename, uint32_t *file_size) {

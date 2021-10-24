@@ -72,6 +72,7 @@ extern int abyss_lua_load_palette(lua_State *l);
 extern int abyss_lua_load_sprite(lua_State *l);
 extern int abyss_lua_set_cursor(lua_State *l);
 extern int abyss_lua_get_root_node(lua_State *l);
+extern int abyss_lua_play_video(lua_State *l);
 
 void scripting_inject_loaders(lua_State *l);
 

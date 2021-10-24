@@ -12,6 +12,7 @@ find_package(SDL2 CONFIG REQUIRED)
 find_package(PNG REQUIRED)
 find_package(Lua 5.4 EXACT REQUIRED)
 find_package(Threads REQUIRED)
+find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE POSTPROC REQUIRED)
 
 if (MSVC)
     set(OPTIONS WIN32)
@@ -47,6 +48,7 @@ configure_file(
         ${PROJECT_BINARY_DIR}/config.h
 )
 
+target_compile_options(${PROJECT_NAME} PRIVATE ${FFMPEG_DEFINITIONS})
 
 target_sources(${PROJECT_NAME} PRIVATE
         # Engine Core --------------------------------------------------
@@ -59,6 +61,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/engine/modeboot.c src/engine/modeboot.h
         src/engine/modecrash.c src/engine/modecrash.h
         src/engine/moderun.c src/engine/moderun.h
+        src/engine/modevideo.c src/engine/modevideo.h
 
         # Node ----------------------------------------------------------
         src/node/node.c src/node/node.h
@@ -82,6 +85,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/scripting/loadsprite.c
         src/scripting/setcursor.c
         src/scripting/getrootnode.c
+        src/scripting/playvideo.c
 
         # Loaders ------------------------------------------------------
         src/loader/loaderprovider.c src/loader/loaderprovider.h
@@ -102,6 +106,7 @@ target_sources(${PROJECT_NAME} PRIVATE
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${PROJECT_BINARY_DIR}
         ${LUA_INCLUDE_DIR}
+        ${FFMPEG_INCLUDE_DIRS}
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -111,6 +116,8 @@ target_link_libraries(${PROJECT_NAME}
         SDL2::SDL2main
         SDL2::SDL2
         PNG::PNG
+        ${FFMPEG_LIBRARIES}
+        ${SWSCALE_LIBRARIES}
         ${LUA_LIBRARIES}
         )
 

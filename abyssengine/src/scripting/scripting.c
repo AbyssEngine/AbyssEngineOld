@@ -83,10 +83,10 @@ int luaopen_abyss(lua_State *l) {
     lua_register(l, "loadSprite", abyss_lua_load_sprite);
     lua_register(l, "setCursor", abyss_lua_set_cursor);
     lua_register(l, "getRootNode", abyss_lua_get_root_node);
+    lua_register(l, "playVideo", abyss_lua_play_video);
     // loadButton
     // loadLabel
     // cursorTexture
-    // systemCursorVisible
     // targetFps
     // fullscreen
     return 1;
