@@ -35,7 +35,7 @@ jobs:
 
             - name: Install Deps (Ubuntu)
               if: matrix.os == 'ubuntu-latest'
-              run: sudo apt-get install nasm
+              run: sudo apt-get install nasm libxext-dev
 
             - name: Install Deps (MacOS)
               if: matrix.os == 'macos-latest'

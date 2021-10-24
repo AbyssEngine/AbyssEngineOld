@@ -492,7 +492,10 @@ void sprite_set_blend_mode(sprite *source, enum e_sprite_blend_mode blend_mode) 
         exit(EXIT_FAILURE);
     }
 
-    SDL_SetTextureBlendMode(source->atlas, new_mode);
+
+    source->blend_mode = blend_mode;
+    if (source->atlas != NULL) 
+        SDL_SetTextureBlendMode(source->atlas, new_mode);
 }
 
 e_sprite_blend_mode sprite_get_blend_mode(const sprite *source) { return source->blend_mode; }

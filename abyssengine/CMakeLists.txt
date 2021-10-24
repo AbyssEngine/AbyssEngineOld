@@ -103,6 +103,8 @@ target_sources(${PROJECT_NAME} PRIVATE
         ${SOURCE_EXTRA}
         )
 
+set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
+
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${PROJECT_BINARY_DIR}
         ${LUA_INCLUDE_DIR}
@@ -117,12 +119,11 @@ target_link_libraries(${PROJECT_NAME}
         SDL2::SDL2
         PNG::PNG
         ${FFMPEG_LIBRARIES}
-        ${SWSCALE_LIBRARIES}
         ${LUA_LIBRARIES}
         )
 
 if (UNIX)
-    target_link_libraries(${PROJECT_NAME} PRIVATE m)
+    target_link_libraries(${PROJECT_NAME} PRIVATE m swresample avformat avcodec)
 endif ()
 
 if (WIN32)

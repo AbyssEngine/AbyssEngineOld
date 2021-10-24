@@ -8,3 +8,4 @@ build/
 tags
 out/
 CMakeSettings.json
+vcpkg_installed/

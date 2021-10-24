@@ -141,8 +141,6 @@ void engine_destroy(engine *src) {
         engine_end_video(src);
     }
     scripting_finalize();
-    engine_finalize_sdl2(src);
-    engine_finalize_lua(src);
 
     if (src->boot_text != NULL)
         free(src->boot_text);
@@ -168,6 +166,9 @@ void engine_destroy(engine *src) {
     mutex_destroy(src->node_mutex);
     mutex_destroy(src->video_playback_mutex);
     thread_join(src->script_thread);
+
+        engine_finalize_sdl2(src);
+    engine_finalize_lua(src);
 
 #ifndef NDEBUG
     free(engine_thread);
