@@ -3,6 +3,9 @@ project(tests)
 
 # GoogleTest requires at least C++11
 set(CMAKE_CXX_STANDARD 11)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+
+find_package(Threads REQUIRED)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -22,6 +25,7 @@ add_executable(
 target_link_libraries(
         tests
         gtest_main
+        Threads::Threads
 )
 
 include(GoogleTest)
