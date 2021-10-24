@@ -27,6 +27,19 @@ jobs:
 
             -   uses: lukka/get-cmake@latest
 
+            -   name: Install Deps (Windows)
+                if: matrix.os == 'ubuntu-latest'
+                uses: crazy-max/ghaction-chocolatey@v1
+                args: install nasm
+
+            -   name: Install Deps (Ubuntu)
+                if: matrix.os == 'ubuntu-latest'
+                run: sudo apt-get install nasm
+                
+            -   name: Install Deps (MacOS)
+                if: matrix.os == 'ubuntu-latest'
+                run: brew install nasm
+
             -   name: Run vcpkg
                 uses: lukka/run-vcpkg@v7.4
                 with:
