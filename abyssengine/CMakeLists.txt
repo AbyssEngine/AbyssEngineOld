@@ -123,7 +123,10 @@ target_link_libraries(${PROJECT_NAME}
         )
 
 if (UNIX)
-    target_link_libraries(${PROJECT_NAME} PRIVATE m swresample avformat avcodec)
+    if (APPLE)
+    else ()
+        target_link_libraries(${PROJECT_NAME} PRIVATE m swresample avformat avcodec)
+    endif ()
 endif ()
 
 if (WIN32)
