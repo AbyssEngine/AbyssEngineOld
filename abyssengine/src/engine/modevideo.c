@@ -18,7 +18,6 @@
 
 #include "modevideo.h"
 #include "libabyss/utils.h"
-#include "util.h"
 #include <SDL2/SDL.h>
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
