@@ -6,8 +6,19 @@
         "zlib",
         "sdl2",
         "lua",
-        "ffmpeg",
-        "opus"
+        "gtest",
+        {
+            "name": "ffmpeg",
+            "features": [
+                "avcodec",
+                "avdevice",
+                "avfilter",
+                "avformat",
+                "avresample",
+                "swscale",
+                "swresample"
+            ]
+        }
     ],
     "builtin-baseline": "5568f110b509a9fd90711978a7cb76bae75bb092",
     "overrides": [

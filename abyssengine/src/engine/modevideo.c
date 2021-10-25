@@ -21,6 +21,9 @@
 #include <SDL2/SDL.h>
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+#include <libavutil/opt.h>
+#include <libavutil/time.h>
+#include <libswresample/swresample.h>
 #include <libswscale/swscale.h>
 
 // compatibility with newer API
@@ -31,21 +34,26 @@
 
 AVFormatContext *av_format_context = NULL;
 AVIOContext *avio_context;
+SwrContext *resample_contex;
 void *video_buffer_data;
 int video_buffer_data_size;
 int video_buffer_position;
 unsigned char *av_buffer;
 int video_stream_idx;
+int audio_stream_idx;
 SDL_Texture *video_texture;
 AVFrame *av_frame;
 struct SwsContext *sws_ctx;
 AVCodecContext *video_codec_context;
+AVCodecContext *audio_codec_context;
 Uint8 *yPlane, *uPlane, *vPlane;
 size_t yPlaneSz, uvPlaneSz;
 int uvPitch;
 bool mouse_was_unpressed;
 bool frames_ready;
 SDL_Rect target_rect;
+uint64_t micros_per_frame;
+uint64_t video_timestamp;
 
 #define DECODE_BUFFER_SIZE (1024 * 32)
 
@@ -150,15 +158,28 @@ void modevideo_load_file(engine *src, const char *file_path) {
         return;
     }
 
-    AVCodecParameters *codec_par = av_format_context->streams[video_stream_idx]->codecpar;
-    AVCodec *video_decoder = avcodec_find_decoder(codec_par->codec_id);
+    audio_stream_idx = -1;
+    for (int i = 0; i < av_format_context->nb_streams; i++) {
+        if (av_format_context->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
+            audio_stream_idx = i;
+            break;
+        }
+    }
+
+    AVRational frame_rate = av_format_context->streams[video_stream_idx]->r_frame_rate;
+    float fps = (float)frame_rate.num / (float)frame_rate.den;
+    micros_per_frame = (uint64_t)(1000000 / ((float)av_format_context->streams[video_stream_idx]->r_frame_rate.num /
+                                             (float)av_format_context->streams[video_stream_idx]->r_frame_rate.den));
+
+    AVCodecParameters *video_codec_par = av_format_context->streams[video_stream_idx]->codecpar;
+    AVCodec *video_decoder = avcodec_find_decoder(video_codec_par->codec_id);
     if (video_decoder == NULL) {
         engine_trigger_crash(src, "Missing video codec; cannot play video file.");
         return;
     }
 
     video_codec_context = avcodec_alloc_context3(video_decoder);
-    if ((av_err = avcodec_parameters_to_context(video_codec_context, codec_par) < 0)) {
+    if ((av_err = avcodec_parameters_to_context(video_codec_context, video_codec_par) < 0)) {
         char *err = calloc(1, 4096);
         av_make_error_string(err, 4096, av_err);
         engine_trigger_crash(src, err);
@@ -174,13 +195,56 @@ void modevideo_load_file(engine *src, const char *file_path) {
         return;
     }
 
+    if (audio_stream_idx >= 0) {
+        AVCodecParameters *audio_codec_par = av_format_context->streams[audio_stream_idx]->codecpar;
+        AVCodec *audio_decoder = avcodec_find_decoder(audio_codec_par->codec_id);
+        if (audio_decoder == NULL) {
+            engine_trigger_crash(src, "Missing audio codec; cannot play video file.");
+            return;
+        }
+
+        audio_codec_context = avcodec_alloc_context3(audio_decoder);
+        if ((av_err = avcodec_parameters_to_context(audio_codec_context, audio_codec_par) < 0)) {
+            char *err = calloc(1, 4096);
+            av_make_error_string(err, 4096, av_err);
+            engine_trigger_crash(src, err);
+            free(err);
+            return;
+        }
+
+        if ((av_err = avcodec_open2(audio_codec_context, audio_decoder, NULL)) < 0) {
+            char *err = calloc(1, 4096);
+            av_make_error_string(err, 4096, av_err);
+            engine_trigger_crash(src, err);
+            free(err);
+            return;
+        }
+
+        resample_contex = swr_alloc();
+        av_opt_set_channel_layout(resample_contex, "in_channel_layout", (int64_t)audio_codec_context->channel_layout, 0);
+        av_opt_set_channel_layout(resample_contex, "out_channel_layout", AV_CH_LAYOUT_STEREO, 0);
+        av_opt_set_int(resample_contex, "in_sample_rate", audio_codec_context->sample_rate, 0);
+        av_opt_set_int(resample_contex, "out_sample_rate", 44100, 0);
+        av_opt_set_sample_fmt(resample_contex, "in_sample_fmt", audio_codec_context->sample_fmt, 0);
+        av_opt_set_sample_fmt(resample_contex, "out_sample_fmt", AV_SAMPLE_FMT_S16, 0);
+
+        if ((av_err = swr_init(resample_contex)) < 0) {
+            char *err = calloc(1, 4096);
+            av_make_error_string(err, 4096, av_err);
+            engine_trigger_crash(src, err);
+            free(err);
+            return;
+        }
+    }
+
     video_texture = SDL_CreateTexture(engine_get_renderer(src), SDL_PIXELFORMAT_IYUV, SDL_TEXTUREACCESS_STREAMING, video_codec_context->width,
                                       video_codec_context->height);
 
     target_rect.x = 0;
     target_rect.w = GAME_WIDTH;
-    target_rect.h = video_codec_context->height;
-    target_rect.y = (GAME_HEIGHT / 2) - (video_codec_context->height / 2);
+    float r = (float)video_codec_context->height / (float)video_codec_context->width;
+    target_rect.h = (int)((float)GAME_WIDTH * r);
+    target_rect.y = (GAME_HEIGHT / 2) - (target_rect.h / 2);
 
     SDL_SetTextureBlendMode(video_texture, SDL_BLENDMODE_NONE);
 
@@ -200,6 +264,8 @@ void modevideo_load_file(engine *src, const char *file_path) {
     uvPitch = video_codec_context->width / 2;
 
     av_frame = av_frame_alloc();
+    video_timestamp = av_gettime();
+    engine_reset_audio_buffer(src);
 }
 
 void engine_render_video(engine *src) {
@@ -214,18 +280,111 @@ void modevideo_cleanup() {
     VERIFY_ENGINE_THREAD
 
     avformat_free_context(av_format_context);
+    avio_context_free(&avio_context);
     av_format_context = NULL;
     avio_context_free(&avio_context);
     free(video_buffer_data);
     avcodec_free_context(&video_codec_context);
+    avcodec_free_context(&audio_codec_context);
     SDL_DestroyTexture(video_texture);
     sws_freeContext(sws_ctx);
+    swr_free(&resample_contex);
     av_frame_unref(av_frame);
     free(yPlane);
     free(uPlane);
     free(vPlane);
 
     engine_end_video(engine_get_global_instance());
+}
+
+bool engine_process_frame(engine *src) {
+
+    AVPacket packet;
+    if (av_read_frame(av_format_context, &packet) < 0) {
+        av_packet_unref(&packet);
+        modevideo_cleanup();
+        return true;
+    }
+
+    if (packet.stream_index == video_stream_idx) {
+        int av_err;
+        if ((av_err = avcodec_send_packet(video_codec_context, &packet)) < 0) {
+            char *err = calloc(1, 4096);
+            av_make_error_string(err, 4096, av_err);
+            engine_trigger_crash(src, err);
+            free(err);
+            av_packet_unref(&packet);
+            return true;
+        }
+
+        if ((av_err = avcodec_receive_frame(video_codec_context, av_frame)) < 0) {
+            char *err = calloc(1, 4096);
+            av_make_error_string(err, 4096, av_err);
+            engine_trigger_crash(src, err);
+            free(err);
+            av_packet_unref(&packet);
+            return true;
+        }
+
+        AVPicture pict;
+        pict.data[0] = yPlane;
+        pict.data[1] = uPlane;
+        pict.data[2] = vPlane;
+        pict.linesize[0] = video_codec_context->width;
+        pict.linesize[1] = uvPitch;
+        pict.linesize[2] = uvPitch;
+
+        // Convert the image into YUV format that SDL uses
+        sws_scale(sws_ctx, (uint8_t const *const *)av_frame->data, av_frame->linesize, 0, video_codec_context->height, pict.data, pict.linesize);
+
+        if (SDL_UpdateYUVTexture(video_texture, NULL, yPlane, video_codec_context->width, uPlane, uvPitch, vPlane, uvPitch) < 0) {
+            log_fatal("Error updating YUV Texture: %s", SDL_GetError());
+            engine_trigger_crash(src, "Failed to update YUV texture.");
+            av_packet_unref(&packet);
+            return true;
+        }
+
+        frames_ready = true;
+        av_packet_unref(&packet);
+        return true;
+
+    } else if (packet.stream_index == audio_stream_idx) {
+        int av_err;
+        if ((av_err = avcodec_send_packet(audio_codec_context, &packet)) < 0) {
+            char *err = calloc(1, 4096);
+            av_make_error_string(err, 4096, av_err);
+            engine_trigger_crash(src, err);
+            free(err);
+            av_packet_unref(&packet);
+            return true;
+        }
+
+        while (true) {
+            if ((av_err = avcodec_receive_frame(audio_codec_context, av_frame)) < 0) {
+                if (av_err == AVERROR(EAGAIN) || av_err == AVERROR_EOF) {
+                    break;
+                }
+
+                char *err = calloc(1, 4096);
+                av_make_error_string(err, 4096, av_err);
+                engine_trigger_crash(src, err);
+                free(err);
+                av_packet_unref(&packet);
+                return true;
+            }
+
+            int out_size = av_samples_get_buffer_size(NULL, audio_codec_context->channels, av_frame->nb_samples, AV_SAMPLE_FMT_S16, 1);
+            uint8_t *out_buff = malloc(out_size);
+            uint8_t *out_buff_array[1];
+            out_buff_array[0] = out_buff;
+            swr_convert(resample_contex, out_buff_array, av_frame->nb_samples, (const uint8_t **)&av_frame->data[0], av_frame->nb_samples);
+            engine_write_audio_buffer(src, (void *)out_buff, out_size);
+            free(out_buff);
+        }
+
+        av_packet_unref(&packet);
+        return false;
+    }
 }
 
 void engine_update_video(engine *src, uint32_t tick_diff) {
@@ -242,53 +401,18 @@ void engine_update_video(engine *src, uint32_t tick_diff) {
             return;
         }
     }
-    AVPacket packet;
-    if (av_read_frame(av_format_context, &packet) < 0) {
-        // TODO: Free all the things
-        av_packet_unref(&packet);
-        modevideo_cleanup();
-        return;
+
+    while(true) {
+        uint64_t diff = av_gettime() - video_timestamp;
+        if (diff < micros_per_frame)
+            break;
+
+        video_timestamp += micros_per_frame;
+        while (!engine_process_frame(src)) {
+        }
     }
 
-    if (packet.stream_index == video_stream_idx) {
-        int av_err;
-        if ((av_err = avcodec_send_packet(video_codec_context, &packet)) < 0) {
-            char *err = calloc(1, 4096);
-            av_make_error_string(err, 4096, av_err);
-            engine_trigger_crash(src, err);
-            free(err);
-            return;
-        }
-        if ((av_err = avcodec_receive_frame(video_codec_context, av_frame)) < 0) {
-            char *err = calloc(1, 4096);
-            av_make_error_string(err, 4096, av_err);
-            engine_trigger_crash(src, err);
-            free(err);
-            return;
-        }
-        // avcodec_decode_video2(video_codec_context, av_frame, &frame_finished, &packet);
 
-        AVPicture pict;
-        pict.data[0] = yPlane;
-        pict.data[1] = uPlane;
-        pict.data[2] = vPlane;
-        pict.linesize[0] = video_codec_context->width;
-        pict.linesize[1] = uvPitch;
-        pict.linesize[2] = uvPitch;
-
-        // Convert the image into YUV format that SDL uses
-        sws_scale(sws_ctx, (uint8_t const *const *)av_frame->data, av_frame->linesize, 0, video_codec_context->height, pict.data, pict.linesize);
-
-        if (SDL_UpdateYUVTexture(video_texture, NULL, yPlane, video_codec_context->width, uPlane, uvPitch, vPlane, uvPitch) < 0) {
-            log_fatal("Error updating YUV Texture: %s", SDL_GetError());
-            engine_trigger_crash(src, "Failed to update YUV texture.");
-            return;
-        }
-
-        frames_ready = true;
-    }
-
-    av_packet_unref(&packet);
 }
 
 void modevideo_set_callbacks(engine *src) { engine_set_callbacks(src, engine_render_video, engine_update_video); }

@@ -96,6 +96,11 @@ typedef struct engine {
     e_mouse_button mouse_button_state;
     bool video_playing;
     char *video_file_path;
+    SDL_AudioSpec audio_output_spec;
+    char *audio_buffer;
+    int audio_buffer_write_pos;
+    int audio_buffer_read_pos;
+    int audio_buffer_remaining;
 } engine;
 
 #ifndef NDEBUG
@@ -106,6 +111,11 @@ static engine *global_engine_instance;
 
 engine *engine_create(char *base_path, ini_file *ini_config) {
     engine *result = (engine *)calloc(1, sizeof(engine));
+
+    result->audio_buffer = malloc(AUDIO_BUFFER_SIZE);
+    result->audio_buffer_read_pos = 0;
+    result->audio_buffer_write_pos = 0;
+    result->audio_buffer_remaining = 0;
 
     result->dispatch_mutex = mutex_create();
     result->boot_text_mutex = mutex_create();
@@ -165,9 +175,11 @@ void engine_destroy(engine *src) {
     mutex_destroy(src->palette_mutex);
     mutex_destroy(src->node_mutex);
     mutex_destroy(src->video_playback_mutex);
-    thread_join(src->script_thread);
 
-        engine_finalize_sdl2(src);
+    if (src->script_thread != NULL)
+        thread_join(src->script_thread);
+
+    engine_finalize_sdl2(src);
     engine_finalize_lua(src);
 
 #ifndef NDEBUG
@@ -176,6 +188,10 @@ void engine_destroy(engine *src) {
 
     if (src->video_file_path != NULL)
         free(src->video_file_path);
+
+    SDL_CloseAudio();
+
+    free(src->audio_buffer);
 
     free(src);
 }
@@ -222,6 +238,18 @@ void engine_init_sdl2(engine *src) {
     SDL_RenderSetLogicalSize(src->sdl_renderer, GAME_WIDTH, GAME_HEIGHT);
     SDL_SetRenderDrawBlendMode(src->sdl_renderer, SDL_BLENDMODE_BLEND);
     free(window_title);
+
+    SDL_AudioSpec requested_audio_spec;
+    requested_audio_spec.freq = 44100;
+    requested_audio_spec.format = AUDIO_S16LSB;
+    requested_audio_spec.channels = 2;
+    requested_audio_spec.samples = 1024;
+    requested_audio_spec.userdata = src;
+    requested_audio_spec.callback = engine_handle_audio;
+
+    SDL_OpenAudio(&requested_audio_spec, &src->audio_output_spec);
+
+    SDL_PauseAudio(0);
 }
 
 void engine_finalize_sdl2(engine *src) {
@@ -410,7 +438,10 @@ void engine_handle_sdl_event(engine *src, const SDL_Event *evt) {
     }
 }
 
-void engine_shutdown(engine *src) { src->is_running = false; }
+void engine_shutdown(engine *src) {
+    src->is_running = false;
+    exit(0); // TODO: This is rude.
+}
 
 void engine_render(engine *src) {
     if (src->render_callback != NULL) {
@@ -425,7 +456,7 @@ void engine_render(engine *src) {
         SDL_RenderClear(src->sdl_renderer);
     }
 
-    if (src->cursor != NULL) {
+    if (src->cursor != NULL && !src->video_playing) {
         node *n = (node *)src->cursor;
         n->x = src->cursor_x + src->cursor_offset_x;
         n->y = src->cursor_y + src->cursor_offset_y;
@@ -614,7 +645,7 @@ void engine_play_video(engine *src, const char *path) {
 
 void engine_end_video(engine *src) {
     VERIFY_ENGINE_THREAD
-
+    engine_reset_audio_buffer(src);
     src->video_playing = false;
     mutex_unlock(src->video_playback_mutex);
     moderun_set_callbacks(src);
@@ -627,3 +658,51 @@ void engine_video_mutex_wait(engine *src) {
 
 bool engine_is_video_playing(const engine *src) { return src->video_playing; }
 bool engine_get_is_running(const engine *src) { return src->is_running; }
+void engine_handle_audio(void *userdata, Uint8 *stream, int len) {
+    engine *src = (engine *)userdata;
+
+    int to_read = (src->audio_buffer_remaining < len) ? src->audio_buffer_remaining : len;
+
+    if (to_read <= 0) {
+        memset(stream, 0, len);
+        return;
+    }
+
+    int read_pos = src->audio_buffer_read_pos;
+    for (int i = 0; i < to_read; i++) {
+        stream[i] = src->audio_buffer[read_pos++];
+
+        while (read_pos >= AUDIO_BUFFER_SIZE)
+            read_pos -= AUDIO_BUFFER_SIZE;
+    }
+
+    src->audio_buffer_read_pos = read_pos;
+    src->audio_buffer_remaining -= to_read;
+}
+SDL_AudioSpec engine_get_audio_spec(const engine *src) { return src->audio_output_spec; }
+
+void engine_write_audio_buffer(engine *src, const void *data, int len) {
+    int remaining_size = AUDIO_BUFFER_SIZE - src->audio_buffer_remaining;
+    int to_write = len;
+
+    int overflow = (len > remaining_size) ? (len - remaining_size) : 0;
+
+    int write_pos = src->audio_buffer_write_pos;
+    for (int i = 0; i < to_write; i++) {
+        src->audio_buffer[write_pos] = ((char *)data)[i];
+
+        write_pos++;
+
+        while (write_pos >= AUDIO_BUFFER_SIZE)
+            write_pos -= AUDIO_BUFFER_SIZE;
+    }
+
+    src->audio_buffer_remaining += to_write - overflow;
+    src->audio_buffer_write_pos = write_pos;
+    src->audio_buffer_read_pos += overflow;
+}
+void engine_reset_audio_buffer(engine *src) {
+    src->audio_buffer_read_pos = 0;
+    src->audio_buffer_write_pos = 0;
+    src->audio_buffer_remaining = 0;
+}

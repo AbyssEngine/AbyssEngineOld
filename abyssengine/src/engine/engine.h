@@ -32,9 +32,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#define GAME_WIDTH 800
-#define GAME_HEIGHT 600
-
 typedef struct engine engine;
 typedef struct sprite sprite;
 
@@ -91,4 +88,8 @@ bool engine_is_video_playing(const engine *src);
 void engine_end_video(engine *src);
 void engine_video_mutex_wait(engine *src);
 bool engine_get_is_running(const engine *src);
+void engine_handle_audio(void *userdata, Uint8 *stream, int len);
+SDL_AudioSpec engine_get_audio_spec(const engine *src);
+void engine_write_audio_buffer(engine *src, const void *data, int len);
+void engine_reset_audio_buffer(engine *src);
 #endif // ABYSS_ENGINE_H
