@@ -17,6 +17,7 @@ find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE POSTPR
 if (APPLE)
     find_library(VIDEOTOOLBOX VideoToolbox)
     find_library(COREMEDIA CoreMedia)
+    find_library(OSX_NETWORK Network)
 endif()
 
 message(Defs: ${FFMPEG_LIBRARIES})
@@ -129,7 +130,7 @@ target_link_libraries(${PROJECT_NAME}
 
 if (UNIX)
     if (APPLE)
-        target_link_libraries(${PROJECT_NAME} PRIVATE ${VIDEOTOOLBOX} ${COREMEDIA})
+        target_link_libraries(${PROJECT_NAME} PRIVATE ${VIDEOTOOLBOX} ${COREMEDIA} ${OSX_NETWORK})
     else ()
         target_link_libraries(${PROJECT_NAME} PRIVATE avformat avcodec swscale avutil swresample avdevice m z)
     endif ()
