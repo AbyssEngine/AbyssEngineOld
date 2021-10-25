@@ -125,7 +125,7 @@ target_link_libraries(${PROJECT_NAME}
 if (UNIX)
     if (APPLE)
     else ()
-        target_link_libraries(${PROJECT_NAME} PRIVATE m)
+        target_link_libraries(${PROJECT_NAME} PRIVATE m swresample m z)
     endif ()
 endif ()
 
