@@ -14,6 +14,10 @@ find_package(Lua 5.4 EXACT REQUIRED)
 find_package(Threads REQUIRED)
 find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE POSTPROC REQUIRED)
 
+set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} ${FFMPEG_DEFINITIONS})
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${FFMPEG_DEFINITIONS})
+
+
 if (MSVC)
     set(OPTIONS WIN32)
     set(SOURCE_EXTRA resource.rc)
@@ -102,8 +106,6 @@ target_sources(${PROJECT_NAME} PRIVATE
         # Dynamic ------------------------------------------------------
         ${SOURCE_EXTRA}
         )
-
-set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} ${FFMPEG_DEFINITIONS})
 
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${PROJECT_BINARY_DIR}
