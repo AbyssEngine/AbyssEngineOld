@@ -326,16 +326,18 @@ bool engine_process_frame(engine *src) {
             return true;
         }
 
-        AVPicture pict;
-        pict.data[0] = yPlane;
-        pict.data[1] = uPlane;
-        pict.data[2] = vPlane;
-        pict.linesize[0] = video_codec_context->width;
-        pict.linesize[1] = uvPitch;
-        pict.linesize[2] = uvPitch;
+        uint8_t *data[AV_NUM_DATA_POINTERS];
+        data[0] = yPlane;
+        data[1] = uPlane;
+        data[2] = vPlane;
+
+        int line_size[AV_NUM_DATA_POINTERS];
+        line_size[0] = video_codec_context->width;
+        line_size[1] = uvPitch;
+        line_size[2] = uvPitch;
 
         // Convert the image into YUV format that SDL uses
-        sws_scale(sws_ctx, (uint8_t const *const *)av_frame->data, av_frame->linesize, 0, video_codec_context->height, pict.data, pict.linesize);
+        sws_scale(sws_ctx, (uint8_t const *const *)av_frame->data, av_frame->linesize, 0, video_codec_context->height, data, line_size);
 
         if (SDL_UpdateYUVTexture(video_texture, NULL, yPlane, video_codec_context->width, uPlane, uvPitch, vPlane, uvPitch) < 0) {
             log_fatal("Error updating YUV Texture: %s", SDL_GetError());
@@ -385,6 +387,8 @@ bool engine_process_frame(engine *src) {
         av_packet_unref(&packet);
         return false;
     }
+
+    return false;
 }
 
 void engine_update_video(engine *src, uint32_t tick_diff) {

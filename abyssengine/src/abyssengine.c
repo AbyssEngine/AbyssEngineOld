@@ -41,9 +41,7 @@ int main(int argc, char **argv) {
     log_info("Abyss Engine v%d.%d", ABYSS_VERSION_MAJOR, ABYSS_VERSION_MINOR);
     log_set_level(LOG_ERROR);
 #endif // NDEBUG
-
-    check_app_compat(); // Ahh macOS you pain in the ass
-
+    check_app_compat();
     char cwd_path[4096];
 #ifdef _WIN32
     _getcwd(cwd_path, 4096);

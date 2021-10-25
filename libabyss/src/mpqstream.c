@@ -169,7 +169,7 @@ unsigned blast_in_f(void *how, unsigned char **buf) {
     *buf = how;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wvoid-pointer-to-int-cast"
-    return (unsigned int)how;
+    return (unsigned int)(size_t)how;
 #pragma clang diagnostic pop
 }
 
