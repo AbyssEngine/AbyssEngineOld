@@ -14,6 +14,10 @@ find_package(Lua 5.4 EXACT REQUIRED)
 find_package(Threads REQUIRED)
 find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE POSTPROC REQUIRED)
 
+if (APPLE)
+    find_library(VIDEOTOOLBOX VideoToolbox)
+endif()
+
 message(Defs: ${FFMPEG_LIBRARIES})
 
 if (MSVC)
@@ -124,6 +128,7 @@ target_link_libraries(${PROJECT_NAME}
 
 if (UNIX)
     if (APPLE)
+        target_link_libraries(${PROJECT_NAME} PRIVATE ${VIDEOTOOLBOX})
     else ()
         target_link_libraries(${PROJECT_NAME} PRIVATE avformat avcodec swscale avutil swresample avdevice m z)
     endif ()
