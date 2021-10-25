@@ -23,9 +23,9 @@ jobs:
             VCPKG_ROOT: ${{ github.workspace }}/vcpkg
 
         steps:
-            -   uses: maxim-lobanov/setup-xcode@v1
-                name: Setup XCode
-                if: matrix.os == 'macos-latest-latest'
+            -   name: Setup XCode
+                uses: maxim-lobanov/setup-xcode@v1
+                if: matrix.os == 'macos-latest'
                 with:
                     xcode-version: latest-stable
 
