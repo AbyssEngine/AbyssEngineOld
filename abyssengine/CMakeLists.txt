@@ -103,7 +103,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         ${SOURCE_EXTRA}
         )
 
-set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
+set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} ${FFMPEG_DEFINITIONS})
 
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${PROJECT_BINARY_DIR}
