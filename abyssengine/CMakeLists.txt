@@ -125,7 +125,7 @@ target_link_libraries(${PROJECT_NAME}
 if (UNIX)
     if (APPLE)
     else ()
-        target_link_libraries(${PROJECT_NAME} PRIVATE m swresample m z)
+        target_link_libraries(${PROJECT_NAME} PRIVATE avformat swscale avutil swresample m z)
     endif ()
 endif ()
 
