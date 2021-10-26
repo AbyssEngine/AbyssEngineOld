@@ -24,7 +24,7 @@
 
 #define GAME_WIDTH 800
 #define GAME_HEIGHT 600
-#define AUDIO_BUFFER_SIZE (1024 * 64)
+#define AUDIO_BUFFER_SIZE (1024 * 128)
 
 typedef uint8_t e_mouse_button;
 enum e_mouse_button { mouse_button_left = 0x01, mouse_button_right = 0x02, mouse_button_middle = 0x04 };
