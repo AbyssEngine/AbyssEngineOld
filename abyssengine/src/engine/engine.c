@@ -135,7 +135,7 @@ engine *engine_create(char *base_path, ini_file *ini_config) {
     node_initialize(result->root_node);
 
     // TODO: Make the language settings dynamic
-    result->loader = loader_new("eng", "latin");
+    result->loader = loader_new();
 
     engine_init_sdl2(result);
     engine_init_lua(result);
@@ -256,6 +256,10 @@ void engine_init_sdl2(engine *src) {
     SDL_OpenAudio(&requested_audio_spec, &src->audio_output_spec);
 
     SDL_PauseAudio(0);
+
+    if (strcmp(init_file_get_value(src->ini_config, "Video", "FullScreen"), "1") == 0)
+        SDL_SetWindowFullscreen(src->sdl_window, SDL_TRUE);
+
 }
 
 void engine_finalize_sdl2(engine *src) {

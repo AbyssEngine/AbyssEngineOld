@@ -20,6 +20,7 @@
 #define LIBABYSS_MPQ_STREAM
 
 typedef struct mpq_stream mpq_stream;
+typedef struct mpq mpq;
 
 mpq_stream *mpq_stream_new(mpq *mpq, mpq_block *block, const char *filename);
 void mpq_stream_destroy(mpq_stream *source);
