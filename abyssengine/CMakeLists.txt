@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(abyssengine C)
+project(abyssengine)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -13,6 +13,7 @@ find_package(PNG REQUIRED)
 find_package(Lua 5.4 EXACT REQUIRED)
 find_package(Threads REQUIRED)
 find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE POSTPROC REQUIRED)
+find_package(casclib CONFIG REQUIRED)
 
 if (APPLE)
     find_library(OSX_VIDEOTOOLBOX VideoToolbox)
@@ -127,6 +128,7 @@ target_link_libraries(${PROJECT_NAME}
         PNG::PNG
         ${FFMPEG_LIBRARIES}
         ${LUA_LIBRARIES}
+        casclib
         )
 
 if (UNIX)

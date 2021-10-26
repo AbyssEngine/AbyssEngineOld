@@ -27,9 +27,9 @@ static bool casc_progress_callback(
         DWORD CurrentValue,
         DWORD TotalValue) {
     if (szObject) {
-        log_info("CASC progress: %s (%s), %d/%d", szWork, szObject, CurrentValue, TotalValue);
+        log_debug("CASC progress: %s (%s), %d/%d", szWork, szObject, CurrentValue, TotalValue);
     } else {
-        log_info("CASC progress: %s, %d/%d", szWork, CurrentValue, TotalValue);
+        log_debug("CASC progress: %s, %d/%d", szWork, CurrentValue, TotalValue);
     }
     return false;
 }
@@ -60,8 +60,11 @@ static void *casc_loader_load(loader_provider *provider, const char *path, int *
         return NULL;
     }
 
-    ULONGLONG size;
-    CascGetFileSize64(file, &size);
+    DWORD size1 = 0;
+    DWORD size2 = CascGetFileSize(file, &size1);
+    ULONGLONG size = size1;
+    size <<= 32;
+    size |= size2;
 
     void *result = malloc(size);
     if (file_size != NULL) {
