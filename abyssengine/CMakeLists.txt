@@ -99,6 +99,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/loader/loaderprovider.c src/loader/loaderprovider.h
         src/loader/filesystemloader.c src/loader/filesystemloader.h
         src/loader/mpqloader.c src/loader/mpqloader.h
+        src/loader/cascloader.c src/loader/cascloader.h
         src/loader/loader.c src/loader/loader.h
 
         # Misc ---------------------------------------------------------
