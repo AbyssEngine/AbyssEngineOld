@@ -222,13 +222,13 @@ const char *init_file_get_value(ini_file *source, const char *category, const ch
     ini_file_category *cat = ini_file_get_category(source, category);
 
     if (cat == NULL) {
-        return NULL;
+        return "";
     }
 
     ini_file_entry *entry = ini_file_get_entry(cat, name);
 
     if (entry == NULL) {
-        return NULL;
+        return "";
     }
 
     return entry->value;
