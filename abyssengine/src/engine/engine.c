@@ -588,6 +588,7 @@ bool engine_add_palette(engine *src, const char *palette_name, palette *pal) {
     mutex_lock(src->palette_mutex);
     if (test != NULL) {
         log_fatal("Attempted to add palette '%s', but it already exists.", palette_name);
+        mutex_unlock(src->palette_mutex);
         return false;
     }
 
