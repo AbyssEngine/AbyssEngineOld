@@ -1,5 +1,6 @@
 #include "cascloader.h"
 #include <libabyss/log.h>
+#include <string>
 
 #include <CascLib.h>
 
@@ -17,7 +18,7 @@ static void casc_loader_destroy(loader_provider *provider) {
     if (source->hStorage) {
         CascCloseStorage(source->hStorage);
     }
-    free(source);
+    delete source;
 }
 
 static bool casc_progress_callback(
@@ -36,27 +37,22 @@ static bool casc_progress_callback(
 
 static _Bool casc_loader_exists(loader_provider *provider, const char *path) {
     casc_loader *source = (casc_loader *)provider;
-    char *file_path = calloc(1, 4096);
-    strcat(file_path, "data:");
-    strcat(file_path, path);
+    std::string file_path = "data:";
+    file_path += path;
     HANDLE file;
-    if (CascOpenFile(source->hStorage, file_path, 0, 0, &file)) {
+    if (CascOpenFile(source->hStorage, file_path.c_str(), 0, 0, &file)) {
         CascCloseFile(file);
-        free(file_path);
         return true;
     }
-    free(file_path);
     return false;
 }
 
 static void *casc_loader_load(loader_provider *provider, const char *path, int *file_size) {
     casc_loader *source = (casc_loader *)provider;
-    char *file_path = calloc(1, 4096);
-    strcat(file_path, "data:");
-    strcat(file_path, path);
+    std::string file_path = "data:";
+    file_path += path;
     HANDLE file;
-    if (!CascOpenFile(source->hStorage, file_path, 0, 0, &file)) {
-        free(file_path);
+    if (!CascOpenFile(source->hStorage, file_path.c_str(), 0, 0, &file)) {
         return NULL;
     }
 
@@ -73,13 +69,12 @@ static void *casc_loader_load(loader_provider *provider, const char *path, int *
 
     CascReadFile(file, result, size, NULL);
     CascCloseFile(file);
-    free(file_path);
 
     return result;
 }
 
-loader_provider *casc_loader_new(const char *casc_path) {
-    casc_loader *result = calloc(1, sizeof(casc_loader));
+extern "C" loader_provider *casc_loader_new(const char *casc_path) {
+    casc_loader *result = new casc_loader();
 
     result->provider.load_callback = casc_loader_load;
     result->provider.destroy_callback = casc_loader_destroy;
