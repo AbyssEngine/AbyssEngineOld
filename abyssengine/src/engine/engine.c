@@ -85,6 +85,8 @@ typedef struct engine {
     mutex *palette_mutex;
     mutex *node_mutex;
     mutex *video_playback_mutex;
+    mutex *audio_mutex;
+    mutex *video_playing_mutex;
     int max_texture_width;
     int max_texture_height;
     sprite *cursor;
@@ -121,7 +123,9 @@ engine *engine_create(char *base_path, ini_file *ini_config) {
     result->boot_text_mutex = mutex_create();
     result->palette_mutex = mutex_create();
     result->node_mutex = mutex_create();
+    result->audio_mutex = mutex_create();
     result->video_playback_mutex = mutex_create();
+    result->video_playing_mutex = mutex_create();
 
     result->pixel_buffer = (uint32_t *)calloc(GAME_WIDTH * GAME_HEIGHT, 4);
     result->base_path = strdup(base_path);
@@ -174,7 +178,9 @@ void engine_destroy(engine *src) {
     mutex_destroy(src->boot_text_mutex);
     mutex_destroy(src->palette_mutex);
     mutex_destroy(src->node_mutex);
+    mutex_destroy(src->audio_mutex);
     mutex_destroy(src->video_playback_mutex);
+    mutex_destroy(src->video_playing_mutex);
 
     if (src->script_thread != NULL)
         thread_join(src->script_thread);
@@ -633,7 +639,9 @@ void engine_play_video(engine *src, const char *path) {
     VERIFY_ENGINE_THREAD
 
     mutex_lock(src->video_playback_mutex);
+    mutex_lock(src->video_playing_mutex);
     src->video_playing = true;
+    mutex_unlock(src->video_playing_mutex);
 
     if (src->video_file_path != NULL)
         free(src->video_file_path);
@@ -646,7 +654,9 @@ void engine_play_video(engine *src, const char *path) {
 void engine_end_video(engine *src) {
     VERIFY_ENGINE_THREAD
     engine_reset_audio_buffer(src);
+    mutex_lock(src->video_playing_mutex);
     src->video_playing = false;
+    mutex_unlock(src->video_playing_mutex);
     mutex_unlock(src->video_playback_mutex);
     moderun_set_callbacks(src);
 }
@@ -656,32 +666,48 @@ void engine_video_mutex_wait(engine *src) {
     mutex_unlock(src->video_playback_mutex);
 }
 
-bool engine_is_video_playing(const engine *src) { return src->video_playing; }
+bool engine_is_video_playing(const engine *src) {
+    mutex_lock(src->video_playing_mutex);
+    bool result = src->video_playing;
+    mutex_unlock(src->video_playing_mutex);
+    return result;
+}
 bool engine_get_is_running(const engine *src) { return src->is_running; }
 void engine_handle_audio(void *userdata, Uint8 *stream, int len) {
     engine *src = (engine *)userdata;
+
+    mutex_lock(src->audio_mutex);
 
     int to_read = (src->audio_buffer_remaining < len) ? src->audio_buffer_remaining : len;
 
     if (to_read <= 0) {
         memset(stream, 0, len);
+        mutex_unlock(src->audio_mutex);
         return;
     }
 
     int read_pos = src->audio_buffer_read_pos;
+
+    if (read_pos >= AUDIO_BUFFER_SIZE)
+        read_pos = 0;
+
     for (int i = 0; i < to_read; i++) {
         stream[i] = src->audio_buffer[read_pos++];
 
-        while (read_pos >= AUDIO_BUFFER_SIZE)
-            read_pos -= AUDIO_BUFFER_SIZE;
+        if (read_pos >= AUDIO_BUFFER_SIZE)
+            read_pos = 0;
     }
 
     src->audio_buffer_read_pos = read_pos;
     src->audio_buffer_remaining -= to_read;
+
+    mutex_unlock(src->audio_mutex);
 }
 SDL_AudioSpec engine_get_audio_spec(const engine *src) { return src->audio_output_spec; }
 
 void engine_write_audio_buffer(engine *src, const void *data, int len) {
+    mutex_lock(src->audio_mutex);
+
     int remaining_size = AUDIO_BUFFER_SIZE - src->audio_buffer_remaining;
     int to_write = len;
 
@@ -700,9 +726,15 @@ void engine_write_audio_buffer(engine *src, const void *data, int len) {
     src->audio_buffer_remaining += to_write - overflow;
     src->audio_buffer_write_pos = write_pos;
     src->audio_buffer_read_pos += overflow;
+
+    mutex_unlock(src->audio_mutex);
 }
 void engine_reset_audio_buffer(engine *src) {
+    mutex_lock(src->audio_mutex);
+
     src->audio_buffer_read_pos = 0;
     src->audio_buffer_write_pos = 0;
     src->audio_buffer_remaining = 0;
+
+    mutex_unlock(src->audio_mutex);
 }
