@@ -19,12 +19,14 @@
 #ifndef ABYSS_LOADER_H
 #define ABYSS_LOADER_H
 
+#include <stdbool.h>
 #include "loaderprovider.h"
 typedef struct loader loader;
 
-loader *loader_new(const char *language_code, const char *language_font_code);
+loader *loader_new();
 void loader_destroy(loader *src);
 void loader_add_provider(loader *src, loader_provider *provider);
 void *loader_load(loader *src, const char *path, int *file_size);
+bool loader_file_exists(loader *src, const char *path);
 
 #endif // ABYSS_LOADER_H

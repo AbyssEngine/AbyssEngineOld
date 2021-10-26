@@ -53,6 +53,11 @@ loadString(path): string
 
 -----------------------------------------------------------------------
 
+fileExists(path): bool
+    Returns true if the file exists, otherwise false
+
+-----------------------------------------------------------------------
+
 exitBootMode()
     Exits boot mode and begins run mode.
 

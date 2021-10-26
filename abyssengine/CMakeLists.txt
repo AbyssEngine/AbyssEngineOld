@@ -94,6 +94,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/scripting/setcursor.c
         src/scripting/getrootnode.c
         src/scripting/playvideo.c
+        src/scripting/fileexists.c
 
         # Loaders ------------------------------------------------------
         src/loader/loaderprovider.c src/loader/loaderprovider.h

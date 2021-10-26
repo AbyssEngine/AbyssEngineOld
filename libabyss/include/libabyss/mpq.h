@@ -20,6 +20,7 @@
 #define LIBABYSS_MPQ_H
 
 #include "mpqblock.h"
+#include "mpqstream.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -61,6 +62,16 @@ bool mpq_file_exists(const mpq *source, const char *filename);
  * @return If loading failed, NULl is returned.
  */
 void *mpq_read_file(mpq *source, const char *filename, uint32_t *file_size);
+
+/**
+ * Reads a file in a mpq archive and returns a stream.
+ * @param source  The mpq archive instance to load from.
+ * @param filename The path of the file to load.
+ * @param[out] file_size If not NULL, the size of the file will be written to this variable.
+ * @return If successfully loaded, a pointer to the data loaded.
+ * @return If loading failed, NULl is returned.
+ */
+mpq_stream *mpq_read_file_stream(mpq *source, const char *filename, uint32_t *file_size);
 
 /**
  * Returns the size of blocks in the mpq archive.

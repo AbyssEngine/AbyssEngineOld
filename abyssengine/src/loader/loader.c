@@ -26,18 +26,10 @@
 typedef struct loader {
     loader_provider **providers;
     int num_providers;
-    char *language_code;
-    char *language_font_code;
 } loader;
 
-loader *loader_new(const char *language_code, const char *language_font_code) {
+loader *loader_new() {
     loader *result = calloc(1, sizeof(loader));
-
-    result->language_code = calloc(1, strlen(language_code) + 1);
-    strcat(result->language_code, language_code);
-
-    result->language_font_code = calloc(1, strlen(language_code) + 1);
-    strcat(result->language_font_code, language_code);
 
     return result;
 }
@@ -49,7 +41,6 @@ void loader_destroy(loader *src) {
         }
         free(src->providers);
     }
-    free(src->language_code);
     free(src);
 }
 
@@ -67,8 +58,6 @@ void *loader_load(loader *src, const char *path, int *file_size) {
     char *new_path = strdup(path);
 
     new_path = str_replace(new_path, "\\", "/");
-    new_path = str_replace(new_path, "{LANG}", src->language_code);
-    new_path = str_replace(new_path, "{LANG_FONT}", src->language_font_code);
 
     char *path_ptr = new_path;
     if (new_path[0] == '/') {
@@ -87,4 +76,33 @@ void *loader_load(loader *src, const char *path, int *file_size) {
 
     free(new_path);
     return result;
+}
+
+bool loader_file_exists(loader *src, const char *path) {
+    bool found = false;
+    if (strlen(path) == 0) {
+        log_error("empty path supplied");
+        return NULL;
+    }
+
+    char *new_path = strdup(path);
+
+    new_path = str_replace(new_path, "\\", "/");
+
+    char *path_ptr = new_path;
+    if (new_path[0] == '/') {
+        path_ptr++;
+    }
+
+    for (int i = 0; i < src->num_providers; i++) {
+        if (!loader_provider_exists(src->providers[i], path)) {
+            continue;
+        }
+
+        found = true;
+        break;
+    }
+
+    free(new_path);
+    return found;
 }
