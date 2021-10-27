@@ -149,6 +149,7 @@ if (UNIX)
 endif ()
 
 if (WIN32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32) # for CASC
     install(TARGETS ${PROJECT_NAME}
             RUNTIME_DEPENDENCIES
             PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
