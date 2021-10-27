@@ -10,7 +10,7 @@ Join us on IRC: [irc.libera.chat #opendiablo2](https://web.libera.chat/#opendiab
 ![Abyss Engine](abyssengine/abysslogo.png)
 
 ----
-AbyssEngine is a game engine designed to run games similar to 2000's style ARPGs such as Diablo2.
+AbyssEngine is a game engine designed to run games similar to 2000's style ARPGs such as Diablo II.
 
 This repository provides the core
 engine [Abyss Engine](https://github.com/AbyssEngine/AbyssEngine/tree/main/abyssengine), as well as
