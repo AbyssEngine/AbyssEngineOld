@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(abyssengine C)
+project(abyssengine)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -13,6 +13,9 @@ find_package(PNG REQUIRED)
 find_package(Lua 5.4 EXACT REQUIRED)
 find_package(Threads REQUIRED)
 find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE POSTPROC REQUIRED)
+
+include(../cmake/CPM.cmake)
+CPMAddPackage("https://github.com/DarthGandalf/CascLib.git#37ce47d5591d83a2d1603296b488642d16808538")
 
 if (APPLE)
     find_library(OSX_VIDEOTOOLBOX VideoToolbox)
@@ -58,6 +61,8 @@ configure_file(
 
 target_compile_options(${PROJECT_NAME} PRIVATE ${FFMPEG_DEFINITIONS})
 
+file(GLOB_RECURSE CASC_SOURCES "${CascLib_SOURCE_DIR}/src/*.cpp")
+
 target_sources(${PROJECT_NAME} PRIVATE
         # Engine Core --------------------------------------------------
         src/abyssengine.c
@@ -100,6 +105,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/loader/loaderprovider.c src/loader/loaderprovider.h
         src/loader/filesystemloader.c src/loader/filesystemloader.h
         src/loader/mpqloader.c src/loader/mpqloader.h
+        src/loader/cascloader.cpp src/loader/cascloader.h
         src/loader/loader.c src/loader/loader.h
 
         # Misc ---------------------------------------------------------
@@ -110,12 +116,17 @@ target_sources(${PROJECT_NAME} PRIVATE
 
         # Dynamic ------------------------------------------------------
         ${SOURCE_EXTRA}
+
+        # CASC
+        ${CASC_SOURCES}
+        ${CascLib_SOURCE_DIR}/src/jenkins/lookup3.c
         )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${PROJECT_BINARY_DIR}
         ${LUA_INCLUDE_DIR}
         ${FFMPEG_INCLUDE_DIRS}
+        ${CascLib_SOURCE_DIR}/src
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -138,6 +149,7 @@ if (UNIX)
 endif ()
 
 if (WIN32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32) # for CASC
     install(TARGETS ${PROJECT_NAME}
             RUNTIME_DEPENDENCIES
             PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"

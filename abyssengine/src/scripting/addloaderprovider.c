@@ -19,6 +19,7 @@
 #include "../engine/engine.h"
 #include "../loader/filesystemloader.h"
 #include "../loader/mpqloader.h"
+#include "../loader/cascloader.h"
 #include "scripting.h"
 #include <string.h>
 
@@ -37,6 +38,8 @@ int abyss_lua_add_loader_provider(lua_State *l) {
         provider = filesystem_loader_new(loader_path);
     } else if (strcmp(loader_type, "mpq") == 0) {
         provider = mpq_loader_new(loader_path);
+    } else if (strcmp(loader_type, "casc") == 0) {
+        provider = casc_loader_new(loader_path);
     } else {
         luaL_error(l, "unknown loader type: %s", loader_type);
         return 0;
