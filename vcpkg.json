@@ -7,7 +7,6 @@
         "sdl2",
         "lua",
         "gtest",
-        "casclib",
         {
             "name": "ffmpeg",
             "features": [

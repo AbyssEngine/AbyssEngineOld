@@ -13,7 +13,9 @@ find_package(PNG REQUIRED)
 find_package(Lua 5.4 EXACT REQUIRED)
 find_package(Threads REQUIRED)
 find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE POSTPROC REQUIRED)
-find_package(casclib CONFIG REQUIRED)
+
+include(../cmake/CPM.cmake)
+CPMAddPackage("https://github.com/DarthGandalf/CascLib.git#37ce47d5591d83a2d1603296b488642d16808538")
 
 if (APPLE)
     find_library(OSX_VIDEOTOOLBOX VideoToolbox)
@@ -58,6 +60,8 @@ configure_file(
 )
 
 target_compile_options(${PROJECT_NAME} PRIVATE ${FFMPEG_DEFINITIONS})
+
+file(GLOB_RECURSE CASC_SOURCES "${CascLib_SOURCE_DIR}/src/*.cpp")
 
 target_sources(${PROJECT_NAME} PRIVATE
         # Engine Core --------------------------------------------------
@@ -111,12 +115,17 @@ target_sources(${PROJECT_NAME} PRIVATE
 
         # Dynamic ------------------------------------------------------
         ${SOURCE_EXTRA}
+
+        # CASC
+        ${CASC_SOURCES}
+        ${CascLib_SOURCE_DIR}/src/jenkins/lookup3.c
         )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${PROJECT_BINARY_DIR}
         ${LUA_INCLUDE_DIR}
         ${FFMPEG_INCLUDE_DIRS}
+        ${CascLib_SOURCE_DIR}/src
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -128,7 +137,6 @@ target_link_libraries(${PROJECT_NAME}
         PNG::PNG
         ${FFMPEG_LIBRARIES}
         ${LUA_LIBRARIES}
-        casclib
         )
 
 if (UNIX)
