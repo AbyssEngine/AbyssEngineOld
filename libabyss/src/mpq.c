@@ -82,7 +82,7 @@ mpq_block *mpq_get_block(const mpq *source, const char *filename) {
     if ((source->hash_entries[hash_index].block_index < 0) || (source->hash_entries[hash_index].block_index >= source->header.block_table_entries)) {
         return NULL;
     }
-    
+
     return &source->block_entries[source->hash_entries[hash_index].block_index];
 }
 
@@ -194,6 +194,29 @@ void *mpq_read_file(mpq *source, const char *filename, uint32_t *file_size) {
 
     return result;
 }
+
+mpq_stream *mpq_read_file_stream(mpq *source, const char *filename, uint32_t *file_size) {
+    mpq_block *block = mpq_get_block(source, filename);
+
+    if (block == NULL) {
+        log_error("File not found '%s'", filename);
+        return NULL;
+    }
+
+    mpq_stream *stream = mpq_stream_new(source, block, filename);
+
+    if (stream == NULL) {
+        log_error("Error creating stream for '%s'", filename);
+        return NULL;
+    }
+
+    if (file_size != NULL) {
+        *file_size = block->file_size_uncompressed;
+    }
+
+    return stream;
+}
+
 
 uint32_t mpq_get_header_size(const mpq *source) { return source->header.header_size; }
 
