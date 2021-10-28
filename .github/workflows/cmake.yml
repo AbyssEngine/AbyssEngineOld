@@ -12,8 +12,6 @@ jobs:
             matrix:
                 os: [ ubuntu-latest, macos-11, windows-latest ]
                 include:
-                    -   os: windows-latest
-                        triplet: x64-windows
                     -   os: ubuntu-latest
                         triplet: x64-linux
                     -   os: macos-11
@@ -48,6 +46,9 @@ jobs:
             -   name: Install Deps (MacOS)
                 if: matrix.os == 'macos-11'
                 run: brew install nasm ffmpeg
+
+            -   name: install casc
+                run: git clone https://github.com/ladislav-zezula/CascLib && cd CascLib && mkdir build && cd build && cmake .. && sudo make install
 
             -   name: Run vcpkg
                 uses: lukka/run-vcpkg@v10
