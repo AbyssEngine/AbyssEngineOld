@@ -35,7 +35,7 @@ static bool casc_progress_callback(
     return false;
 }
 
-static _Bool casc_loader_exists(loader_provider *provider, const char *path) {
+static bool casc_loader_exists(loader_provider *provider, const char *path) {
     casc_loader *source = (casc_loader *)provider;
     std::string file_path = "data:";
     file_path += path;

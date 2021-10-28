@@ -15,7 +15,7 @@ find_package(Threads REQUIRED)
 find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE POSTPROC REQUIRED)
 
 include(../cmake/CPM.cmake)
-CPMAddPackage("https://github.com/DarthGandalf/CascLib.git#37ce47d5591d83a2d1603296b488642d16808538")
+CPMAddPackage("https://github.com/DarthGandalf/CascLib.git#eda4d21cc0c549656fcb36135bf985530e647bae")
 
 if (APPLE)
     find_library(OSX_VIDEOTOOLBOX VideoToolbox)
