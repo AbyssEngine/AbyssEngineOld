@@ -63,7 +63,7 @@ int modevideo_stream_read(void *opaque, uint8_t *buf, int buf_size) {
     if (actual_len > remaining) {
         actual_len = remaining;
     }
-    memmove(buf, &video_buffer_data[video_buffer_position], actual_len);
+    memmove(buf, &((char *)video_buffer_data)[video_buffer_position], actual_len);
     video_buffer_position += actual_len;
     return actual_len;
 }

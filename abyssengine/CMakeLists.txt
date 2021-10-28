@@ -15,7 +15,7 @@ find_package(Threads REQUIRED)
 find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE POSTPROC REQUIRED)
 
 include(../cmake/CPM.cmake)
-CPMAddPackage("https://github.com/DarthGandalf/CascLib.git#37ce47d5591d83a2d1603296b488642d16808538")
+CPMAddPackage("https://github.com/ladislav-zezula/CascLib.git#7dc2a986f1d79db04f9c1d0c73981b3f67a6630c")
 
 if (APPLE)
     find_library(OSX_VIDEOTOOLBOX VideoToolbox)
@@ -29,6 +29,7 @@ if (MSVC)
     set(OPTIONS WIN32)
     set(SOURCE_EXTRA resource.rc)
     set(APP_NAME "AbyssEngine")
+    add_definitions(-DCASCLIB_NO_AUTO_LINK_LIBRARY)
 endif (MSVC)
 
 if (APPLE)

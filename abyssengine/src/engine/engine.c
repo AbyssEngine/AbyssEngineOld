@@ -37,6 +37,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif //_WIN32
+
 #ifndef min
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #endif // min
@@ -197,6 +201,7 @@ void engine_destroy(engine *src) {
     engine_finalize_sdl2(src);
     engine_finalize_lua(src);
 
+
 #ifndef NDEBUG
     free(engine_thread);
 #endif
@@ -212,6 +217,10 @@ void engine_destroy(engine *src) {
 }
 
 void engine_init_sdl2(engine *src) {
+#ifdef _WIN32
+    CoInitialize(NULL);
+    putenv("SDL_AUDIODRIVER=DirectSound");
+#endif // _WIN32
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         log_fatal(SDL_GetError());
         exit(-1);
@@ -263,7 +272,9 @@ void engine_init_sdl2(engine *src) {
     requested_audio_spec.userdata = src;
     requested_audio_spec.callback = engine_handle_audio;
 
-    SDL_OpenAudio(&requested_audio_spec, &src->audio_output_spec);
+    if (SDL_OpenAudio(&requested_audio_spec, &src->audio_output_spec) < 0) {
+        log_warn(SDL_GetError());
+    }
 
     SDL_PauseAudio(0);
 
