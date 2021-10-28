@@ -22,9 +22,13 @@
     SCRIPT_CLASS_RESULT_PROPERTY("visible", abyss_lua_node_visible)                                                                                  \
     SCRIPT_CLASS_RESULT_PROPERTY("active", abyss_lua_node_active)                                                                                    \
     SCRIPT_CLASS_RESULT_PROPERTY("position", abyss_lua_node_position)                                                                                \
-    SCRIPT_CLASS_RESULT_PROPERTY("appendChild", abyss_lua_node_append_child)
+    SCRIPT_CLASS_RESULT_PROPERTY("appendChild", abyss_lua_node_append_child)                                                                         \
+    SCRIPT_CLASS_RESULT_PROPERTY("detatch", abyss_lua_node_detach)                                                                                   \
+    SCRIPT_CLASS_RESULT_PROPERTY("destroy", abyss_lua_node_destroy)
 
 extern int abyss_lua_node_visible(lua_State *l);
 extern int abyss_lua_node_active(lua_State *l);
 extern int abyss_lua_node_position(lua_State *l);
 extern int abyss_lua_node_append_child(lua_State *l);
+extern int abyss_lua_node_destroy(lua_State *l);
+extern int abyss_lua_node_detach(lua_State *l);

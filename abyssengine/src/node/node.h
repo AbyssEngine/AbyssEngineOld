@@ -41,6 +41,8 @@ typedef struct node {
 
 void node_initialize(node *source);
 void node_append_child(node *source, node *child);
+void node_destroy(node *source, struct engine *e);
+void node_remove(node *source, struct engine *e);
 bool node_default_update_callback(node *source, struct engine *engine, uint32_t ticks);
 void node_default_render_callback(node *source, struct engine *engine, int offset_x, int offset_y);
 bool node_default_mouse_event_callback(struct node *node, struct engine *engine, enum e_mouse_event_type event_type,

@@ -398,20 +398,22 @@ void sprite_destroy(sprite *source) {
     if (source->atlas != NULL)
         SDL_DestroyTexture(source->atlas);
 
+    lua_State *l = engine_get_lua_state(engine_get_global_instance());
+
     if (source->lua_mouse_down_callback_func != 0)
-        luaL_unref(engine_get_lua_state(engine_get_global_instance()), LUA_REGISTRYINDEX, source->lua_mouse_down_callback_func);
+        luaL_unref(l, LUA_REGISTRYINDEX, source->lua_mouse_down_callback_func);
 
     if (source->lua_mouse_up_callback_func != 0)
-        luaL_unref(engine_get_lua_state(engine_get_global_instance()), LUA_REGISTRYINDEX, source->lua_mouse_up_callback_func);
+        luaL_unref(l, LUA_REGISTRYINDEX, source->lua_mouse_up_callback_func);
 
     if (source->lua_mouse_enter_callback_func != 0)
-        luaL_unref(engine_get_lua_state(engine_get_global_instance()), LUA_REGISTRYINDEX, source->lua_mouse_enter_callback_func);
+        luaL_unref(l, LUA_REGISTRYINDEX, source->lua_mouse_enter_callback_func);
 
     if (source->lua_mouse_leave_callback_func != 0)
-        luaL_unref(engine_get_lua_state(engine_get_global_instance()), LUA_REGISTRYINDEX, source->lua_mouse_leave_callback_func);
+        luaL_unref(l, LUA_REGISTRYINDEX, source->lua_mouse_leave_callback_func);
 
     if (source->lua_mouse_move_callback_func != 0)
-        luaL_unref(engine_get_lua_state(engine_get_global_instance()), LUA_REGISTRYINDEX, source->lua_mouse_move_callback_func);
+        luaL_unref(l, LUA_REGISTRYINDEX, source->lua_mouse_move_callback_func);
 
     switch (source->sprite_type) {
     case sprite_type_dc6:
@@ -492,9 +494,8 @@ void sprite_set_blend_mode(sprite *source, enum e_sprite_blend_mode blend_mode) 
         exit(EXIT_FAILURE);
     }
 
-
     source->blend_mode = blend_mode;
-    if (source->atlas != NULL) 
+    if (source->atlas != NULL)
         SDL_SetTextureBlendMode(source->atlas, new_mode);
 }
 
@@ -675,7 +676,7 @@ bool sprite_mouse_event_callback(node *node, struct engine *e, enum e_mouse_even
     case mouse_event_type_move: {
         int mx = event_info->move_event.x;
         int my = event_info->move_event.y;
-        
+
         int sx = node->x;
         int sy = node->y;
         int sx2 = sx;

@@ -60,16 +60,22 @@ void node_initialize(node *source) {
 void node_append_child(node *source, node *child) {
     VERIFY_ENGINE_THREAD
 
-    assert(child->parent == NULL);
     assert(child != source);
+
+    if (child->parent == source) {
+        return;
+    }
+
+    if (child->parent != NULL) {
+        node_remove(child, engine_get_global_instance());
+    }
 
     source->children = realloc(source->children, sizeof(node) * (source->num_children + 1));
     source->children[source->num_children++] = child;
     child->parent = source;
 }
 
-bool node_default_mouse_event_callback(struct node *source, struct engine *e, enum e_mouse_event_type event_type,
-                                       const mouse_event_info *event_info) {
+bool node_default_mouse_event_callback(struct node *source, engine *e, enum e_mouse_event_type event_type, const mouse_event_info *event_info) {
 
     for (int idx = 0; idx < source->num_children; idx++) {
         node *child = source->children[idx];
@@ -82,4 +88,36 @@ bool node_default_mouse_event_callback(struct node *source, struct engine *e, en
     }
 
     return false;
+}
+
+void node_destroy(node *source, engine *e) {
+    if (source->parent != NULL)
+        node_remove(source, e);
+
+    if (source->destroy_callback != NULL)
+        source->destroy_callback(source, e);
+}
+
+void node_remove(node *source, engine *e) {
+    if (source->parent == NULL)
+        return;
+
+    node *parent = source->parent;
+
+    int child_idx = -1;
+    for (int i = 0; i < parent->num_children; i++) {
+        if (parent->children[i] != source)
+            continue;
+
+        break;
+    }
+
+    if (child_idx == -1) {
+        engine_trigger_crash(e, "Attempted to remove a node but it's parent does not claim it!");
+        return;
+    }
+
+    memmove(&parent->children[child_idx], &parent->children[child_idx + 1], (parent->num_children - child_idx) - 1);
+    parent->num_children--;
+    parent->children = realloc(parent->children, parent->num_children);
 }

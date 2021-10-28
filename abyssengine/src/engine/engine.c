@@ -114,6 +114,8 @@ static engine *global_engine_instance;
 engine *engine_create(char *base_path, ini_file *ini_config) {
     engine *result = (engine *)calloc(1, sizeof(engine));
 
+    log_info("Creating engine instance");
+
     result->audio_buffer = malloc(AUDIO_BUFFER_SIZE);
     result->audio_buffer_read_pos = 0;
     result->audio_buffer_write_pos = 0;
@@ -137,8 +139,13 @@ engine *engine_create(char *base_path, ini_file *ini_config) {
     // TODO: Make the language settings dynamic
     result->loader = loader_new();
 
+    log_info("Initializing SDL2");
     engine_init_sdl2(result);
+
+    log_info("Initializing lua");
     engine_init_lua(result);
+
+    log_info("Initializing scripting system.");
     scripting_init();
 
     // Store the engine thread so that we can check it if in debug mode
@@ -169,6 +176,8 @@ void engine_destroy(engine *src) {
         }
         free(src->palettes);
     }
+
+    SDL_PauseAudio(SDL_TRUE);
 
     loader_destroy(src->loader);
     sysfont_destroy(src->font);
@@ -245,6 +254,7 @@ void engine_init_sdl2(engine *src) {
     SDL_SetRenderDrawBlendMode(src->sdl_renderer, SDL_BLENDMODE_BLEND);
     free(window_title);
 
+    log_info("Initalizing audio");
     SDL_AudioSpec requested_audio_spec;
     requested_audio_spec.freq = 44100;
     requested_audio_spec.format = AUDIO_S16LSB;
@@ -257,12 +267,12 @@ void engine_init_sdl2(engine *src) {
 
     SDL_PauseAudio(0);
 
-    if (strcmp(init_file_get_value(src->ini_config, "Video", "FullScreen"), "1") == 0)
+    if ((src->ini_config != NULL) && strcmp(init_file_get_value(src->ini_config, "Video", "FullScreen"), "1") == 0)
         SDL_SetWindowFullscreen(src->sdl_window, SDL_TRUE);
-
 }
 
 void engine_finalize_sdl2(engine *src) {
+    SDL_CloseAudio();
     SDL_DestroyRenderer(src->sdl_renderer);
     SDL_DestroyWindow(src->sdl_window);
     SDL_Quit();
@@ -450,7 +460,6 @@ void engine_handle_sdl_event(engine *src, const SDL_Event *evt) {
 
 void engine_shutdown(engine *src) {
     src->is_running = false;
-    exit(0); // TODO: This is rude.
 }
 
 void engine_render(engine *src) {
