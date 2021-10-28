@@ -17,9 +17,12 @@
  */
 
 #include <libabyss/log.h>
-#include <libgen.h>
 #include <stdio.h>
 #include <string.h>
+
+#ifdef __APPLE__
+#include <libgen.h>
+#endif
 
 #ifdef __APPLE__
 void check_app_compat_apple() {

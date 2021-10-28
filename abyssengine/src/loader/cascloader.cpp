@@ -1,8 +1,12 @@
 #include "cascloader.h"
 #include <libabyss/log.h>
 #include <string>
-
+#include <stdbool.h>
 #include <CascLib.h>
+
+#ifndef WINAPI
+#define WINAPI
+#endif // WINAPI
 
 typedef struct casc_loader {
     loader_provider provider;
@@ -35,7 +39,7 @@ static bool casc_progress_callback(
     return false;
 }
 
-static bool casc_loader_exists(loader_provider *provider, const char *path) {
+static bool WINAPI casc_loader_exists(loader_provider *provider, const char *path) {
     casc_loader *source = (casc_loader *)provider;
     std::string file_path = "data:";
     file_path += path;

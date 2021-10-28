@@ -105,3 +105,34 @@ int abyss_lua_node_append_child(lua_State *l) {
 
     return 0;
 }
+
+int abyss_lua_node_destroy(lua_State *l) {
+    if (lua_gettop(l) != 2) {
+        lua_error(l);
+        return 0;
+    }
+
+    SCRIPT_GET_LUA_THIS(source, node)
+
+    node_destroy(source, engine_get_global_instance());
+
+    return 0;
+}
+
+void abyss_lua_node_detach_dispatch(void *data) {
+    node *source = (node *)data;
+    node_remove(source, engine_get_global_instance());
+}
+
+int abyss_lua_node_detach(lua_State *l) {
+    if (lua_gettop(l) != 2) {
+        lua_error(l);
+        return 0;
+    }
+
+    SCRIPT_GET_LUA_THIS(source, node)
+
+    engine_dispatch(engine_get_global_instance(), abyss_lua_node_detach_dispatch, source);
+
+    return 0;
+}

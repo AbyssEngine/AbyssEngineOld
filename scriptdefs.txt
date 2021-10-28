@@ -179,8 +179,7 @@ NODE
 -----------------------------------------------------------------------
 Description:
 
-    Represents an object on the render graph. This is the base type for
-    all rendering objects.
+    Represents an object on the render graph. This is the base type for all rendering objects.
 
 
 Functions:
@@ -188,15 +187,13 @@ Functions:
     visible(): bool
     visible(show)
         Gets/Sets visibility of the node.
-        Nodes that are not visible will not be rendered (nor will the
-        child nodes)
+        Nodes that are not visible will not be rendered (nor will the child nodes)
 
 
     active(): bool
     active(isActive)
         Gets/Sets activate state of the node.
-        Nodes that are not active will neither render nor update (nor
-        will the child nodes)
+        Nodes that are not active will neither render nor update (nor will the child nodes)
 
 
     position(): x, y
@@ -206,3 +203,11 @@ Functions:
 
     appendChild(childNode)
         Appends the child node to this node.
+
+
+    detach()
+        Detaches the node from its parent.
+
+    destroy()
+        Destroys this node.
+        It will automatically be removed from it's parent if it is currently a child of another node.
