@@ -54,17 +54,17 @@ typedef struct mpq_stream {
 void *mpq_stream_decompress_multi(mpq_stream *source, void *buffer, uint32_t size_compressed, uint32_t size_uncompressed);
 
 bool mpq_stream_load_block_offsets(mpq_stream *source) {
-    uint32_t block_position_count = ((source->block->file_size_uncompressed + source->size - 1) / source->size) + 1;
+    const uint32_t block_position_count = ((source->block->file_size_uncompressed + source->size - 1) / source->size) + 1;
     source->positions = realloc(source->positions, sizeof(uint32_t) * block_position_count);
 
     FILE *file_stream = mpq_get_file_stream(source->mpq);
-    fseek(file_stream, (long)source->block->file_position, SEEK_SET);
+    fseek(file_stream, source->block->file_position, SEEK_SET);
     fread(source->positions, sizeof(uint32_t), block_position_count, file_stream);
 
     if (mpq_block_has_flag(source->block, MPQ_BLOCK_FLAG_ENCRYPTED)) {
         crypto_decrypt(source->positions, block_position_count, mpq_block_get_encryption_seed(source->block, source->filename) - 1);
 
-        uint32_t block_pos_size = block_position_count << 2;
+        const uint32_t block_pos_size = block_position_count << 2;
         if (source->positions[0] != block_pos_size) {
             log_error("Decryption of MPQ Failed: block position size mismatch.");
             return false;
@@ -143,7 +143,7 @@ bool mpq_stream_load_single_unit(mpq_stream *source) {
 }
 
 uint32_t mpq_stream_copy(mpq_stream *source, void *buffer, uint32_t offset, uint32_t position, uint32_t size) {
-    int bytes_to_copy = min((int)source->data_length - (int)position, (int)size);
+    const int bytes_to_copy = min((int)source->data_length - (int)position, (int)size);
 
     if (bytes_to_copy <= 0) {
         return 0;
@@ -169,7 +169,7 @@ unsigned blast_in_f(void *how, unsigned char **buf) {
     *buf = how;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wvoid-pointer-to-int-cast"
-    return (unsigned int)(size_t)how;
+    return (size_t)how;
 #pragma clang diagnostic pop
 }
 
@@ -180,7 +180,7 @@ int blast_out_f(void *how, unsigned char *buf, unsigned len) {
 
 void *mpq_stream_decompress_multi(mpq_stream *source, void *buffer, uint32_t size_compressed, uint32_t size_uncompressed) {
 
-    uint8_t compression_type = ((char *)buffer)[0];
+    const uint8_t compression_type = ((char *)buffer)[0];
 
     switch (compression_type) {
     case 0x01: // Huffman
@@ -199,7 +199,7 @@ void *mpq_stream_decompress_multi(mpq_stream *source, void *buffer, uint32_t siz
         zlib_stream.next_out = (Bytef *)new_buffer;
 
         inflateInit(&zlib_stream);
-        int ret = inflate(&zlib_stream, Z_NO_FLUSH);
+        const int ret = inflate(&zlib_stream, Z_NO_FLUSH);
         if (ret == Z_STREAM_ERROR) {
             log_fatal("Error decompressing Zlib/deflate.");
             return NULL;
@@ -229,11 +229,11 @@ void *mpq_stream_decompress_multi(mpq_stream *source, void *buffer, uint32_t siz
         return NULL;
     case 0x80: // IMA ADPCM Stereo
     {
-        return compress_decompress_wav((void *)((char *)buffer + 1), size_compressed, 2);
+        return compress_decompress_wav((char *)buffer + 1, size_compressed, 2);
     }
     case 0x40: // IMA ADPCM Mono
     {
-        return compress_decompress_wav((void *)((char *)buffer + 1), size_compressed, 1);
+        return compress_decompress_wav((char *)buffer + 1, size_compressed, 1);
     }
     case 0x22: // Sparse + ZLib
         log_fatal("Sparse + Zlib decompression not currently supported.");
@@ -279,11 +279,11 @@ void *mpq_stream_load_block(mpq_stream *source, uint32_t index, uint32_t length,
 
     FILE *file = mpq_get_file_stream(source->mpq);
 
-    fseek(file, (long)offset, SEEK_SET);
+    fseek(file, offset, SEEK_SET);
     fread(data, *to_read, 1, file);
 
     if (mpq_block_has_flag(source->block, MPQ_BLOCK_FLAG_ENCRYPTED) && source->block->file_size_uncompressed > 3) {
-        uint32_t encryption_seed = mpq_block_get_encryption_seed(source->block, source->filename);
+        const uint32_t encryption_seed = mpq_block_get_encryption_seed(source->block, source->filename);
         if (encryption_seed == 0) {
             log_error("Unable to determine encryption key for '%s'.", source->filename);
             free(data);
@@ -311,13 +311,13 @@ void *mpq_stream_load_block(mpq_stream *source, uint32_t index, uint32_t length,
 }
 
 bool mpq_stream_buffer_data(mpq_stream *source) {
-    uint32_t block_index = source->position / source->size;
+    const uint32_t block_index = source->position / source->size;
 
     if (block_index == source->index) {
         return true;
     }
 
-    uint32_t expected_length = min(source->block->file_size_uncompressed - (block_index * source->size), source->size);
+    const uint32_t expected_length = min(source->block->file_size_uncompressed - (block_index * source->size), source->size);
     uint32_t data_read;
 
     void *new_data = mpq_stream_load_block(source, block_index, expected_length, &data_read);
@@ -341,7 +341,7 @@ uint32_t mpq_stream_read_internal(mpq_stream *source, void *buffer, uint32_t off
         return 0;
     }
 
-    uint32_t local_position = source->position % source->size;
+    const uint32_t local_position = source->position % source->size;
 
     return mpq_stream_copy(source, buffer, offset, local_position, size);
 }
@@ -354,7 +354,7 @@ uint32_t mpq_stream_read(mpq_stream *source, void *buffer, uint32_t offset, uint
     uint32_t read_total = 0;
 
     for (uint32_t to_read = size; to_read > 0;) {
-        uint32_t read = mpq_stream_read_internal(source, buffer, offset, to_read);
+        const uint32_t read = mpq_stream_read_internal(source, buffer, offset, to_read);
 
         if (read == 0) {
             break;

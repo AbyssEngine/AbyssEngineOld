@@ -26,7 +26,7 @@ void engine_render_boot(engine *src) {
     sysfont *font = engine_get_sysfont(src);
     SDL_Rect logo_rect;
     SDL_Texture *logo = engine_get_logo_texture(src, &logo_rect);
-    SDL_Rect logo_dest = {(GAME_WIDTH / 2) - (logo_rect.w / 2), (GAME_HEIGHT / 2) - logo_rect.h, logo_rect.w, logo_rect.h};
+    const SDL_Rect logo_dest = {(GAME_WIDTH / 2) - (logo_rect.w / 2), (GAME_HEIGHT / 2) - logo_rect.h, logo_rect.w, logo_rect.h};
 
     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
     SDL_RenderClear(renderer);

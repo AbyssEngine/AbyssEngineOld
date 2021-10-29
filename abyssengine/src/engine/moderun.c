@@ -29,7 +29,7 @@ void engine_render_run(engine *src) {
     root_node->render_callback(root_node, src, 0, 0);
 }
 
-void engine_update_run(engine *src, uint32_t tick_diff) {
+void engine_update_run(engine *src, const uint32_t tick_diff) {
     node *root_node = engine_get_root_node(src);
 
     if (root_node == NULL || root_node->update_callback == NULL)

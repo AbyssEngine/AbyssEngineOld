@@ -59,7 +59,7 @@ uint64_t video_timestamp;
 
 int modevideo_stream_read(void *opaque, uint8_t *buf, int buf_size) {
     int actual_len = buf_size;
-    int remaining = video_buffer_data_size - video_buffer_position;
+    const int remaining = video_buffer_data_size - video_buffer_position;
     if (actual_len > remaining) {
         actual_len = remaining;
     }
@@ -111,7 +111,7 @@ void modevideo_load_file(engine *src, const char *file_path) {
 
     if (video_buffer_data == NULL) {
         char *msg = calloc(1, 4096);
-        sprintf(msg, "Could not locate video file:\n%s", actual_path);
+        sprintf_s(msg, 4096, "Could not locate video file:\n%s", actual_path);
         engine_trigger_crash(src, msg);
         free(msg);
     }
@@ -143,9 +143,9 @@ void modevideo_load_file(engine *src, const char *file_path) {
     }
 
     video_stream_idx = -1;
-    for (int i = 0; i < av_format_context->nb_streams; i++) {
+    for (uint32_t i = 0; i < av_format_context->nb_streams; i++) {
         if (av_format_context->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
-            video_stream_idx = i;
+            video_stream_idx = (int)i;
             break;
         }
     }
@@ -159,19 +159,19 @@ void modevideo_load_file(engine *src, const char *file_path) {
     }
 
     audio_stream_idx = -1;
-    for (int i = 0; i < av_format_context->nb_streams; i++) {
+    for (uint32_t i = 0; i < av_format_context->nb_streams; i++) {
         if (av_format_context->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
-            audio_stream_idx = i;
+            audio_stream_idx = (int)i;
             break;
         }
     }
 
-    AVRational frame_rate = av_format_context->streams[video_stream_idx]->r_frame_rate;
+    const AVRational frame_rate = av_format_context->streams[video_stream_idx]->r_frame_rate;
     float fps = (float)frame_rate.num / (float)frame_rate.den;
     micros_per_frame = (uint64_t)(1000000 / ((float)av_format_context->streams[video_stream_idx]->r_frame_rate.num /
                                              (float)av_format_context->streams[video_stream_idx]->r_frame_rate.den));
 
-    AVCodecParameters *video_codec_par = av_format_context->streams[video_stream_idx]->codecpar;
+    const AVCodecParameters *video_codec_par = av_format_context->streams[video_stream_idx]->codecpar;
     AVCodec *video_decoder = avcodec_find_decoder(video_codec_par->codec_id);
     if (video_decoder == NULL) {
         engine_trigger_crash(src, "Missing video codec; cannot play video file.");
@@ -196,7 +196,7 @@ void modevideo_load_file(engine *src, const char *file_path) {
     }
 
     if (audio_stream_idx >= 0) {
-        AVCodecParameters *audio_codec_par = av_format_context->streams[audio_stream_idx]->codecpar;
+        const AVCodecParameters *audio_codec_par = av_format_context->streams[audio_stream_idx]->codecpar;
         AVCodec *audio_decoder = avcodec_find_decoder(audio_codec_par->codec_id);
         if (audio_decoder == NULL) {
             engine_trigger_crash(src, "Missing audio codec; cannot play video file.");
@@ -221,7 +221,7 @@ void modevideo_load_file(engine *src, const char *file_path) {
         }
 
         resample_contex = swr_alloc();
-        av_opt_set_channel_layout(resample_contex, "in_channel_layout", (int64_t)audio_codec_context->channel_layout, 0);
+        av_opt_set_channel_layout(resample_contex, "in_channel_layout", audio_codec_context->channel_layout, 0);
         av_opt_set_channel_layout(resample_contex, "out_channel_layout", AV_CH_LAYOUT_STEREO, 0);
         av_opt_set_int(resample_contex, "in_sample_rate", audio_codec_context->sample_rate, 0);
         av_opt_set_int(resample_contex, "out_sample_rate", 44100, 0);
@@ -242,7 +242,7 @@ void modevideo_load_file(engine *src, const char *file_path) {
 
     target_rect.x = 0;
     target_rect.w = GAME_WIDTH;
-    float r = (float)video_codec_context->height / (float)video_codec_context->width;
+    const float r = (float)video_codec_context->height / (float)video_codec_context->width;
     target_rect.h = (int)((float)GAME_WIDTH * r);
     target_rect.y = (GAME_HEIGHT / 2) - (target_rect.h / 2);
 
@@ -337,7 +337,7 @@ bool engine_process_frame(engine *src) {
         line_size[2] = uvPitch;
 
         // Convert the image into YUV format that SDL uses
-        sws_scale(sws_ctx, (uint8_t const *const *)av_frame->data, av_frame->linesize, 0, video_codec_context->height, data, line_size);
+        sws_scale(sws_ctx, av_frame->data, av_frame->linesize, 0, video_codec_context->height, data, line_size);
 
         if (SDL_UpdateYUVTexture(video_texture, NULL, yPlane, video_codec_context->width, uPlane, uvPitch, vPlane, uvPitch) < 0) {
             log_fatal("Error updating YUV Texture: %s", SDL_GetError());
@@ -375,12 +375,12 @@ bool engine_process_frame(engine *src) {
                 return true;
             }
 
-            int out_size = av_samples_get_buffer_size(NULL, audio_codec_context->channels, av_frame->nb_samples, AV_SAMPLE_FMT_S16, 1);
+            const int out_size = av_samples_get_buffer_size(NULL, audio_codec_context->channels, av_frame->nb_samples, AV_SAMPLE_FMT_S16, 1);
             uint8_t *out_buff = malloc(out_size);
             uint8_t *out_buff_array[1];
             out_buff_array[0] = out_buff;
-            swr_convert(resample_contex, out_buff_array, av_frame->nb_samples, (const uint8_t **)&av_frame->data[0], av_frame->nb_samples);
-            engine_write_audio_buffer(src, (void *)out_buff, out_size);
+            swr_convert(resample_contex, out_buff_array, av_frame->nb_samples, &av_frame->data[0], av_frame->nb_samples);
+            engine_write_audio_buffer(src, out_buff, out_size);
             free(out_buff);
         }
 
@@ -395,7 +395,7 @@ void engine_update_video(engine *src, uint32_t tick_diff) {
     if (av_format_context == NULL)
         return;
 
-    enum e_mouse_button button_state = engine_get_mouse_button_state(src);
+    const enum e_mouse_button button_state = engine_get_mouse_button_state(src);
     if (!mouse_was_unpressed) {
         if (button_state == 0)
             mouse_was_unpressed = true;
@@ -407,7 +407,7 @@ void engine_update_video(engine *src, uint32_t tick_diff) {
     }
 
     while(true) {
-        uint64_t diff = av_gettime() - video_timestamp;
+        const uint64_t diff = av_gettime() - video_timestamp;
         if (diff < micros_per_frame)
             break;
 

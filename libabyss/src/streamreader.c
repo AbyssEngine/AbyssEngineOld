@@ -49,7 +49,7 @@ uint8_t streamreader_read_byte(streamreader *source) {
     return source->data[source->position++];
 }
 
-int16_t streamreader_read_int16(streamreader *source) { return (int16_t)streamreader_read_uint16(source); }
+int16_t streamreader_read_int16(streamreader *source) { return streamreader_read_uint16(source); }
 
 uint16_t streamreader_read_uint16(streamreader *source) {
     uint8_t value[2];
@@ -57,7 +57,7 @@ uint16_t streamreader_read_uint16(streamreader *source) {
     return ((uint16_t)value[0]) | (((uint16_t)value[1]) << 8);
 }
 
-int32_t streamreader_read_int32(streamreader *source) { return (int32_t)streamreader_read_uint32(source); }
+int32_t streamreader_read_int32(streamreader *source) { return streamreader_read_uint32(source); }
 
 uint32_t streamreader_read_uint32(streamreader *source) {
     uint8_t value[4];
@@ -65,7 +65,7 @@ uint32_t streamreader_read_uint32(streamreader *source) {
     return ((uint32_t)value[0]) | (((uint32_t)value[1]) << 8) | (((uint32_t)value[2]) << 16) | (((uint32_t)value[3]) << 24);
 }
 
-int64_t streamreader_read_int64(streamreader *source) { return (int64_t)streamreader_read_uint64(source); }
+int64_t streamreader_read_int64(streamreader *source) { return streamreader_read_uint64(source); }
 
 uint64_t streamreader_read_uint64(streamreader *source) {
     uint8_t value[8];

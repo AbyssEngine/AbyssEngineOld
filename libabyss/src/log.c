@@ -105,7 +105,7 @@ int log_add_fp(FILE *fp, int level) { return log_add_callback(file_callback, fp,
 
 static void init_event(log_Event *ev, void *udata) {
     if (!ev->time) {
-        time_t t = time(NULL);
+        const time_t t = time(NULL);
         ev->time = localtime(&t);
     }
     ev->udata = udata;
@@ -129,7 +129,7 @@ void log_log(int level, const char *file, int line, const char *fmt, ...) {
     }
 
     for (int i = 0; i < MAX_CALLBACKS && L.callbacks[i].fn; i++) {
-        Callback *cb = &L.callbacks[i];
+        const Callback *cb = &L.callbacks[i];
         if (level >= cb->level) {
             init_event(&ev, cb->udata);
             va_start(ev.ap, fmt);

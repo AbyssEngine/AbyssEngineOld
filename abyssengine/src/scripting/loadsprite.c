@@ -83,7 +83,7 @@ int abyss_lua_sprite_blend_mode(lua_State *l) {
 
     SCRIPT_GET_LUA_THIS(source, sprite)
 
-    enum e_sprite_blend_mode blend_mode = string_to_blend_mode(lua_tostring(l, 2));
+    const enum e_sprite_blend_mode blend_mode = string_to_blend_mode(lua_tostring(l, 2));
 
     if (blend_mode == sprite_blend_mode_unknown) {
         luaL_error(l, "unknown blend mode");
@@ -107,7 +107,7 @@ int abyss_lua_sprite_play_mode(lua_State *l) {
 
     SCRIPT_GET_LUA_THIS(source, sprite)
 
-    enum e_sprite_play_mode play_mode = string_to_play_mode(lua_tostring(l, 2));
+    const enum e_sprite_play_mode play_mode = string_to_play_mode(lua_tostring(l, 2));
 
     if (play_mode == sprite_blend_mode_unknown) {
         luaL_error(l, "unknown play mode");
@@ -194,7 +194,7 @@ int abyss_lua_sprite_on_mouse_enter(lua_State *l) {
         return 0;
     }
 
-    int ref = luaL_ref(l, LUA_REGISTRYINDEX);
+    const int ref = luaL_ref(l, LUA_REGISTRYINDEX);
     SCRIPT_GET_LUA_THIS(source, sprite);
 
     sprite_set_lua_mouse_enter_callback(source, ref);
@@ -210,7 +210,7 @@ int abyss_lua_sprite_on_mouse_leave(lua_State *l) {
         return 0;
     }
 
-    int ref = luaL_ref(l, LUA_REGISTRYINDEX);
+    const int ref = luaL_ref(l, LUA_REGISTRYINDEX);
     SCRIPT_GET_LUA_THIS(source, sprite);
 
     sprite_set_lua_mouse_leave_callback(source, ref);
@@ -226,7 +226,7 @@ int abyss_lua_sprite_on_mouse_move(lua_State *l) {
         return 0;
     }
 
-    int ref = luaL_ref(l, LUA_REGISTRYINDEX);
+    const int ref = luaL_ref(l, LUA_REGISTRYINDEX);
     SCRIPT_GET_LUA_THIS(source, sprite);
 
     sprite_set_lua_mouse_move_callback(source, ref);
@@ -242,7 +242,7 @@ int abyss_lua_sprite_on_mouse_button_up(lua_State *l) {
         return 0;
     }
 
-    int ref = luaL_ref(l, LUA_REGISTRYINDEX);
+    const int ref = luaL_ref(l, LUA_REGISTRYINDEX);
     SCRIPT_GET_LUA_THIS(source, sprite);
 
     sprite_set_lua_mouse_up_callback(source, ref);
@@ -258,7 +258,7 @@ int abyss_lua_sprite_on_mouse_button_down(lua_State *l) {
         return 0;
     }
 
-    int ref = luaL_ref(l, LUA_REGISTRYINDEX);
+    const int ref = luaL_ref(l, LUA_REGISTRYINDEX);
     SCRIPT_GET_LUA_THIS(source, sprite);
 
     sprite_set_lua_mouse_down_callback(source, ref);

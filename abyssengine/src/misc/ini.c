@@ -20,11 +20,10 @@
 #include "util.h"
 #include <libabyss/log.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #ifdef _WIN32
-size_t getdelim(char **buf, size_t *bufsiz, int delimiter, FILE *fp) {
+size_t getdelim(char **buf, size_t *bufsiz, const int delimiter, FILE *fp) {
     char *ptr, *eptr;
 
     if (*buf == NULL || *bufsiz == 0) {
@@ -34,10 +33,10 @@ size_t getdelim(char **buf, size_t *bufsiz, int delimiter, FILE *fp) {
     }
 
     for (ptr = *buf, eptr = *buf + *bufsiz;;) {
-        int c = fgetc(fp);
+        const int c = fgetc(fp);
         if (c == -1) {
             if (feof(fp)) {
-                size_t diff = (size_t)(ptr - *buf);
+                const size_t diff = ptr - *buf;
                 if (diff != 0) {
                     *ptr = '\0';
                     return diff;
@@ -52,8 +51,8 @@ size_t getdelim(char **buf, size_t *bufsiz, int delimiter, FILE *fp) {
         }
         if (ptr + 2 >= eptr) {
             char *nbuf;
-            size_t nbufsiz = *bufsiz * 2;
-            size_t d = ptr - *buf;
+            const size_t nbufsiz = *bufsiz * 2;
+            const size_t d = ptr - *buf;
             if ((nbuf = realloc(*buf, nbufsiz)) == NULL)
                 return 0;
             *buf = nbuf;
@@ -71,9 +70,7 @@ ini_file *ini_file_load(const char *file_path) {
 
     FILE *file;
 
-    file = fopen(file_path, "r");
-
-    if (file == NULL) {
+    if (fopen_s(&file, file_path, "r") != 0) {
         free(result);
         return NULL;
     }
@@ -125,7 +122,7 @@ ini_file *ini_file_load(const char *file_path) {
             return NULL;
         }
 
-        char *field_name = line_trimmed;
+        const char *field_name = line_trimmed;
         char *field_value = strchr(line_trimmed, '=');
 
         if (field_value == NULL) {
@@ -181,8 +178,11 @@ ini_file_category *ini_file_get_category(ini_file *source, const char *category_
 ini_file_entry *ini_file_add_entry(ini_file_category *source, const char *name, const char *value) {
     ini_file_entry *result = calloc(1, sizeof(ini_file_entry));
 
-    result->name = strdup(name);
-    result->value = strdup(value);
+    if (result == NULL)
+        return NULL;
+
+    result->name = _strdup(name);
+    result->value = _strdup(value);
 
     source->entries = realloc(source->entries, sizeof(ini_file_entry *) * (++source->num_entries));
     source->entries[source->num_entries - 1] = result;

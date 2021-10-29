@@ -27,7 +27,7 @@
 #define DCC_FILE_SIGNATURE 0x74
 
 bool dcc_decode_header(dcc *dcc, streamreader *reader) {
-    uint8_t signature = streamreader_read_byte(reader);
+    const uint8_t signature = streamreader_read_byte(reader);
 
     if (signature != DCC_FILE_SIGNATURE) {
         log_fatal("Unexpected file signature: %x, expecting %x", signature, DCC_FILE_SIGNATURE);

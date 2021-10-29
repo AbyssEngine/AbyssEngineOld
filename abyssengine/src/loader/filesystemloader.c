@@ -47,7 +47,7 @@ loader_provider *filesystem_loader_new(const char *base_path) {
 const char *filesystem_loader_get_name(loader_provider *provider) { return "FileSystem Loader"; }
 
 bool filesystem_loader_exists(loader_provider *provider, const char *path) {
-    filesystem_loader *src = (filesystem_loader *)provider;
+    const filesystem_loader *src = (filesystem_loader *)provider;
     char *file_path = calloc(1, 4096);
 
     strcat(file_path, src->base_path);
@@ -55,7 +55,7 @@ bool filesystem_loader_exists(loader_provider *provider, const char *path) {
     strcat(file_path, path);
 
 #ifdef _WIN32
-    DWORD file_attr = GetFileAttributesA(file_path);
+    const DWORD file_attr = GetFileAttributesA(file_path);
     bool result = ((file_attr != INVALID_FILE_ATTRIBUTES) && (file_attr != FILE_ATTRIBUTE_DIRECTORY));
 #else
     bool result = access(file_path, F_OK) != -1;
@@ -67,7 +67,7 @@ bool filesystem_loader_exists(loader_provider *provider, const char *path) {
 }
 
 void *filesystem_loader_load(loader_provider *provider, const char *path, int *file_size) {
-    filesystem_loader *src = (filesystem_loader *)provider;
+    const filesystem_loader *src = (filesystem_loader *)provider;
 
     if (!filesystem_loader_exists(provider, path)) {
         return NULL;
@@ -81,7 +81,7 @@ void *filesystem_loader_load(loader_provider *provider, const char *path, int *f
 
     FILE *file = fopen(file_path, "rb");
     fseek(file, 0, SEEK_END);
-    long fsize = ftell(file);
+    const long fsize = ftell(file);
     rewind(file);
 
     void *result = malloc(fsize);
@@ -99,6 +99,6 @@ void *filesystem_loader_load(loader_provider *provider, const char *path, int *f
 }
 
 void filesystem_loader_destroy(loader_provider *provider) {
-    filesystem_loader *src = (filesystem_loader *)provider;
+    const filesystem_loader *src = (filesystem_loader *)provider;
     free(src->base_path);
 }

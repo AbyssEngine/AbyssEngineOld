@@ -30,7 +30,6 @@
 #include <libabyss/log.h>
 #include <lua.h>
 #include <stdbool.h>
-#include <stddef.h>
 
 typedef struct engine engine;
 typedef struct sprite sprite;
@@ -46,7 +45,7 @@ extern thread *engine_thread;
 #define VERIFY_ENGINE_THREAD
 #endif
 
-engine *engine_create(char *base_path, ini_file *ini_config);
+engine *engine_create(const char *base_path, ini_file *ini_config);
 void engine_destroy(engine *src);
 void engine_init_sdl2(engine *src);
 void engine_finalize_sdl2(engine *src);
@@ -59,12 +58,12 @@ int engine_get_fps(engine *src);
 void engine_init_lua(engine *src);
 void engine_finalize_lua(engine *src);
 sysfont *engine_get_sysfont(const engine *src);
-engine *engine_get_global_instance();
+engine *engine_get_global_instance(void);
 void engine_set_global_instance(engine *src);
 void engine_show_system_cursor(engine *src, bool show);
-SDL_Renderer *engine_get_renderer(engine *src);
-ini_file *engine_get_ini_configuration(engine *src);
-void engine_set_callbacks(engine *src, void (*render_callback)(engine *src), void (*update_callback)(engine *src, uint32_t tid_diff));
+SDL_Renderer *engine_get_renderer(const engine *src);
+ini_file *engine_get_ini_configuration(const engine *src);
+void engine_set_callbacks(engine *src, void (*render_callback)(engine *), void (*update_callback)(engine *, uint32_t));
 SDL_Texture *engine_get_logo_texture(const engine *src, SDL_Rect *rect);
 void engine_set_boot_text(engine *src, const char *boot_text);
 const char *engine_get_boot_text(const engine *src);
@@ -79,7 +78,7 @@ bool engine_add_palette(engine *src, const char *palette_name, palette *pal);
 void engine_dispatch(engine *src, void (*dispatch)(void *data), void *data);
 void engine_set_cursor(engine *src, sprite *cursor, int offset_x, int offset_y);
 void engine_get_cursor_position(const engine *src, int *pos_x, int *pos_y);
-node *engine_get_root_node(engine *src);
+node *engine_get_root_node(const engine *src);
 e_mouse_button engine_get_mouse_button_state(const engine *src);
 void engine_set_mouse_button_state(engine *src, enum e_mouse_button new_state);
 lua_State *engine_get_lua_state(const engine *src);
@@ -88,7 +87,7 @@ bool engine_is_video_playing(const engine *src);
 void engine_end_video(engine *src);
 void engine_video_mutex_wait(engine *src);
 bool engine_get_is_running(const engine *src);
-void engine_handle_audio(void *userdata, Uint8 *stream, int len);
+void engine_handle_audio(void *user_data, Uint8 *stream, int len);
 SDL_AudioSpec engine_get_audio_spec(const engine *src);
 void engine_write_audio_buffer(engine *src, const void *data, int len);
 void engine_reset_audio_buffer(engine *src);
