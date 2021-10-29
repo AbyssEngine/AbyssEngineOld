@@ -26,7 +26,7 @@
 
 static const char *b64bytes = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-static int find_idx(const char ch) { return strchr(b64bytes, ch) - (void*)b64bytes; }
+static int find_idx(const char ch) { return strchr(b64bytes, ch) - b64bytes; }
 
 typedef struct png_read_data_handle {
     unsigned long pos;
@@ -137,7 +137,7 @@ SDL_Texture *util_load_texture_png(const void *source, int *xwidth, int *xheight
     void *pixels = malloc(height * pitch);
     uint8_t *ptr = pixels;
     for (uint32_t y = 0; y < height; y++) {
-        memcpy_s(ptr, height * pitch, row_data[y], pitch);
+        memcpy(ptr, row_data[y], pitch);
         ptr += pitch;
     }
 
@@ -168,10 +168,10 @@ char *str_replace(char *string, const char *substr, const char *replacement) {
     char *tok = NULL;
 
     if (substr == NULL || replacement == NULL) {
-        return _strdup(string);
+        return strdup(string);
     }
 
-    char *newstr = _strdup(string);
+    char *newstr = strdup(string);
 
     while ((tok = strstr(newstr, substr))) {
         char *oldstr = newstr;

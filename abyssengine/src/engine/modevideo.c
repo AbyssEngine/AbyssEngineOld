@@ -111,7 +111,7 @@ void modevideo_load_file(engine *src, const char *file_path) {
 
     if (video_buffer_data == NULL) {
         char *msg = calloc(1, 4096);
-        sprintf_s(msg, 4096, "Could not locate video file:\n%s", actual_path);
+        sprintf(msg, "Could not locate video file:\n%s", actual_path);
         engine_trigger_crash(src, msg);
         free(msg);
     }

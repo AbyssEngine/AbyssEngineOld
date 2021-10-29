@@ -84,7 +84,7 @@ bool loader_file_exists(loader *src, const char *path) {
         return NULL;
     }
 
-    char *new_path = _strdup(path);
+    char *new_path = strdup(path);
 
     new_path = str_replace(new_path, "\\", "/");
 

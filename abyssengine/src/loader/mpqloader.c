@@ -36,7 +36,7 @@ loader_provider *mpq_loader_new(const char *mpq_path) {
     result->provider.destroy_callback = mpq_loader_destroy;
     result->provider.exists_callback = mpq_loader_exists;
     result->provider.get_name_callback = mpq_loader_get_name;
-    result->mpq_path = _strdup(mpq_path);
+    result->mpq_path = strdup(mpq_path);
 
     return (loader_provider *)result;
 }

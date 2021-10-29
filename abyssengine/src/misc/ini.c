@@ -68,9 +68,9 @@ size_t getline(char **buf, size_t *bufsiz, FILE *fp) { return getdelim(buf, bufs
 ini_file *ini_file_load(const char *file_path) {
     ini_file *result = calloc(1, sizeof(ini_file));
 
-    FILE *file;
+    FILE *file = fopen(file_path, "r");
 
-    if (fopen_s(&file, file_path, "r") != 0) {
+    if (file == NULL) {
         free(result);
         return NULL;
     }
@@ -181,8 +181,8 @@ ini_file_entry *ini_file_add_entry(ini_file_category *source, const char *name, 
     if (result == NULL)
         return NULL;
 
-    result->name = _strdup(name);
-    result->value = _strdup(value);
+    result->name = strdup(name);
+    result->value = strdup(value);
 
     source->entries = realloc(source->entries, sizeof(ini_file_entry *) * (++source->num_entries));
     source->entries[source->num_entries - 1] = result;

@@ -134,7 +134,7 @@ engine *engine_create(const char *base_path, ini_file *ini_config) {
     result->video_playing_mutex = mutex_create();
 
     result->pixel_buffer = (uint32_t *)calloc(GAME_WIDTH * GAME_HEIGHT, 4);
-    result->base_path = _strdup(base_path);
+    result->base_path = strdup(base_path);
     result->ini_config = ini_config;
     result->run_mode = ENGINE_RUNE_MODE_BOOT;
     result->root_node = malloc(sizeof(node));
@@ -232,7 +232,7 @@ void engine_init_sdl2(engine *src) {
         exit(-1);
     }
 
-    sprintf_s(window_title, 128, "Abyss Engine v%d.%d", ABYSS_VERSION_MAJOR, ABYSS_VERSION_MINOR);
+    sprintf(window_title, "Abyss Engine v%d.%d", ABYSS_VERSION_MAJOR, ABYSS_VERSION_MINOR);
     src->sdl_window = SDL_CreateWindow(window_title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, GAME_WIDTH, GAME_HEIGHT,
                                        SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
     if (src->sdl_window == 0) {
@@ -269,7 +269,7 @@ void engine_init_sdl2(engine *src) {
     free(window_title);
 
     log_info("Initalizing audio");
-    SDL_AudioSpec requested_audio_spec; 
+    SDL_AudioSpec requested_audio_spec;
     requested_audio_spec.freq = 44100;
     requested_audio_spec.format = AUDIO_S16LSB;
     requested_audio_spec.channels = 2;
@@ -396,7 +396,7 @@ void engine_run(engine *src) {
 
     if (src->ini_config == NULL) {
         char *crash_message = calloc(1, 4096);
-        sprintf_s(crash_message, 4096, "Could not locate ini file at %s.", src->base_path);
+        sprintf(crash_message, "Could not locate ini file at %s.", src->base_path);
         engine_trigger_crash(src, crash_message);
         free(crash_message);
     }
@@ -590,7 +590,7 @@ void engine_set_boot_text(engine *src, const char *boot_text) {
 void engine_trigger_crash(engine *src, const char *crash_text) {
     // TODO: We should verify thread here, but in a crash scenario is it really worth it?
 
-    src->crash_text = _strdup(crash_text);
+    src->crash_text = strdup(crash_text);
     modecrash_set_callbacks(src);
 }
 void engine_exit_boot_mode(engine *src) {
@@ -632,7 +632,7 @@ bool engine_add_palette(engine *src, const char *palette_name, palette *pal) {
 
     src->palettes = new_palette;
     src->palettes[src->num_palettes - 1].palette = pal;
-    src->palettes[src->num_palettes - 1].name = _strdup(palette_name);
+    src->palettes[src->num_palettes - 1].name = strdup(palette_name);
 
     mutex_unlock(src->palette_mutex);
     return true;
@@ -685,7 +685,7 @@ void engine_play_video(engine *src, const char *path) {
     if (src->video_file_path != NULL)
         free(src->video_file_path);
 
-    src->video_file_path = _strdup(path);
+    src->video_file_path = strdup(path);
     modevideo_set_callbacks(src);
     modevideo_load_file(src, path);
 }
