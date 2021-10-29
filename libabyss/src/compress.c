@@ -37,10 +37,10 @@ void *compress_decompress_wav(void *buffer, uint32_t buffer_size, int channel_co
     streamreader *input = streamreader_create(buffer, buffer_size);
     streamwriter *output = streamwriter_create();
 
-    uint8_t shift = streamreader_read_byte(input);
+    const uint8_t shift = streamreader_read_byte(input);
 
     for (int i = 0; i < channel_count; i++) {
-        uint16_t temp = streamreader_read_int16(input);
+        const uint16_t temp = streamreader_read_int16(input);
         array_2[i] = (int)temp;
         streamwriter_push_int16(output, temp);
     }
@@ -83,7 +83,7 @@ void *compress_decompress_wav(void *buffer, uint32_t buffer_size, int channel_co
             continue;
         }
 
-        int temp1 = lookup[array_1[channel]];
+        const int temp1 = lookup[array_1[channel]];
         int temp2 = temp1 >> shift;
 
         if (value & 1)

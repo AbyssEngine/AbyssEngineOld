@@ -109,40 +109,40 @@ void streamwriter_push_bits32(streamwriter *source, uint32_t byte, int bits) {
 void streamwriter_push_int16(streamwriter *source, int16_t value) {
     assert(source != NULL);
 
-    streamwriter_push_uint16(source, (uint16_t)value);
+    streamwriter_push_uint16(source, value);
 }
 
 void streamwriter_push_uint16(streamwriter *source, int16_t value) {
     assert(source != NULL);
 
-    char data[2] = {value & 0xFF, (value >> 8) & 0xFF};
+    const char data[2] = {value & 0xFF, (value >> 8) & 0xFF};
     streamwriter_push_bytes(source, data, 2);
 }
 
 void streamwriter_push_int32(streamwriter *source, int32_t value) {
     assert(source != NULL);
 
-    streamwriter_push_uint32(source, (uint32_t)value);
+    streamwriter_push_uint32(source, value);
 }
 
 void streamwriter_push_uint32(streamwriter *source, int32_t value) {
     assert(source != NULL);
 
-    char data[4] = {value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF};
+    const char data[4] = {value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF};
     streamwriter_push_bytes(source, data, 4);
 }
 
 void streamwriter_push_int64(streamwriter *source, int64_t value) {
     assert(source != NULL);
 
-    streamwriter_push_uint64(source, (uint64_t)value);
+    streamwriter_push_uint64(source, value);
 }
 
 void streamwriter_push_uint64(streamwriter *source, int64_t value) {
     assert(source != NULL);
 
-    char data[8] = {value & 0xFF,         (value >> 8) & 0xFF,  (value >> 16) & 0xFF, (value >> 24) & 0xFF,
-                    (value >> 32) & 0xFF, (value >> 40) & 0xFF, (value >> 48) & 0xFF, (value >> 56) & 0xFF};
+    const char data[8] = {value & 0xFF,         (value >> 8) & 0xFF,  (value >> 16) & 0xFF, (value >> 24) & 0xFF,
+                          (value >> 32) & 0xFF, (value >> 40) & 0xFF, (value >> 48) & 0xFF, (value >> 56) & 0xFF};
     streamwriter_push_bytes(source, data, 8);
 }
 

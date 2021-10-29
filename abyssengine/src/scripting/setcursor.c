@@ -26,7 +26,7 @@ typedef struct abyss_lua_set_cursor_request {
 } abyss_lua_set_cursor_request;
 
 void abyss_lua_set_cursor_dispatch(void *data) {
-    abyss_lua_set_cursor_request *request = (abyss_lua_set_cursor_request *)data;
+    const abyss_lua_set_cursor_request *request = (abyss_lua_set_cursor_request *)data;
     engine_set_cursor(engine_get_global_instance(), request->source, request->offset_x, request->offset_y);
     free(data);
 }
@@ -45,7 +45,7 @@ int abyss_lua_set_cursor(lua_State *l) {
     request->offset_x = lua_tonumber(l, 2);
     request->offset_y = lua_tonumber(l, 3);
 
-    engine_dispatch(engine_get_global_instance(), abyss_lua_set_cursor_dispatch, (void *)request);
+    engine_dispatch(engine_get_global_instance(), abyss_lua_set_cursor_dispatch, request);
 
     return 0;
 }

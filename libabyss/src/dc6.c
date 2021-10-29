@@ -52,7 +52,7 @@ void dc6_decode_footer(dc6 *source, streamreader *reader) {
         source->directions[idx].frames = calloc(source->frames_per_direction, sizeof(dc6_frame));
     }
 
-    uint32_t total_frames = source->number_of_directions * source->frames_per_direction;
+    const uint32_t total_frames = source->number_of_directions * source->frames_per_direction;
     streamreader_skip_bytes(reader, 4 * total_frames); // Skip the frame pointers
 
     for (uint32_t dir_idx = 0; dir_idx < source->number_of_directions; dir_idx++) {
@@ -124,7 +124,7 @@ dc6 *dc6_new_from_bytes(const void *data, uint64_t size) {
     dc6_decode_footer(result, reader);
 
     for (int dir_idx = 0; dir_idx < result->number_of_directions; dir_idx++) {
-        dc6_direction *direction = &result->directions[dir_idx];
+        const dc6_direction *direction = &result->directions[dir_idx];
         for (int frame_idx = 0; frame_idx < result->frames_per_direction; frame_idx++) {
             dc6_decode_frame(&direction->frames[frame_idx]);
         }
@@ -137,9 +137,9 @@ dc6 *dc6_new_from_bytes(const void *data, uint64_t size) {
 void dc6_destroy(dc6 *source) {
     if (source->directions != NULL) {
         for (int dir_idx = 0; dir_idx < source->number_of_directions; dir_idx++) {
-            dc6_direction *direction = &source->directions[dir_idx];
+            const dc6_direction *direction = &source->directions[dir_idx];
             for (int frame_idx = 0; frame_idx < source->frames_per_direction; frame_idx++) {
-                dc6_frame *frame = &direction->frames[frame_idx];
+                const dc6_frame *frame = &direction->frames[frame_idx];
                 if (frame->index_data != NULL)
                     free(frame->index_data);
                 free(frame->frame_data);

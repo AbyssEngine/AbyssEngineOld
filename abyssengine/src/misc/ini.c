@@ -20,11 +20,10 @@
 #include "util.h"
 #include <libabyss/log.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #ifdef _WIN32
-size_t getdelim(char **buf, size_t *bufsiz, int delimiter, FILE *fp) {
+size_t getdelim(char **buf, size_t *bufsiz, const int delimiter, FILE *fp) {
     char *ptr, *eptr;
 
     if (*buf == NULL || *bufsiz == 0) {
@@ -34,10 +33,10 @@ size_t getdelim(char **buf, size_t *bufsiz, int delimiter, FILE *fp) {
     }
 
     for (ptr = *buf, eptr = *buf + *bufsiz;;) {
-        int c = fgetc(fp);
+        const int c = fgetc(fp);
         if (c == -1) {
             if (feof(fp)) {
-                size_t diff = (size_t)(ptr - *buf);
+                const size_t diff = ptr - *buf;
                 if (diff != 0) {
                     *ptr = '\0';
                     return diff;
@@ -52,8 +51,8 @@ size_t getdelim(char **buf, size_t *bufsiz, int delimiter, FILE *fp) {
         }
         if (ptr + 2 >= eptr) {
             char *nbuf;
-            size_t nbufsiz = *bufsiz * 2;
-            size_t d = ptr - *buf;
+            const size_t nbufsiz = *bufsiz * 2;
+            const size_t d = ptr - *buf;
             if ((nbuf = realloc(*buf, nbufsiz)) == NULL)
                 return 0;
             *buf = nbuf;
@@ -69,9 +68,7 @@ size_t getline(char **buf, size_t *bufsiz, FILE *fp) { return getdelim(buf, bufs
 ini_file *ini_file_load(const char *file_path) {
     ini_file *result = calloc(1, sizeof(ini_file));
 
-    FILE *file;
-
-    file = fopen(file_path, "r");
+    FILE *file = fopen(file_path, "r");
 
     if (file == NULL) {
         free(result);
@@ -125,7 +122,7 @@ ini_file *ini_file_load(const char *file_path) {
             return NULL;
         }
 
-        char *field_name = line_trimmed;
+        const char *field_name = line_trimmed;
         char *field_value = strchr(line_trimmed, '=');
 
         if (field_value == NULL) {
@@ -180,6 +177,9 @@ ini_file_category *ini_file_get_category(ini_file *source, const char *category_
 
 ini_file_entry *ini_file_add_entry(ini_file_category *source, const char *name, const char *value) {
     ini_file_entry *result = calloc(1, sizeof(ini_file_entry));
+
+    if (result == NULL)
+        return NULL;
 
     result->name = strdup(name);
     result->value = strdup(value);

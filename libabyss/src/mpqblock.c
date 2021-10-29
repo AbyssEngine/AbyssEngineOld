@@ -29,6 +29,6 @@ uint32_t mpq_block_get_encryption_seed(mpq_block *source, const char *filename) 
     } else {
         filename_start++;
     }
-    uint32_t seed = crypto_hash_string(filename_start, 3);
+    const uint32_t seed = crypto_hash_string(filename_start, 3);
     return (seed + source->file_position) ^ source->file_size_uncompressed;
 }

@@ -27,7 +27,7 @@ int abyss_lua_file_exists(lua_State *l) {
    const char *path = lua_tostring(l, 1);
 
    char *path_tmp = strdup(path);
-   char *path_new = util_fix_mpq_path(path_tmp);
+   const char *path_new = util_fix_mpq_path(path_tmp);
 
    bool exists = loader_file_exists(engine_get_loader(engine_get_global_instance()), path_new);
    lua_pushboolean(l, exists);

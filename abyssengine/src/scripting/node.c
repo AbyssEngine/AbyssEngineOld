@@ -79,7 +79,7 @@ typedef struct append_child_dispatch_item {
 } append_child_dispatch_item;
 
 void abyss_lua_node_append_child_dispatch(void *data) {
-    append_child_dispatch_item *item = (append_child_dispatch_item *)data;
+    append_child_dispatch_item *item = data;
     node_append_child(item->source, item->child);
     free(item);
 }
@@ -120,7 +120,7 @@ int abyss_lua_node_destroy(lua_State *l) {
 }
 
 void abyss_lua_node_detach_dispatch(void *data) {
-    node *source = (node *)data;
+    node *source = data;
     node_remove(source, engine_get_global_instance());
 }
 

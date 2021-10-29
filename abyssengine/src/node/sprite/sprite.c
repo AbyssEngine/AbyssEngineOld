@@ -65,12 +65,12 @@ typedef struct sprite {
 } sprite;
 
 sprite *sprite_load(const char *file_path, const char *palette_name) {
-    size_t path_len = strlen(file_path) - 4;
+    const size_t path_len = strlen(file_path) - 4;
     if (path_len < 5) {
         return NULL;
     }
 
-    engine *engine = engine_get_global_instance();
+    const engine *engine = engine_get_global_instance();
 
     const palette *palette = engine_get_palette(engine, palette_name);
 
@@ -111,7 +111,7 @@ sprite *sprite_load(const char *file_path, const char *palette_name) {
     } else if (strcmp(path_ext, ".dc6") == 0) {
         result->sprite_type = sprite_type_dc6;
         char *path_tmp = strdup(file_path);
-        char *path_new = util_fix_mpq_path(path_tmp);
+        const char *path_new = util_fix_mpq_path(path_tmp);
 
         int size;
         char *data = loader_load(engine_get_loader(engine_get_global_instance()), path_new, &size);
@@ -156,8 +156,8 @@ void sprite_advance_frame(sprite *source) {
     if (source->play_mode == sprite_play_mode_paused || source->play_mode == sprite_play_mode_unknown)
         return;
 
-    uint32_t start_index = 0;
-    uint32_t end_index = sprite_get_frames_per_animation(source);
+    const uint32_t start_index = 0;
+    const uint32_t end_index = sprite_get_frames_per_animation(source);
 
     //    if s.hasSubLoop && s.playedCount > 0 {
     //        startIndex = s.subStartingFrame
@@ -187,10 +187,10 @@ void sprite_animate(sprite *source, float time_elapsed) {
     if (source->play_mode == sprite_play_mode_paused)
         return;
 
-    uint32_t frame_count = sprite_get_frames_per_animation(source);
-    float frame_length = source->play_length / (float)frame_count;
+    const uint32_t frame_count = sprite_get_frames_per_animation(source);
+    const float frame_length = source->play_length / (float)frame_count;
     source->last_frame_time += time_elapsed;
-    uint32_t frames_advanced = (uint32_t)(source->last_frame_time / frame_length);
+    const uint32_t frames_advanced = (uint32_t)(source->last_frame_time / frame_length);
     source->last_frame_time -= (float)frames_advanced * frame_length;
 
     for (int i = 0; i < frames_advanced; i++)
@@ -204,20 +204,20 @@ void sprite_regenerate_atlas_dc6(sprite *source) {
         SDL_DestroyTexture(source->atlas);
     }
 
-    dc6 *dc6 = source->image_data.dc6_data;
+    const dc6 *dc6 = source->image_data.dc6_data;
 
     int atlas_width = 0;
     int atlas_height = 0;
 
     for (int dir_idx = 0; dir_idx < dc6->number_of_directions; dir_idx++) {
-        dc6_direction *direction = &dc6->directions[dir_idx];
+        const dc6_direction *direction = &dc6->directions[dir_idx];
         int direction_max_width = 0;
         int direction_max_height = 0;
         for (int frame_idx = 0; frame_idx < dc6->frames_per_direction; frame_idx++) {
-            dc6_frame *frame = &direction->frames[frame_idx];
+            const dc6_frame *frame = &direction->frames[frame_idx];
 
             direction_max_width += (int)frame->width;
-            direction_max_height = (direction_max_height < frame->height) ? (int)frame->height : (int)direction_max_height;
+            direction_max_height = (direction_max_height < frame->height) ? (int)frame->height : direction_max_height;
         }
 
         atlas_width = (atlas_width < direction_max_width) ? direction_max_width : atlas_width;
@@ -241,11 +241,11 @@ void sprite_regenerate_atlas_dc6(sprite *source) {
     int start_y = 0;
 
     for (int dir_idx = 0; dir_idx < dc6->number_of_directions; dir_idx++) {
-        dc6_direction *direction = &dc6->directions[dir_idx];
+        const dc6_direction *direction = &dc6->directions[dir_idx];
         int direction_max_height = 0;
 
         for (int frame_idx = 0; frame_idx < dc6->frames_per_direction; frame_idx++) {
-            dc6_frame *frame = &direction->frames[frame_idx];
+            const dc6_frame *frame = &direction->frames[frame_idx];
             sprite_frame_pos *frame_rect = &source->frame_rects[(dir_idx * dc6->frames_per_direction) + frame_idx];
             frame_rect->rect.x = start_x;
             frame_rect->rect.y = start_y;
@@ -261,7 +261,7 @@ void sprite_regenerate_atlas_dc6(sprite *source) {
                 }
             }
 
-            direction_max_height = (direction_max_height < frame->height) ? (int)frame->height : (int)direction_max_height;
+            direction_max_height = (direction_max_height < frame->height) ? (int)frame->height : direction_max_height;
             start_x += (int)frame->width;
         }
 
@@ -291,7 +291,7 @@ void sprite_regenerate_atlas(sprite *source) {
 void sprite_frame_offset(sprite *source, uint32_t frame, int *offset_x, int *offset_y) {
     switch (source->sprite_type) {
     case sprite_type_dc6: {
-        dc6_frame *item = &source->image_data.dc6_data->directions[source->current_animation].frames[frame];
+        const dc6_frame *item = &source->image_data.dc6_data->directions[source->current_animation].frames[frame];
         if (offset_x != NULL)
             *offset_x = item->offset_x;
 
@@ -346,20 +346,20 @@ void sprite_render_callback(node *node, engine *e, int offset_x, int offset_y) {
 
     SDL_Renderer *renderer = engine_get_renderer(e);
 
-    int start_x = pos_x;
+    const int start_x = pos_x;
 
     for (int cell_offset_y = 0; cell_offset_y < source->cell_size_y; cell_offset_y++) {
         int last_height = 0;
 
         for (int cell_offset_x = 0; cell_offset_x < source->cell_size_x; cell_offset_x++) {
-            uint32_t cell_index = source->current_frame + (cell_offset_x + (cell_offset_y * source->cell_size_x));
+            const uint32_t cell_index = source->current_frame + (cell_offset_x + (cell_offset_y * source->cell_size_x));
 
             int frame_offset_x;
             int frame_offset_y;
             sprite_frame_offset(source, cell_index, &frame_offset_x, &frame_offset_y);
 
             sprite_frame_pos *pos = &source->frame_rects[(source->current_animation * source->total_frames) + cell_index];
-            SDL_Rect *source_rect = &pos->rect;
+            const SDL_Rect *source_rect = &pos->rect;
             SDL_Rect dest_rect = *source_rect;
             dest_rect.x = pos->offset_x + pos_x;
             dest_rect.y = pos->offset_y + pos_y;
@@ -664,7 +664,7 @@ bool sprite_mouse_event_callback(node *node, struct engine *e, enum e_mouse_even
         if (!source->mouse_in_sprite)
             break;
 
-        int lua_func = (event_info->button_event.pressed) ? source->lua_mouse_down_callback_func : source->lua_mouse_up_callback_func;
+        const int lua_func = (event_info->button_event.pressed) ? source->lua_mouse_down_callback_func : source->lua_mouse_up_callback_func;
         if (lua_func != 0) {
             lua_rawgeti(l, LUA_REGISTRYINDEX, lua_func);
             lua_pushnumber(l, event_info->button_event.button);
@@ -674,11 +674,11 @@ bool sprite_mouse_event_callback(node *node, struct engine *e, enum e_mouse_even
 
     } break;
     case mouse_event_type_move: {
-        int mx = event_info->move_event.x;
-        int my = event_info->move_event.y;
+        const int mx = event_info->move_event.x;
+        const int my = event_info->move_event.y;
 
-        int sx = node->x;
-        int sy = node->y;
+        const int sx = node->x;
+        const int sy = node->y;
         int sx2 = sx;
         int sy2 = sy;
         uint32_t fx;

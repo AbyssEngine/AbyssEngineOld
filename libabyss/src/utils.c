@@ -53,7 +53,7 @@ void util_get_folder_path_part(char *path) {
         return;
     }
 
-    size_t path_end_len = strlen(last_break);
+    const size_t path_end_len = strlen(last_break);
     memset(last_break, 0, path_end_len);
 }
 
@@ -82,9 +82,9 @@ void util_normalize_path(char *path) {
             left--;
         }
 
-        size_t edge_len = strlen(edge);
+        const size_t edge_len = strlen(edge);
         char *copy_left = left + 1;
-        char *copy_right = edge;
+        const char *copy_right = edge;
         memcpy(copy_left, copy_right, edge_len);
         memset(copy_left + edge_len, 0, strlen(copy_left + edge_len));
 
@@ -153,7 +153,7 @@ void util_trim_end_string(char *str) {
     char *end;
 
     end = str + strlen(str) - 1;
-    while (end > str && util_is_space((unsigned char)*end)) {
+    while (end > str && util_is_space(*end)) {
         end--;
     }
 
@@ -161,7 +161,7 @@ void util_trim_end_string(char *str) {
 }
 
 char *util_trim_string(char *str) {
-    while (util_is_space((unsigned char)*str)) {
+    while (util_is_space(*str)) {
         str++;
     }
 

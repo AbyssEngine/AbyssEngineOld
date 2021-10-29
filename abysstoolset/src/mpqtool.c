@@ -140,7 +140,7 @@ int mpqtool_extract(const char *mpq_path, char *file_path) {
 
     const char *cwd = util_get_cwd();
 
-    int result = (strcmp(file_path, "*") != 0) ? mpqtool_extract_single_file(source, cwd, file_path) : mpqtool_extract_all_files(source, cwd);
+    const int result = (strcmp(file_path, "*") != 0) ? mpqtool_extract_single_file(source, cwd, file_path) : mpqtool_extract_all_files(source, cwd);
 
     free((void *)cwd);
     mpq_destroy(source);
@@ -168,7 +168,7 @@ int mpqtool_list(const char *mpq_path) {
 
     token = strtok(data, end_line);
 
-    while ((token != NULL) && (token < (char *)(data + file_size))) {
+    while ((token != NULL) && (token < data + file_size)) {
         if (strlen(token) == 0) {
             continue;
         }

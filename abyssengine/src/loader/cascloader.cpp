@@ -17,7 +17,7 @@ typedef struct casc_loader {
 static const char *casc_loader_get_name(loader_provider *provider) { return "CASC Loader"; }
 
 static void casc_loader_destroy(loader_provider *provider) {
-    casc_loader *source = (casc_loader *)provider;
+    const casc_loader *source = (casc_loader *)provider;
 
     if (source->hStorage) {
         CascCloseStorage(source->hStorage);
@@ -40,7 +40,7 @@ static bool casc_progress_callback(
 }
 
 static bool WINAPI casc_loader_exists(loader_provider *provider, const char *path) {
-    casc_loader *source = (casc_loader *)provider;
+    const casc_loader *source = (casc_loader *)provider;
     std::string file_path = "data:";
     file_path += path;
     HANDLE file;
@@ -52,7 +52,7 @@ static bool WINAPI casc_loader_exists(loader_provider *provider, const char *pat
 }
 
 static void *casc_loader_load(loader_provider *provider, const char *path, int *file_size) {
-    casc_loader *source = (casc_loader *)provider;
+    const casc_loader *source = (casc_loader *)provider;
     std::string file_path = "data:";
     file_path += path;
     HANDLE file;
@@ -61,7 +61,7 @@ static void *casc_loader_load(loader_provider *provider, const char *path, int *
     }
 
     DWORD size1 = 0;
-    DWORD size2 = CascGetFileSize(file, &size1);
+    const DWORD size2 = CascGetFileSize(file, &size1);
     ULONGLONG size = size1;
     size <<= 32;
     size |= size2;

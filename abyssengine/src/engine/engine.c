@@ -115,8 +115,8 @@ thread *engine_thread;
 
 static engine *global_engine_instance;
 
-engine *engine_create(char *base_path, ini_file *ini_config) {
-    engine *result = (engine *)calloc(1, sizeof(engine));
+engine *engine_create(const char *base_path, ini_file *ini_config) {
+    engine *result = calloc(1, sizeof(engine));
 
     log_info("Creating engine instance");
 
@@ -174,9 +174,9 @@ void engine_destroy(engine *src) {
         free(src->crash_text);
 
     if (src->palettes != NULL) {
-        for (int i = 0; i < src->num_palettes; i++) {
-            palette_destroy(src->palettes[i].palette);
+        for (uint32_t i = 0; i < src->num_palettes; i++) {
             free(src->palettes[i].name);
+            palette_destroy(src->palettes[i].palette);
         }
         free(src->palettes);
     }
@@ -227,24 +227,29 @@ void engine_init_sdl2(engine *src) {
     }
 
     char *window_title = calloc(1, 128);
+    if (window_title == NULL) {
+        log_fatal("Failed to allocate window title buffer.");
+        exit(-1);
+    }
+
     sprintf(window_title, "Abyss Engine v%d.%d", ABYSS_VERSION_MAJOR, ABYSS_VERSION_MINOR);
     src->sdl_window = SDL_CreateWindow(window_title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, GAME_WIDTH, GAME_HEIGHT,
                                        SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
     if (src->sdl_window == 0) {
         log_fatal(SDL_GetError());
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
     src->sdl_renderer = SDL_CreateRenderer(src->sdl_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (src->sdl_renderer == 0) {
         log_fatal(SDL_GetError());
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
 
     if (src->sdl_renderer == 0) {
         log_fatal(SDL_GetError());
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     SDL_RendererInfo render_info;
@@ -297,7 +302,7 @@ static void engine_script_thread_cleanup(void *data) {
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "ConstantFunctionResult"
 static void *engine_script_thread(void *data) {
-    engine *src = (engine *)data;
+    engine *src = data;
 
     // thread_cleanup_push(engine_script_thread_cleanup, data);
 
@@ -355,8 +360,8 @@ void ffmpeg_log_callback(void *avcl, int level, const char *fmt, va_list args) {
 void engine_handle_dispatches(engine *src) {
     mutex_lock(src->dispatch_mutex);
 
-    for (int i = 0; i < src->num_dispatches; i++) {
-        dispatch_item *item = &src->dispatches[i];
+    for (uint32_t i = 0; i < src->num_dispatches; i++) {
+        const dispatch_item *item = &src->dispatches[i];
         item->func(item->data);
     }
 
@@ -466,6 +471,9 @@ void engine_handle_sdl_event(engine *src, const SDL_Event *evt) {
     case SDL_QUIT:
         engine_shutdown(src);
         return;
+    default:
+        return;
+
     }
 }
 
@@ -496,8 +504,8 @@ void engine_render(engine *src) {
 }
 
 void engine_update(engine *src) {
-    uint32_t new_ticks = SDL_GetTicks();
-    uint32_t tick_diff = new_ticks - src->last_tick;
+    const uint32_t new_ticks = SDL_GetTicks();
+    const uint32_t tick_diff = new_ticks - src->last_tick;
     if (tick_diff <= 0) {
         return;
     }
@@ -525,7 +533,7 @@ void engine_init_lua(engine *src) {
 
 void engine_finalize_lua(engine *src) { lua_close(src->lua_state); }
 
-engine *engine_get_global_instance() { return global_engine_instance; }
+engine *engine_get_global_instance(void) { return global_engine_instance; }
 
 void engine_set_global_instance(engine *src) { global_engine_instance = src; }
 
@@ -534,9 +542,9 @@ void engine_show_system_cursor(engine *src, bool show) {
     SDL_ShowCursor(show);
 }
 
-SDL_Renderer *engine_get_renderer(engine *src) { return src->sdl_renderer; }
+SDL_Renderer *engine_get_renderer(const engine *src) { return src->sdl_renderer; }
 
-ini_file *engine_get_ini_configuration(engine *src) { return src->ini_config; }
+ini_file *engine_get_ini_configuration(const engine *src) { return src->ini_config; }
 
 sysfont *engine_get_sysfont(const engine *src) { return src->font; }
 
@@ -544,7 +552,7 @@ const char *engine_get_boot_text(const engine *src) { return src->boot_text; }
 
 const char *engine_get_crash_text(const engine *src) { return src->crash_text; }
 
-void engine_set_callbacks(engine *src, void (*render_callback)(engine *src), void (*update_callback)(engine *src, uint32_t tid_diff)) {
+void engine_set_callbacks(engine *src, void (*render_callback)(engine *), void (*update_callback)(engine *, uint32_t)) {
     src->render_callback = render_callback;
     src->update_callback = update_callback;
 }
@@ -594,11 +602,11 @@ void engine_exit_boot_mode(engine *src) {
 const palette *engine_get_palette(const engine *src, const char *palette_name) {
     mutex_lock(src->palette_mutex);
 
-    for (int idx = 0; idx < src->num_palettes; idx++) {
+    for (uint32_t idx = 0; idx < src->num_palettes; idx++) {
         if (strcmp(src->palettes[idx].name, palette_name) != 0)
             continue;
 
-        palette *result = src->palettes[idx].palette;
+        const palette *result = src->palettes[idx].palette;
         mutex_unlock(src->palette_mutex);
         return result;
     }
@@ -616,7 +624,13 @@ bool engine_add_palette(engine *src, const char *palette_name, palette *pal) {
         return false;
     }
 
-    src->palettes = realloc(src->palettes, sizeof(palette_item) * (++src->num_palettes));
+    palette_item *new_palette = realloc(src->palettes, sizeof(palette_item) * (++src->num_palettes));
+    if (new_palette == NULL) {
+        log_error("Failed to resize palette array.");
+        exit(EXIT_FAILURE);
+    }
+
+    src->palettes = new_palette;
     src->palettes[src->num_palettes - 1].palette = pal;
     src->palettes[src->num_palettes - 1].name = strdup(palette_name);
 
@@ -643,9 +657,9 @@ void engine_set_cursor(engine *src, sprite *cursor, int offset_x, int offset_y) 
     src->cursor_offset_y = offset_y;
 }
 
-node *engine_get_root_node(engine *src) { return src->root_node; }
+node *engine_get_root_node(const engine *src) { return src->root_node; }
 
-mutex *engine_get_node_mutex(engine *src) { return src->node_mutex; }
+mutex *engine_get_node_mutex(const engine *src) { return src->node_mutex; }
 
 e_mouse_button engine_get_mouse_button_state(const engine *src) { return src->mouse_button_state; }
 
@@ -699,11 +713,11 @@ bool engine_is_video_playing(const engine *src) {
 }
 bool engine_get_is_running(const engine *src) { return src->is_running; }
 void engine_handle_audio(void *userdata, Uint8 *stream, int len) {
-    engine *src = (engine *)userdata;
+    engine *src = userdata;
 
     mutex_lock(src->audio_mutex);
 
-    int to_read = (src->audio_buffer_remaining < len) ? src->audio_buffer_remaining : len;
+    const int to_read = (src->audio_buffer_remaining < len) ? src->audio_buffer_remaining : len;
 
     if (to_read <= 0) {
         memset(stream, 0, len);
@@ -733,14 +747,14 @@ SDL_AudioSpec engine_get_audio_spec(const engine *src) { return src->audio_outpu
 void engine_write_audio_buffer(engine *src, const void *data, int len) {
     mutex_lock(src->audio_mutex);
 
-    int remaining_size = AUDIO_BUFFER_SIZE - src->audio_buffer_remaining;
-    int to_write = len;
+    const int remaining_size = AUDIO_BUFFER_SIZE - src->audio_buffer_remaining;
+    const int to_write = len;
 
-    int overflow = (len > remaining_size) ? (len - remaining_size) : 0;
+    const int overflow = (len > remaining_size) ? (len - remaining_size) : 0;
 
     int write_pos = src->audio_buffer_write_pos;
     for (int i = 0; i < to_write; i++) {
-        src->audio_buffer[write_pos] = ((char *)data)[i];
+        src->audio_buffer[write_pos] = ((const char *)data)[i];
 
         write_pos++;
 

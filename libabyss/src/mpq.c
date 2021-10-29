@@ -73,7 +73,7 @@ int mpq_get_hash_index(const mpq *source, uint32_t hash_a, uint32_t hash_b) {
 }
 
 mpq_block *mpq_get_block(const mpq *source, const char *filename) {
-    int hash_index = mpq_get_hash_index(source, crypto_hash_string(filename, 1), crypto_hash_string(filename, 2));
+    const int hash_index = mpq_get_hash_index(source, crypto_hash_string(filename, 1), crypto_hash_string(filename, 2));
 
     if ((hash_index < 0) || (hash_index >= source->header.hash_table_entries)) {
         return NULL;
@@ -136,7 +136,7 @@ mpq *mpq_load(const char *file_path) {
     result->file_path = strdup(file_path);
     fread(&result->header, sizeof(mpq_header), 1, result->file);
 
-    if (strncmp((char *)result->header.magic, "MPQ\x1A", 4) != 0) {
+    if (strncmp(result->header.magic, "MPQ\x1A", 4) != 0) {
         log_error("MPQ failed to load due to an invalid header");
         fclose(result->file);
         free(result);

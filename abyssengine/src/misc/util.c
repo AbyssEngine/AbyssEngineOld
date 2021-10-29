@@ -21,13 +21,12 @@
 #include "../engine/engine.h"
 #include <libabyss/log.h>
 #include <png.h>
-#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
 static const char *b64bytes = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-static inline int find_idx(const char ch) { return (int)(strchr(b64bytes, ch) - b64bytes); }
+static int find_idx(const char ch) { return strchr(b64bytes, ch) - b64bytes; }
 
 typedef struct png_read_data_handle {
     unsigned long pos;
@@ -36,6 +35,10 @@ typedef struct png_read_data_handle {
 
 void *util_base64_decode(const char *source, unsigned int bytes) {
     uint8_t *result = malloc(bytes);
+
+    if (result == NULL)
+        return NULL;
+
     uint8_t *result_ptr = result;
 
     const char *source_ptr = source;
@@ -71,7 +74,7 @@ void png_error_func(png_structp png, png_const_charp error_message) { log_error(
 void png_warn_func(png_structp png, png_const_charp warn_message) { log_warn("LibPNG: %s", warn_message); }
 
 void png_reader(png_structp png, png_bytep data_out, png_size_t to_read) {
-    png_read_data_handle *data_handle = (png_read_data_handle *)png_get_io_ptr(png);
+    png_read_data_handle *data_handle = png_get_io_ptr(png);
     const png_byte *read_src = (png_byte *)data_handle->data + data_handle->pos;
     memcpy(data_out, read_src, to_read);
     data_handle->pos += to_read;
@@ -94,10 +97,10 @@ SDL_Texture *util_load_texture_png(const void *source, int *xwidth, int *xheight
     png_set_read_fn(png, &data_handle, png_reader);
     png_read_info(png, info);
 
-    png_uint_32 width = png_get_image_width(png, info);
-    png_uint_32 height = png_get_image_height(png, info);
-    png_byte depth = png_get_bit_depth(png, info);
-    png_byte color_type = png_get_color_type(png, info);
+    const png_uint_32 width = png_get_image_width(png, info);
+    const png_uint_32 height = png_get_image_height(png, info);
+    const png_byte depth = png_get_bit_depth(png, info);
+    const png_byte color_type = png_get_color_type(png, info);
 
     if (depth == 16) {
         png_set_strip_16(png);
@@ -122,10 +125,10 @@ SDL_Texture *util_load_texture_png(const void *source, int *xwidth, int *xheight
     }
 
     png_read_update_info(png, info);
-    size_t pitch = png_get_rowbytes(png, info);
+    const size_t pitch = png_get_rowbytes(png, info);
 
-    png_bytep *row_data = (png_bytep *)malloc(sizeof(png_bytep) * height);
-    for (int y = 0; y < height; y++) {
+    png_bytep *row_data = malloc(sizeof(png_bytep) * height);
+    for (uint32_t y = 0; y < height; y++) {
         row_data[y] = (png_byte *)malloc(pitch);
     }
 
@@ -133,13 +136,13 @@ SDL_Texture *util_load_texture_png(const void *source, int *xwidth, int *xheight
 
     void *pixels = malloc(height * pitch);
     uint8_t *ptr = pixels;
-    for (int y = 0; y < height; y++) {
-        memcpy(ptr, (uint8_t *)row_data[y], pitch);
+    for (uint32_t y = 0; y < height; y++) {
+        memcpy(ptr, row_data[y], pitch);
         ptr += pitch;
     }
 
     SDL_Texture *texture = SDL_CreateTexture(engine_get_renderer(engine_get_global_instance()), SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC,
-                                             (int)width, (int)height);
+                                             width, height);
 
     SDL_UpdateTexture(texture, NULL, pixels, pitch);
 
@@ -163,17 +166,15 @@ SDL_Texture *util_load_texture_png(const void *source, int *xwidth, int *xheight
 
 char *str_replace(char *string, const char *substr, const char *replacement) {
     char *tok = NULL;
-    char *newstr = NULL;
-    char *oldstr = NULL;
 
     if (substr == NULL || replacement == NULL) {
         return strdup(string);
     }
 
-    newstr = strdup(string);
+    char *newstr = strdup(string);
 
     while ((tok = strstr(newstr, substr))) {
-        oldstr = newstr;
+        char *oldstr = newstr;
         newstr = malloc(strlen(oldstr) - strlen(substr) + strlen(replacement) + 1);
 
         if (newstr == NULL) {
@@ -194,21 +195,19 @@ char *str_replace(char *string, const char *substr, const char *replacement) {
     return newstr;
 }
 
-bool is_space(unsigned char ch) { return (ch == '\r') || (ch == ' ') || (ch == '\t' || (ch == '\n')); }
+bool is_space(const unsigned char ch) { return (ch == '\r') || (ch == ' ') || (ch == '\t' || (ch == '\n')); }
 
 char *trim_string(char *str) {
-    char *end;
 
-    while (is_space((unsigned char)*str)) {
+    while (is_space(*str))
         str++;
-    }
 
-    if (*str == 0) {
+    if (*str == 0)
         return str;
-    }
 
-    end = str + strlen(str) - 1;
-    while (end > str && is_space((unsigned char)*end)) {
+
+    char *end = str + strlen(str) - 1;
+    while (end > str && is_space(*end)) {
         end--;
     }
 

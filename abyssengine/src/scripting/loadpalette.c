@@ -32,7 +32,7 @@ int abyss_lua_load_palette(lua_State *l) {
     const char *palette_path = lua_tostring(l, 2);
 
     char *path_tmp = strdup(palette_path);
-    char *path_new = util_fix_mpq_path(path_tmp);
+    const char *path_new = util_fix_mpq_path(path_tmp);
 
     int size;
     char *data = loader_load(engine_get_loader(engine_get_global_instance()), path_new, &size);

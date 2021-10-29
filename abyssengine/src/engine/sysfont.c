@@ -23,7 +23,7 @@
 
 #ifdef _WIN32
 char *strndup(char const *s, size_t n) {
-    size_t len = strnlen(s, n);
+    const size_t len = strnlen(s, n);
     char *new = malloc(len + 1);
     if (!new)
         return NULL;
@@ -52,8 +52,8 @@ sysfont *sysfont_create(const void *font_gfx) {
     SDL_SetTextureBlendMode(result->font_texture, SDL_BLENDMODE_BLEND);
 
     for (int i = 0; i < 256; i++) {
-        int tx = i % 16;
-        int ty = (i - tx) / 16;
+        const int tx = i % 16;
+        const int ty = (i - tx) / 16;
         SDL_Rect *rect = &result->char_rects[i];
         rect->w = result->char_width;
         rect->h = result->char_height;
@@ -80,7 +80,7 @@ void sysfont_draw_wrap(sysfont *source, SDL_Renderer *renderer, const int x, con
 
     for (const char *ch = string; *ch != '\0'; ch++) {
 
-        if ((target.x > x) && ((*((char *)(ch - 1)) == ' ') || (*((char *)(ch - 1)) == '\t')) && (max_width > source->char_width)) {
+        if ((target.x > x) && ((*(ch - 1) == ' ') || (*(ch - 1) == '\t')) && (max_width > source->char_width)) {
             int temp_x = target.x - x;
             for (const char *ch_temp = ch; ((*ch_temp != ' ') && (*ch_temp != '\t')) && (*ch_temp != '\0'); ch_temp++) {
                 temp_x += source->char_width;
@@ -103,7 +103,7 @@ void sysfont_draw_wrap(sysfont *source, SDL_Renderer *renderer, const int x, con
             continue;
         }
 
-        if ((*ch == '\\') && (*(char *)(ch + 1) == '#')) {
+        if ((*ch == '\\') && (*(ch + 1) == '#')) {
             ch += 2;
             if (strlen(ch) < 7) {
                 continue;
@@ -118,7 +118,7 @@ void sysfont_draw_wrap(sysfont *source, SDL_Renderer *renderer, const int x, con
             continue;
         }
 
-        SDL_RenderCopy(renderer, source->font_texture, &source->char_rects[*ch], &target);
+        SDL_RenderCopy(renderer, source->font_texture, &source->char_rects[(uint32_t) * ch], &target);
         target.x += source->char_width;
 
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, SDL_ALPHA_OPAQUE);

@@ -43,7 +43,7 @@ void thread_join(thread *source) {
 }
 
 bool thread_same(thread *other) {
-    DWORD source_id = GetThreadId(GetCurrentThread());
+    const DWORD source_id = GetThreadId(GetCurrentThread());
     return source_id == other->thread_id;
 }
 

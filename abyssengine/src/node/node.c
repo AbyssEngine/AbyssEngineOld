@@ -109,6 +109,7 @@ void node_remove(node *source, engine *e) {
         if (parent->children[i] != source)
             continue;
 
+        child_idx = i;
         break;
     }
 
@@ -117,7 +118,7 @@ void node_remove(node *source, engine *e) {
         return;
     }
 
-    memmove(&parent->children[child_idx], &parent->children[child_idx + 1], (parent->num_children - child_idx) - 1);
+    memmove(&parent->children[child_idx], &parent->children[child_idx + 1], parent->num_children - child_idx - 1);
     parent->num_children--;
     parent->children = realloc(parent->children, parent->num_children);
 }

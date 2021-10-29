@@ -20,7 +20,6 @@
 #include "../misc/util.h"
 #include "loaderprovider.h"
 #include <libabyss/log.h>
-#include <stdlib.h>
 #include <string.h>
 
 typedef struct loader {
@@ -95,7 +94,7 @@ bool loader_file_exists(loader *src, const char *path) {
     }
 
     for (int i = 0; i < src->num_providers; i++) {
-        if (!loader_provider_exists(src->providers[i], path)) {
+        if (!loader_provider_exists(src->providers[i], path_ptr)) {
             continue;
         }
 

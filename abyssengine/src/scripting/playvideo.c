@@ -22,7 +22,7 @@
 #include <stdbool.h>
 
 void abyss_lua_play_video_dispatch(void *data) {
-    engine_play_video(engine_get_global_instance(), (char *)data);
+    engine_play_video(engine_get_global_instance(), data);
     free(data);
 }
 
