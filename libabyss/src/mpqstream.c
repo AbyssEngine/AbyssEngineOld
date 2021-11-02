@@ -66,12 +66,14 @@ bool mpq_stream_load_block_offsets(mpq_stream *source) {
 
         const uint32_t block_pos_size = block_position_count << 2;
         if (source->positions[0] != block_pos_size) {
-            log_error("Decryption of MPQ Failed: block position size mismatch.");
+            log_error("Decryption of MPQ Failed: block position size mismatch: expected %i, but got %i instead.", block_pos_size,
+                      source->positions[0]);
             return false;
         }
 
         if (source->positions[1] > source->size + block_pos_size) {
-            log_error("Decryption of MPQ Failed: source size mismatch.");
+            log_error("Decryption of MPQ Failed: source size mismatch: expected %i, but got %i instead.", source->size + block_pos_size,
+                      source->positions[1]);
             return false;
         }
     }

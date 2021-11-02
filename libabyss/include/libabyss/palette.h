@@ -28,7 +28,7 @@ typedef struct palette_color {
     uint8_t alpha;
 } palette_color;
 
-typedef struct palette {
+typedef struct palette_transform {
     palette_color *base_palette;
 
     uint8_t **light_level_variations;
@@ -47,10 +47,11 @@ typedef struct palette {
 
     palette_color *text_colors;
     uint8_t **text_color_shifts;
+
+    bool is_dat;
 } palette;
 
-
-palette *palette_new_from_bytes(const void *data, uint64_t size);
-void palette_destroy(palette *source);
+palette *palette_new_from_bytes(const void *data, uint64_t size, bool is_dat);
+void palette_transform_destroy(palette *source);
 
 #endif // LIBABYSS_PALETTE_H

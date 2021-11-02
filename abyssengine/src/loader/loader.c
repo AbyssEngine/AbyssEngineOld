@@ -27,7 +27,7 @@ typedef struct loader {
     int num_providers;
 } loader;
 
-loader *loader_new() {
+loader *loader_new(void) {
     loader *result = calloc(1, sizeof(loader));
 
     return result;

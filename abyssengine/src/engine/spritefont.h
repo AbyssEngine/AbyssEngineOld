@@ -16,17 +16,17 @@
  * along with AbyssEngine.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ABYSS_LOADER_H
-#define ABYSS_LOADER_H
+#ifndef ABYSS_SPRITEFONT_H
+#define ABYSS_SPRITEFONT_H
 
-#include <stdbool.h>
-#include "loaderprovider.h"
-typedef struct loader loader;
+#include "../common/blendmode.h"
+#include "../common/color.h"
 
-loader *loader_new(void);
-void loader_destroy(loader *src);
-void loader_add_provider(loader *src, loader_provider *provider);
-void *loader_load(loader *src, const char *path, int *file_size);
-bool loader_file_exists(loader *src, const char *path);
+typedef struct spritefont spritefont;
 
-#endif // ABYSS_LOADER_H
+spritefont *spritefont_load(const char *file_path, const char *palette_name);
+void spritefont_destroy(spritefont *source);
+void spritefont_draw_text(spritefont *source, int x, int y, const char *text, e_blend_mode blend, rgb color_mod);
+void spritefont_get_metrics(const spritefont *source, const char *text, int *width, int *height);
+
+#endif // ABYSS_SPRITEFONT_H

@@ -20,6 +20,7 @@
 #include "streamreader.h"
 #include <libabyss/palette.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define NUM_PALETTE_COLORS 256
 #define NUM_TEXT_COLORS 13
@@ -98,9 +99,28 @@ void decode_transform_multi(streamreader *reader, uint8_t **dest, int count) {
     }
 }
 
-palette *palette_new_from_bytes(const void *data, const uint64_t size) {
+
+//    palette_color *result = malloc(sizeof(palette_color)* 256);
+//    for (int i = 0; i < 256; i++) {
+//        result[i].red = ((uint8_t*)data)[(i*3)];
+//        result[i].green = ((uint8_t*)data)[(i*3)+1];
+//        result[i].blue = ((uint8_t*)data)[(i*3)+2];
+//        result[i].alpha = 255;
+//    }
+//
+//    result[0].alpha = 0;
+//
+//    return result;
+
+palette *palette_new_from_bytes(const void *data, uint64_t size, bool is_dat) {
     streamreader *reader = streamreader_create(data, size);
     palette *result = calloc(1, sizeof(palette));
+    result->is_dat = is_dat;
+
+    if (is_dat) {
+        LOAD_COLORS(base_palette, 3, NUM_PALETTE_COLORS)
+        return result;
+    }
 
     LOAD_COLORS(base_palette, 4, NUM_PALETTE_COLORS)
     LOAD_TRANSFORM_MULTI(light_level_variations, LIGHT_LEVEL_VARIATIONS)
@@ -126,25 +146,27 @@ palette *palette_new_from_bytes(const void *data, const uint64_t size) {
     return result;
 }
 
-void palette_destroy(palette *source) {
-    FREE_TRANSFORM_MULTI(text_color_shifts, TEXT_SHIFTS)
-    free(source->text_colors);
-    free(source->darkened_color_shift);
-    FREE_TRANSFORM_MULTI(max_component_blend, COMPONENT_BLENDS)
-    FREE_TRANSFORM_MULTI(unknown_variations, UNKNOWN_VARIATIONS)
-    free(source->blue_tones);
-    free(source->green_tones);
-    free(source->red_tones);
-    FREE_TRANSFORM_MULTI(hue_variations, HUE_VARIATIONS)
-    FREE_TRANSFORM_MULTI(multiplicative_blend, MULTIPLY_BLENDS)
-    FREE_TRANSFORM_MULTI(additive_blend, ADDITIVE_BLENDS)
-    for (int blend_idx = 0; blend_idx < ALPHA_BLEND_COARSE; blend_idx++) {
-        FREE_TRANSFORM_MULTI(alpha_blend[blend_idx], ALPHA_BLEND_FINE)
+void palette_transform_destroy(palette *source) {
+    if (!source->is_dat) {
+        FREE_TRANSFORM_MULTI(text_color_shifts, TEXT_SHIFTS)
+        free(source->text_colors);
+        free(source->darkened_color_shift);
+        FREE_TRANSFORM_MULTI(max_component_blend, COMPONENT_BLENDS)
+        FREE_TRANSFORM_MULTI(unknown_variations, UNKNOWN_VARIATIONS)
+        free(source->blue_tones);
+        free(source->green_tones);
+        free(source->red_tones);
+        FREE_TRANSFORM_MULTI(hue_variations, HUE_VARIATIONS)
+        FREE_TRANSFORM_MULTI(multiplicative_blend, MULTIPLY_BLENDS)
+        FREE_TRANSFORM_MULTI(additive_blend, ADDITIVE_BLENDS)
+        for (int blend_idx = 0; blend_idx < ALPHA_BLEND_COARSE; blend_idx++) {
+            FREE_TRANSFORM_MULTI(alpha_blend[blend_idx], ALPHA_BLEND_FINE)
+        }
+        free(source->alpha_blend);
+        free(source->selected_unit_shift);
+        FREE_TRANSFORM_MULTI(inv_color_variations, INV_COLOR_VARIATIONS)
+        FREE_TRANSFORM_MULTI(light_level_variations, LIGHT_LEVEL_VARIATIONS)
     }
-    free(source->alpha_blend);
-    free(source->selected_unit_shift);
-    FREE_TRANSFORM_MULTI(inv_color_variations, INV_COLOR_VARIATIONS)
-    FREE_TRANSFORM_MULTI(light_level_variations, LIGHT_LEVEL_VARIATIONS)
     free(source->base_palette);
     free(source);
 }

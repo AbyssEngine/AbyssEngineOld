@@ -16,17 +16,24 @@
  * along with AbyssEngine.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ABYSS_LOADER_H
-#define ABYSS_LOADER_H
+#include "string.h"
+#include <ctype.h>
+#include <string.h>
 
-#include <stdbool.h>
-#include "loaderprovider.h"
-typedef struct loader loader;
+bool compare_str_ncase(const char *a, const char *b) {
+    if (a == b)
+        return true;
 
-loader *loader_new(void);
-void loader_destroy(loader *src);
-void loader_add_provider(loader *src, loader_provider *provider);
-void *loader_load(loader *src, const char *path, int *file_size);
-bool loader_file_exists(loader *src, const char *path);
+    if (a == NULL || b == NULL)
+        return false;
 
-#endif // ABYSS_LOADER_H
+    for (;;) {
+        if (tolower(*a) - tolower(*b++) == 0) {
+            if (*a++ == '\0')
+                return true;
+            continue;
+        }
+
+        return false;
+    }
+}
