@@ -17,6 +17,7 @@
  */
 
 #include "sprite.h"
+#include "../../common/string.h"
 #include "../../scripting/scripting.h"
 #include "libabyss/dc6.h"
 #include "libabyss/dcc.h"
@@ -504,13 +505,13 @@ const char *play_mode_to_string(enum e_sprite_play_mode play_mode) {
 
 enum e_sprite_play_mode string_to_play_mode(const char *mode_str) {
     enum e_sprite_play_mode play_mode = sprite_play_mode_unknown;
-    if (strcasecmp(mode_str, "paused") == 0)
+    if (compare_str_ncase(mode_str, "paused"))
         play_mode = sprite_play_mode_paused;
 
-    if (strcasecmp(mode_str, "forwards") == 0)
+    if (compare_str_ncase(mode_str, "forwards"))
         play_mode = sprite_play_mode_forwards;
 
-    if (strcasecmp(mode_str, "backwards") == 0)
+    if (compare_str_ncase(mode_str, "backwards"))
         play_mode = sprite_play_mode_backwards;
 
     return play_mode;

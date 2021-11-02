@@ -17,17 +17,18 @@
  */
 
 #include "blendmode.h"
+#include "string.h"
 
 e_blend_mode string_to_blend_mode(const char *string) {
-    if (strcasecmp(string, "none") == 0)
+    if (compare_str_ncase(string, "none"))
         return blend_mode_none;
-    if (strcasecmp(string, "blend") == 0)
+    if (compare_str_ncase(string, "blend"))
         return blend_mode_blend;
-    if (strcasecmp(string, "additive") == 0)
+    if (compare_str_ncase(string, "additive"))
         return blend_mode_add;
-    if (strcasecmp(string, "modulus") == 0)
+    if (compare_str_ncase(string, "modulus"))
         return blend_mode_mod;
-    if (strcasecmp(string, "multiply") == 0)
+    if (compare_str_ncase(string, "multiply"))
         return blend_mode_mul;
 
     return blend_mode_invalid;
@@ -46,6 +47,7 @@ const char *blend_mode_to_string(e_blend_mode blend_mode) {
     case blend_mode_mul:
         return "multiply";
     case blend_mode_invalid:
+    default:
         return NULL;
     }
 }

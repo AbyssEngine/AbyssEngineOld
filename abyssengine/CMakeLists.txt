@@ -76,6 +76,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/common/color.h
         src/common/blendmode.c src/common/blendmode.h
         src/common/align.c src/common/align.h
+        src/common/string.c src/common/string.h
 
         # Engine Modes -------------------------------------------------
         src/engine/modeboot.c src/engine/modeboot.h
