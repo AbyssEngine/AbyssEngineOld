@@ -52,7 +52,7 @@ typedef struct sprite {
     uint32_t cell_size_y;
     bool bottom_origin;
     bool mouse_in_sprite;
-    e_sprite_blend_mode blend_mode;
+    e_blend_mode blend_mode;
     enum e_sprite_play_mode play_mode;
     bool loop_animation;
     float last_frame_time;
@@ -139,7 +139,7 @@ sprite *sprite_load(const char *file_path, const char *palette_name) {
     result->cell_size_x = 1;
     result->cell_size_y = 1;
     result->bottom_origin = false;
-    result->blend_mode = sprite_blend_mode_blend;
+    result->blend_mode = blend_mode_blend;
     result->play_mode = sprite_play_mode_paused;
     result->loop_animation = true;
     result->play_length = 1.f;
@@ -256,8 +256,8 @@ void sprite_regenerate_atlas_dc6(sprite *source) {
 
             for (int y = 0; y < frame->height; y++) {
                 for (int x = 0; x < frame->width; x++) {
-                    palette_color *color = &source->palette->base_palette[frame->index_data[x + (y * frame->width)]];
-                    buffer[(start_x + x) + ((start_y + y) * atlas_width)] = *(uint32_t *)color;
+                    const palette_color *color = &source->palette->base_palette[frame->index_data[x + (y * frame->width)]];
+                    buffer[start_x + x + ((start_y + y) * atlas_width)] = *(uint32_t *)color;
                 }
             }
 
@@ -469,54 +469,18 @@ void sprite_set_bottom_origin(sprite *source, bool is_bottom_origin) { source->b
 
 bool sprite_get_bottom_origin(const sprite *source) { return source->bottom_origin; }
 
-void sprite_set_blend_mode(sprite *source, enum e_sprite_blend_mode blend_mode) {
+void sprite_set_blend_mode(sprite *source, e_blend_mode blend_mode) {
     source->blend_mode = blend_mode;
 
-    SDL_BlendMode new_mode;
-    switch (blend_mode) {
-    case sprite_blend_mode_none:
-        new_mode = SDL_BLENDMODE_NONE;
-        break;
-    case sprite_blend_mode_blend:
-        new_mode = SDL_BLENDMODE_BLEND;
-        break;
-    case sprite_blend_mode_add:
-        new_mode = SDL_BLENDMODE_ADD;
-        break;
-    case sprite_blend_mode_mod:
-        new_mode = SDL_BLENDMODE_MOD;
-        break;
-    case sprite_blend_mode_mul:
-        new_mode = SDL_BLENDMODE_MUL;
-        break;
-    default:
-        log_fatal("invalid blend mode");
-        exit(EXIT_FAILURE);
-    }
+    SDL_BlendMode new_mode = blend_mode_to_sdl2(blend_mode);
 
     source->blend_mode = blend_mode;
     if (source->atlas != NULL)
         SDL_SetTextureBlendMode(source->atlas, new_mode);
 }
 
-e_sprite_blend_mode sprite_get_blend_mode(const sprite *source) { return source->blend_mode; }
+e_blend_mode sprite_get_blend_mode(const sprite *source) { return source->blend_mode; }
 
-const char *blend_mode_to_string(enum e_sprite_blend_mode blend_mode) {
-    switch (blend_mode) {
-    case sprite_blend_mode_none:
-        return "none";
-    case sprite_blend_mode_blend:
-        return "blend";
-    case sprite_blend_mode_add:
-        return "additive";
-    case sprite_blend_mode_mod:
-        return "modulate";
-    case sprite_blend_mode_mul:
-        return "multiply";
-    default:
-        return NULL;
-    }
-}
 
 void sprite_set_play_mode(sprite *source, enum e_sprite_play_mode play_mode) {
     source->play_mode = play_mode;
@@ -524,33 +488,6 @@ void sprite_set_play_mode(sprite *source, enum e_sprite_play_mode play_mode) {
 }
 
 e_sprite_play_mode sprite_get_play_mode(const sprite *source) { return source->play_mode; }
-
-enum e_sprite_blend_mode string_to_blend_mode(const char *string) {
-    char *mode_str = strdup(string);
-    for (char *ch = mode_str; *ch != '\0'; ch++)
-        *ch = (char)tolower(*ch);
-
-    enum e_sprite_blend_mode blend_mode = sprite_blend_mode_unknown;
-
-    if (strcmp(mode_str, "none") == 0)
-        blend_mode = sprite_blend_mode_none;
-
-    else if (strcmp(mode_str, "blend") == 0)
-        blend_mode = sprite_blend_mode_blend;
-
-    else if (strcmp(mode_str, "additive") == 0)
-        blend_mode = sprite_blend_mode_add;
-
-    else if (strcmp(mode_str, "modulate") == 0)
-        blend_mode = sprite_blend_mode_mod;
-
-    else if (strcmp(mode_str, "multiply") == 0)
-        blend_mode = sprite_blend_mode_mul;
-
-    free(mode_str);
-
-    return blend_mode;
-}
 
 const char *play_mode_to_string(enum e_sprite_play_mode play_mode) {
     switch (play_mode) {
@@ -565,22 +502,16 @@ const char *play_mode_to_string(enum e_sprite_play_mode play_mode) {
     }
 }
 
-enum e_sprite_play_mode string_to_play_mode(const char *string) {
-    char *mode_str = strdup(string);
-    for (char *ch = mode_str; *ch != '\0'; ch++)
-        *ch = (char)tolower(*ch);
-
+enum e_sprite_play_mode string_to_play_mode(const char *mode_str) {
     enum e_sprite_play_mode play_mode = sprite_play_mode_unknown;
-    if (strcmp(mode_str, "paused") == 0)
+    if (strcasecmp(mode_str, "paused") == 0)
         play_mode = sprite_play_mode_paused;
 
-    if (strcmp(mode_str, "forwards") == 0)
+    if (strcasecmp(mode_str, "forwards") == 0)
         play_mode = sprite_play_mode_forwards;
 
-    if (strcmp(mode_str, "backwards") == 0)
+    if (strcasecmp(mode_str, "backwards") == 0)
         play_mode = sprite_play_mode_backwards;
-
-    free(mode_str);
 
     return play_mode;
 }

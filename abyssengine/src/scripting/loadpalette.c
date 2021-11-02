@@ -43,7 +43,7 @@ int abyss_lua_load_palette(lua_State *l) {
         return 0;
     }
 
-    palette *pal = palette_new_from_bytes(data, size);
+    palette *pal = palette_new_from_bytes(data, size, strcasestr(palette_path, ".pl2") == NULL);
     if (!engine_add_palette(engine_get_global_instance(), palette_name, pal)) {
         luaL_error(l, "Failed to load palette \nPalette name already in use.", palette_name);
     }

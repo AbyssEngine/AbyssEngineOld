@@ -16,17 +16,15 @@
  * along with AbyssEngine.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ABYSS_LOADER_H
-#define ABYSS_LOADER_H
+#ifndef ABYSS_BLENDMODE_H
+#define ABYSS_BLENDMODE_H
 
-#include <stdbool.h>
-#include "loaderprovider.h"
-typedef struct loader loader;
+#include <SDL.h>
 
-loader *loader_new(void);
-void loader_destroy(loader *src);
-void loader_add_provider(loader *src, loader_provider *provider);
-void *loader_load(loader *src, const char *path, int *file_size);
-bool loader_file_exists(loader *src, const char *path);
+typedef enum { blend_mode_none, blend_mode_blend, blend_mode_add, blend_mode_mod, blend_mode_mul, blend_mode_invalid } e_blend_mode;
 
-#endif // ABYSS_LOADER_H
+e_blend_mode string_to_blend_mode(const char *string);
+const char *blend_mode_to_string(e_blend_mode blend_mode);
+SDL_BlendMode blend_mode_to_sdl2(e_blend_mode blend_mode);
+
+#endif // ABYSS_BLENDMODE_H

@@ -83,9 +83,9 @@ int abyss_lua_sprite_blend_mode(lua_State *l) {
 
     SCRIPT_GET_LUA_THIS(source, sprite)
 
-    const enum e_sprite_blend_mode blend_mode = string_to_blend_mode(lua_tostring(l, 2));
+    const e_blend_mode blend_mode = string_to_blend_mode(lua_tostring(l, 2));
 
-    if (blend_mode == sprite_blend_mode_unknown) {
+    if (blend_mode == blend_mode_invalid) {
         luaL_error(l, "unknown blend mode");
         return 0;
     }
@@ -109,7 +109,7 @@ int abyss_lua_sprite_play_mode(lua_State *l) {
 
     const enum e_sprite_play_mode play_mode = string_to_play_mode(lua_tostring(l, 2));
 
-    if (play_mode == sprite_blend_mode_unknown) {
+    if (play_mode == blend_mode_invalid) {
         luaL_error(l, "unknown play mode");
         return 0;
     }

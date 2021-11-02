@@ -176,7 +176,7 @@ void engine_destroy(engine *src) {
     if (src->palettes != NULL) {
         for (uint32_t i = 0; i < src->num_palettes; i++) {
             free(src->palettes[i].name);
-            palette_destroy(src->palettes[i].palette);
+            palette_transform_destroy(src->palettes[i].palette);
         }
         free(src->palettes);
     }

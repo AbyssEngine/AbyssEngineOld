@@ -70,6 +70,12 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/commondef.h
         src/engine/engine.c src/engine/engine.h
         src/engine/sysfont.c src/engine/sysfont.h
+        src/engine/spritefont.c src/engine/spritefont.h
+
+        # Common -------------------------------------------------------
+        src/common/color.h
+        src/common/blendmode.c src/common/blendmode.h
+        src/common/align.c src/common/align.h
 
         # Engine Modes -------------------------------------------------
         src/engine/modeboot.c src/engine/modeboot.h
@@ -79,11 +85,10 @@ target_sources(${PROJECT_NAME} PRIVATE
 
         # Node ----------------------------------------------------------
         src/node/node.c src/node/node.h
-
-        # Sprite --------------------------------------------------------
         src/node/sprite/sprite.c src/node/sprite/sprite.h
+        src/node/label/label.c src/node/label/label.h
 
-        # Scripting ----------------------------------------------------
+        # Scripting -----------------------------------------------------
         src/scripting/scripting.c src/scripting/scripting.h
         src/scripting/node.c src/scripting/node.h
         src/scripting/log.c
@@ -97,10 +102,13 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/scripting/exitbootmode.c
         src/scripting/loadpalette.c
         src/scripting/loadsprite.c
+        src/scripting/loadspritefont.c
         src/scripting/setcursor.c
         src/scripting/getrootnode.c
         src/scripting/playvideo.c
         src/scripting/fileexists.c
+        src/scripting/exitbootmode.c
+        src/scripting/createlabel.c
 
         # Loaders ------------------------------------------------------
         src/loader/loaderprovider.c src/loader/loaderprovider.h

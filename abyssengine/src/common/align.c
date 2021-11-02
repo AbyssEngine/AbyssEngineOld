@@ -16,17 +16,31 @@
  * along with AbyssEngine.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ABYSS_LOADER_H
-#define ABYSS_LOADER_H
+#include "align.h"
+#include <string.h>
 
-#include <stdbool.h>
-#include "loaderprovider.h"
-typedef struct loader loader;
+const char *alignment_to_string(e_alignment alignment) {
+    switch (alignment) {
+    case alignment_start:
+        return "start";
+    case alignment_middle:
+        return "middle";
+    case alignment_end:
+        return "end";
+    default:
+        return NULL;
+    }
+}
 
-loader *loader_new(void);
-void loader_destroy(loader *src);
-void loader_add_provider(loader *src, loader_provider *provider);
-void *loader_load(loader *src, const char *path, int *file_size);
-bool loader_file_exists(loader *src, const char *path);
+e_alignment string_to_alignment(const char *string) {
+    if (strcasecmp(string, "start") == 0)
+        return alignment_start;
 
-#endif // ABYSS_LOADER_H
+    if (strcasecmp(string, "middle") == 0)
+        return alignment_middle;
+
+    if (strcasecmp(string, "end") == 0)
+        return alignment_end;
+
+    return alignment_unknown;
+}

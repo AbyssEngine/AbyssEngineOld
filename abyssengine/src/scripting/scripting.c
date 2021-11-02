@@ -81,14 +81,12 @@ int luaopen_abyss(lua_State *l) {
     lua_register(l, "exitBootMode", abyss_lua_exit_boot_mode);
     lua_register(l, "loadPalette", abyss_lua_load_palette);
     lua_register(l, "loadSprite", abyss_lua_load_sprite);
+    lua_register(l, "loadSpriteFont", abyss_lua_load_sprite_font);
     lua_register(l, "setCursor", abyss_lua_set_cursor);
     lua_register(l, "getRootNode", abyss_lua_get_root_node);
     lua_register(l, "playVideo", abyss_lua_play_video);
     lua_register(l, "fileExists", abyss_lua_file_exists);
-    // loadButton
-    // loadLabel
-    // cursorTexture
-    // targetFps
-    // fullscreen
+    lua_register(l, "createLabel", abyss_lua_create_label);
+
     return 1;
 }

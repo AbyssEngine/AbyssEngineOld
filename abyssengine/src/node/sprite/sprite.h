@@ -20,21 +20,8 @@
 #define ABYSS_SPRITE_H
 
 #include "../../engine/engine.h"
+#include "../../common/blendmode.h"
 #include "../node.h"
-
-typedef uint8_t e_sprite_blend_mode;
-
-enum e_sprite_blend_mode {
-    sprite_blend_mode_none,
-    sprite_blend_mode_blend,
-    sprite_blend_mode_add,
-    sprite_blend_mode_mod,
-    sprite_blend_mode_mul,
-    sprite_blend_mode_unknown
-};
-
-const char *blend_mode_to_string(enum e_sprite_blend_mode blend_mode);
-enum e_sprite_blend_mode string_to_blend_mode(const char *string);
 
 typedef int e_sprite_play_mode;
 
@@ -55,8 +42,8 @@ void sprite_set_cell_size(sprite *source, int cell_size_x, int cell_size_y);
 void sprite_get_cell_size(sprite *source, int *cell_size_x, int *cell_size_y);
 void sprite_set_bottom_origin(sprite *source, bool is_bottom_origin);
 bool sprite_get_bottom_origin(const sprite *source);
-void sprite_set_blend_mode(sprite *source, enum e_sprite_blend_mode blend_mode);
-e_sprite_blend_mode sprite_get_blend_mode(const sprite *source);
+void sprite_set_blend_mode(sprite *source, e_blend_mode blend_mode);
+e_blend_mode sprite_get_blend_mode(const sprite *source);
 void sprite_set_play_mode(sprite *source, enum e_sprite_play_mode play_mode);
 e_sprite_play_mode sprite_get_play_mode(const sprite *source);
 void sprite_set_play_length(sprite *source, float play_length);

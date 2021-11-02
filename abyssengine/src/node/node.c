@@ -94,6 +94,15 @@ void node_destroy(node *source, engine *e) {
     if (source->parent != NULL)
         node_remove(source, e);
 
+    for (int i = 0; i < source->num_children; i++) {
+        node *child_node = source->children[i];
+
+        assert(child_node != source);
+
+        child_node->parent = NULL;
+        node_destroy(child_node, e);
+    }
+
     if (source->destroy_callback != NULL)
         source->destroy_callback(source, e);
 }

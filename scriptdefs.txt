@@ -74,6 +74,18 @@ loadSprite(path, paletteName): sprite
 
 -----------------------------------------------------------------------
 
+loadSpriteFont(path, paletteName): spritefont
+    Loads a sprite font from the specified path. Note that the path
+    should not include the .dc6 or .tbl extension; those extensions
+    will be uppended to the supplied bath during the load operation.
+
+-----------------------------------------------------------------------
+
+createLabel(font): label
+    Create a label based on the specified spritefont.
+
+-----------------------------------------------------------------------
+
 setCursor(sprite, offsetX, offsetY)
     Sets the engine cursor to the specified sprite.
     Offset X/Y offsets the sprite relative to the actual mouse position.
@@ -97,6 +109,42 @@ playVideo(path, wait)
 = The following are object types that are defined by the system.
 =======================================================================
 
+
+-----------------------------------------------------------------------
+LABEL <NODE>
+-----------------------------------------------------------------------
+Description:
+
+    Represents a label.
+    Labels are a child class of nodes.
+    Labels render text to the screen via sprite fonts.
+
+
+Functions:
+
+    caption(text)
+    caption(): string
+        Gets or sets the caption of the label.
+
+    hAlign(alignment)
+    hAlign(): alignment
+        Gets or sets the horizontal alignment of the label.
+        Valid alignments are "begin", "middle" and "end".
+
+    vAlign(alignment)
+    vAlign(): alignment
+        Gets or sets the vertical alignment of the label.
+        Valid alignments are "begin", "middle" and "end".
+
+    blendMode(): string
+    blendMode(mode)
+        Gets/Sets the blend mode of the label.
+        Mode is "none", "blend", "additive", "modulate", "multiply"
+
+    colorMod(): red, green, blue
+    colorMod(red, green, blue)
+        Gets or sets the color mod of the label.
+        Red, green, and blue components are a range of 0 to 255.
 
 -----------------------------------------------------------------------
 SPRITE <NODE>
@@ -172,7 +220,6 @@ Functions:
         the event has been handled or not. If true is returned,
         no other node will receive input events (if false they will).
     . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-
 
 -----------------------------------------------------------------------
 NODE
