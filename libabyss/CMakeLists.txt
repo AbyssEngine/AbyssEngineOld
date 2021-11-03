@@ -29,6 +29,7 @@ add_library(${PROJECT_NAME}
         src/palette.c include/libabyss/palette.h
         src/dcc.c include/libabyss/dcc.h
         src/dc6.c include/libabyss/dc6.h
+        src/error.c include/libabyss/error.h
         include/libabyss/boundsdefs.h
         # Private
         src/crypto.c src/crypto.h

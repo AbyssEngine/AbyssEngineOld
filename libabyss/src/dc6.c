@@ -17,6 +17,7 @@
  */
 
 #include "streamreader.h"
+#include <assert.h>
 #include <libabyss/dc6.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -90,30 +91,33 @@ void dc6_decode_frame(dc6_frame *frame) {
     int y = (int)frame->height - 1;
     int offset = 0;
 
-    bool run = true;
-    while (run) {
+    for (;;) {
+        assert(offset < frame->length);
         int b = frame->frame_data[offset++];
 
         switch (dc6_get_scanline_type(b)) {
         case END_OF_LINE:
-            if (y == 0) {
-                run = false;
-                continue;
-            }
+            if (y == 0)
+                goto done;
+
             y--;
             x = 0;
-            break;
+            continue;
         case RUN_OF_TRANSPARENT_PIXELS:
             x += (b & MAX_RUN_LENGTH);
-            break;
+            continue;
         case RUN_OF_OPAQUE_PIXELS:
             for (int i = 0; i < b; i++) {
+                assert(offset < frame->length);
                 frame->index_data[x + (y * frame->width) + i] = frame->frame_data[offset++];
             }
             x += b;
-            break;
+            continue;
         }
     }
+
+done:
+    return;
 }
 
 dc6 *dc6_new_from_bytes(const void *data, uint64_t size) {

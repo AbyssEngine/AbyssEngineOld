@@ -102,6 +102,10 @@ playVideo(path, wait)
     If wait is true, the function will not return until the video
     finishes playing.
 
+-----------------------------------------------------------------------
+
+fileExists(path): bool
+    Returns true if the path exists, false otherwise.
 
 =======================================================================
 = OBJECT TYPES

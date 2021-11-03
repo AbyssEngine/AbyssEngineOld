@@ -21,6 +21,7 @@ set(${PROJECT_NAME}_VERSION_MINOR 1)
 add_subdirectory(libabyss)
 add_subdirectory(abyssengine)
 add_subdirectory(abysstoolset)
+add_subdirectory(tests)
 
 #option(PACKAGE_TESTS "Build the tests" ON)
 #if (PACKAGE_TESTS)

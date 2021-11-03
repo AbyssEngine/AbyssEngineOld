@@ -482,7 +482,6 @@ void sprite_set_blend_mode(sprite *source, e_blend_mode blend_mode) {
 
 e_blend_mode sprite_get_blend_mode(const sprite *source) { return source->blend_mode; }
 
-
 void sprite_set_play_mode(sprite *source, enum e_sprite_play_mode play_mode) {
     source->play_mode = play_mode;
     source->last_frame_time = 0.0f;

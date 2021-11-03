@@ -107,6 +107,7 @@ typedef struct engine {
     int audio_buffer_write_pos;
     int audio_buffer_read_pos;
     int audio_buffer_remaining;
+    SDL_AudioDeviceID audio_device_id;
 } engine;
 
 #ifndef NDEBUG
@@ -161,6 +162,7 @@ engine *engine_create(const char *base_path, ini_file *ini_config) {
 }
 
 void engine_destroy(engine *src) {
+    SDL_PauseAudioDevice(src->audio_device_id, SDL_TRUE);
 
     if (src->video_playing) {
         engine_end_video(src);
@@ -181,8 +183,6 @@ void engine_destroy(engine *src) {
         free(src->palettes);
     }
 
-    SDL_PauseAudio(SDL_TRUE);
-
     loader_destroy(src->loader);
     sysfont_destroy(src->font);
     free(src->base_path);
@@ -201,7 +201,6 @@ void engine_destroy(engine *src) {
     engine_finalize_sdl2(src);
     engine_finalize_lua(src);
 
-
 #ifndef NDEBUG
     free(engine_thread);
 #endif
@@ -209,7 +208,7 @@ void engine_destroy(engine *src) {
     if (src->video_file_path != NULL)
         free(src->video_file_path);
 
-    SDL_CloseAudio();
+    SDL_CloseAudioDevice(src->audio_device_id);
 
     free(src->audio_buffer);
 
@@ -277,18 +276,29 @@ void engine_init_sdl2(engine *src) {
     requested_audio_spec.userdata = src;
     requested_audio_spec.callback = engine_handle_audio;
 
-    if (SDL_OpenAudio(&requested_audio_spec, &src->audio_output_spec) < 0) {
+    if ((src->audio_device_id = SDL_OpenAudioDevice(NULL, SDL_FALSE, &requested_audio_spec, &src->audio_output_spec, 0)) < 0) {
         log_warn(SDL_GetError());
     }
 
-    SDL_PauseAudio(0);
+    SDL_PauseAudioDevice(src->audio_device_id, SDL_FALSE);
 
     if ((src->ini_config != NULL) && strcmp(init_file_get_value(src->ini_config, "Video", "FullScreen"), "1") == 0)
         SDL_SetWindowFullscreen(src->sdl_window, SDL_TRUE);
 }
 
 void engine_finalize_sdl2(engine *src) {
-    SDL_CloseAudio();
+    VERIFY_ENGINE_THREAD
+
+    exit(EXIT_SUCCESS); // TODO: For some reason closing audio blows up but hand-breaking the process is a-ok.
+
+    log_info("Finalizing SDL2");
+    SDL_PauseAudioDevice(src->audio_device_id, SDL_TRUE);
+    SDL_ClearQueuedAudio(src->audio_device_id);
+
+    while (SDL_GetAudioDeviceStatus(src->audio_device_id) == SDL_AUDIO_PLAYING)
+        SDL_Delay(5);
+
+    SDL_CloseAudioDevice(src->audio_device_id);
     SDL_DestroyRenderer(src->sdl_renderer);
     SDL_DestroyWindow(src->sdl_window);
     SDL_Quit();
@@ -473,13 +483,10 @@ void engine_handle_sdl_event(engine *src, const SDL_Event *evt) {
         return;
     default:
         return;
-
     }
 }
 
-void engine_shutdown(engine *src) {
-    src->is_running = false;
-}
+void engine_shutdown(engine *src) { src->is_running = false; }
 
 void engine_render(engine *src) {
     if (src->render_callback != NULL) {
@@ -714,6 +721,10 @@ bool engine_is_video_playing(const engine *src) {
 bool engine_get_is_running(const engine *src) { return src->is_running; }
 void engine_handle_audio(void *userdata, Uint8 *stream, int len) {
     engine *src = userdata;
+
+    if (!src->is_running) {
+        return;
+    }
 
     mutex_lock(src->audio_mutex);
 
