@@ -30,8 +30,6 @@ typedef struct streamreader {
 streamreader *streamreader_create(const void *data, const uint64_t data_size) {
     streamreader *result = malloc(sizeof(streamreader));
 
-    assert(data_size > 0);
-
     result->data = (char *)data;
     result->position = 0;
     result->data_size = data_size;
@@ -43,13 +41,11 @@ void streamreader_destroy(streamreader *source) { free(source); }
 
 uint8_t streamreader_read_byte(streamreader *source) {
     assert(source->position < source->data_size);
-    if (source->position >= source->data_size) {
-        exit(-1);
-    }
+
     return source->data[source->position++];
 }
 
-int16_t streamreader_read_int16(streamreader *source) { return streamreader_read_uint16(source); }
+int16_t streamreader_read_int16(streamreader *source) { return (int16_t)streamreader_read_uint16(source); }
 
 uint16_t streamreader_read_uint16(streamreader *source) {
     uint8_t value[2];
@@ -57,7 +53,7 @@ uint16_t streamreader_read_uint16(streamreader *source) {
     return ((uint16_t)value[0]) | (((uint16_t)value[1]) << 8);
 }
 
-int32_t streamreader_read_int32(streamreader *source) { return streamreader_read_uint32(source); }
+int32_t streamreader_read_int32(streamreader *source) { return (int32_t)streamreader_read_uint32(source); }
 
 uint32_t streamreader_read_uint32(streamreader *source) {
     uint8_t value[4];
@@ -65,7 +61,7 @@ uint32_t streamreader_read_uint32(streamreader *source) {
     return ((uint32_t)value[0]) | (((uint32_t)value[1]) << 8) | (((uint32_t)value[2]) << 16) | (((uint32_t)value[3]) << 24);
 }
 
-int64_t streamreader_read_int64(streamreader *source) { return streamreader_read_uint64(source); }
+int64_t streamreader_read_int64(streamreader *source) { return (int64_t)streamreader_read_uint64(source); }
 
 uint64_t streamreader_read_uint64(streamreader *source) {
     uint8_t value[8];
@@ -79,13 +75,16 @@ uint64_t streamreader_get_position(const streamreader *source) { return source->
 void streamreader_set_position(streamreader *source, uint64_t position) { source->position = position; }
 
 void streamreader_get_bytes(streamreader *source, void *buffer, const uint64_t count) {
+
     assert(source->position + count < source->data_size);
+
     memcpy(buffer, &source->data[source->position], count);
     source->position += count;
 }
 
 void streamreader_skip_bytes(streamreader *source, const uint64_t count) {
     assert(source->position + count < source->data_size);
+
     source->position += count;
 }
 

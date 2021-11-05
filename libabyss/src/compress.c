@@ -19,9 +19,9 @@
 #include "compress.h"
 #include "streamreader.h"
 #include "streamwriter.h"
+#include <libabyss/log.h>
 #include <stdlib.h>
 #include <string.h>
-#include <libabyss/log.h>
 
 void *compress_decompress_wav(void *buffer, uint32_t buffer_size, int channel_count) {
     int array_1[] = {0x2C, 0x2C};

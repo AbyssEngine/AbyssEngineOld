@@ -108,6 +108,9 @@ typedef struct engine {
     int audio_buffer_read_pos;
     int audio_buffer_remaining;
     SDL_AudioDeviceID audio_device_id;
+    void *input_focus;
+    bool use_hardware_cursor;
+    double hardware_cursor_scale;
 } engine;
 
 #ifndef NDEBUG
@@ -267,7 +270,7 @@ void engine_init_sdl2(engine *src) {
     SDL_SetRenderDrawBlendMode(src->sdl_renderer, SDL_BLENDMODE_BLEND);
     free(window_title);
 
-    log_info("Initalizing audio");
+    log_info("Initializing audio");
     SDL_AudioSpec requested_audio_spec;
     requested_audio_spec.freq = 44100;
     requested_audio_spec.format = AUDIO_S16LSB;
@@ -284,6 +287,18 @@ void engine_init_sdl2(engine *src) {
 
     if ((src->ini_config != NULL) && strcmp(init_file_get_value(src->ini_config, "Video", "FullScreen"), "1") == 0)
         SDL_SetWindowFullscreen(src->sdl_window, SDL_TRUE);
+
+    if ((src->ini_config != NULL) && strcmp(init_file_get_value(src->ini_config, "Video", "HardwareCursor"), "1") == 0) {
+        src->use_hardware_cursor = true;
+        src->hardware_cursor_scale = 1.0;
+        const char *scale_str = init_file_get_value(src->ini_config, "Video", "HardwareCursorScale");
+        if (scale_str != NULL && strlen(scale_str) > 0) {
+            double val = atof(scale_str);
+            if (val > 1.0 && val < 3.0) {
+                src->hardware_cursor_scale = val;
+            }
+        }
+    }
 }
 
 void engine_finalize_sdl2(engine *src) {
@@ -501,7 +516,7 @@ void engine_render(engine *src) {
         SDL_RenderClear(src->sdl_renderer);
     }
 
-    if (src->cursor != NULL && !src->video_playing) {
+    if (!src->use_hardware_cursor && src->cursor != NULL && !src->video_playing) {
         node *n = (node *)src->cursor;
         n->x = src->cursor_x + src->cursor_offset_x;
         n->y = src->cursor_y + src->cursor_offset_y;
@@ -659,6 +674,12 @@ void engine_dispatch(engine *src, void (*dispatch)(void *data), void *data) {
 void engine_set_cursor(engine *src, sprite *cursor, int offset_x, int offset_y) {
     VERIFY_ENGINE_THREAD
 
+    if (src->use_hardware_cursor) {
+        SDL_Cursor *new_cursor = SDL_CreateColorCursor(sprite_get_surface(cursor, src->hardware_cursor_scale), 0, 0);
+        SDL_SetCursor(new_cursor);
+        return;
+    }
+
     src->cursor = cursor;
     src->cursor_offset_x = offset_x;
     src->cursor_offset_y = offset_y;
@@ -718,7 +739,9 @@ bool engine_is_video_playing(const engine *src) {
     mutex_unlock(src->video_playing_mutex);
     return result;
 }
+
 bool engine_get_is_running(const engine *src) { return src->is_running; }
+
 void engine_handle_audio(void *userdata, Uint8 *stream, int len) {
     engine *src = userdata;
 
@@ -753,6 +776,7 @@ void engine_handle_audio(void *userdata, Uint8 *stream, int len) {
 
     mutex_unlock(src->audio_mutex);
 }
+
 SDL_AudioSpec engine_get_audio_spec(const engine *src) { return src->audio_output_spec; }
 
 void engine_write_audio_buffer(engine *src, const void *data, int len) {
@@ -779,6 +803,7 @@ void engine_write_audio_buffer(engine *src, const void *data, int len) {
 
     mutex_unlock(src->audio_mutex);
 }
+
 void engine_reset_audio_buffer(engine *src) {
     mutex_lock(src->audio_mutex);
 
@@ -788,3 +813,7 @@ void engine_reset_audio_buffer(engine *src) {
 
     mutex_unlock(src->audio_mutex);
 }
+
+void *engine_get_input_focus(const engine *src) { return src->input_focus; }
+
+void engine_set_input_focus(engine *src, void *focus) { src->input_focus = focus; }

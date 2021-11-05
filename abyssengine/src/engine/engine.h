@@ -91,4 +91,6 @@ void engine_handle_audio(void *user_data, Uint8 *stream, int len);
 SDL_AudioSpec engine_get_audio_spec(const engine *src);
 void engine_write_audio_buffer(engine *src, const void *data, int len);
 void engine_reset_audio_buffer(engine *src);
+void *engine_get_input_focus(const engine *src);
+void engine_set_input_focus(engine *src, void *focus);
 #endif // ABYSS_ENGINE_H

@@ -39,6 +39,7 @@ typedef struct sprite {
     node node;
     e_sprite_type sprite_type;
     SDL_Texture *atlas;
+    SDL_Surface *atlas_surface;
     sprite_frame_pos *frame_rects;
     const palette *palette;
     union {
@@ -271,6 +272,8 @@ void sprite_regenerate_atlas_dc6(sprite *source) {
     }
 
     SDL_UpdateTexture(source->atlas, NULL, buffer, atlas_width * 4);
+    source->atlas_surface =
+        SDL_CreateRGBSurfaceFrom(buffer, atlas_width, atlas_height, 32, atlas_width * 4, 0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
 
     sprite_set_blend_mode(source, source->blend_mode);
     free(buffer);
@@ -326,11 +329,7 @@ void sprite_frame_size(sprite *source, uint32_t *frame_size_x, uint32_t *frame_s
     }
 }
 
-void sprite_render_callback(node *node, engine *e, int offset_x, int offset_y) {
-    sprite *source = (sprite *)node;
-
-    if (!node->visible || !node->active)
-        return;
+void sprite_render(sprite *source, engine *e, uint32_t start_frame_idx, int offset_x, int offset_y) {
 
     if (source->atlas == NULL)
         sprite_regenerate_atlas(source);
@@ -339,8 +338,8 @@ void sprite_render_callback(node *node, engine *e, int offset_x, int offset_y) {
     uint32_t frame_width;
     sprite_frame_size(source, &frame_width, &frame_height);
 
-    int pos_x = node->x + offset_x;
-    int pos_y = node->y + offset_y;
+    int pos_x = source->node.x + offset_x;
+    int pos_y = source->node.y + offset_y;
 
     if (source->bottom_origin)
         pos_y -= (int)frame_height;
@@ -353,7 +352,7 @@ void sprite_render_callback(node *node, engine *e, int offset_x, int offset_y) {
         int last_height = 0;
 
         for (int cell_offset_x = 0; cell_offset_x < source->cell_size_x; cell_offset_x++) {
-            const uint32_t cell_index = source->current_frame + (cell_offset_x + (cell_offset_y * source->cell_size_x));
+            const uint32_t cell_index = start_frame_idx + (cell_offset_x + (cell_offset_y * source->cell_size_x));
 
             int frame_offset_x;
             int frame_offset_y;
@@ -373,6 +372,15 @@ void sprite_render_callback(node *node, engine *e, int offset_x, int offset_y) {
         pos_x = start_x;
         pos_y += last_height;
     }
+}
+
+void sprite_render_callback(node *node, engine *e, int offset_x, int offset_y) {
+    sprite *source = (sprite *)node;
+
+    if (!node->visible || !node->active)
+        return;
+
+    sprite_render(source, e, source->current_frame, offset_x, offset_y);
 
     node_default_render_callback(node, e, offset_x, offset_y);
 }
@@ -398,6 +406,9 @@ bool sprite_update_callback(node *node, engine *e, uint32_t ticks) {
 void sprite_destroy(sprite *source) {
     if (source->atlas != NULL)
         SDL_DestroyTexture(source->atlas);
+
+    if (source->atlas_surface != NULL)
+        SDL_FreeSurface(source->atlas_surface);
 
     lua_State *l = engine_get_lua_state(engine_get_global_instance());
 
@@ -664,4 +675,17 @@ bool sprite_mouse_event_callback(node *node, struct engine *e, enum e_mouse_even
         return true;
 
     return node_default_mouse_event_callback(node, e, event_type, event_info);
+}
+
+SDL_Surface *sprite_get_surface(sprite *source, double scale) {
+    VERIFY_ENGINE_THREAD
+
+    if (source->atlas == NULL)
+        sprite_regenerate_atlas(source);
+
+    SDL_Rect *frame_rect = &source->frame_rects[source->current_frame].rect;
+    SDL_Surface *result = SDL_CreateRGBSurface(0, frame_rect->w * scale, frame_rect->h * scale, 32, 0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
+    SDL_Rect dest_rect = {0, 0, frame_rect->w * scale, frame_rect->h * scale};
+    SDL_SoftStretch(source->atlas_surface, frame_rect, result, &dest_rect);
+    return result;
 }

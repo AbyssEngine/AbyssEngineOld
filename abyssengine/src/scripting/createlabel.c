@@ -22,7 +22,7 @@
 #include "node.h"
 #include "scripting.h"
 
-int abyss_lua_label_destory(lua_State *l) {
+int abyss_lua_label_destroy(lua_State *l) {
     LCHECK_NUMPARAMS(1)
     SCRIPT_GET_LUA_CLASS(source, label, 1)
 
@@ -165,7 +165,7 @@ int abyss_lua_create_label(lua_State *l) {
     label *result = label_create(font);
 
     SCRIPT_CLASS_RESULT_START(result)
-    SCRIPT_CLASS_RESULT_PROPERTY("destroy", abyss_lua_label_destory)
+    SCRIPT_CLASS_RESULT_PROPERTY("destroy", abyss_lua_label_destroy)
     SCRIPT_CLASS_RESULT_PROPERTY("caption", abyss_lua_label_caption)
     SCRIPT_CLASS_RESULT_PROPERTY("hAlign", abyss_lua_label_h_align)
     SCRIPT_CLASS_RESULT_PROPERTY("vAlign", abyss_lua_label_v_align)

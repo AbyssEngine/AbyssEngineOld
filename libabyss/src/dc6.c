@@ -109,6 +109,7 @@ void dc6_decode_frame(dc6_frame *frame) {
         case RUN_OF_OPAQUE_PIXELS:
             for (int i = 0; i < b; i++) {
                 assert(offset < frame->length);
+                assert((x + (y * frame->width) + i) < (frame->width * frame->height));
                 frame->index_data[x + (y * frame->width) + i] = frame->frame_data[offset++];
             }
             x += b;

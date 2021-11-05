@@ -87,6 +87,7 @@ int luaopen_abyss(lua_State *l) {
     lua_register(l, "playVideo", abyss_lua_play_video);
     lua_register(l, "fileExists", abyss_lua_file_exists);
     lua_register(l, "createLabel", abyss_lua_create_label);
+    lua_register(l, "createButton", abyss_lua_create_button);
 
     return 1;
 }

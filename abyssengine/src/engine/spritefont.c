@@ -273,11 +273,7 @@ void spritefont_draw_text(spritefont *source, int x, int y, const char *text, e_
             target_rect.w = frame->rect.w;
             target_rect.h = frame->rect.h;
             max_height = (max_height < glyph->height) ? glyph->height : max_height;
-            target_rect.x += frame->offset_x;
-            target_rect.y += frame->offset_y;
             SDL_RenderCopy(renderer, source->atlas, &frame->rect, &target_rect);
-            target_rect.x -= frame->offset_x;
-            target_rect.y -= frame->offset_y;
         }
 
         target_rect.x += glyph->width;

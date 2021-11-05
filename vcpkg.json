@@ -6,7 +6,6 @@
         "zlib",
         "sdl2",
         "lua",
-        "gtest",
         {
             "name": "ffmpeg",
             "features": [
