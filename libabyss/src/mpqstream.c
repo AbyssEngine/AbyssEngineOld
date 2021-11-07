@@ -167,16 +167,30 @@ uint32_t mpq_stream_read_internal_single_unit(mpq_stream *source, void *buffer, 
     return 0;
 }
 
+typedef struct {
+    char* inbuf;
+    unsigned int inlen;
+    char* outbuf;
+    unsigned int outlen;
+} abyss_blass_state;
+
 unsigned blast_in_f(void *how, unsigned char **buf) {
-    *buf = how;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wvoid-pointer-to-int-cast"
-    return (size_t)how;
-#pragma clang diagnostic pop
+    abyss_blass_state* state = (abyss_blass_state*)how;
+    unsigned int len = state->inlen;
+    state->inlen = 0;
+    *buf = (unsigned char*)state->inbuf;
+    return len;
 }
 
 int blast_out_f(void *how, unsigned char *buf, unsigned len) {
-    memcpy(how, buf, len);
+    abyss_blass_state* state = (abyss_blass_state*)how;
+    if (len > state->outlen) {
+        log_fatal("PkLib/Implode decompression error! got more data than expected");
+        return -1;
+    }
+    memcpy(state->outbuf, buf, len);
+    state->outlen -= len;
+    state->outbuf += len;
     return 0;
 }
 
@@ -213,9 +227,15 @@ void *mpq_stream_decompress_multi(mpq_stream *source, void *buffer, uint32_t siz
     }
     case 0x08: // PkLib/Implode
     {
+        abyss_blass_state state;
+        state.inbuf = (char*)buffer + 1;
+        state.inlen = size_compressed;
         void *new_buffer = malloc(size_uncompressed);
-        if (blast(blast_in_f, ((char *)buffer + 1), blast_out_f, new_buffer, NULL, NULL) != 0) {
-            log_fatal("PkLib/Implode decompression error!");
+        state.outbuf = new_buffer;
+        state.outlen = size_uncompressed;
+        int res = blast(blast_in_f, &state, blast_out_f, &state, NULL, NULL);
+        if (res != 0) {
+            log_fatal("PkLib/Implode decompression error! error %d", res);
             free(new_buffer);
             free(buffer);
             return NULL;
