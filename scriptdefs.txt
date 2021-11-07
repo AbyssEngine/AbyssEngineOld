@@ -86,6 +86,15 @@ createLabel(font): label
 
 -----------------------------------------------------------------------
 
+createButton(font, spritePath, paletteName): button
+    Creates a button based on the spritefont, sprite path, and
+    palette name.
+
+    The sprite path and palette name are optional if the button
+    has no backing sprite (text buttons).
+
+-----------------------------------------------------------------------
+
 setCursor(sprite, offsetX, offsetY)
     Sets the engine cursor to the specified sprite.
     Offset X/Y offsets the sprite relative to the actual mouse position.
@@ -102,6 +111,10 @@ playVideo(path, wait)
     If wait is true, the function will not return until the video
     finishes playing.
 
+-----------------------------------------------------------------------
+
+fileExists(path): bool
+    Returns true if the path exists, false otherwise.
 
 =======================================================================
 = OBJECT TYPES
@@ -202,7 +215,7 @@ Functions:
 
     . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
     . Mouse Events
-    . All functions have similar inputs/outputs so are grouped together in this doucment...
+    . All functions have similar inputs/outputs so are grouped together in this document...
     . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
     onMouseEnter(func(x,y):bool)          Sets (or clears of nil) a callback function to be executed when the mouse enters the sprite.
     onMouseLeave(func(x,y):bool)          Sets (or clears of nil) a callback function to be executed when the mouse leaves the sprite.
@@ -220,6 +233,74 @@ Functions:
         the event has been handled or not. If true is returned,
         no other node will receive input events (if false they will).
     . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+
+
+-----------------------------------------------------------------------
+BUTTON <NODE>
+-----------------------------------------------------------------------
+Description:
+
+    Represents a button.
+    Buttons are a child class of nodes.
+
+
+Functions:
+
+    state(): buttonState
+    state(buttonState)
+        Gets/Sets the button state.
+        Possible values are "normal", "pressed", "hover", and "disabled".
+
+    caption(): string
+    caption(string)
+        Gets/Sets the button's caption.
+
+    checked(): bool
+    checked(bool)
+        Gets/Sets the checked state of the button (if it is a checkbox).
+
+    checkbox(): bool
+    checkbox(bool)
+        Gets/Sets a flag determining if this button is a checkbox.
+
+    segments(): x, y
+    segments(x, y)
+        Gets/Sets how many segments (frames) in each direction represent a
+        single button state.
+
+    textOffset(): x, y
+    textOffset(x, y)
+        Gets/Sets the text offset on the button.
+
+    size(): x, y
+    size(x, y)
+        Gets/Sets the size of the button.
+        Used to determine the center of the caption.
+
+    labelColor(): r, g, b
+    labelColor(r, g, b)
+        Gets/Sets the label color.
+        Each component's value is between 0 and 255.
+
+    colorMod(): r, g, b
+    colorMod(r, g, b)
+        Gets/Sets the color mod of the button image.
+
+    frameIndex(): int
+    frameIndex(int)
+        Gets/Sets the current frame index of the button.
+
+    . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+    . Events
+    . All functions have similar inputs/outputs so are grouped together in this document...
+    . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+    onActivate(func())                    Sets (or clears of nil) a callback function to be executed when the button is activated.
+
+    . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+
 
 -----------------------------------------------------------------------
 NODE

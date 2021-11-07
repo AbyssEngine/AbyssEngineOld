@@ -19,8 +19,8 @@
 #ifndef ABYSS_SPRITE_H
 #define ABYSS_SPRITE_H
 
-#include "../../engine/engine.h"
 #include "../../common/blendmode.h"
+#include "../../engine/engine.h"
 #include "../node.h"
 
 typedef int e_sprite_play_mode;
@@ -50,6 +50,8 @@ void sprite_set_play_length(sprite *source, float play_length);
 float sprite_get_play_length(sprite *source);
 uint32_t sprite_get_animation_count(const sprite *source);
 uint32_t sprite_get_frames_per_animation(const sprite *source);
+void sprite_render(sprite *source, engine *e, uint32_t start_frame_idx, int offset_x, int offset_y);
+SDL_Surface *sprite_get_surface(sprite *source, double scale);
 
 void sprite_set_lua_mouse_enter_callback(sprite *source, int lua_function_ref);
 int sprite_get_lua_mouse_enter_callback(const sprite *source);

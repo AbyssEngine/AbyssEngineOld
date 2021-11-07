@@ -131,3 +131,17 @@ void node_remove(node *source, engine *e) {
     parent->num_children--;
     parent->children = realloc(parent->children, parent->num_children);
 }
+
+void node_get_effective_layout(const node *source, int *x1, int *y1) {
+    assert(x1 != NULL);
+    assert(y1 != NULL);
+
+    *x1 = 0;
+    *y1 = 0;
+
+    for (const node *item = source; item != NULL; item = item->parent) {
+        *x1 += item->x;
+        *y1 += item->y;
+    }
+
+}

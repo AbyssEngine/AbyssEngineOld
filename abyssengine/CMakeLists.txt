@@ -88,6 +88,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/node/node.c src/node/node.h
         src/node/sprite/sprite.c src/node/sprite/sprite.h
         src/node/label/label.c src/node/label/label.h
+        src/node/button/button.c src/node/button/button.h
 
         # Scripting -----------------------------------------------------
         src/scripting/scripting.c src/scripting/scripting.h
@@ -110,6 +111,8 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/scripting/fileexists.c
         src/scripting/exitbootmode.c
         src/scripting/createlabel.c
+        src/scripting/createbutton.c
+        src/scripting/resetmousestate.c
 
         # Loaders ------------------------------------------------------
         src/loader/loaderprovider.c src/loader/loaderprovider.h

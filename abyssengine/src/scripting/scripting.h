@@ -70,15 +70,16 @@ extern int abyss_lua_load_string(lua_State *l);
 extern int abyss_lua_exit_boot_mode(lua_State *l);
 extern int abyss_lua_load_palette(lua_State *l);
 extern int abyss_lua_load_sprite(lua_State *l);
-int abyss_lua_load_sprite_font(lua_State *l);
+extern int abyss_lua_load_sprite_font(lua_State *l);
 extern int abyss_lua_set_cursor(lua_State *l);
 extern int abyss_lua_get_root_node(lua_State *l);
 extern int abyss_lua_play_video(lua_State *l);
 extern int abyss_lua_file_exists(lua_State *l);
 extern int abyss_lua_create_label(lua_State *l);
+extern int abyss_lua_create_button(lua_State *l);
+extern int abyss_lua_reset_mouse_state(lua_State *l);
 
 void scripting_inject_loaders(lua_State *l);
-
 int luaopen_abyss(lua_State *l);
 
 #endif // ABYSS_SCRIPTING_H
