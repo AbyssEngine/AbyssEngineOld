@@ -23,10 +23,12 @@
 #include "../../common/blendmode.h"
 #include "../../common/color.h"
 #include "../../engine/spritefont.h"
+#include "../../engine/ttffont.h"
 
 typedef struct label label;
 
 label *label_create(spritefont *font);
+label *label_create_ttf(ttffont *font);
 void label_destroy(label *label);
 const char *label_get_text(const label *label);
 void label_set_text(label *label, const char *text);

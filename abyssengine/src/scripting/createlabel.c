@@ -175,3 +175,21 @@ int abyss_lua_create_label(lua_State *l) {
 
     return 1;
 }
+
+int abyss_lua_create_label_ttf(lua_State *l) {
+    LCHECK_NUMPARAMS(1)
+    SCRIPT_GET_LUA_CLASS(font, ttffont, 1)
+
+    label *result = label_create_ttf(font);
+
+    SCRIPT_CLASS_RESULT_START(result)
+    SCRIPT_CLASS_RESULT_PROPERTY("destroy", abyss_lua_label_destroy)
+    SCRIPT_CLASS_RESULT_PROPERTY("caption", abyss_lua_label_caption)
+    SCRIPT_CLASS_RESULT_PROPERTY("hAlign", abyss_lua_label_h_align)
+    SCRIPT_CLASS_RESULT_PROPERTY("vAlign", abyss_lua_label_v_align)
+    SCRIPT_CLASS_RESULT_PROPERTY("blendMode", abyss_lua_label_blend_mode)
+    SCRIPT_CLASS_RESULT_PROPERTY("colorMod", abyss_lua_label_color_mod)
+    ADD_NODE_SCRIPT_CLASS_RESULT_PROPERTIES
+
+    return 1;
+}

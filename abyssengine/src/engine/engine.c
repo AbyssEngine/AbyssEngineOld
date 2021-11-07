@@ -36,6 +36,7 @@
 #include <lualib.h>
 #include <stdlib.h>
 #include <string.h>
+#include <SDL_ttf.h>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -150,6 +151,9 @@ engine *engine_create(const char *base_path, ini_file *ini_config) {
     log_info("Initializing SDL2");
     engine_init_sdl2(result);
 
+    log_info("Initializing TTF");
+    TTF_Init();
+
     log_info("Initializing lua");
     engine_init_lua(result);
 
@@ -201,6 +205,7 @@ void engine_destroy(engine *src) {
     if (src->script_thread != NULL)
         thread_join(src->script_thread);
 
+    TTF_Quit();
     engine_finalize_sdl2(src);
     engine_finalize_lua(src);
 
