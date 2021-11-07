@@ -21,13 +21,14 @@
 #include "../../scripting/scripting.h"
 #include "libabyss/dc6.h"
 #include "libabyss/dcc.h"
+#include "libabyss/d2r_sprite.h"
 #include "libabyss/log.h"
 #include "libabyss/utils.h"
 #include <stdlib.h>
 
 typedef uint8_t e_sprite_type;
 
-enum e_sprite_type { sprite_type_dc6, sprite_type_dcc };
+enum e_sprite_type { sprite_type_dc6, sprite_type_dcc, sprite_type_d2r };
 
 typedef struct sprite_frame_pos {
     SDL_Rect rect;
@@ -45,6 +46,7 @@ typedef struct sprite {
     union {
         dcc *dcc_data;
         dc6 *dc6_data;
+        d2r_sprite* d2r_data;
     } image_data;
     uint32_t current_frame;
     uint32_t total_frames;
@@ -127,8 +129,24 @@ sprite *sprite_load(const char *file_path, const char *palette_name) {
         result->image_data.dc6_data = dc6_new_from_bytes(data, size);
         result->total_frames = result->image_data.dc6_data->frames_per_direction;
         result->total_animations = result->image_data.dc6_data->number_of_directions;
+        free(data);
 
         free(path_ext);
+    } else if (strcmp(path_ext, ".sprite") == 0) {
+        free(path_ext);
+
+        result->sprite_type = sprite_type_d2r;
+
+        char *path_tmp = strdup(file_path);
+        const char *path_new = util_fix_mpq_path(path_tmp);
+
+        int size;
+        char *data = loader_load(engine_get_loader(engine_get_global_instance()), path_new, &size);
+        free(path_tmp);
+        result->image_data.d2r_data = d2r_sprite_new_from_bytes(data, size);
+        result->total_animations = 1; // TODO
+        result->total_frames = result->image_data.d2r_data->frames;
+        free(data);
     } else {
         free(result);
         free(path_ext);
@@ -200,10 +218,6 @@ void sprite_animate(sprite *source, float time_elapsed) {
 
 void sprite_regenerate_atlas_dc6(sprite *source) {
     VERIFY_ENGINE_THREAD
-
-    if (source->atlas != NULL) {
-        SDL_DestroyTexture(source->atlas);
-    }
 
     const dc6 *dc6 = source->image_data.dc6_data;
 
@@ -278,12 +292,45 @@ void sprite_regenerate_atlas_dc6(sprite *source) {
     free(buffer);
 }
 
+void sprite_regenerate_atlas_d2r(sprite* source) {
+    VERIFY_ENGINE_THREAD
+
+    if (source->atlas != NULL) {
+        SDL_DestroyTexture(source->atlas);
+    }
+    if (source->atlas_surface != NULL) {
+        SDL_FreeSurface(source->atlas_surface);
+    }
+    const d2r_sprite* sprite = source->image_data.d2r_data;
+    source->atlas_surface = SDL_CreateRGBSurfaceWithFormatFrom(sprite->data, sprite->width, sprite->height, 32, 4 * sprite->width, SDL_PIXELFORMAT_RGBA32);
+    source->atlas = SDL_CreateTextureFromSurface(engine_get_renderer(engine_get_global_instance()), source->atlas_surface);
+
+    if (source->frame_rects != NULL) {
+        free(source->frame_rects);
+    }
+    source->frame_rects = malloc(sizeof(sprite_frame_pos) * sprite->frames);
+    uint64_t frame_width = sprite->width / sprite->frames;
+    for (int i = 0; i < sprite->frames; ++i) {
+        sprite_frame_pos* frame = &source->frame_rects[i];
+        frame->rect.x = frame_width * i;
+        frame->rect.y = 0;
+        frame->rect.w = frame_width;
+        frame->rect.h = sprite->height;
+        frame->offset_x = 0;
+        frame->offset_y = 0;
+    }
+    sprite_set_blend_mode(source, source->blend_mode);
+}
+
 void sprite_regenerate_atlas(sprite *source) {
     VERIFY_ENGINE_THREAD
 
     switch (source->sprite_type) {
     case sprite_type_dc6:
         sprite_regenerate_atlas_dc6(source);
+        return;
+    case sprite_type_d2r:
+        sprite_regenerate_atlas_d2r(source);
         return;
     default:
         log_fatal("unsupported sprite type");
@@ -301,6 +348,10 @@ void sprite_frame_offset(sprite *source, uint32_t frame, int *offset_x, int *off
         if (offset_y != NULL)
             *offset_y = item->offset_y;
     } break;
+    case sprite_type_d2r: {
+                              // sprite_frame_offset() results seems to be unused...
+                              break;
+                          }
     default:
         log_fatal("invalid sprite type");
         exit(-1);
@@ -322,6 +373,15 @@ void sprite_frame_size(sprite *source, uint32_t *frame_size_x, uint32_t *frame_s
                 *frame_size_y += source->image_data.dc6_data->directions[source->current_animation].frames[source->current_frame + i].height;
         }
     } break;
+    case sprite_type_d2r: {
+                              if (frame_size_x != NULL) {
+                                  *frame_size_x = source->image_data.d2r_data->width / source->image_data.d2r_data->frames;
+                              }
+                              if (frame_size_y != NULL) {
+                                  *frame_size_y = source->image_data.d2r_data->height;
+                              }
+                              break;
+                          }
     default:
         log_fatal("invalid sprite type");
         exit(-1);
@@ -432,6 +492,9 @@ void sprite_destroy(sprite *source) {
         break;
     case sprite_type_dcc:
         dcc_destroy(source->image_data.dcc_data);
+        break;
+    case sprite_type_d2r:
+        d2r_sprite_destroy(source->image_data.d2r_data);
         break;
     default:
         log_fatal("undefined sprite type");
@@ -544,6 +607,8 @@ uint32_t sprite_get_frames_per_animation(const sprite *source) {
     switch (source->sprite_type) {
     case sprite_type_dc6:
         return source->image_data.dc6_data->frames_per_direction;
+    case sprite_type_d2r:
+        return source->image_data.d2r_data->frames;
     default:
         log_fatal("unsupported animation type");
         exit(EXIT_FAILURE);
