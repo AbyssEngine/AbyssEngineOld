@@ -16,6 +16,8 @@
  * along with AbyssEngine.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <lua.h>
+#include <lauxlib.h>
 #include "button.h"
 #include "../../common/string.h"
 #include "../sprite/sprite.h"
@@ -45,6 +47,8 @@ typedef struct button {
     int frame_index_checked_pressed;
     int cur_caption_width;
     int cur_caption_height;
+    bool ignore_mouse_activation;
+    int lua_activate_callback_func;
 } button;
 
 void button_render_callback(node *node, engine *e, int offset_x, int offset_y) {
@@ -53,48 +57,136 @@ void button_render_callback(node *node, engine *e, int offset_x, int offset_y) {
 
     button *source = (button *)node;
 
+    int frame_index = -1;
+    int text_offset_x = 0;
+    int text_offset_y = 0;
+    switch (source->button_state) {
+    case button_state_normal:
+        frame_index = source->is_checkbox ? source->frame_index_checked_normal : source->frame_index_normal;
+        break;
+    case button_state_pressed:
+        frame_index = source->is_checkbox ? source->frame_index_checked_pressed : source->frame_index_pressed;
+        text_offset_x = -2;
+        text_offset_y = 2;
+        break;
+    case button_state_hover:
+        frame_index = source->is_checkbox ? source->frame_index_checked_hover : source->frame_index_hover;
+        break;
+    case button_state_disabled:
+        frame_index = source->frame_index_disabled;
+        break;
+    case button_state_unknown:
+        frame_index = -1;
+        break;
+    }
+
+    if (frame_index < 0) {
+        frame_index = source->frame_index_normal;
+    }
+
+
     if (source->sprite != NULL) {
-        int frame_index = -1;
-        switch (source->button_state) {
-        case button_state_normal:
-            frame_index = source->is_checkbox ? source->frame_index_checked_normal : source->frame_index_normal;
-            break;
-        case button_state_pressed:
-            frame_index = source->is_checkbox ? source->frame_index_checked_pressed : source->frame_index_pressed;
-            break;
-        case button_state_hover:
-            frame_index = source->is_checkbox ? source->frame_index_checked_hover : source->frame_index_hover;
-            break;
-        case button_state_disabled:
-            frame_index = source->frame_index_disabled;
-            break;
-        case button_state_unknown:
-            frame_index = -1;
-            break;
-        }
-
-        if (frame_index < 0) {
-            frame_index = source->frame_index_normal;
-        }
-
         sprite_set_cell_size(source->sprite, source->x_segments, source->y_segments);
-        sprite_render(source->sprite, e, frame_index, node->x + offset_x, node->y+ offset_y);
+        sprite_render(source->sprite, e, frame_index, node->x + offset_x, node->y + offset_y);
     }
 
     if (source->caption != NULL) {
 
         spritefont_draw_text(source->sprite_font,
-                             node->x + source->text_offset_x + offset_x + (source->fixed_width / 2) - (source->cur_caption_width / 2),
-                             node->y + source->text_offset_y + offset_y + (source->fixed_height / 2) - (source->cur_caption_height / 2),
-                             source->caption,
-                             blend_mode_mul,
-                             source->label_color);
+                             node->x + source->text_offset_x + offset_x + (source->fixed_width / 2) - (source->cur_caption_width / 2) + text_offset_x,
+                             node->y + source->text_offset_y + offset_y + (source->fixed_height / 2) - (source->cur_caption_height / 2) + text_offset_y,
+                             source->caption, blend_mode_mul, source->label_color);
     }
 
     node_default_render_callback(node, e, offset_x, offset_y);
 }
 
-bool button_update_callback(node *node, engine *e, uint32_t ticks) { return node_default_update_callback(node, e, ticks); }
+bool button_update_callback(node *node_source, engine *e, uint32_t ticks) {
+    button *source = (button *)node_source;
+
+    e_mouse_button mouse_state = engine_get_mouse_button_state(e);
+    int mx, my;
+    int nx1, ny1;
+    engine_get_cursor_position(e, &mx, &my);
+    node_get_effective_layout(node_source, &nx1, &ny1);
+    const int nx2 = nx1 + source->fixed_width;
+    const int ny2 = ny1 + source->fixed_height;
+
+    const bool mouse_hovered = (mx >= nx1) && (mx < nx2) && (my >= ny1) && (my < ny2);
+    const bool mouse_clicked = (mouse_state & mouse_button_left);
+    const node *focused_node = (node *)engine_get_input_focus(e);
+    const bool this_is_focused = node_source == focused_node;
+    const bool any_is_focused = focused_node != NULL;
+
+    if (this_is_focused) {
+        if (!mouse_clicked && !mouse_hovered) {
+            engine_set_input_focus(e, NULL);
+            button_set_state(source, button_state_normal);
+
+            return node_default_update_callback(node_source, e, ticks);
+        }
+
+        if (mouse_clicked && mouse_hovered) {
+            if (source->button_state != button_state_pressed)
+                button_set_state(source, button_state_pressed);
+
+            return node_default_update_callback(node_source, e, ticks);
+        }
+
+        if (!mouse_clicked && mouse_hovered) {
+            engine_set_input_focus(e, NULL);
+            button_set_state(source, button_state_normal);
+
+            lua_State *l = engine_get_lua_state(e);
+
+            if (source->lua_activate_callback_func != 0) {
+                lua_rawgeti(l, LUA_REGISTRYINDEX, source->lua_activate_callback_func);
+                lua_call(l, 0, 0);
+            }
+
+            return node_default_update_callback(node_source, e, ticks);
+        }
+
+        if (source->button_state != button_state_normal)
+            button_set_state(source, button_state_normal);
+
+        return node_default_update_callback(node_source, e, ticks);
+    }
+
+    if (!mouse_hovered && mouse_clicked) {
+        source->ignore_mouse_activation = true;
+
+        return node_default_update_callback(node_source, e, ticks);
+    }
+
+    if (source->ignore_mouse_activation && !mouse_clicked) {
+        source->ignore_mouse_activation = false;
+
+        return node_default_update_callback(node_source, e, ticks);
+    }
+
+    if (!source->ignore_mouse_activation && mouse_hovered && !mouse_clicked && !any_is_focused) {
+        if (source->button_state != button_state_hover)
+            button_set_state(source, button_state_hover);
+
+        return node_default_update_callback(node_source, e, ticks);
+    }
+
+    if (!source->ignore_mouse_activation && mouse_hovered && mouse_clicked && (!any_is_focused || this_is_focused)) {
+        if (source->button_state != button_state_pressed)
+            button_set_state(source, button_state_pressed);
+
+        if (!this_is_focused)
+            engine_set_input_focus(e, node_source);
+
+        return node_default_update_callback(node_source, e, ticks);
+    }
+
+    if (source->button_state != button_state_normal)
+        button_set_state(source, button_state_normal);
+
+    return node_default_update_callback(node_source, e, ticks);
+}
 
 button *button_load(spritefont *sprite_font, const char *file_path, const char *palette_name) {
     sprite *sprite = NULL;
@@ -137,6 +229,11 @@ void button_destroy(button *source) {
 
     if (source->caption != NULL)
         free(source->caption);
+
+    lua_State *l = engine_get_lua_state(engine_get_global_instance());
+
+    if (source->lua_activate_callback_func != 0)
+        luaL_unref(l, LUA_REGISTRYINDEX, source->lua_activate_callback_func);
 
     free(source);
 }
@@ -254,3 +351,12 @@ bool button_get_checked(const button *source) { return source->checked; }
 void button_set_is_checkbox(button *source, bool is_checkbox) { source->is_checkbox = is_checkbox; }
 
 bool button_get_is_checkbox(const button *source) { return source->is_checkbox; }
+
+void button_set_lua_activate_callback(button *source, int lua_function_ref) {
+    if (source->lua_activate_callback_func != 0)
+        luaL_unref(engine_get_lua_state(engine_get_global_instance()), LUA_REGISTRYINDEX, source->lua_activate_callback_func);
+
+    source->lua_activate_callback_func = lua_function_ref;
+}
+
+int button_get_lua_activate_callback(const button *source) { return source->lua_activate_callback_func; }

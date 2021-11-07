@@ -215,7 +215,7 @@ Functions:
 
     . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
     . Mouse Events
-    . All functions have similar inputs/outputs so are grouped together in this doucment...
+    . All functions have similar inputs/outputs so are grouped together in this document...
     . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
     onMouseEnter(func(x,y):bool)          Sets (or clears of nil) a callback function to be executed when the mouse enters the sprite.
     onMouseLeave(func(x,y):bool)          Sets (or clears of nil) a callback function to be executed when the mouse leaves the sprite.
@@ -289,7 +289,18 @@ Functions:
 
     frameIndex(): int
     frameIndex(int)
-        Gerts/Sets the current frame index of the button.
+        Gets/Sets the current frame index of the button.
+
+    . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+    . Events
+    . All functions have similar inputs/outputs so are grouped together in this document...
+    . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+    onActivate(func())                    Sets (or clears of nil) a callback function to be executed when the button is activated.
+
+    . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+
 
 -----------------------------------------------------------------------
 NODE

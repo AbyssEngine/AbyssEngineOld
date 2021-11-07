@@ -69,5 +69,6 @@ void button_set_checked(button *source, bool checked);
 bool button_get_checked(const button *source);
 void button_set_is_checkbox(button *source, bool is_checkbox);
 bool button_get_is_checkbox(const button *source);
-
+void button_set_lua_activate_callback(button *source, int lua_function_ref);
+int button_get_lua_activate_callback(const button *source);
 #endif // ABYSS_BUTTON_H

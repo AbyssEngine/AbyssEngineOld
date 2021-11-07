@@ -168,7 +168,7 @@ int abyss_lua_button_label_color(lua_State *l) {
         rgb color = button_get_label_color(source);
         lua_pushinteger(l, color.r);
         lua_pushinteger(l, color.g);
-        lua_pushinteger(l, color.g);
+        lua_pushinteger(l, color.b);
         return 3;
     }
 
@@ -266,6 +266,22 @@ int abyss_lua_button_frame_index(lua_State *l) {
     return 0;
 }
 
+int abyss_lua_button_on_activate(lua_State *l) {
+    LCHECK_NUMPARAMS(2)
+
+    if (!lua_isfunction(l, 2)) {
+        luaL_error(l, "a function must be supplied");
+        return 0;
+    }
+
+    const int ref = luaL_ref(l, LUA_REGISTRYINDEX);
+    SCRIPT_GET_LUA_THIS(source, button);
+
+    button_set_lua_activate_callback(source, ref);
+
+    return 0;
+}
+
 int abyss_lua_create_button(lua_State *l) {
     LCHECK_NUMPARAMS(3)
     SCRIPT_GET_LUA_CLASS(font, spritefont, 1)
@@ -286,6 +302,8 @@ int abyss_lua_create_button(lua_State *l) {
     SCRIPT_CLASS_RESULT_PROPERTY("labelColor", abyss_lua_button_label_color);
     SCRIPT_CLASS_RESULT_PROPERTY("colorMod", abyss_lua_button_color_mod);
     SCRIPT_CLASS_RESULT_PROPERTY("frameIndex", abyss_lua_button_frame_index);
+    SCRIPT_CLASS_RESULT_PROPERTY("onActivate", abyss_lua_button_on_activate);
+
     ADD_NODE_SCRIPT_CLASS_RESULT_PROPERTIES
 
     return 1;

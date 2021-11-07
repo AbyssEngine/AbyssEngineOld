@@ -88,6 +88,7 @@ int luaopen_abyss(lua_State *l) {
     lua_register(l, "fileExists", abyss_lua_file_exists);
     lua_register(l, "createLabel", abyss_lua_create_label);
     lua_register(l, "createButton", abyss_lua_create_button);
+    lua_register(l, "resetMouseState", abyss_lua_reset_mouse_state);
 
     return 1;
 }

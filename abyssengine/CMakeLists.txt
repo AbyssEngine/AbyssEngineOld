@@ -112,6 +112,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/scripting/exitbootmode.c
         src/scripting/createlabel.c
         src/scripting/createbutton.c
+        src/scripting/resetmousestate.c
 
         # Loaders ------------------------------------------------------
         src/loader/loaderprovider.c src/loader/loaderprovider.h
