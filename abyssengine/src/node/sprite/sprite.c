@@ -67,8 +67,8 @@ typedef struct sprite {
 } sprite;
 
 sprite *sprite_load(const char *file_path, const char *palette_name) {
-    const size_t path_len = strlen(file_path) - 4;
-    if (path_len < 5) {
+    const char *dot = strrchr(file_path, '.');
+    if (!dot) {
         return NULL;
     }
 
@@ -85,10 +85,9 @@ sprite *sprite_load(const char *file_path, const char *palette_name) {
 
     result->palette = palette;
 
-    const char *path_end = &file_path[path_len];
-    char *path_ext = strdup(path_end);
-    for (int i = 1; i < 4; i++)
-        path_ext[i] = (char)tolower(path_ext[i]);
+    char *path_ext = strdup(dot);
+    for (char* i = path_ext; *i; ++i)
+        *i = (char)tolower(*i);
     if (strcmp(path_ext, ".dcc") == 0) {
         log_fatal("DCC sprites not yet supported!");
         exit(-1);
