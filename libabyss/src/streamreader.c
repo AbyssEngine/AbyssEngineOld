@@ -76,14 +76,14 @@ void streamreader_set_position(streamreader *source, uint64_t position) { source
 
 void streamreader_get_bytes(streamreader *source, void *buffer, const uint64_t count) {
 
-    assert(source->position + count < source->data_size);
+    assert(source->position + count <= source->data_size);
 
     memcpy(buffer, &source->data[source->position], count);
     source->position += count;
 }
 
 void streamreader_skip_bytes(streamreader *source, const uint64_t count) {
-    assert(source->position + count < source->data_size);
+    assert(source->position + count <= source->data_size);
 
     source->position += count;
 }

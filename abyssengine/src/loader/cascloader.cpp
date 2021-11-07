@@ -78,7 +78,7 @@ static void *casc_loader_load(loader_provider *provider, const char *path, int *
 }
 
 extern "C" loader_provider *casc_loader_new(const char *casc_path) {
-    casc_loader *result = new casc_loader();
+    casc_loader *result = (casc_loader*)calloc(1, sizeof(casc_loader));
 
     result->provider.load_callback = casc_loader_load;
     result->provider.destroy_callback = casc_loader_destroy;
