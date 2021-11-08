@@ -20,30 +20,34 @@
 #include "../../engine/engine.h"
 #include <stdlib.h>
 
+typedef struct {
+    ttffont* font;
+    int width;
+    int height;
+    SDL_Texture* texture;
+} ttflabel;
+
 typedef struct label {
     node node;
     bool ttf;
     union {
         spritefont *sfont;
-        ttffont *tfont;
+        ttflabel tfont;
     };
     char *caption;
     e_alignment horizontal_alignment;
     e_alignment vertical_alignment;
     e_blend_mode blend;
     rgb color_mod;
-    SDL_Surface* surface;
-    SDL_Texture* texture;
 } label;
 
 static void label_reset_texture(label* lbl) {
-    if (lbl->texture != NULL)
-        SDL_DestroyTexture(lbl->texture);
-    lbl->texture = NULL;
+    if (!lbl->ttf)
+        return;
 
-    if (lbl->surface != NULL)
-        SDL_FreeSurface(lbl->surface);
-    lbl->surface = NULL;
+    if (lbl->tfont.texture != NULL)
+        SDL_DestroyTexture(lbl->tfont.texture);
+    lbl->tfont.texture = NULL;
 }
 
 void label_render_callback(node *source, engine *e, int offset_x, int offset_y) {
@@ -52,9 +56,12 @@ void label_render_callback(node *source, engine *e, int offset_x, int offset_y) 
     if (!source->visible || !source->active)
         return;
 
-    if (lbl->ttf && lbl->texture == NULL) {
-        lbl->surface = ttffont_draw_text(lbl->tfont, lbl->caption);
-        lbl->texture = SDL_CreateTextureFromSurface(engine_get_renderer(engine_get_global_instance()), lbl->surface);
+    if (lbl->ttf && lbl->tfont.texture == NULL) {
+        SDL_Surface* surface = ttffont_draw_text(lbl->tfont.font, lbl->caption);
+        lbl->tfont.texture = SDL_CreateTextureFromSurface(engine_get_renderer(engine_get_global_instance()), surface);
+        lbl->tfont.width = surface->w;
+        lbl->tfont.height = surface->h;
+        SDL_FreeSurface(surface);
     }
 
     int pos_x = source->x + offset_x;
@@ -63,8 +70,8 @@ void label_render_callback(node *source, engine *e, int offset_x, int offset_y) 
     int final_width;
     int final_height;
     if (lbl->ttf) {
-        final_width = lbl->surface->w;
-        final_height = lbl->surface->h;
+        final_width = lbl->tfont.width;
+        final_height = lbl->tfont.height;
     } else {
         spritefont_get_metrics(lbl->sfont, lbl->caption, &final_width, &final_height);
     }
@@ -93,13 +100,13 @@ void label_render_callback(node *source, engine *e, int offset_x, int offset_y) 
 
     if (lbl->ttf) {
         SDL_Rect rect;
-        rect.h = lbl->surface->h;
-        rect.w = lbl->surface->w;
+        rect.h = lbl->tfont.height;
+        rect.w = lbl->tfont.width;
         rect.x = pos_x;
         rect.y = pos_y;
-        SDL_SetTextureBlendMode(lbl->texture, blend_mode_to_sdl2(lbl->blend));
-        SDL_SetTextureColorMod(lbl->texture, lbl->color_mod.r, lbl->color_mod.g, lbl->color_mod.b);
-        SDL_RenderCopy(engine_get_renderer(engine_get_global_instance()), lbl->texture, NULL, &rect);
+        SDL_SetTextureBlendMode(lbl->tfont.texture, blend_mode_to_sdl2(lbl->blend));
+        SDL_SetTextureColorMod(lbl->tfont.texture, lbl->color_mod.r, lbl->color_mod.g, lbl->color_mod.b);
+        SDL_RenderCopy(engine_get_renderer(engine_get_global_instance()), lbl->tfont.texture, NULL, &rect);
     } else {
         spritefont_draw_text(lbl->sfont, pos_x, pos_y, lbl->caption, lbl->blend, lbl->color_mod);
     }
@@ -117,7 +124,6 @@ label *label_create(spritefont *font) {
     result->color_mod.g = 0xFF;
     result->color_mod.b = 0xFF;
     result->node.render_callback = label_render_callback;
-    result->texture = NULL;
 
     return result;
 }
@@ -126,13 +132,13 @@ label *label_create_ttf(ttffont *font) {
     label *result = calloc(1, sizeof(label));
     node_initialize(&result->node);
     result->ttf = true;
-    result->tfont = font;
+    result->tfont.font = font;
+    result->tfont.texture = NULL;
     result->blend = blend_mode_blend;
     result->color_mod.r = 0xFF;
     result->color_mod.g = 0xFF;
     result->color_mod.b = 0xFF;
     result->node.render_callback = label_render_callback;
-    result->texture = NULL;
 
     return result;
 }
