@@ -13,14 +13,29 @@ int abyss_lua_ttf_font_destroy(lua_State *l) {
 }
 
 int abyss_lua_load_ttf_font(lua_State *l) {
-    LCHECK_NUMPARAMS(2)
     LCHECK_STRING(1);
     LCHECK_NUMBER(2);
 
     const char *path = lua_tostring(l, 1);
     int size = lua_tointeger(l, 2);
+    int hinting = TTF_HINTING_NORMAL;
+    if (lua_gettop(l) >= 3) {
+        const char* hinting_str = lua_tostring(l, 3);
+        if (strcmp(hinting_str, "normal") == 0) {
+            hinting = TTF_HINTING_NORMAL;
+        } else if (strcmp(hinting_str, "light") == 0) {
+            hinting = TTF_HINTING_LIGHT;
+        } else if (strcmp(hinting_str, "mono") == 0) {
+            hinting = TTF_HINTING_MONO;
+        } else if (strcmp(hinting_str, "none") == 0) {
+            hinting = TTF_HINTING_NONE;
+        } else {
+            luaL_error(l, "unknown hinting");
+            return 0;
+        }
+    }
 
-    ttffont *result = ttffont_load(path, size);
+    ttffont *result = ttffont_load(path, size, hinting);
 
     if (result == NULL) {
         luaL_error(l, "Error loading TTF");

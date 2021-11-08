@@ -7,7 +7,7 @@
 
 typedef struct ttffont ttffont;
 
-ttffont *ttffont_load(const char *file_path, int size);
+ttffont *ttffont_load(const char *file_path, int size, int hinting);
 void ttffont_destroy(ttffont *source);
 SDL_Surface* ttffont_draw_text(ttffont *source, const char *text);
 

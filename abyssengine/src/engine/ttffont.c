@@ -12,7 +12,7 @@ typedef struct ttffont {
     char* file;
 } ttffont;
 
-ttffont *ttffont_load(const char *file_path, int size) {
+ttffont *ttffont_load(const char *file_path, int size, int hinting) {
     engine *engine = engine_get_global_instance();
     ttffont *result = calloc(1, sizeof(ttffont));
 
@@ -28,8 +28,7 @@ ttffont *ttffont_load(const char *file_path, int size) {
         return NULL;
     }
     result->file = data;
-    // TODO make this a parameter passed from lua
-    TTF_SetFontHinting(result->font, TTF_HINTING_NONE);
+    TTF_SetFontHinting(result->font, hinting);
 
     return result;
 }
