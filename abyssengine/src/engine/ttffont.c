@@ -41,5 +41,5 @@ void ttffont_destroy(ttffont *source) {
 
 SDL_Surface* ttffont_draw_text(ttffont *source, const char *text) {
     SDL_Color color = {255, 255, 255, 0};
-    return TTF_RenderText_Blended(source->font, text, color);
+    return TTF_RenderUTF8_Blended(source->font, text, color);
 }
