@@ -13,6 +13,12 @@ find_package(PNG REQUIRED)
 find_package(Lua 5.4 EXACT REQUIRED)
 find_package(Threads REQUIRED)
 find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE POSTPROC REQUIRED)
+find_package(sdl2-ttf)
+if (NOT sdl2-ttf_FOUND)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(SDL2TTF REQUIRED IMPORTED_TARGET SDL2_ttf)
+    add_library(SDL2::SDL2_ttf ALIAS PkgConfig::SDL2TTF)
+endif()
 
 include(../cmake/CPM.cmake)
 CPMAddPackage("https://github.com/ladislav-zezula/CascLib.git#85800c22281fe6827c61e8d9ebc9ca83d161d901")
@@ -71,6 +77,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/engine/engine.c src/engine/engine.h
         src/engine/sysfont.c src/engine/sysfont.h
         src/engine/spritefont.c src/engine/spritefont.h
+        src/engine/ttffont.c src/engine/ttffont.h
 
         # Common -------------------------------------------------------
         src/common/color.h
@@ -105,6 +112,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/scripting/loadpalette.c
         src/scripting/loadsprite.c
         src/scripting/loadspritefont.c
+        src/scripting/loadttffont.c
         src/scripting/setcursor.c
         src/scripting/getrootnode.c
         src/scripting/playvideo.c
@@ -148,6 +156,7 @@ target_link_libraries(${PROJECT_NAME}
         Threads::Threads
         SDL2::SDL2main
         SDL2::SDL2
+        SDL2::SDL2_ttf
         PNG::PNG
         ${FFMPEG_LIBRARIES}
         ${LUA_LIBRARIES}

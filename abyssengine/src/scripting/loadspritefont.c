@@ -23,7 +23,9 @@
 
 int abyss_lua_sprite_font_destroy(lua_State *l) {
     LCHECK_NUMPARAMS(1)
-    SCRIPT_GET_LUA_THIS(source, sprite)
+    SCRIPT_GET_LUA_THIS(source, spritefont)
+
+    spritefont_destroy(source);
 
     return 0;
 }

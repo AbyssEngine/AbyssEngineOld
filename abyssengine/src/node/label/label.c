@@ -20,9 +20,20 @@
 #include "../../engine/engine.h"
 #include <stdlib.h>
 
+typedef struct {
+    ttffont* font;
+    int width;
+    int height;
+    SDL_Texture* texture;
+} ttflabel;
+
 typedef struct label {
     node node;
-    spritefont *font;
+    bool ttf;
+    union {
+        spritefont *sfont;
+        ttflabel tfont;
+    };
     char *caption;
     e_alignment horizontal_alignment;
     e_alignment vertical_alignment;
@@ -30,18 +41,40 @@ typedef struct label {
     rgb color_mod;
 } label;
 
+static void label_reset_texture(label* lbl) {
+    if (!lbl->ttf)
+        return;
+
+    if (lbl->tfont.texture != NULL)
+        SDL_DestroyTexture(lbl->tfont.texture);
+    lbl->tfont.texture = NULL;
+}
+
 void label_render_callback(node *source, engine *e, int offset_x, int offset_y) {
     label *lbl = (label *)source;
 
     if (!source->visible || !source->active)
         return;
 
+    if (lbl->ttf && lbl->tfont.texture == NULL) {
+        SDL_Surface* surface = ttffont_draw_text(lbl->tfont.font, lbl->caption);
+        lbl->tfont.texture = SDL_CreateTextureFromSurface(engine_get_renderer(engine_get_global_instance()), surface);
+        lbl->tfont.width = surface->w;
+        lbl->tfont.height = surface->h;
+        SDL_FreeSurface(surface);
+    }
+
     int pos_x = source->x + offset_x;
     int pos_y = source->y + offset_y;
 
     int final_width;
     int final_height;
-    spritefont_get_metrics(lbl->font, lbl->caption, &final_width, &final_height);
+    if (lbl->ttf) {
+        final_width = lbl->tfont.width;
+        final_height = lbl->tfont.height;
+    } else {
+        spritefont_get_metrics(lbl->sfont, lbl->caption, &final_width, &final_height);
+    }
 
     switch (lbl->horizontal_alignment) {
     case alignment_middle:
@@ -65,7 +98,18 @@ void label_render_callback(node *source, engine *e, int offset_x, int offset_y) 
         break;
     }
 
-    spritefont_draw_text(lbl->font, pos_x, pos_y, lbl->caption, lbl->blend, lbl->color_mod);
+    if (lbl->ttf) {
+        SDL_Rect rect;
+        rect.h = lbl->tfont.height;
+        rect.w = lbl->tfont.width;
+        rect.x = pos_x;
+        rect.y = pos_y;
+        SDL_SetTextureBlendMode(lbl->tfont.texture, blend_mode_to_sdl2(lbl->blend));
+        SDL_SetTextureColorMod(lbl->tfont.texture, lbl->color_mod.r, lbl->color_mod.g, lbl->color_mod.b);
+        SDL_RenderCopy(engine_get_renderer(engine_get_global_instance()), lbl->tfont.texture, NULL, &rect);
+    } else {
+        spritefont_draw_text(lbl->sfont, pos_x, pos_y, lbl->caption, lbl->blend, lbl->color_mod);
+    }
 
     node_default_render_callback(source, e, offset_x, offset_y);
 }
@@ -73,7 +117,23 @@ void label_render_callback(node *source, engine *e, int offset_x, int offset_y) 
 label *label_create(spritefont *font) {
     label *result = calloc(1, sizeof(label));
     node_initialize(&result->node);
-    result->font = font;
+    result->ttf = false;
+    result->sfont = font;
+    result->blend = blend_mode_blend;
+    result->color_mod.r = 0xFF;
+    result->color_mod.g = 0xFF;
+    result->color_mod.b = 0xFF;
+    result->node.render_callback = label_render_callback;
+
+    return result;
+}
+
+label *label_create_ttf(ttffont *font) {
+    label *result = calloc(1, sizeof(label));
+    node_initialize(&result->node);
+    result->ttf = true;
+    result->tfont.font = font;
+    result->tfont.texture = NULL;
     result->blend = blend_mode_blend;
     result->color_mod.r = 0xFF;
     result->color_mod.g = 0xFF;
@@ -90,6 +150,8 @@ void label_destroy(label *source) {
     if (source->caption != NULL)
         free(source->caption);
 
+    label_reset_texture(source);
+
     free(source);
 }
 
@@ -99,6 +161,8 @@ void label_set_text(label *source, const char *text) {
         free(source->caption);
 
     source->caption = strdup(text);
+
+    label_reset_texture(source);
 }
 
 e_alignment label_get_horizontal_alignment(const label *label) { return label->horizontal_alignment; }

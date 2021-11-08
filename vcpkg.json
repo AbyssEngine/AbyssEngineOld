@@ -5,6 +5,7 @@
         "libpng",
         "zlib",
         "sdl2",
+        "sdl2-ttf",
         "lua",
         {
             "name": "ffmpeg",
