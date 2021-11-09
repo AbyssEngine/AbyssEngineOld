@@ -36,7 +36,7 @@ loader *loader_new(void) {
 void loader_destroy(loader *src) {
     if (src->providers != NULL) {
         for (int i = 0; i < src->num_providers; i++) {
-            free(src->providers[i]);
+            loader_provider_destroy(src->providers[i]);
         }
         free(src->providers);
     }
