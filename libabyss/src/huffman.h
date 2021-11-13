@@ -14,19 +14,13 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with AbyssEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
-#include "../engine/engine.h"
-#include "libabyss/utils.h"
-#include "scripting.h"
+#ifndef ABYSS_HUFFMAN_H
+#define ABYSS_HUFFMAN_H
 
-int abyss_lua_file_exists(lua_State *l) {
-   LCHECK_NUMPARAMS(1)
-   LCHECK_STRING(1);
+#include <stdint.h>
 
-   const char *path = lua_tostring(l, 1);
-   bool exists = loader_file_exists(engine_get_loader(engine_get_global_instance()), path);
-   lua_pushboolean(l, exists);
+void *huffman_decompress(void *data_src, uint32_t compressed_size, uint32_t *output_size);
 
-   return 1;
-}
+#endif // ABYSS_HUFFMAN_H

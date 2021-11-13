@@ -136,3 +136,21 @@ int abyss_lua_node_detach(lua_State *l) {
 
     return 0;
 }
+
+void abyss_lua_node_remove_all_children_dispatch(void *data) {
+    node *source = data;
+    node_remove_all_children(source , engine_get_global_instance());
+}
+
+
+int abyss_lua_node_remove_all_children(lua_State *l) {
+    if (lua_gettop(l) != 1) {
+        lua_error(l);
+        return 0;
+    }
+
+    SCRIPT_GET_LUA_THIS(source, node)
+    engine_dispatch(engine_get_global_instance(), abyss_lua_node_remove_all_children_dispatch, source);
+
+    return 0;
+}

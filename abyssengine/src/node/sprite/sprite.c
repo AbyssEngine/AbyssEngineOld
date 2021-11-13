@@ -245,11 +245,9 @@ void sprite_regenerate_atlas_dc6(sprite *source) {
     source->atlas = SDL_CreateTexture(engine_get_renderer(engine_get_global_instance()), SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC,
                                       atlas_width, atlas_height);
 
-    if (source->frame_rects != NULL) {
-        free(source->frame_rects);
-    }
-    source->frame_rects =
-        malloc(sizeof(sprite_frame_pos) * source->image_data.dc6_data->frames_per_direction * source->image_data.dc6_data->number_of_directions);
+    source->frame_rects = realloc(source->frame_rects,
+                                  sizeof(sprite_frame_pos) * source->image_data.dc6_data->frames_per_direction * source->image_data.dc6_data->number_of_directions);
+
     uint32_t *buffer = malloc(sizeof(uint32_t) * atlas_width * atlas_height);
 
     int start_x = 0;

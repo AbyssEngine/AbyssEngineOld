@@ -295,6 +295,7 @@ void engine_init_sdl2(engine *src) {
 
     if ((src->ini_config != NULL) && strcmp(init_file_get_value(src->ini_config, "Video", "HardwareCursor"), "1") == 0) {
         src->use_hardware_cursor = true;
+        SDL_ShowCursor(SDL_TRUE);
         src->hardware_cursor_scale = 1.0;
         const char *scale_str = init_file_get_value(src->ini_config, "Video", "HardwareCursorScale");
         if (scale_str != NULL && strlen(scale_str) > 0) {
@@ -303,6 +304,8 @@ void engine_init_sdl2(engine *src) {
                 src->hardware_cursor_scale = val;
             }
         }
+    } else {
+        SDL_ShowCursor(SDL_FALSE);
     }
 }
 
@@ -566,6 +569,10 @@ void engine_set_global_instance(engine *src) { global_engine_instance = src; }
 
 void engine_show_system_cursor(engine *src, bool show) {
     VERIFY_ENGINE_THREAD
+
+    if (!src->use_hardware_cursor)
+        return;
+
     SDL_ShowCursor(show);
 }
 

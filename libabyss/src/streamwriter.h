@@ -24,9 +24,9 @@
 
 typedef struct streamwriter streamwriter;
 
-streamwriter *streamwriter_create();
+streamwriter *streamwriter_create(void);
 void streamwriter_destroy(streamwriter *source);
-const void *streamwriter_get_data(streamwriter *source);
+void *streamwriter_get_data(streamwriter *source, uint32_t *data_len);
 void streamwriter_push_bytes(streamwriter *source, const void *bytes, uint32_t bytes_len);
 void streamwriter_push_bit(streamwriter *source, bool bit);
 void streamwriter_push_bits(streamwriter *source, uint8_t byte, int bits);

@@ -38,6 +38,8 @@ add_library(${PROJECT_NAME}
         src/compress.c src/compress.h
         src/streamreader.c src/streamreader.h
         src/streamwriter.c src/streamwriter.h
+        src/bitstream.c src/bitstream.h
+        src/huffman.c src/huffman.h
         ${THREAD_SRC}
         )
 

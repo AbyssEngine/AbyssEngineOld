@@ -46,6 +46,7 @@ void node_remove(node *source, struct engine *e);
 bool node_default_update_callback(node *source, struct engine *engine, uint32_t ticks);
 void node_default_render_callback(node *source, struct engine *engine, int offset_x, int offset_y);
 void node_get_effective_layout(const node *source, int *x1, int *y1);
+void node_remove_all_children(node *source, struct engine *e);
 bool node_default_mouse_event_callback(struct node *node, struct engine *engine, enum e_mouse_event_type event_type,
                                        const mouse_event_info *event_info);
 #endif // ABYSS_NODE_H

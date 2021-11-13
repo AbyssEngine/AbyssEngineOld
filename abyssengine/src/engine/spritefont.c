@@ -120,12 +120,11 @@ void spritefont_regenerate_atlas(spritefont *source) {
 
         for (int y = 0; y < frame->height; y++) {
             for (int x = 0; x < frame->width; x++) {
-                if (frame->index_data[x + (y * frame->width)] == 0) {
-                    buffer[start_x + x + ((start_y + y) * atlas_width)] = 0x00;
+                if (frame->index_data[x + (y * frame->width)] == 0)
                     continue;
-                }
+
                 const palette_color *color = &source->palette->base_palette[frame->index_data[x + (y * frame->width)]];
-                buffer[start_x + x + ((start_y + y) * atlas_width)] = (color->red << 16) | (color->green << 8) | (color->blue) | (0xFF << 24);
+                buffer[start_x + x + ((start_y + y) * atlas_width)] = ((uint32_t)color->red << 16) | ((uint32_t)color->green << 8) | ((uint32_t)color->blue) | ((uint32_t)0xFF << 24);
             }
         }
 

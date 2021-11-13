@@ -43,6 +43,7 @@ int main(int argc, char **argv) {
 #endif // NDEBUG
     check_app_compat();
     char cwd_path[4096];
+    memset(cwd_path, 0, 4096);
 #ifdef _WIN32
     _getcwd(cwd_path, 4096);
 #else

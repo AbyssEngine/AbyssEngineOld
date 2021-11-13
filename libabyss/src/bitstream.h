@@ -14,19 +14,19 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with AbyssEngine.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
-#include "../engine/engine.h"
-#include "libabyss/utils.h"
-#include "scripting.h"
+#ifndef ABYSS_BITSTREAM_H
+#define ABYSS_BITSTREAM_H
 
-int abyss_lua_file_exists(lua_State *l) {
-   LCHECK_NUMPARAMS(1)
-   LCHECK_STRING(1);
+#include <stdint.h>
+typedef struct bitstream bitstream;
 
-   const char *path = lua_tostring(l, 1);
-   bool exists = loader_file_exists(engine_get_loader(engine_get_global_instance()), path);
-   lua_pushboolean(l, exists);
+bitstream *bitstream_create(const void* data, uint32_t size);
+void bitstream_destroy(bitstream *source);
+int bitstream_read_bits(bitstream *source, int num_bits);
+int bitstream_peek_byte(bitstream *source);
+void bitstream_waste_bits(bitstream *source, int num_bits);
 
-   return 1;
-}
+
+#endif // ABYSS_BITSTREAM_H

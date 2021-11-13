@@ -192,6 +192,8 @@ void *mpq_read_file(mpq *source, const char *filename, uint32_t *file_size) {
 
     mpq_stream_read(stream, result, 0, block->file_size_uncompressed);
 
+    mpq_stream_destroy(stream);
+
     return result;
 }
 

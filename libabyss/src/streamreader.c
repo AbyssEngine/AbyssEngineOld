@@ -42,7 +42,10 @@ void streamreader_destroy(streamreader *source) { free(source); }
 uint8_t streamreader_read_byte(streamreader *source) {
     assert(source->position < source->data_size);
 
-    return source->data[source->position++];
+    uint8_t result = source->data[source->position];
+    source->position++;
+
+    return result;
 }
 
 int16_t streamreader_read_int16(streamreader *source) { return (int16_t)streamreader_read_uint16(source); }

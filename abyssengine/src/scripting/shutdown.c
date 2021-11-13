@@ -19,9 +19,19 @@
 #include "../engine/engine.h"
 #include "scripting.h"
 
+
+void abyss_lua_shutdown_dispatch(void *data) {
+    engine *e = engine_get_global_instance();
+    node *root_node = engine_get_root_node(e);
+    node_destroy(root_node, e);
+    engine_shutdown(engine_get_global_instance());
+}
+
+
 int abyss_lua_shutdown(lua_State *l) {
     LCHECK_NUMPARAMS(0)
 
-    engine_shutdown(engine_get_global_instance());
+    engine_dispatch(engine_get_global_instance(), abyss_lua_shutdown_dispatch, NULL);
+
     return 0;
 }
