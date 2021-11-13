@@ -67,7 +67,7 @@ void spritefont_regenerate_atlas(spritefont *source) {
     int cur_x = 0;
     int cur_height = 0;
 
-    for (int frame_idx = 0; frame_idx < dc6->frames_per_direction; frame_idx++) {
+    for (int frame_idx = 0; frame_idx < (int)dc6->frames_per_direction; frame_idx++) {
         const dc6_frame *frame = &direction->frames[frame_idx];
 
         if (cur_x + (int)frame->width > MAX_SPRITEFONT_ATLAS_WIDTH) {
@@ -79,7 +79,7 @@ void spritefont_regenerate_atlas(spritefont *source) {
         }
 
         cur_x += (int)frame->width;
-        cur_height = (cur_height < frame->height) ? (int)frame->height : cur_height;
+        cur_height = (cur_height < (int)frame->height) ? (int)frame->height : cur_height;
     }
 
     atlas_height += cur_height;
@@ -95,14 +95,20 @@ void spritefont_regenerate_atlas(spritefont *source) {
     }
 
     source->frame_rects = malloc(sizeof(spritefont_frame_pos) * source->dc6_data->frames_per_direction);
-    uint32_t *buffer = calloc(1, sizeof(uint32_t) * atlas_width * atlas_height);
+    const int buffer_size = atlas_width * atlas_height;
+    uint32_t *buffer = calloc(1, sizeof(uint32_t) * buffer_size);
 
     int start_x = 0;
     int start_y = 0;
     cur_height = 0;
 
-    for (int frame_idx = 0; frame_idx < dc6->frames_per_direction; frame_idx++) {
+    for (int frame_idx = 0; frame_idx < (int)dc6->frames_per_direction; frame_idx++) {
         const dc6_frame *frame = &direction->frames[frame_idx];
+        if (source->frame_rects == NULL) {
+            log_error("frame rects not defined");
+            exit(EXIT_FAILURE);
+        }
+
         spritefont_frame_pos *frame_rect = &source->frame_rects[frame_idx];
 
         if (start_x + (int)frame->width > MAX_SPRITEFONT_ATLAS_WIDTH) {
@@ -118,18 +124,25 @@ void spritefont_regenerate_atlas(spritefont *source) {
         frame_rect->offset_x = frame->offset_x;
         frame_rect->offset_y = frame->offset_y;
 
-        for (int y = 0; y < frame->height; y++) {
-            for (int x = 0; x < frame->width; x++) {
+        for (int y = 0; y < (int)frame->height; y++) {
+            for (int x = 0; x < (int)frame->width; x++) {
                 if (frame->index_data[x + (y * frame->width)] == 0)
                     continue;
 
                 const palette_color *color = &source->palette->base_palette[frame->index_data[x + (y * frame->width)]];
-                buffer[start_x + x + ((start_y + y) * atlas_width)] = ((uint32_t)color->red << 16) | ((uint32_t)color->green << 8) | ((uint32_t)color->blue) | ((uint32_t)0xFF << 24);
+
+                const int buff_idx = start_x + x + ((start_y + y) * atlas_width);
+                if (buff_idx >= buffer_size) {
+                    log_fatal("buffer index out of range");
+                    exit(EXIT_FAILURE);
+                }
+
+                buffer[buff_idx] = ((uint32_t)color->red << 16) | ((uint32_t)color->green << 8) | ((uint32_t)color->blue) | ((uint32_t)0xFF << 24);
             }
         }
 
         start_x += (int)frame->width;
-        cur_height = (cur_height < frame->height) ? (int)frame->height : cur_height;
+        cur_height = (cur_height < (int)frame->height) ? (int)frame->height : cur_height;
     }
 
     SDL_UpdateTexture(source->atlas, NULL, buffer, atlas_width * 4);
@@ -139,7 +152,7 @@ void spritefont_regenerate_atlas(spritefont *source) {
 }
 
 spritefont *spritefont_load(const char *file_path, const char *palette_name) {
-    engine *engine = engine_get_global_instance();
+    const engine *engine = engine_get_global_instance();
     const palette *palette = engine_get_palette(engine, palette_name);
 
     if (palette == NULL) {
@@ -148,7 +161,18 @@ spritefont *spritefont_load(const char *file_path, const char *palette_name) {
 
     spritefont *result = calloc(1, sizeof(spritefont));
 
+    if (result == NULL) {
+        log_error("Could not allocate memory for spritefont");
+        exit(EXIT_FAILURE);
+    }
+
     char *new_path = calloc(1, 4096);
+
+    if (new_path == NULL) {
+        log_fatal("Failed to initialize memory.");
+        return NULL;
+    }
+
     strcat(new_path, file_path);
     strcat(new_path, ".dc6");
 
@@ -184,9 +208,9 @@ spritefont *spritefont_load(const char *file_path, const char *palette_name) {
     free(data);
     data = (char *)loader_load(engine_get_loader(engine_get_global_instance()), path_fixed, &file_size);
     char *data_ptr = data;
-    const char *signature = "Woo!\x01";
 
     for (int i = 0; i < 5; i++) {
+        const char *signature = "Woo!\x01";
         if (*(data_ptr++) != signature[i]) {
             log_error("Invalid signature in font table.");
             free(data);
@@ -203,7 +227,7 @@ spritefont *spritefont_load(const char *file_path, const char *palette_name) {
     uint16_t max_code = 0;
 
     while (data_ptr < (data + file_size)) {
-        uint16_t code = ((uint16_t)data_ptr[0]) | (((uint16_t)data_ptr[1]) << 8);
+        const uint16_t code = (uint16_t)data_ptr[0] | (uint16_t)((uint16_t)data_ptr[1] << 8);
 
         data_ptr += 3;
 
@@ -213,7 +237,7 @@ spritefont *spritefont_load(const char *file_path, const char *palette_name) {
 
         data_ptr += 3; // More unknowns, typically 1, 0, 0
 
-        result->glyphs[code].frame_index = ((uint16_t)data_ptr[0]) | (((uint16_t)data_ptr[1]) << 8);
+        result->glyphs[code].frame_index = (uint16_t)data_ptr[0] | (uint16_t)((uint16_t)data_ptr[1] << 8);
         data_ptr += 6;
 
         if (max_code < code)
@@ -221,7 +245,14 @@ spritefont *spritefont_load(const char *file_path, const char *palette_name) {
     }
 
     result->palette = palette;
-    result->glyphs = realloc(result->glyphs, sizeof(spritefont_glyph) * max_code + 1);
+    spritefont_glyph *new_ptr = realloc(result->glyphs, sizeof(spritefont_glyph) * max_code + 1);
+
+    if (new_ptr == NULL) {
+        log_fatal("failed to reallocate spritefont glyph");
+        exit(EXIT_FAILURE);
+    }
+
+    result->glyphs = new_ptr;
 
     free(data);
     free(new_path);
@@ -250,14 +281,12 @@ void spritefont_draw_text(spritefont *source, int x, int y, const char *text, e_
     SDL_SetTextureBlendMode(source->atlas, blend_mode_to_sdl2(blend));
     SDL_SetTextureColorMod(source->atlas, color_mod.r, color_mod.g, color_mod.b);
 
-    SDL_Rect target_rect;
-    target_rect.x = x;
-    target_rect.y = y;
-    int start_x = x;
+    SDL_Rect target_rect = {x, y, 0, 0};
+    const int start_x = x;
     int max_height = 0;
 
     for (const char *ch = text; *ch != '\0'; ch++) {
-        spritefont_glyph *glyph = &source->glyphs[*ch];
+        const spritefont_glyph *glyph = &source->glyphs[(int) * ch];
 
         if (*ch == '\n') {
             target_rect.x = start_x;
@@ -286,7 +315,7 @@ void spritefont_get_metrics(const spritefont *source, const char *text, int *wid
     int max_height = 0;
 
     for (const char *ch = text; *ch != '\0'; ch++) {
-        spritefont_glyph *glyph = &source->glyphs[*ch];
+        const spritefont_glyph *glyph = &source->glyphs[(int) * ch];
 
         if (*ch == '\n') {
             x = 0;
