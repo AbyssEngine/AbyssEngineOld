@@ -21,11 +21,17 @@
 #include "node.h"
 #include "scripting.h"
 
+
+void abyss_lua_spritefont_destroy_dispatch(void *data) {
+    spritefont *item = data;
+    spritefont_destroy(item);
+}
+
 int abyss_lua_sprite_font_destroy(lua_State *l) {
     LCHECK_NUMPARAMS(1)
     SCRIPT_GET_LUA_THIS(source, spritefont)
 
-    spritefont_destroy(source);
+    engine_dispatch(engine_get_global_instance(), abyss_lua_spritefont_destroy_dispatch, source);
 
     return 0;
 }
@@ -47,7 +53,6 @@ int abyss_lua_load_sprite_font(lua_State *l) {
 
     SCRIPT_CLASS_RESULT_START(result)
     SCRIPT_CLASS_RESULT_PROPERTY("destroy", abyss_lua_sprite_font_destroy)
-    ADD_NODE_SCRIPT_CLASS_RESULT_PROPERTIES
 
     return 1;
 }

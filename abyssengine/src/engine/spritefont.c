@@ -261,6 +261,8 @@ spritefont *spritefont_load(const char *file_path, const char *palette_name) {
 }
 
 void spritefont_destroy(spritefont *source) {
+    VERIFY_ENGINE_THREAD
+
     if (source->glyphs != NULL)
         free(source->glyphs);
 

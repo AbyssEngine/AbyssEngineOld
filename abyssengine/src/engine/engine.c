@@ -29,6 +29,7 @@
 #include "modecrash.h"
 #include "moderun.h"
 #include "modevideo.h"
+#include <SDL_ttf.h>
 #include <lauxlib.h>
 #include <libabyss/log.h>
 #include <libabyss/threading.h>
@@ -36,7 +37,6 @@
 #include <lualib.h>
 #include <stdlib.h>
 #include <string.h>
-#include <SDL_ttf.h>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -92,6 +92,7 @@ typedef struct engine {
     mutex *video_playback_mutex;
     mutex *audio_mutex;
     mutex *video_playing_mutex;
+    mutex *running_mutex;
     int max_texture_width;
     int max_texture_height;
     sprite *cursor;
@@ -135,6 +136,7 @@ engine *engine_create(const char *base_path, ini_file *ini_config) {
     result->palette_mutex = mutex_create();
     result->node_mutex = mutex_create();
     result->audio_mutex = mutex_create();
+    result->running_mutex = mutex_create();
     result->video_playback_mutex = mutex_create();
     result->video_playing_mutex = mutex_create();
 
@@ -199,6 +201,7 @@ void engine_destroy(engine *src) {
     mutex_destroy(src->palette_mutex);
     mutex_destroy(src->node_mutex);
     mutex_destroy(src->audio_mutex);
+    mutex_destroy(src->running_mutex);
     mutex_destroy(src->video_playback_mutex);
     mutex_destroy(src->video_playing_mutex);
 
@@ -423,7 +426,9 @@ void engine_run(engine *src) {
     src->fps = 0;
     src->frame_count_tick = src->last_tick;
 
+    mutex_lock(src->running_mutex);
     src->is_running = true;
+    mutex_unlock(src->running_mutex);
 
     modeboot_set_callbacks(src);
 
@@ -434,7 +439,11 @@ void engine_run(engine *src) {
         free(crash_message);
     }
 
-    while (src->is_running) {
+    while (true) {
+        if (!engine_get_is_running(src)) {
+            break;
+        }
+
         while (SDL_PollEvent(&sdl_event)) {
             engine_handle_sdl_event(src, &sdl_event);
         }
@@ -509,7 +518,11 @@ void engine_handle_sdl_event(engine *src, const SDL_Event *evt) {
     }
 }
 
-void engine_shutdown(engine *src) { src->is_running = false; }
+void engine_shutdown(engine *src) {
+    mutex_lock(src->running_mutex);
+    src->is_running = false;
+    mutex_unlock(src->running_mutex);
+}
 
 void engine_render(engine *src) {
     if (src->render_callback != NULL) {
@@ -752,12 +765,17 @@ bool engine_is_video_playing(const engine *src) {
     return result;
 }
 
-bool engine_get_is_running(const engine *src) { return src->is_running; }
+bool engine_get_is_running(const engine *src) {
+    mutex_lock(src->running_mutex);
+    bool result = src->is_running;
+    mutex_unlock(src->running_mutex);
+    return result;
+}
 
 void engine_handle_audio(void *userdata, Uint8 *stream, int len) {
     engine *src = userdata;
 
-    if (!src->is_running) {
+    if (!engine_get_is_running(src)) {
         return;
     }
 
