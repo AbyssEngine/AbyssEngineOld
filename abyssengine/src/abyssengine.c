@@ -47,8 +47,7 @@ int main(int argc, char **argv) {
 #ifdef _WIN32
     _getcwd(cwd_path, 4096);
 #else
-    //getcwd(cwd_path, 4096);
-    strcat(cwd_path, "/Users/lunaticedit/Projects/OpenDiablo2/");
+    getcwd(cwd_path, 4096);
 #endif
     char *ini_file_path = calloc(1, 4096);
     
