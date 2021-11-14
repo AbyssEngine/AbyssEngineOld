@@ -70,7 +70,7 @@ void node_append_child(node *source, node *child) {
         node_remove(child, engine_get_global_instance());
     }
 
-    source->children = realloc(source->children, sizeof(node) * (source->num_children + 1));
+    source->children = realloc(source->children, sizeof(node*) * (source->num_children + 1));
     source->children[source->num_children++] = child;
     child->parent = source;
 }
@@ -102,6 +102,8 @@ void node_destroy(node *source, engine *e) {
         child_node->parent = NULL;
         node_destroy(child_node, e);
     }
+    
+    free(source->children);
 
     if (source->destroy_callback != NULL)
         source->destroy_callback(source, e);
@@ -127,9 +129,12 @@ void node_remove(node *source, engine *e) {
         return;
     }
 
-    memmove(&parent->children[child_idx], &parent->children[child_idx + 1], parent->num_children - child_idx - 1);
+    if (child_idx < parent->num_children-1) {
+        memcpy(&parent->children[child_idx], &parent->children[child_idx + 1], parent->num_children - child_idx - 1);
+    }
     parent->num_children--;
-    parent->children = realloc(parent->children, parent->num_children);
+    parent->children = realloc(parent->children, parent->num_children * sizeof(node*));
+    source->parent = NULL;
 }
 
 void node_get_effective_layout(const node *source, int *x1, int *y1) {
@@ -143,5 +148,12 @@ void node_get_effective_layout(const node *source, int *x1, int *y1) {
         *x1 += item->x;
         *y1 += item->y;
     }
+}
 
+void node_remove_all_children(node *source, engine *e) {
+    while (source->num_children > 0) {
+        node *child = source->children[source->num_children - 1];
+        node_remove(source->children[source->num_children - 1], engine_get_global_instance());
+        node_destroy(child, e);
+    }
 }

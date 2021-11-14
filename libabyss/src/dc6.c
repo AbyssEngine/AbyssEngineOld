@@ -32,8 +32,8 @@
 #define READ_UINT32(field) field = streamreader_read_uint32(reader);
 #define READ_INT32(field) field = streamreader_read_int32(reader);
 #define READ_BYTES(field, bytes)                                                                                                                     \
-    for (int __x = 0; __x < bytes; __x++) {                                                                                                          \
-        field[__x] = streamreader_read_byte(reader);                                                                                                 \
+    for (int __x = 0; __x < (bytes); __x++) {                                                                                                          \
+        (field)[__x] = streamreader_read_byte(reader);                                                                                                 \
     }
 
 void dc6_decode_header(dc6 *source, streamreader *reader) {
@@ -54,10 +54,12 @@ void dc6_decode_footer(dc6 *source, streamreader *reader) {
     }
 
     const uint32_t total_frames = source->number_of_directions * source->frames_per_direction;
-    streamreader_skip_bytes(reader, 4 * total_frames); // Skip the frame pointers
+    streamreader_skip_bytes(reader, 4 * (int64_t)total_frames); // Skip the frame pointers
 
     for (uint32_t dir_idx = 0; dir_idx < source->number_of_directions; dir_idx++) {
         for (uint32_t frame_idx = 0; frame_idx < source->frames_per_direction; frame_idx++) {
+            assert(source->directions[dir_idx].frames != NULL);
+
             dc6_frame *frame = &source->directions[dir_idx].frames[frame_idx];
 
             READ_UINT32(frame->flipped)
@@ -86,7 +88,7 @@ int dc6_get_scanline_type(int b) {
 }
 
 void dc6_decode_frame(dc6_frame *frame) {
-    frame->index_data = calloc(1, frame->width * frame->height);
+    frame->index_data = calloc(1, (size_t)frame->width * (size_t)frame->height);
     int x = 0;
     int y = (int)frame->height - 1;
     int offset = 0;
@@ -108,8 +110,10 @@ void dc6_decode_frame(dc6_frame *frame) {
             continue;
         case RUN_OF_OPAQUE_PIXELS:
             for (int i = 0; i < b; i++) {
-                assert(offset < frame->length);
+                assert(offset < (int)frame->length);
                 assert((x + (y * frame->width) + i) < (frame->width * frame->height));
+                assert(frame->index_data != NULL);
+
                 frame->index_data[x + (y * frame->width) + i] = frame->frame_data[offset++];
             }
             x += b;
@@ -121,8 +125,10 @@ done:
     return;
 }
 
-dc6 *dc6_new_from_bytes(const void *data, uint64_t size) {
+dc6 *dc6_new_from_bytes(const void *data, const uint64_t size) {
     dc6 *result = calloc(1, sizeof(dc6));
+    assert(result != NULL);
+
     streamreader *reader = streamreader_create(data, size);
 
     dc6_decode_header(result, reader);
@@ -141,15 +147,23 @@ dc6 *dc6_new_from_bytes(const void *data, uint64_t size) {
 
 void dc6_destroy(dc6 *source) {
     if (source->directions != NULL) {
-        for (int dir_idx = 0; dir_idx < source->number_of_directions; dir_idx++) {
+        for (int dir_idx = 0; dir_idx < (int)source->number_of_directions; dir_idx++) {
             const dc6_direction *direction = &source->directions[dir_idx];
-            for (int frame_idx = 0; frame_idx < source->frames_per_direction; frame_idx++) {
-                const dc6_frame *frame = &direction->frames[frame_idx];
-                if (frame->index_data != NULL)
-                    free(frame->index_data);
-                free(frame->frame_data);
+            if (direction->frames != NULL) {
+                for (int frame_idx = 0; frame_idx < (int)source->frames_per_direction; frame_idx++) {
+                    const dc6_frame *frame = &direction->frames[frame_idx];
+
+                    if (frame != NULL) {
+
+                        if (frame->index_data != NULL)
+                            free(frame->index_data);
+
+                        free(frame->frame_data);
+                    }
+                }
+
+                free(direction->frames);
             }
-            free(direction->frames);
         }
         free(source->directions);
     }

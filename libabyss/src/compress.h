@@ -21,6 +21,6 @@
 
 #include <stdint.h>
 
-void *compress_decompress_wav(void *buffer, uint32_t buffer_size, int channel_count);
+void *compress_decompress_wav(const void *buffer, uint32_t buffer_size, int channel_count, uint32_t *actual_read);
 
 #endif // LIBABYSS_COMPRESS_H

@@ -43,13 +43,15 @@ int main(int argc, char **argv) {
 #endif // NDEBUG
     check_app_compat();
     char cwd_path[4096];
+    memset(cwd_path, 0, 4096);
 #ifdef _WIN32
     _getcwd(cwd_path, 4096);
 #else
-    getcwd(cwd_path, 4096);
+    //getcwd(cwd_path, 4096);
+    strcat(cwd_path, "/Users/lunaticedit/Projects/OpenDiablo2/");
 #endif
     char *ini_file_path = calloc(1, 4096);
-
+    
     // Try the CWD
     strcat(ini_file_path, cwd_path);
     strcat(ini_file_path, "/config.ini");

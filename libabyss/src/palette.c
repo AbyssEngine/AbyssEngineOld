@@ -119,6 +119,7 @@ palette *palette_new_from_bytes(const void *data, uint64_t size, bool is_dat) {
 
     if (is_dat) {
         LOAD_COLORS(base_palette, 3, NUM_PALETTE_COLORS)
+        streamreader_destroy(reader);
         return result;
     }
 

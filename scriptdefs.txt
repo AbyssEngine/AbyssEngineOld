@@ -332,6 +332,8 @@ Functions:
     appendChild(childNode)
         Appends the child node to this node.
 
+    removeAllChildren()
+        Removes (and destroys) all child nodes
 
     detach()
         Detaches the node from its parent.

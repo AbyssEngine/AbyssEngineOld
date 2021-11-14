@@ -136,7 +136,7 @@ mpq *mpq_load(const char *file_path) {
     result->file_path = strdup(file_path);
     fread(&result->header, sizeof(mpq_header), 1, result->file);
 
-    if (strncmp(result->header.magic, "MPQ\x1A", 4) != 0) {
+    if (strncmp((char*)result->header.magic, "MPQ\x1A", 4) != 0) {
         log_error("MPQ failed to load due to an invalid header");
         fclose(result->file);
         free(result);
@@ -191,6 +191,8 @@ void *mpq_read_file(mpq *source, const char *filename, uint32_t *file_size) {
     }
 
     mpq_stream_read(stream, result, 0, block->file_size_uncompressed);
+
+    mpq_stream_destroy(stream);
 
     return result;
 }

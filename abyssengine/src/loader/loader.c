@@ -54,15 +54,6 @@ void *loader_load(loader *src, const char *path, int *file_size) {
         return NULL;
     }
 
-    char *new_path = strdup(path);
-
-    new_path = str_replace(new_path, "\\", "/");
-
-    char *path_ptr = new_path;
-    if (new_path[0] == '/') {
-        path_ptr++;
-    }
-
     void *result = NULL;
     for (int i = 0; i < src->num_providers; i++) {
         if (!loader_provider_exists(src->providers[i], path)) {
@@ -73,7 +64,6 @@ void *loader_load(loader *src, const char *path, int *file_size) {
         break;
     }
 
-    free(new_path);
     return result;
 }
 
@@ -86,10 +76,10 @@ bool loader_file_exists(loader *src, const char *path) {
 
     char *new_path = strdup(path);
 
-    new_path = str_replace(new_path, "\\", "/");
+    new_path = str_replace(new_path, "/", "\\");
 
     char *path_ptr = new_path;
-    if (new_path[0] == '/') {
+    if (new_path[0] == '\\') {
         path_ptr++;
     }
 

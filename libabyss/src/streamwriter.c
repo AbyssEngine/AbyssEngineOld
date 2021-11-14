@@ -28,7 +28,7 @@ typedef struct streamwriter {
     uint8_t bit_cache;
 } streamwriter;
 
-streamwriter *streamwriter_create() {
+streamwriter *streamwriter_create(void) {
     streamwriter *result = calloc(1, sizeof(streamwriter));
     return result;
 }
@@ -43,17 +43,23 @@ void streamwriter_destroy(streamwriter *source) {
     free(source);
 }
 
-const void *streamwriter_get_data(streamwriter *source) {
+void *streamwriter_get_data(streamwriter *source, uint32_t *data_len) {
     assert(source != NULL);
 
-    return (void *)source->data;
+    if (data_len != NULL)
+        *data_len = source->data_size;
+
+    void *result = malloc(source->data_size);
+    memcpy(result, source->data, source->data_size);
+
+    return result;
 }
 
 void streamwriter_push_bytes(streamwriter *source, const void *bytes, uint32_t bytes_len) {
     assert(source != NULL);
 
     source->data = realloc(source->data, source->data_size + bytes_len);
-    memcpy(source->data + bytes_len, bytes, bytes_len);
+    memcpy(source->data + source->data_size, bytes, bytes_len);
     source->data_size += bytes_len;
 }
 

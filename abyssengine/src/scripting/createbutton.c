@@ -150,7 +150,7 @@ int abyss_lua_button_size(lua_State *l) {
         lua_pushnumber(l, button_get_fixed_height(source));
         return 2;
     }
-    int x = lua_gettop(l);
+
     if (lua_gettop(l) == 3) {
         SCRIPT_GET_LUA_THIS(source, button)
         button_set_fixed_width(source, lua_tointeger(l, 2));

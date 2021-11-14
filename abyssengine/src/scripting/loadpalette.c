@@ -48,5 +48,7 @@ int abyss_lua_load_palette(lua_State *l) {
         luaL_error(l, "Failed to load palette \nPalette name already in use.", palette_name);
     }
 
+    free(data);
+
     return 0;
 }

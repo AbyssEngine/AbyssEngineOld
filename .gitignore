@@ -10,3 +10,5 @@ out/
 CMakeSettings.json
 vcpkg_installed/
 CMakePresets.json
+*.DotSettings.user
+.cache
