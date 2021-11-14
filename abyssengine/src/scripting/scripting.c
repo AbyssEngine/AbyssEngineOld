@@ -91,6 +91,7 @@ int luaopen_abyss(lua_State *l) {
     lua_register(l, "createLabelTtf", abyss_lua_create_label_ttf);
     lua_register(l, "createButton", abyss_lua_create_button);
     lua_register(l, "resetMouseState", abyss_lua_reset_mouse_state);
+    lua_register(l, "createTimer", abyss_lua_create_timer);
 
     return 1;
 }

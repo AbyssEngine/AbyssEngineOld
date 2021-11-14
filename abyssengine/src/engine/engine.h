@@ -93,4 +93,6 @@ void engine_write_audio_buffer(engine *src, const void *data, int len);
 void engine_reset_audio_buffer(engine *src);
 void *engine_get_input_focus(const engine *src);
 void engine_set_input_focus(engine *src, void *focus);
+uint32_t engine_add_timer(engine *src, int lua_func, float rate);
+void engine_timer_remove(engine *src, uint32_t timer_id);
 #endif // ABYSS_ENGINE_H
