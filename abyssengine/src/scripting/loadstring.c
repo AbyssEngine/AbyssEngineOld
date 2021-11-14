@@ -39,7 +39,7 @@ int abyss_lua_load_string(lua_State *l) {
 
     if (data[0] == (char)0xFF && data[1] == (char)0xFE) {
         for (int i = 2; i < file_size; i+= 2) {
-            data[i/2] = data[i];
+            data[(i/2)-1] = data[i];
         }
         file_size /= 2;
     }
