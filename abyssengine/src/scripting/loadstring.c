@@ -28,13 +28,24 @@ int abyss_lua_load_string(lua_State *l) {
 
     char *path_tmp = strdup(path);
     const char *path_new = util_fix_mpq_path(path_tmp);
-    char *data = loader_load(engine_get_loader(engine_get_global_instance()), path_new, NULL);
+    int file_size;
+    char *data = loader_load(engine_get_loader(engine_get_global_instance()), path_new, &file_size);
     free(path_tmp);
 
     if (data == NULL) {
         luaL_error(l, "file not found: %s", path);
         return 0;
     }
+
+    if (data[0] == (char)0xFF && data[1] == (char)0xFE) {
+        for (int i = 2; i < file_size; i+= 2) {
+            data[i/2] = data[i];
+        }
+
+        int zero_len = file_size - (file_size / 2);
+        memset(data + (file_size/2), 0, zero_len);
+    }
+
     lua_pushstring(l, data);
     return 1;
 }

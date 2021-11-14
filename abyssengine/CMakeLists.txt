@@ -121,6 +121,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/scripting/createlabel.c
         src/scripting/createbutton.c
         src/scripting/resetmousestate.c
+        src/scripting/createtimer.c
 
         # Loaders ------------------------------------------------------
         src/loader/loaderprovider.c src/loader/loaderprovider.h

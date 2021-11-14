@@ -81,6 +81,13 @@ loadSpriteFont(path, paletteName): spritefont
 
 -----------------------------------------------------------------------
 
+createTimer(rate, callback): timer
+    Creates a timer that calls the specified callback at the
+    specified rate. Rate is a float that represents a fraction
+    of one second (0.5 = half a second).
+
+-----------------------------------------------------------------------
+
 createLabel(font): label
     Create a label based on the specified spritefont.
 
@@ -122,6 +129,14 @@ fileExists(path): bool
 = The following are object types that are defined by the system.
 =======================================================================
 
+-----------------------------------------------------------------------
+TIMER
+-----------------------------------------------------------------------
+Description:
+
+    Represents a timer.
+    Timers are used to call a function at a specific interval.
+    Timers must be explicitly destroyed.
 
 -----------------------------------------------------------------------
 LABEL <NODE>

@@ -56,6 +56,13 @@ typedef struct palette_item {
     palette *palette;
 } palette_item;
 
+typedef struct timer_item {
+    float rate;
+    float last_executed;
+    int lua_callback_func;
+    bool active;
+} timer_item;
+
 typedef int engine_run_mode;
 
 enum { ENGINE_RUNE_MODE_BOOT };
@@ -93,6 +100,7 @@ typedef struct engine {
     mutex *audio_mutex;
     mutex *video_playing_mutex;
     mutex *running_mutex;
+    mutex *timer_mutex;
     int max_texture_width;
     int max_texture_height;
     sprite *cursor;
@@ -113,6 +121,8 @@ typedef struct engine {
     void *input_focus;
     bool use_hardware_cursor;
     double hardware_cursor_scale;
+    timer_item *timers;
+    int num_timers;
 } engine;
 
 #ifndef NDEBUG
@@ -137,6 +147,7 @@ engine *engine_create(const char *base_path, ini_file *ini_config) {
     result->node_mutex = mutex_create();
     result->audio_mutex = mutex_create();
     result->running_mutex = mutex_create();
+    result->timer_mutex = mutex_create();
     result->video_playback_mutex = mutex_create();
     result->video_playing_mutex = mutex_create();
 
@@ -146,6 +157,9 @@ engine *engine_create(const char *base_path, ini_file *ini_config) {
     result->run_mode = ENGINE_RUNE_MODE_BOOT;
     result->root_node = malloc(sizeof(node));
     node_initialize(result->root_node);
+
+    result->timers = NULL;
+    result->num_timers = 0;
 
     // TODO: Make the language settings dynamic
     result->loader = loader_new();
@@ -173,9 +187,17 @@ engine *engine_create(const char *base_path, ini_file *ini_config) {
 void engine_destroy(engine *src) {
     SDL_PauseAudioDevice(src->audio_device_id, SDL_TRUE);
 
+    for (int i = 0; i < src->num_timers; i++) {
+        if (src->timers[i].active) {
+            engine_timer_remove(src, i);
+        }
+    }
+    free(src->timers);
+
     if (src->video_playing) {
         engine_end_video(src);
     }
+
     scripting_finalize();
 
     if (src->boot_text != NULL)
@@ -202,6 +224,7 @@ void engine_destroy(engine *src) {
     mutex_destroy(src->node_mutex);
     mutex_destroy(src->audio_mutex);
     mutex_destroy(src->running_mutex);
+    mutex_destroy(src->timer_mutex);
     mutex_destroy(src->video_playback_mutex);
     mutex_destroy(src->video_playing_mutex);
 
@@ -222,6 +245,7 @@ void engine_destroy(engine *src) {
     SDL_CloseAudioDevice(src->audio_device_id);
 
     free(src->audio_buffer);
+
 
     free(src);
 }
@@ -256,6 +280,7 @@ void engine_init_sdl2(engine *src) {
     }
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
+    SDL_SetHint(SDL_HINT_AUDIO_DEVICE_APP_NAME, "Abyss Engine");
 
     if (src->sdl_renderer == 0) {
         log_fatal(SDL_GetError());
@@ -315,15 +340,11 @@ void engine_init_sdl2(engine *src) {
 void engine_finalize_sdl2(engine *src) {
     VERIFY_ENGINE_THREAD
 
-    exit(EXIT_SUCCESS); // TODO: For some reason closing audio blows up but hand-breaking the process is a-ok.
+    //exit(EXIT_SUCCESS); // TODO: For some reason closing audio blows up but hand-breaking the process is a-ok.
 
     log_info("Finalizing SDL2");
+
     SDL_PauseAudioDevice(src->audio_device_id, SDL_TRUE);
-    SDL_ClearQueuedAudio(src->audio_device_id);
-
-    while (SDL_GetAudioDeviceStatus(src->audio_device_id) == SDL_AUDIO_PLAYING)
-        SDL_Delay(5);
-
     SDL_CloseAudioDevice(src->audio_device_id);
     SDL_DestroyRenderer(src->sdl_renderer);
     SDL_DestroyWindow(src->sdl_window);
@@ -354,6 +375,11 @@ static void *engine_script_thread(void *data) {
 
     if (luaL_loadbuffer(src->lua_state, lua_code, file_size, "@bootstrap.lua") || lua_pcall(src->lua_state, 0, 0, 0)) {
         const char *crash_text = lua_tostring(src->lua_state, -1);
+
+        // TODO: jank temporary stuff
+        if (strstr(crash_text, "engine is shutting down")) {
+            return NULL;
+        }
         log_error(crash_text);
         engine_trigger_crash(src, crash_text);
         return NULL;
@@ -745,12 +771,12 @@ void engine_end_video(engine *src) {
     engine_reset_audio_buffer(src);
     mutex_lock(src->video_playing_mutex);
     src->video_playing = false;
-    
+
     if (src->video_file_path != NULL) {
         free(src->video_file_path);
         src->video_file_path = NULL;
     }
-    
+
     mutex_unlock(src->video_playing_mutex);
     mutex_unlock(src->video_playback_mutex);
     moderun_set_callbacks(src);
@@ -813,6 +839,9 @@ void engine_handle_audio(void *userdata, Uint8 *stream, int len) {
 SDL_AudioSpec engine_get_audio_spec(const engine *src) { return src->audio_output_spec; }
 
 void engine_write_audio_buffer(engine *src, const void *data, int len) {
+    if (!engine_get_is_running(src))
+        return;
+
     mutex_lock(src->audio_mutex);
 
     const int remaining_size = AUDIO_BUFFER_SIZE - src->audio_buffer_remaining;
@@ -850,3 +879,55 @@ void engine_reset_audio_buffer(engine *src) {
 void *engine_get_input_focus(const engine *src) { return src->input_focus; }
 
 void engine_set_input_focus(engine *src, void *focus) { src->input_focus = focus; }
+
+uint32_t engine_add_timer(engine *src, int lua_func, float rate) {
+    mutex_lock(src->timer_mutex);
+    for (int i = 0; i < src->num_timers; i++) {
+        if (src->timers[i].active)
+            continue;
+
+        timer_item *item = &src->timers[i];
+        item->active = true;
+        item->lua_callback_func = lua_func;
+        item->last_executed = 0.f;
+        item->rate = rate;
+
+        return i;
+    }
+
+    timer_item  *new_timers = realloc(src->timers, src->num_timers +1);
+    if (new_timers == NULL) {
+        log_fatal("failed to reallocate timers");
+        exit(EXIT_FAILURE);
+    }
+
+    src->timers = new_timers;
+    timer_item *item = &src->timers[src->num_timers];
+    item->active = true;
+    item->rate = rate;
+    item->lua_callback_func = lua_func;
+    item->last_executed = 0.f;
+
+    int result = src->num_timers++;
+
+    mutex_unlock(src->timer_mutex);
+
+    return result;
+}
+
+void engine_timer_remove(engine *src, uint32_t timer_id) {
+    if (timer_id >= src->num_timers) {
+        log_error("attempted to remove non-existent timer");
+        return;
+    }
+
+    if (!src->timers[timer_id].active) {
+        log_error("attempted to remove deactivated timer");
+        return;
+    }
+
+    mutex_lock(src->timer_mutex);
+    src->timers[timer_id].active = false;
+    luaL_unref(src->lua_state, LUA_REGISTRYINDEX, src->timers[timer_id].lua_callback_func);
+    mutex_unlock(src->timer_mutex);
+}
