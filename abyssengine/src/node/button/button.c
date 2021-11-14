@@ -188,6 +188,11 @@ bool button_update_callback(node *node_source, engine *e, uint32_t ticks) {
     return node_default_update_callback(node_source, e, ticks);
 }
 
+void button_destroy_callback(node *node, struct engine *engine) {
+    button *source = (button*)node;
+    button_destroy(source);
+}
+
 button *button_load(spritefont *sprite_font, const char *file_path, const char *palette_name) {
     sprite *sprite = NULL;
 
@@ -218,6 +223,7 @@ button *button_load(spritefont *sprite_font, const char *file_path, const char *
     result->frame_index_pressed = -1;
     result->node.update_callback = button_update_callback;
     result->node.render_callback = button_render_callback;
+    result->node.destroy_callback = button_destroy_callback;
     result->node.active = true;
     result->node.visible = true;
     return result;
