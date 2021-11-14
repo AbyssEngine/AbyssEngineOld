@@ -733,21 +733,24 @@ void engine_play_video(engine *src, const char *path) {
     mutex_lock(src->video_playback_mutex);
     mutex_lock(src->video_playing_mutex);
     src->video_playing = true;
-    mutex_unlock(src->video_playing_mutex);
-
-    if (src->video_file_path != NULL)
-        free(src->video_file_path);
-
     src->video_file_path = strdup(path);
     modevideo_set_callbacks(src);
     modevideo_load_file(src, path);
+    mutex_unlock(src->video_playing_mutex);
 }
 
 void engine_end_video(engine *src) {
     VERIFY_ENGINE_THREAD
+
     engine_reset_audio_buffer(src);
     mutex_lock(src->video_playing_mutex);
     src->video_playing = false;
+    
+    if (src->video_file_path != NULL) {
+        free(src->video_file_path);
+        src->video_file_path = NULL;
+    }
+    
     mutex_unlock(src->video_playing_mutex);
     mutex_unlock(src->video_playback_mutex);
     moderun_set_callbacks(src);

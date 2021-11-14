@@ -30,14 +30,16 @@ typedef struct streamreader {
 streamreader *streamreader_create(const void *data, const uint64_t data_size) {
     streamreader *result = malloc(sizeof(streamreader));
 
-    result->data = (char *)data;
+    result->data = (const char *)data;
     result->position = 0;
     result->data_size = data_size;
 
     return result;
 }
 
-void streamreader_destroy(streamreader *source) { free(source); }
+void streamreader_destroy(streamreader *source) {
+    free(source);
+}
 
 uint8_t streamreader_read_byte(streamreader *source) {
     assert(source->position < source->data_size);

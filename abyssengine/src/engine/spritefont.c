@@ -170,6 +170,7 @@ spritefont *spritefont_load(const char *file_path, const char *palette_name) {
 
     if (new_path == NULL) {
         log_fatal("Failed to initialize memory.");
+        free(result);
         return NULL;
     }
 

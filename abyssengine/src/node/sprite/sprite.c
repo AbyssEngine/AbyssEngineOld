@@ -25,6 +25,7 @@
 #include "libabyss/log.h"
 #include "libabyss/utils.h"
 #include <stdlib.h>
+#include <assert.h>
 
 typedef uint8_t e_sprite_type;
 
@@ -245,9 +246,18 @@ void sprite_regenerate_atlas_dc6(sprite *source) {
     source->atlas = SDL_CreateTexture(engine_get_renderer(engine_get_global_instance()), SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC,
                                       atlas_width, atlas_height);
 
+    if (source->image_data.dc6_data->frames_per_direction == 0 || source->image_data.dc6_data->number_of_directions == 0) {
+        log_fatal("dc6 decode error, frames per direction and number of directions must both be greater than zero");
+        exit(EXIT_FAILURE);
+    }
     source->frame_rects = realloc(source->frame_rects,
                                   sizeof(sprite_frame_pos) * source->image_data.dc6_data->frames_per_direction * source->image_data.dc6_data->number_of_directions);
 
+    if (atlas_width == 0 || atlas_height == 0) {
+        log_fatal("cannot load atlas with 0 width or height");
+        exit(EXIT_FAILURE);
+    }
+    
     uint32_t *buffer = malloc(sizeof(uint32_t) * atlas_width * atlas_height);
 
     int start_x = 0;
@@ -745,7 +755,12 @@ SDL_Surface *sprite_get_surface(sprite *source, double scale) {
     if (source->atlas == NULL)
         sprite_regenerate_atlas(source);
 
+    if (source->frame_rects == NULL) {
+        log_fatal("invalid frame rects for sprite");
+        exit(EXIT_FAILURE);
+    }
     SDL_Rect *frame_rect = &source->frame_rects[source->current_frame].rect;
+    
     SDL_Surface *result = SDL_CreateRGBSurface(0, frame_rect->w * scale, frame_rect->h * scale, 32, 0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
     SDL_Rect dest_rect = {0, 0, frame_rect->w * scale, frame_rect->h * scale};
     SDL_SoftStretch(source->atlas_surface, frame_rect, result, &dest_rect);

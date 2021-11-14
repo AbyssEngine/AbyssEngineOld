@@ -33,19 +33,19 @@
 #endif
 
 AVFormatContext *av_format_context = NULL;
-AVIOContext *avio_context;
-SwrContext *resample_contex;
-void *video_buffer_data;
+AVIOContext *avio_context = NULL;
+SwrContext *resample_contex = NULL;
+void *video_buffer_data = NULL;
 int video_buffer_data_size;
 int video_buffer_position;
-unsigned char *av_buffer;
+unsigned char *av_buffer = NULL; // may need free
 int video_stream_idx;
 int audio_stream_idx;
-SDL_Texture *video_texture;
-AVFrame *av_frame;
-struct SwsContext *sws_ctx;
-AVCodecContext *video_codec_context;
-AVCodecContext *audio_codec_context;
+SDL_Texture *video_texture = NULL;
+AVFrame *av_frame = NULL;
+struct SwsContext *sws_ctx = NULL;
+AVCodecContext *video_codec_context = NULL;
+AVCodecContext *audio_codec_context = NULL;
 Uint8 *yPlane, *uPlane, *vPlane;
 size_t yPlaneSz, uvPlaneSz;
 int uvPitch;
@@ -117,9 +117,9 @@ void modevideo_load_file(engine *src, const char *file_path) {
     }
 
     video_buffer_position = 0;
+    
     av_buffer = av_malloc(DECODE_BUFFER_SIZE);
     avio_context = avio_alloc_context(av_buffer, DECODE_BUFFER_SIZE, 0, video_buffer_data, modevideo_stream_read, 0, modevideo_stream_seek);
-
     av_format_context = avformat_alloc_context();
 
     av_format_context->pb = avio_context;
@@ -166,8 +166,8 @@ void modevideo_load_file(engine *src, const char *file_path) {
         }
     }
 
-    const AVRational frame_rate = av_format_context->streams[video_stream_idx]->r_frame_rate;
-    float fps = (float)frame_rate.num / (float)frame_rate.den;
+    // const AVRational frame_rate = av_format_context->streams[video_stream_idx]->r_frame_rate;
+    // float fps = (float)frame_rate.num / (float)frame_rate.den;
     micros_per_frame = (uint64_t)(1000000 / ((float)av_format_context->streams[video_stream_idx]->r_frame_rate.num /
                                              (float)av_format_context->streams[video_stream_idx]->r_frame_rate.den));
 
@@ -278,10 +278,8 @@ void engine_render_video(engine *src) {
 
 void modevideo_cleanup() {
     VERIFY_ENGINE_THREAD
-
-    avformat_free_context(av_format_context);
-    avio_context_free(&avio_context);
-    av_format_context = NULL;
+    
+    av_free(avio_context->buffer);
     avio_context_free(&avio_context);
     free(video_buffer_data);
     avcodec_free_context(&video_codec_context);
@@ -289,16 +287,19 @@ void modevideo_cleanup() {
     SDL_DestroyTexture(video_texture);
     sws_freeContext(sws_ctx);
     swr_free(&resample_contex);
-    av_frame_unref(av_frame);
+    av_frame_free(&av_frame);
     free(yPlane);
     free(uPlane);
     free(vPlane);
+    avformat_free_context(av_format_context);
 
     engine_end_video(engine_get_global_instance());
 }
 
 bool engine_process_frame(engine *src) {
-
+    if (av_format_context == NULL)
+        return false;
+    
     AVPacket packet;
     if (av_read_frame(av_format_context, &packet) < 0) {
         av_packet_unref(&packet);
@@ -337,7 +338,7 @@ bool engine_process_frame(engine *src) {
         line_size[2] = uvPitch;
 
         // Convert the image into YUV format that SDL uses
-        sws_scale(sws_ctx, av_frame->data, av_frame->linesize, 0, video_codec_context->height, data, line_size);
+        sws_scale(sws_ctx, (const unsigned char *const *)av_frame->data, av_frame->linesize, 0, video_codec_context->height, data, line_size);
 
         if (SDL_UpdateYUVTexture(video_texture, NULL, yPlane, video_codec_context->width, uPlane, uvPitch, vPlane, uvPitch) < 0) {
             log_fatal("Error updating YUV Texture: %s", SDL_GetError());

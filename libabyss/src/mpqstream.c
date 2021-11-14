@@ -113,9 +113,11 @@ mpq_stream *mpq_stream_new(mpq *mpq, mpq_block *block, const char *filename) {
 }
 
 void mpq_stream_destroy(mpq_stream *source) {
-   if (source->positions != NULL) {
+   if (source->positions != NULL)
        free(source->positions);
-   }
+   
+    if (source->data != NULL)
+        free(source->data);
 
    free((void *)source->filename);
    free(source);
@@ -133,7 +135,7 @@ bool mpq_stream_load_single_unit(mpq_stream *source) {
 
    if (source->size != source->block->file_size_uncompressed) {
        uint32_t read_size;
-       if (mpq_stream_decompress_multi(source, data, source->block->file_size_compressed, source->block->file_size_uncompressed, &read_size) == NULL) {
+       if ((data = mpq_stream_decompress_multi(source, data, source->block->file_size_compressed, source->block->file_size_uncompressed, &read_size)) == NULL) {
            return false;
        }
    }
@@ -256,11 +258,15 @@ void *mpq_stream_decompress_multi(mpq_stream *source, void *buffer, uint32_t siz
        return NULL;
    case 0x80: // IMA ADPCM Stereo
    {
-       return compress_decompress_wav((char *)buffer + 1, size_compressed-1, 2, actual_read);
+       void *result = compress_decompress_wav((char *)buffer + 1, size_compressed-1, 2, actual_read);
+       free(buffer);
+       return result;
    }
    case 0x40: // IMA ADPCM Mono
    {
-       return compress_decompress_wav((char *)buffer + 1, size_compressed-1, 1, actual_read);
+       void *result = compress_decompress_wav((char *)buffer + 1, size_compressed-1, 1, actual_read);
+       free(buffer);
+       return result;
    }
    case 0x22: // Sparse + ZLib
        log_fatal("Sparse + Zlib decompression not currently supported.");

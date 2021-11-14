@@ -102,6 +102,8 @@ void node_destroy(node *source, engine *e) {
         child_node->parent = NULL;
         node_destroy(child_node, e);
     }
+    
+    free(source->children);
 
     if (source->destroy_callback != NULL)
         source->destroy_callback(source, e);
