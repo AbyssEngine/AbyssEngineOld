@@ -41,11 +41,10 @@ int abyss_lua_load_string(lua_State *l) {
         for (int i = 2; i < file_size; i+= 2) {
             data[i/2] = data[i];
         }
-
-        int zero_len = file_size - (file_size / 2);
-        memset(data + (file_size/2), 0, zero_len);
+        file_size /= 2;
     }
 
-    lua_pushstring(l, data);
+    lua_pushlstring(l, data, file_size);
+    free(data);
     return 1;
 }
