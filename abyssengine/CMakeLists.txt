@@ -1,24 +1,32 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(abyssengine)
+if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
+    set(VCPKG_BUILD_TYPE release)
+endif ()
 
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_STANDARD_REQUIRED ON)
-set(THREADS_PREFER_PTHREAD_FLAG ON)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(APP_NAME "abyssengine")
+
+project(abyssengine CXX)
 
 find_package(ZLIB REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(PNG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
 find_package(Lua 5.4 EXACT REQUIRED)
+find_package(sol2 CONFIG REQUIRED)
 find_package(Threads REQUIRED)
 find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE POSTPROC REQUIRED)
 find_package(sdl2-ttf)
+find_package(absl CONFIG REQUIRED)
+
 if (NOT sdl2-ttf_FOUND)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(SDL2TTF REQUIRED IMPORTED_TARGET SDL2_ttf)
     add_library(SDL2::SDL2_ttf ALIAS PkgConfig::SDL2TTF)
-endif()
+endif ()
 
 include(../cmake/CPM.cmake)
 CPMAddPackage("https://github.com/ladislav-zezula/CascLib.git#85800c22281fe6827c61e8d9ebc9ca83d161d901")
@@ -27,15 +35,16 @@ if (APPLE)
     find_library(OSX_VIDEOTOOLBOX VideoToolbox)
     find_library(OSX_COREMEDIA CoreMedia)
     find_library(OSX_SECURITY Security)
-endif()
+endif ()
 
-message(Defs: ${FFMPEG_LIBRARIES})
+
+add_definitions(-DSOL_ALL_SAFETIES_ON)
 
 if (MSVC)
     set(OPTIONS WIN32)
     set(SOURCE_EXTRA resource.rc)
     set(APP_NAME "AbyssEngine")
-    add_definitions(-DCASCLIB_NO_AUTO_LINK_LIBRARY -D_CRT_SECURE_NO_WARNINGS)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_HAS_DEPRECATED_RESULT_OF=1)
 endif (MSVC)
 
 if (APPLE)
@@ -43,10 +52,15 @@ if (APPLE)
     set_source_files_properties(abyssbadge.icns PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
     set(OPTIONS
             MACOSX_BUNDLE
-            ./abyssbadge.icns)
+            ./abyssbadge.icns src/abyssengine.cpp)
 endif (APPLE)
 
+
 add_executable(${PROJECT_NAME} ${OPTIONS})
+
+if (CMAKE_BUILD_TYPE MATCHES Debug)
+    add_definitions(-DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE -DSPDLOG_DEBUG_ON -DSPDLOG_TRACE_ON)
+endif (CMAKE_BUILD_TYPE MATCHES Debug)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
         FOLDER "Applications/"
@@ -56,6 +70,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
         PRODUCT_BUNDLE_IDENTIFIER ABYSSENGINE
         OUTPUT_NAME ${APP_NAME}
         MACOSX_BUNDLE_BUNDLE_NAME ${APP_NAME}
+        CPACK_BUNDLE_APPLE_ENTITLEMENTS "macos.entitlements"
         MACOSX_BUNDLE_BUNDLE_VERSION "${abyss_VERSION_MAJOR}.${abyss_VERSION_MINOR}"
         MACOSX_BUNDLE_SHORT_VERSION_STRING "${abyss_VERSION_MAJOR}.${abyss_VERSION_MINOR}"
         MACOSX_BUNDLE_ICON_FILE abyssbadge.icns
@@ -70,79 +85,60 @@ target_compile_options(${PROJECT_NAME} PRIVATE ${FFMPEG_DEFINITIONS})
 
 file(GLOB_RECURSE CASC_SOURCES "${CascLib_SOURCE_DIR}/src/*.cpp")
 
+
+if (MSVC)
+    list(APPEND SOURCE_EXTRA
+            src/hostnotify/hostnotify_windows.cpp
+            )
+elseif (APPLE)
+    find_library(APPKIT_LIBRARY AppKit)
+    list(APPEND SOURCE_EXTRA
+            src/hostnotify/hostnotify_mac.cpp
+            src/hostnotify/hostnotify_mac_shim.m
+            )
+else ()
+    list(APPEND SOURCE_EXTRA src/hostnotify/hostnotify_stub.cpp)
+endif ()
+
 target_sources(${PROJECT_NAME} PRIVATE
         # Engine Core --------------------------------------------------
-        src/abyssengine.c
-        src/commondef.h
-        src/engine/engine.c src/engine/engine.h
-        src/engine/sysfont.c src/engine/sysfont.h
-        src/engine/spritefont.c src/engine/spritefont.h
-        src/engine/ttffont.c src/engine/ttffont.h
+        src/abyssengine.cpp
+        src/engine/engine.cpp
+        src/engine/loader.cpp
+        src/engine/filesystemprovider.cpp
+        src/engine/mpqprovider.cpp
+        src/engine/spritefont.cpp
+        src/common/inifile.cpp
+        src/common/ringbuffer.cpp
+        src/common/alignment.cpp
+        src/common/blendmode.cpp
+        src/common/color.cpp
+        src/systemio/interface.cpp
 
-        # Common -------------------------------------------------------
-        src/common/color.h
-        src/common/blendmode.c src/common/blendmode.h
-        src/common/align.c src/common/align.h
-        src/common/string.c src/common/string.h
+        # Nodes --------------------------------------------------------
+        src/node/node.cpp
+        src/node/sprite.cpp
+        src/node/dc6sprite.cpp
+        src/node/video.cpp
+        src/node/label.cpp
+        src/node/button.cpp
 
-        # Engine Modes -------------------------------------------------
-        src/engine/modeboot.c src/engine/modeboot.h
-        src/engine/modecrash.c src/engine/modecrash.h
-        src/engine/moderun.c src/engine/moderun.h
-        src/engine/modevideo.c src/engine/modevideo.h
+        # Scripting ----------------------------------------------------
+        src/scripting/scripthost.cpp
 
-        # Node ----------------------------------------------------------
-        src/node/node.c src/node/node.h
-        src/node/sprite/sprite.c src/node/sprite/sprite.h
-        src/node/label/label.c src/node/label/label.h
-        src/node/button/button.c src/node/button/button.h
-
-        # Scripting -----------------------------------------------------
-        src/scripting/scripting.c src/scripting/scripting.h
-        src/scripting/node.c src/scripting/node.h
-        src/scripting/log.c
-        src/scripting/getconfig.c
-        src/scripting/addloaderprovider.c
-        src/scripting/shutdown.c
-        src/scripting/showsystemcursor.c
-        src/scripting/sleep.c
-        src/scripting/setboottext.c
-        src/scripting/loadstring.c
-        src/scripting/exitbootmode.c
-        src/scripting/loadpalette.c
-        src/scripting/loadsprite.c
-        src/scripting/loadspritefont.c
-        src/scripting/loadttffont.c
-        src/scripting/setcursor.c
-        src/scripting/getrootnode.c
-        src/scripting/playvideo.c
-        src/scripting/fileexists.c
-        src/scripting/exitbootmode.c
-        src/scripting/createlabel.c
-        src/scripting/createbutton.c
-        src/scripting/resetmousestate.c
-        src/scripting/createtimer.c
-
-        # Loaders ------------------------------------------------------
-        src/loader/loaderprovider.c src/loader/loaderprovider.h
-        src/loader/filesystemloader.c src/loader/filesystemloader.h
-        src/loader/mpqloader.c src/loader/mpqloader.h
-        src/loader/cascloader.cpp src/loader/cascloader.h
-        src/loader/loader.c src/loader/loader.h
-
-        # Misc ---------------------------------------------------------
-        src/misc/util.c src/misc/util.h
-        src/misc/ini.c src/misc/ini.h
-        src/misc/resources.c src/misc/resources.h
-        src/misc/appcompat.c src/misc/appcompat.h
+        # SystemIO - SDL2 ----------------------------------------------
+        src/systemio/sdl2/sdl2systemio.cpp
+        src/systemio/sdl2/sdl2texture.cpp
 
         # Dynamic ------------------------------------------------------
         ${SOURCE_EXTRA}
 
-        # CASC
+        # Others -------------------------------------------------------
+        ${SOURCE_APP}
         ${CASC_SOURCES}
         ${CascLib_SOURCE_DIR}/src/jenkins/lookup3.c
         )
+
 
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${PROJECT_BINARY_DIR}
@@ -151,14 +147,18 @@ target_include_directories(${PROJECT_NAME} PRIVATE
         ${CascLib_SOURCE_DIR}/src
         )
 
-target_link_libraries(${PROJECT_NAME}
-        PRIVATE
+message(Defs: ${FFMPEG_LIBRARIES})
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
         libabyss
+        absl::flat_hash_map
         Threads::Threads
         SDL2::SDL2main
         SDL2::SDL2
         SDL2::SDL2_ttf
         PNG::PNG
+        spdlog::spdlog_header_only
+        sol2::sol2
         ${FFMPEG_LIBRARIES}
         ${LUA_LIBRARIES}
         )

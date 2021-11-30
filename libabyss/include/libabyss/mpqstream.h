@@ -1,28 +1,37 @@
-/**
- * Copyright (C) 2021 Tim Sarbin
- * This file is part of AbyssEngine <https://github.com/AbyssEngine>.
- *
- * AbyssEngine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * AbyssEngine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with AbyssEngine.  If not, see <http://www.gnu.org/licenses/>.
- */
+#ifndef LIBABYSS_MPQSTREAM_H
+#define LIBABYSS_MPQSTREAM_H
 
-#ifndef LIBABYSS_MPQ_STREAM
-#define LIBABYSS_MPQ_STREAM
+#include <ios>
+#include <streambuf>
+#include <vector>
+#include "mpq.h"
+#include <libabyss/mpq.h>
 
-typedef struct mpq_stream mpq_stream;
-typedef struct mpq mpq;
+namespace LibAbyss {
 
-mpq_stream *mpq_stream_new(mpq *mpq, mpq_block *block, const char *filename);
-void mpq_stream_destroy(mpq_stream *source);
-uint32_t mpq_stream_read(mpq_stream *source, void *buffer, uint32_t offset, uint32_t size);
-#endif // LIBABYSS_MPQ_STREAM
+    class MPQStream : public std::basic_streambuf<char> {
+    public:
+        MPQStream(HANDLE mpq, std::string_view fileName);
+
+        ~MPQStream() override;
+
+        std::streamsize StartOfBlockForTesting() const {
+            return _startOfBlock;
+        }
+
+    protected:
+        int underflow() override;
+        pos_type seekpos(pos_type pos,
+                         std::ios_base::openmode which) override;
+        pos_type seekoff(off_type off, std::ios_base::seekdir dir,
+                         std::ios_base::openmode which) override;
+
+    private:
+        HANDLE _mpqFile = 0;
+        std::streamsize _startOfBlock = 0;
+        char _buffer[2048] = {};
+    };
+
+}
+
+#endif //LIBABYSS_MPQSTREAM_H

@@ -1,32 +1,42 @@
-/**
- * Copyright (C) 2021 Tim Sarbin
- * This file is part of AbyssEngine <https://github.com/AbyssEngine>.
- *
- * AbyssEngine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * AbyssEngine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with AbyssEngine.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 #ifndef ABYSS_SPRITEFONT_H
 #define ABYSS_SPRITEFONT_H
 
-#include "../common/blendmode.h"
+#include "../common/rectangle.h"
+#include "../systemio/interface.h"
+#include "libabyss/dc6.h"
+#include "libabyss/palette.h"
 #include "../common/color.h"
+#include <string>
 
-typedef struct spritefont spritefont;
+namespace AbyssEngine {
 
-spritefont *spritefont_load(const char *file_path, const char *palette_name);
-void spritefont_destroy(spritefont *source);
-void spritefont_draw_text(spritefont *source, int x, int y, const char *text, e_blend_mode blend, rgb color_mod);
-void spritefont_get_metrics(const spritefont *source, const char *text, int *width, int *height);
+class SpriteFont {
+  public:
+    struct Glyph {
+        uint16_t FrameIndex;
+        uint8_t Width;
+        uint8_t Height;
+    };
+
+    struct FramePosition {
+        Rectangle Rect;
+        int OffsetX;
+        int OffsetY;
+    };
+
+    SpriteFont(std::string_view filePath, std::string_view paletteName);
+    void GetMetrics(std::string_view text, int &width, int &height);
+    void DrawText(int x, int y, std::string_view text, eBlendMode blendMode, RGB colorMod);
+
+  private:
+    void RegenerateAtlas();
+    std::unique_ptr<LibAbyss::DC6> _dc6;
+    std::unique_ptr<ITexture> _atlas;
+    std::vector<Glyph> _glyphs;
+    std::vector<FramePosition> _frameRects;
+    const LibAbyss::Palette &_palette;
+};
+
+} // namespace AbyssEngine
 
 #endif // ABYSS_SPRITEFONT_H

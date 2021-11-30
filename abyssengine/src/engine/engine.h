@@ -1,98 +1,50 @@
-/**
- * Copyright (C) 2021 Tim Sarbin
- * This file is part of AbyssEngine <https://github.com/AbyssEngine>.
- *
- * AbyssEngine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * AbyssEngine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with AbyssEngine.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 #ifndef ABYSS_ENGINE_H
 #define ABYSS_ENGINE_H
 
-#include "../commondef.h"
-#include "../loader/loader.h"
-#include "../misc/ini.h"
-#include "../node/node.h"
+#include "../common/inifile.h"
+#include "../node/sprite.h"
+#include "../scripting/scripthost.h"
+#include "../systemio/interface.h"
 #include "libabyss/palette.h"
-#include "libabyss/threading.h"
-#include "sysfont.h"
-#include <SDL2/SDL.h>
-#include <libabyss/log.h>
-#include <lua.h>
-#include <stdbool.h>
+#include "loader.h"
+#include <filesystem>
+#include <map>
+#include <mutex>
+#include <thread>
 
-typedef struct engine engine;
-typedef struct sprite sprite;
+namespace AbyssEngine {
 
-#ifndef NDEBUG
-extern thread *engine_thread;
-#define VERIFY_ENGINE_THREAD                                                                                                                         \
-    if (!thread_same(engine_thread)) {                                                                                                               \
-        log_fatal("engine called on a non main thread!");                                                                                            \
-        exit(-1);                                                                                                                                    \
-    }
-#else
-#define VERIFY_ENGINE_THREAD
-#endif
+class Engine {
+  public:
+    Engine(Common::INIFile iniFile, std::unique_ptr<SystemIO> systemIo);
+    ~Engine();
 
-engine *engine_create(const char *base_path, ini_file *ini_config);
-void engine_destroy(engine *src);
-void engine_init_sdl2(engine *src);
-void engine_finalize_sdl2(engine *src);
-void engine_run(engine *src);
-void engine_shutdown(engine *src);
-void engine_render(engine *src);
-void engine_update(engine *src);
-void engine_handle_sdl_event(engine *src, const SDL_Event *evt);
-int engine_get_fps(engine *src);
-void engine_init_lua(engine *src);
-void engine_finalize_lua(engine *src);
-sysfont *engine_get_sysfont(const engine *src);
-engine *engine_get_global_instance(void);
-void engine_set_global_instance(engine *src);
-void engine_show_system_cursor(engine *src, bool show);
-SDL_Renderer *engine_get_renderer(const engine *src);
-ini_file *engine_get_ini_configuration(const engine *src);
-void engine_set_callbacks(engine *src, void (*render_callback)(engine *), void (*update_callback)(engine *, uint32_t));
-SDL_Texture *engine_get_logo_texture(const engine *src, SDL_Rect *rect);
-void engine_set_boot_text(engine *src, const char *boot_text);
-const char *engine_get_boot_text(const engine *src);
-const char *engine_get_crash_text(const engine *src);
-const char *engine_get_base_path(const engine *src);
-loader *engine_get_loader(const engine *src);
-void engine_trigger_crash(engine *src, const char *crash_text);
-void engine_run_script_bootstrap(engine *src);
-void engine_exit_boot_mode(engine *src);
-const palette *engine_get_palette(const engine *src, const char *palette_name);
-bool engine_add_palette(engine *src, const char *palette_name, palette *pal);
-void engine_dispatch(engine *src, void (*dispatch)(void *data), void *data);
-void engine_set_cursor(engine *src, sprite *cursor, int offset_x, int offset_y);
-void engine_get_cursor_position(const engine *src, int *pos_x, int *pos_y);
-node *engine_get_root_node(const engine *src);
-e_mouse_button engine_get_mouse_button_state(const engine *src);
-void engine_set_mouse_button_state(engine *src, enum e_mouse_button new_state);
-lua_State *engine_get_lua_state(const engine *src);
-void engine_play_video(engine *src, const char *path);
-bool engine_is_video_playing(const engine *src);
-void engine_end_video(engine *src);
-void engine_video_mutex_wait(engine *src);
-bool engine_get_is_running(const engine *src);
-void engine_handle_audio(void *user_data, Uint8 *stream, int len);
-SDL_AudioSpec engine_get_audio_spec(const engine *src);
-void engine_write_audio_buffer(engine *src, const void *data, int len);
-void engine_reset_audio_buffer(engine *src);
-void *engine_get_input_focus(const engine *src);
-void engine_set_input_focus(engine *src, void *focus);
-uint32_t engine_add_timer(engine *src, int lua_func, float rate);
-void engine_timer_remove(engine *src, uint32_t timer_id);
+    void Run();
+    void Stop();
+    void ScriptingThread();
+    void AddPalette(std::string_view paletteName, const LibAbyss::Palette &palette);
+    Node &GetRootNode();
+    Node *GetFocusedNode();
+    void SetFocusedNode(Node *node);
+
+    Loader &GetLoader() { return _loader; }
+    Common::INIFile &GetIniFile() { return _iniFile; }
+    SystemIO &GetSystemIO() { return *_systemIO; }
+
+    static Engine *Get();
+
+    [[nodiscard]] const LibAbyss::Palette &GetPalette(std::string_view paletteName) const;
+
+  private:
+    Common::INIFile _iniFile;
+    Loader _loader;
+    std::unique_ptr<AbyssEngine::SystemIO> _systemIO;
+    std::mutex _mutex;
+    std::map<std::string, LibAbyss::Palette> _palettes;
+    std::unique_ptr<ScriptHost> _scriptHost;
+    Node _rootNode;
+    Node *_focusedNode = nullptr;
+};
+} // namespace AbyssEngine
+
 #endif // ABYSS_ENGINE_H

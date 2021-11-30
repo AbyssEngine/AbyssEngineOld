@@ -1,11 +1,27 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(abysstoolset C)
+if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
+    set(VCPKG_BUILD_TYPE release)
+endif()
 
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_STANDARD_REQUIRED ON)
+project(abysstoolset CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+find_package(spdlog CONFIG REQUIRED)
+find_package(argh CONFIG REQUIRED)
 
 add_executable(${PROJECT_NAME})
+
+if (MSVC)
+    add_definitions(-D_HAS_DEPRECATED_RESULT_OF=1)
+endif (MSVC)
+
+if (CMAKE_BUILD_TYPE MATCHES Debug)
+    add_definitions(-DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE -DSPDLOG_DEBUG_ON -DSPDLOG_TRACE_ON)
+endif (CMAKE_BUILD_TYPE MATCHES Debug)
 
 configure_file(
         ${CMAKE_SOURCE_DIR}/config.h.in
@@ -14,9 +30,7 @@ configure_file(
 
 target_sources(${PROJECT_NAME}
         PRIVATE
-        src/abt.c
-        src/help.c src/help.h
-        src/mpqtool.c src/mpqtool.h
+        src/abt.cpp
         )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -31,6 +45,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_link_libraries(${PROJECT_NAME}
         PRIVATE
         libabyss
+        spdlog::spdlog_header_only
+        argh
         )
 
 if (WIN32)
