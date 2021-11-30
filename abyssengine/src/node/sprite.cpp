@@ -240,5 +240,6 @@ std::string_view AbyssEngine::Sprite::LuaGetPlayMode() {
     case ePlayMode::Backwards:
         return "backwards";
     }
+    return "";
 }
 

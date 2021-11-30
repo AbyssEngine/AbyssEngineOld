@@ -5,7 +5,7 @@ AbyssEngine::RingBuffer::RingBuffer(uint32_t bufferSize)
     : _bufferSize(bufferSize), _buffer(), _readPosition(0), _writePosition(0), _remainingToRead(0), _mutex() {
     _buffer.resize(bufferSize);
 }
-void AbyssEngine::RingBuffer::PushData(std::span<uint8_t> data) {
+void AbyssEngine::RingBuffer::PushData(std::span<const uint8_t> data) {
     std::lock_guard<std::mutex> guard(_mutex);
 
     // Determine the bytes we have left to write before we hit the read position
@@ -46,13 +46,13 @@ void AbyssEngine::RingBuffer::PushData(std::span<uint8_t> data) {
     while (_readPosition >= _bufferSize)
         _readPosition -= _bufferSize;
 }
-void AbyssEngine::RingBuffer::ReadData(uint8_t *outBuffer, uint32_t size) {
+void AbyssEngine::RingBuffer::ReadData(std::span<uint8_t> outBuffer) {
     std::lock_guard<std::mutex> guard(_mutex);
 
-    const auto toRead = (_remainingToRead < size) ? _remainingToRead : size;
+    const auto toRead = std::min(_remainingToRead, (uint32_t)outBuffer.size());
 
-    if (size == 0 || toRead == 0) {
-        memset(outBuffer, 0, size);
+    if (outBuffer.empty() == 0 || toRead == 0) {
+        memset(outBuffer.data(), 0, outBuffer.size());
         return;
     }
 

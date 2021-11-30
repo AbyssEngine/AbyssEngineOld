@@ -22,7 +22,7 @@ class SDL2SystemIO : public SystemIO {
     void RunMainLoop(Node &rootNode) final;
     void Stop() final;
     std::unique_ptr<ITexture> CreateTexture(ITexture::Format textureFormat, uint32_t width, uint32_t height) final;
-    void PushAudioData(std::span<uint8_t> data) final;
+    void PushAudioData(std::span<const uint8_t> data) final;
     void PlayVideo(LibAbyss::InputStream stream, bool wait) final;
     void WaitForVideoToFinish() final;
     void ResetAudio() override;

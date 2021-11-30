@@ -9,6 +9,7 @@
 #include <SDL_syswm.h>
 #include <cstdint>
 #include <spdlog/spdlog.h>
+#include <span>
 #ifdef __APPLE__
 #include "../../hostnotify/hostnotify_mac_shim.h"
 #endif // __APPLE__
@@ -252,7 +253,7 @@ void AbyssEngine::SDL2::SDL2SystemIO::HandleAudioCallback(void *userData, Uint8 
     source->HandleAudio(stream, length);
 }
 
-void AbyssEngine::SDL2::SDL2SystemIO::HandleAudio(uint8_t *stream, int length) { _audioBuffer.ReadData(stream, length); }
+void AbyssEngine::SDL2::SDL2SystemIO::HandleAudio(uint8_t *stream, int length) { _audioBuffer.ReadData(std::span(stream, length)); }
 
 void AbyssEngine::SDL2::SDL2SystemIO::FinalizeAudio() const {
     if (!_hasAudio)
@@ -261,7 +262,7 @@ void AbyssEngine::SDL2::SDL2SystemIO::FinalizeAudio() const {
     SDL_PauseAudioDevice(_audioDeviceId, SDL_TRUE);
     SDL_CloseAudioDevice(_audioDeviceId);
 }
-void AbyssEngine::SDL2::SDL2SystemIO::PushAudioData(std::span<uint8_t> data) { _audioBuffer.PushData(data); }
+void AbyssEngine::SDL2::SDL2SystemIO::PushAudioData(std::span<const uint8_t> data) { _audioBuffer.PushData(data); }
 
 void AbyssEngine::SDL2::SDL2SystemIO::PlayVideo(LibAbyss::InputStream stream, bool wait) {
     if (!_runMainLoop)
