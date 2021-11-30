@@ -36,7 +36,7 @@ void AbyssEngine::Node::AppendChild(Node *childNode) {
 }
 
 void AbyssEngine::Node::RemoveChild(AbyssEngine::Node *nodeRef) {
-    (void)std::remove(Children.begin(), Children.end(), nodeRef);
+    Children.erase(std::remove(Children.begin(), Children.end(), nodeRef), Children.end());
 }
 void AbyssEngine::Node::RemoveAllChildren() { Children.clear(); }
 void AbyssEngine::Node::SetPosition(int x, int y) {
