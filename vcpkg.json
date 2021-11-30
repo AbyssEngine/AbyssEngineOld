@@ -8,12 +8,7 @@
     "bzip2",
     "zlib",
     "sdl2",
-    {
-      "name": "lua",
-      "features": [
-        "cpp"
-      ]
-    },
+    "lua",
     "sdl2-ttf",
     "sol2",
     "gtest",

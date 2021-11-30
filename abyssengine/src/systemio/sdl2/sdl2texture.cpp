@@ -35,8 +35,8 @@ void AbyssEngine::SDL2::SDL2Texture::Render(const AbyssEngine::Rectangle &source
     SDL_RenderCopy(_renderer, _texture, &sr, &dr);
 }
 
-void AbyssEngine::SDL2::SDL2Texture::SetYUVData(std::span<uint8_t> yPlane, int yPitch, std::span<uint8_t> uPlane, int uPitch,
-                                                std::span<uint8_t> vPlane, int vPitch) {
+void AbyssEngine::SDL2::SDL2Texture::SetYUVData(std::span<const uint8_t> yPlane, int yPitch, std::span<const uint8_t> uPlane, int uPitch,
+                                                std::span<const uint8_t> vPlane, int vPitch) {
     if (_textureFormat != ITexture::Format::YUV)
         throw std::runtime_error("Cannot set YUV data on a non YUV texture.");
 

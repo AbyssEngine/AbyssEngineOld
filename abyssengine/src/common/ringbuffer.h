@@ -10,8 +10,8 @@ namespace AbyssEngine {
 class RingBuffer {
   public:
     explicit RingBuffer(uint32_t bufferSize);
-    void PushData(std::span<uint8_t> data);
-    void ReadData(uint8_t *outBuffer, uint32_t size);
+    void PushData(std::span<const uint8_t> data);
+    void ReadData(std::span<uint8_t> outBuffer);
     void Reset();
 
   private:

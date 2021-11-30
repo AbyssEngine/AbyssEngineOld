@@ -5,6 +5,7 @@
 #include "../common/rectangle.h"
 #include "libabyss/inputstream.h"
 #include "../common/events.h"
+#include <bitset>
 #include <memory>
 #include <mutex>
 #include <span>
@@ -23,7 +24,7 @@ class ITexture {
 
     virtual ~ITexture() = default;
     virtual void SetPixels(std::span<const uint32_t> pixels) = 0;
-    virtual void SetYUVData(std::span<uint8_t> yPlane, int yPitch, std::span<uint8_t> uPlane, int uPitch, std::span<uint8_t> vPlane, int vPitch) = 0;
+    virtual void SetYUVData(std::span<const uint8_t> yPlane, int yPitch, std::span<const uint8_t> uPlane, int uPitch, std::span<const uint8_t> vPlane, int vPitch) = 0;
     virtual void Render(const AbyssEngine::Rectangle &sourceRect, const AbyssEngine::Rectangle &destRect) = 0;
     virtual void SetBlendMode(eBlendMode blendMode) = 0;
     virtual void SetColorMod(uint8_t red, uint8_t green, uint8_t blue) = 0;
@@ -58,7 +59,7 @@ class SystemIO {
 
     /// Writes data to the audio buffer.
     /// \param data The data to write to the audio buffer.
-    virtual void PushAudioData(std::span<uint8_t> data) = 0;
+    virtual void PushAudioData(std::span<const uint8_t> data) = 0;
 
     /// Plays the specified video.
     /// \param stream The video stream
