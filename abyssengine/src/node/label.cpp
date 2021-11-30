@@ -1,7 +1,8 @@
 #include "label.h"
+#include <spdlog/spdlog.h>
 AbyssEngine::Label::Label(SpriteFont *spriteFont) : _spriteFont(spriteFont), _caption() {}
 
-AbyssEngine::Label::~Label() = default;
+AbyssEngine::Label::~Label() { SPDLOG_TRACE("Label deleted: {0}", _caption); }
 
 void AbyssEngine::Label::UpdateCallback(uint32_t ticks) { Node::UpdateCallback(ticks); }
 
@@ -38,7 +39,7 @@ void AbyssEngine::Label::RenderCallback(int offsetX, int offsetY) {
         break;
     }
 
-    _spriteFont->DrawText(posX, posY, _caption, _blendMode, _colorMod);
+    _spriteFont->RenderText(posX, posY, _caption, _blendMode, _colorMod);
 
     Node::RenderCallback(X + offsetX, Y + offsetY);
 }

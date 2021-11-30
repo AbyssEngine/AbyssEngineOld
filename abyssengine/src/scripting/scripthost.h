@@ -41,8 +41,8 @@ class ScriptHost {
     bool LuaFileExists(std::string_view fileName);
     void LuaResetMouseState();
     std::string LoadString(std::string_view filePath);
-    AbyssEngine::Sprite *LuaLoadSprite(std::string_view spritePath, std::string_view paletteName);
-    AbyssEngine::Button *LuaLoadButton(SpriteFont* spriteFont, Sprite* sprite);
+    std::unique_ptr<AbyssEngine::Sprite> LuaLoadSprite(std::string_view spritePath, std::string_view paletteName);
+    std::unique_ptr<AbyssEngine::Button> LuaLoadButton(SpriteFont* spriteFont, Sprite* sprite);
     void LuaSetCursor(Sprite &sprite, int offsetX, int offsetY);
     void LuaPlayVideo(std::string_view videoPath, bool wait);
     Node &LuaGetRootNode();

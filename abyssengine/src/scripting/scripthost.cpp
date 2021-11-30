@@ -215,7 +215,7 @@ bool AbyssEngine::ScriptHost::LuaFileExists(std::string_view fileName) {
     return _engine->GetLoader().FileExists(path);
 }
 
-AbyssEngine::Sprite *AbyssEngine::ScriptHost::LuaLoadSprite(std::string_view spritePath, std::string_view paletteName) {
+std::unique_ptr<AbyssEngine::Sprite> AbyssEngine::ScriptHost::LuaLoadSprite(std::string_view spritePath, std::string_view paletteName) {
     const auto &engine = AbyssEngine::Engine::Get();
     const std::filesystem::path path(spritePath);
 
@@ -226,15 +226,13 @@ AbyssEngine::Sprite *AbyssEngine::ScriptHost::LuaLoadSprite(std::string_view spr
     const auto &palette = engine->GetPalette(paletteName);
 
     if (absl::AsciiStrToLower(spritePath).ends_with(".dc6")) {
-        return new DC6Sprite(stream, palette);
+        return std::make_unique<DC6Sprite>(stream, palette);
     } else
         throw std::runtime_error(absl::StrCat("Unknowns sprite format for file: ", spritePath));
 }
 
-AbyssEngine::Button *AbyssEngine::ScriptHost::LuaLoadButton(SpriteFont *spriteFont, Sprite *sprite) {
-    const auto &engine = AbyssEngine::Engine::Get();
-
-    return new Button(spriteFont, sprite);
+std::unique_ptr<AbyssEngine::Button> AbyssEngine::ScriptHost::LuaLoadButton(SpriteFont *spriteFont, Sprite *sprite) {
+    return std::make_unique<Button>(spriteFont, sprite);
 }
 
 void AbyssEngine::ScriptHost::LuaSetCursor(Sprite &sprite, int offsetX, int offsetY) {
