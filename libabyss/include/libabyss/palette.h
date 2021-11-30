@@ -1,57 +1,78 @@
-/**
- * Copyright (C) 2021 Tim Sarbin
- * This file is part of AbyssEngine <https://github.com/AbyssEngine>.
- *
- * AbyssEngine is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * AbyssEngine is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with AbyssEngine.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 #ifndef LIBABYSS_PALETTE_H
 #define LIBABYSS_PALETTE_H
 
-#include <stdint.h>
+#include <cstdint>
+#include <vector>
+#include <istream>
+#include "inputstream.h"
 
-typedef struct palette_color {
-    uint8_t red;
-    uint8_t green;
-    uint8_t blue;
-    uint8_t alpha;
-} palette_color;
+namespace LibAbyss {
 
-typedef struct palette_transform {
-    palette_color *base_palette;
+    struct PaletteColor {
+        PaletteColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+            Red = r;
+            Green = g;
+            Blue = b;
+            Alpha = a;
+        }
+        PaletteColor(uint8_t r, uint8_t g, uint8_t b) {
+            Red = r;
+            Green = g;
+            Blue = b;
+            Alpha = 0xFF;
+        }
+        PaletteColor(uint8_t c) {
+            Red = c;
+            Green = c;
+            Blue = c;
+            Alpha = 0xFF;
+        }
+        PaletteColor() {
+            Red = 0;
+            Green = 0;
+            Blue = 0;
+            Alpha = 0;
+        }
 
-    uint8_t **light_level_variations;
-    uint8_t **inv_color_variations;
-    uint8_t *selected_unit_shift;
-    uint8_t ***alpha_blend;
-    uint8_t **additive_blend;
-    uint8_t **multiplicative_blend;
-    uint8_t **hue_variations;
-    uint8_t *red_tones;
-    uint8_t *green_tones;
-    uint8_t *blue_tones;
-    uint8_t **unknown_variations;
-    uint8_t **max_component_blend;
-    uint8_t *darkened_color_shift;
+        uint8_t Red;
+        uint8_t Green;
+        uint8_t Blue;
+        uint8_t Alpha;
 
-    palette_color *text_colors;
-    uint8_t **text_color_shifts;
+        explicit operator uint32_t() const {
+            return ((uint32_t)Red) | ((uint32_t)Green << 8) | ((uint32_t)Blue << 16) | ((uint32_t)Alpha << 24);
+        }
+    };
 
-    bool is_dat;
-} palette;
+    class Palette {
+    public:
+        Palette(std::istream &stream, bool isDat);
 
-palette *palette_new_from_bytes(const void *data, uint64_t size, bool is_dat);
-void palette_transform_destroy(palette *source);
+        std::vector<PaletteColor> BasePalette;
 
-#endif // LIBABYSS_PALETTE_H
+        std::vector<std::vector<uint8_t>> LightLevelVariations = std::vector<std::vector<uint8_t>>();
+        std::vector<std::vector<uint8_t>> InvColorVariations = std::vector<std::vector<uint8_t>>();
+        std::vector<uint8_t> SelectedUnitShift = std::vector<uint8_t>();
+        std::vector<std::vector<std::vector<uint8_t>>> AlphaBlend = std::vector<std::vector<std::vector<uint8_t>>>();
+        std::vector<std::vector<uint8_t>> AdditiveBlend = std::vector<std::vector<uint8_t>>();
+        std::vector<std::vector<uint8_t>> MultiplicativeBlend = std::vector<std::vector<uint8_t>>();
+        std::vector<std::vector<uint8_t>> HueVariations = std::vector<std::vector<uint8_t>>();
+        std::vector<uint8_t> RedTones = std::vector<uint8_t>();
+        std::vector<uint8_t> GreenTones = std::vector<uint8_t>();
+        std::vector<uint8_t> BlueTones = std::vector<uint8_t>();
+        std::vector<std::vector<uint8_t>> UnknownVariations = std::vector<std::vector<uint8_t>>();
+        std::vector<std::vector<uint8_t>> MaxComponentBlend = std::vector<std::vector<uint8_t>>();
+        std::vector<uint8_t> DarkenedColorShift = std::vector<uint8_t>();
+
+        std::vector<PaletteColor> TextColors = std::vector<PaletteColor>();
+        std::vector<std::vector<uint8_t>> TextColorShifts = std::vector<std::vector<uint8_t>>();
+    private:
+        static std::vector<PaletteColor> DecodeColors(std::istream &stream, uint8_t colorBytes, int numColors);
+        static std::vector<std::vector<uint8_t>> LoadTransformMulti(std::istream &stream, int variations);
+
+        static std::vector<uint8_t> LoadTransformSingle(std::istream &stream);
+    };
+
+}
+
+#endif //LIBABYSS_PALETTE_H

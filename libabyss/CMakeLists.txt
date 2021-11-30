@@ -1,48 +1,46 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(libabyss C)
+if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
+    set(VCPKG_BUILD_TYPE release)
+endif()
 
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_STANDARD_REQUIRED ON)
+project(libabyss CXX)
+
+if(MSVC)
+    add_definitions(-D_HAS_DEPRECATED_RESULT_OF=1)
+endif()
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(GNUInstallDirs)
 
 find_package(ZLIB REQUIRED)
+find_package(BZip2 REQUIRED)
+find_library(STORMLIB storm)
+if(STORMLIB)
+    add_library(stormlib::stormlib UNKNOWN IMPORTED)
+    set_target_properties(stormlib::stormlib PROPERTIES
+        IMPORTED_LOCATION ${STORMLIB})
+    message(STATUS "Using StormLib from ${STORMLIB}")
+else()
+    include(../cmake/CPM.cmake)
+    CPMAddPackage("https://github.com/ladislav-zezula/StormLib.git#5ab093b7a57b8779dff06a08fac19d46c40b3329")
+    add_library(stormlib::stormlib ALIAS storm)
+    target_include_directories(storm INTERFACE ${StormLib_SOURCE_DIR})
+endif()
+find_package(absl CONFIG REQUIRED)
+find_package(fmt REQUIRED)
 
-if (WIN32)
-    find_package(Threads REQUIRED)
-
-    set(THREADS_PREFER_PTHREAD_FLAG ON)
-    set(THREAD_SRC src/threading_windows.c include/libabyss/threading.h)
-else ()
-    set(THREAD_SRC src/threading_unix.c include/libabyss/threading.h)
-endif ()
 
 add_library(${PROJECT_NAME}
-        # Public
-        src/libabyss.c include/libabyss/libabyss.h
-        src/utils.c include/libabyss/utils.h
-        src/mpq.c include/libabyss/mpq.h
-        src/log.c include/libabyss/log.h
-        src/mpqstream.c include/libabyss/mpqstream.h
-        src/mpqblock.c include/libabyss/mpqblock.h
-        src/palette.c include/libabyss/palette.h
-        src/dcc.c include/libabyss/dcc.h
-        src/dc6.c include/libabyss/dc6.h
-        src/d2r_sprite.c include/libabyss/d2r_sprite.h
-        src/error.c include/libabyss/error.h
-        include/libabyss/boundsdefs.h
-        # Private
-        src/crypto.c src/crypto.h
-        src/blast.c src/blast.h
-        src/compress.c src/compress.h
-        src/streamreader.c src/streamreader.h
-        src/streamwriter.c src/streamwriter.h
-        src/bitstream.c src/bitstream.h
-        src/huffman.c src/huffman.h
-        ${THREAD_SRC}
+        src/mpq.cpp
+        src/mpqstream.cpp
+        src/palette.cpp
+        src/dc6.cpp
+        src/streamreader.cpp
         )
-
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
         FOLDER "Libraries/"
@@ -54,8 +52,13 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         )
 
 target_link_libraries(${PROJECT_NAME}
+        PUBLIC
         ZLIB::ZLIB
+        BZip2::BZip2
+        stormlib::stormlib
         ${CMAKE_THREAD_LIBS_INIT}
+        absl::str_format
+        fmt::fmt
         )
 
 install(TARGETS libabyss
