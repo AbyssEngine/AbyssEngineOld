@@ -1,6 +1,7 @@
 #include "blendmode.h"
 #include <absl/strings/ascii.h>
 #include <absl/strings/str_cat.h>
+#include <stdexcept>
 
 std::string_view AbyssEngine::BlendModeToString(const AbyssEngine::eBlendMode &blendMode) {
     switch (blendMode) {

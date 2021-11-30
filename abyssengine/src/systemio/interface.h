@@ -10,6 +10,7 @@
 #include <span>
 #include <string>
 #include <vector>
+#include <bitset>
 
 namespace AbyssEngine {
 

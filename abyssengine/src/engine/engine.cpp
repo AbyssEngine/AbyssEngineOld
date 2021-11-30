@@ -16,10 +16,10 @@ AbyssEngine::Engine::Engine(Common::INIFile iniFile, std::unique_ptr<SystemIO> s
 void AbyssEngine::Engine::Run() {
     SPDLOG_TRACE("running engine");
     _loader.AddProvider(std::make_unique<FileSystemProvider>(std::filesystem::current_path()));
-    // std::thread scriptingThread([this] { ScriptingThread(); });
-    ScriptingThread();
+    std::thread scriptingThread([this] { ScriptingThread(); });
+    // ScriptingThread();
     _systemIO->RunMainLoop(_rootNode);
-    // scriptingThread.join();
+    scriptingThread.join();
 }
 
 AbyssEngine::Engine::~Engine() { SPDLOG_TRACE("destroying engine"); }
@@ -38,8 +38,6 @@ void AbyssEngine::Engine::ScriptingThread() {
 }
 
 void AbyssEngine::Engine::Stop() {
-    std::lock_guard<std::mutex> guard(_mutex);
-
     _systemIO->Stop();
 }
 

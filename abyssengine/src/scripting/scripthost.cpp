@@ -30,7 +30,7 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _lua(), _engine(engine) {
     _environment.set_function("getRootNode", &ScriptHost::LuaGetRootNode, this);
     _environment.set_function("loadPalette", &ScriptHost::LuaLoadPalette, this);
     _environment.set_function("loadSprite", &ScriptHost::LuaLoadSprite, this);
-    _environment.set_function("loadString", &ScriptHost::LoadString, this);
+    _environment.set_function("loadString", &ScriptHost::LuaLoadText, this);
     _environment.set_function("log", &ScriptHost::LuaLog, this);
     _environment.set_function("playVideo", &ScriptHost::LuaPlayVideo, this);
     _environment.set_function("resetMouseState", &ScriptHost::LuaResetMouseState, this);
@@ -215,7 +215,7 @@ bool AbyssEngine::ScriptHost::LuaFileExists(std::string_view fileName) {
     return _engine->GetLoader().FileExists(path);
 }
 
-AbyssEngine::Sprite *AbyssEngine::ScriptHost::LuaLoadSprite(std::string_view spritePath, std::string_view paletteName) {
+std::unique_ptr<AbyssEngine::Sprite> AbyssEngine::ScriptHost::LuaLoadSprite(std::string_view spritePath, std::string_view paletteName) {
     const auto &engine = AbyssEngine::Engine::Get();
     const std::filesystem::path path(spritePath);
 
@@ -226,15 +226,13 @@ AbyssEngine::Sprite *AbyssEngine::ScriptHost::LuaLoadSprite(std::string_view spr
     const auto &palette = engine->GetPalette(paletteName);
 
     if (absl::AsciiStrToLower(spritePath).ends_with(".dc6")) {
-        return new DC6Sprite(stream, palette);
+        return std::make_unique<DC6Sprite>(stream, palette);
     } else
         throw std::runtime_error(absl::StrCat("Unknowns sprite format for file: ", spritePath));
 }
 
-AbyssEngine::Button *AbyssEngine::ScriptHost::LuaLoadButton(SpriteFont *spriteFont, Sprite *sprite) {
-    const auto &engine = AbyssEngine::Engine::Get();
-
-    return new Button(spriteFont, sprite);
+std::unique_ptr<AbyssEngine::Button> AbyssEngine::ScriptHost::LuaLoadButton(SpriteFont *spriteFont, Sprite *sprite) {
+    return std::make_unique<Button>(spriteFont, sprite);
 }
 
 void AbyssEngine::ScriptHost::LuaSetCursor(Sprite &sprite, int offsetX, int offsetY) {
@@ -268,7 +266,7 @@ template <class T> void AbyssEngine::ScriptHost::BindNodeFunctions(sol::basic_us
 }
 
 void AbyssEngine::ScriptHost::LuaResetMouseState() { _engine->GetSystemIO().ResetMouseButtonState(); }
-std::string AbyssEngine::ScriptHost::LoadString(std::string_view filePath) {
+std::string AbyssEngine::ScriptHost::LuaLoadText(std::string_view filePath) {
     if (!_engine->GetLoader().FileExists(filePath))
         throw std::runtime_error(absl::StrCat("Path does not exist: ", filePath));
 

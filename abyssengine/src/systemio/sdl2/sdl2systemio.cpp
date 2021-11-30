@@ -218,7 +218,6 @@ void AbyssEngine::SDL2::SDL2SystemIO::HandleSdlEvent(const SDL_Event &sdlEvent, 
 }
 
 void AbyssEngine::SDL2::SDL2SystemIO::Stop() {
-    std::lock_guard<std::mutex> guard(_mutex);
     _runMainLoop = false;
 }
 

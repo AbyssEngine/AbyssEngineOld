@@ -5,6 +5,7 @@
 #include <absl/strings/str_cat.h>
 
 #include <utility>
+#include <spdlog/spdlog.h>
 
 AbyssEngine::Button::Button(AbyssEngine::SpriteFont *spriteFont, Sprite *sprite) : _spriteFont(spriteFont), _sprite(sprite) {}
 
@@ -130,9 +131,9 @@ void AbyssEngine::Button::RenderCallback(int offsetX, int offsetY) {
     }
 
     if (!_caption.empty()) {
-        _spriteFont->DrawText(X + _textOffsetX + offsetX + (_fixedWidth / 2) - (_curCaptionWidth / 2) + text_offset_x,
-                              Y + _textOffsetY + offsetY + (_fixedHeight / 2) - (_curCaptionHeight / 2) + text_offset_y, _caption, eBlendMode::Mul,
-                              _labelColor);
+        _spriteFont->RenderText(X + _textOffsetX + offsetX + (_fixedWidth / 2) - (_curCaptionWidth / 2) + text_offset_x,
+                                Y + _textOffsetY + offsetY + (_fixedHeight / 2) - (_curCaptionHeight / 2) + text_offset_y, _caption, eBlendMode::Mul,
+                                _labelColor);
     }
 
     Node::RenderCallback(X + offsetX, Y + offsetY);
@@ -183,3 +184,6 @@ void AbyssEngine::Button::LuaSetFrameIndex(std::string_view frameType, int index
 }
 
 void AbyssEngine::Button::LuaSetActivateCallback(sol::safe_function luaActivateCallback) { _luaActivateCallback = std::move(luaActivateCallback); }
+AbyssEngine::Button::~Button() {
+    SPDLOG_TRACE("Button Deleted: {0}", _caption);
+}
