@@ -12,6 +12,7 @@ class Button : public Node {
     enum class eState { Normal, Pressed, Hover, Disabled, Unknown };
 
     Button(SpriteFont *spriteFont, Sprite *sprite);
+    ~Button();
 
     void UpdateCallback(uint32_t ticks) override;
     void RenderCallback(int offsetX, int offsetY) override;

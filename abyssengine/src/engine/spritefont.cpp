@@ -161,7 +161,8 @@ void AbyssEngine::SpriteFont::GetMetrics(std::string_view text, int &width, int 
 
     height += rowHeight;
 }
-void AbyssEngine::SpriteFont::DrawText(int x, int y, std::string_view text, AbyssEngine::eBlendMode blendMode, AbyssEngine::RGB colorMod) {
+
+void AbyssEngine::SpriteFont::RenderText(int x, int y, std::string_view text, AbyssEngine::eBlendMode blendMode, AbyssEngine::RGB colorMod) {
     if (_atlas == nullptr)
         RegenerateAtlas();
 

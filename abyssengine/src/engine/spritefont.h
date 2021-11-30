@@ -26,7 +26,7 @@ class SpriteFont {
 
     SpriteFont(std::string_view filePath, std::string_view paletteName);
     void GetMetrics(std::string_view text, int &width, int &height);
-    void DrawText(int x, int y, std::string_view text, eBlendMode blendMode, RGB colorMod);
+    void RenderText(int x, int y, std::string_view text, eBlendMode blendMode, RGB colorMod);
 
   private:
     void RegenerateAtlas();
