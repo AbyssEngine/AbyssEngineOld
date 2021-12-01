@@ -10,7 +10,7 @@ namespace LibAbyss {
 
     class CASCStream : public std::basic_streambuf<char> {
     public:
-        CASCStream(HANDLE casc, std::string fileName);
+        CASCStream(void* casc, std::string fileName);
 
         ~CASCStream() override;
 
@@ -22,7 +22,7 @@ namespace LibAbyss {
                          std::ios_base::openmode which) override;
 
     private:
-        HANDLE _file = 0;
+        void* _file = 0;
         std::streamsize _startOfBlock = 0;
         char _buffer[2048] = {};
     };

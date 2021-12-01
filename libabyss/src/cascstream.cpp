@@ -2,6 +2,9 @@
 #include <ios>
 #include <absl/strings/str_format.h>
 
+#define CASCLIB_NO_AUTO_LINK_LIBRARY 1
+#include <CascLib.h>
+
 namespace LibAbyss {
 
 CASCStream::CASCStream(HANDLE storage, std::string fileName) {

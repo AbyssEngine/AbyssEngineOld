@@ -2,6 +2,9 @@
 #include <ios>
 #include <absl/strings/str_format.h>
 
+#define STORMLIB_NO_AUTO_LINK 1
+#include <StormLib.h>
+
 namespace LibAbyss {
 
 MPQStream::MPQStream(HANDLE mpq, std::string fileName) {

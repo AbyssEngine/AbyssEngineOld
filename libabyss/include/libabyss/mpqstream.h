@@ -10,7 +10,7 @@ namespace LibAbyss {
 
     class MPQStream : public std::basic_streambuf<char> {
     public:
-        MPQStream(HANDLE mpq, std::string fileName);
+        MPQStream(void* mpq, std::string fileName);
 
         ~MPQStream() override;
 
@@ -26,7 +26,7 @@ namespace LibAbyss {
                          std::ios_base::openmode which) override;
 
     private:
-        HANDLE _mpqFile = 0;
+        void* _mpqFile = 0;
         std::streamsize _startOfBlock = 0;
         char _buffer[2048] = {};
     };

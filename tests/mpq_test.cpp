@@ -4,6 +4,9 @@
 #include <libabyss/mpqstream.h>
 #include <stdexcept>
 
+#define STORMLIB_NO_AUTO_LINK 1
+#include <StormLib.h>
+
 using testing::Eq;
 using testing::ThrowsMessage;
 

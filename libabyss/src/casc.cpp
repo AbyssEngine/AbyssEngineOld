@@ -7,9 +7,8 @@
 #include <absl/strings/str_format.h>
 #include <absl/strings/strip.h>
 
-#ifndef WINAPI
-#define WINAPI
-#endif // WINAPI
+#define CASCLIB_NO_AUTO_LINK_LIBRARY 1
+#include <CascLib.h>
 
 namespace LibAbyss {
 

@@ -1,14 +1,11 @@
 #ifndef LIBABYSS_CASC_H
 #define LIBABYSS_CASC_H
 
-#define CASCLIB_NO_AUTO_LINK_LIBRARY 1
-
 #include <fstream>
 #include <vector>
 #include <string>
 #include <memory>
 #include <mutex>
-#include <CascLib.h>
 #include <istream>
 #include <filesystem>
 #include <libabyss/inputstream.h>
@@ -29,7 +26,7 @@ namespace LibAbyss {
         std::vector<std::string> FileList();
 
     private:
-        HANDLE _storage;
+        void* _storage;
 
         std::string FixPath(std::string_view str);
     };

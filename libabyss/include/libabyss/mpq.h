@@ -1,14 +1,11 @@
 #ifndef LIBABYSS_MPQ_H
 #define LIBABYSS_MPQ_H
 
-#define STORMLIB_NO_AUTO_LINK 1
-
 #include <fstream>
 #include <vector>
 #include <string>
 #include <memory>
 #include <mutex>
-#include <StormLib.h>
 #include <istream>
 #include <filesystem>
 #include <libabyss/inputstream.h>
@@ -29,7 +26,7 @@ namespace LibAbyss {
         std::vector<std::string> FileList();
 
     private:
-        HANDLE _stormMpq;
+        void* _stormMpq;
         std::string _mpqPath;
 
         std::string FixPath(std::string_view str);
