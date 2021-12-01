@@ -120,9 +120,11 @@ AbyssEngine::Video::~Video() {
     av_free(_avioContext->buffer);
     avio_context_free(&_avioContext);
     avcodec_free_context(&_videoCodecContext);
-    avcodec_free_context(&_audioCodecContext);
     sws_freeContext(_swsContext);
-    swr_free(&_resampleContext);
+    if (_audioStreamIdx >= 0) {
+        avcodec_free_context(&_audioCodecContext);
+        swr_free(&_resampleContext);
+    }
     av_frame_free(&_avFrame);
     avformat_free_context(_avFormatContext);
 }
