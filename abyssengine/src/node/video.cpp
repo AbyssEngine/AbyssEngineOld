@@ -2,6 +2,7 @@
 #include "../common/overload.h"
 #include "../engine/engine.h"
 #include <absl/strings/ascii.h>
+#include <absl/cleanup/cleanup.h>
 #include <ios>
 #include <spdlog/spdlog.h>
 
@@ -90,12 +91,12 @@ AbyssEngine::Video::Video(LibAbyss::InputStream stream)
 
         if ((avError = swr_init(_resampleContext)) < 0)
             throw std::runtime_error(absl::StrCat("Failed to initialize sound re-sampler: ", AvErrorCodeToString(avError)));
-
-        const auto ratio = (float)_videoCodecContext->height / (float)_videoCodecContext->width;
-
-        _sourceRect = {.X = 0, .Y = 0, .Width = _videoCodecContext->width, .Height = _videoCodecContext->height};
-        _targetRect = {.X = 0, .Y = (600 / 2) - (int)((float)(800 * ratio) / 2), .Width = 800, .Height = (int)(800 * ratio)};
     }
+
+    const auto ratio = (float)_videoCodecContext->height / (float)_videoCodecContext->width;
+
+    _sourceRect = {.X = 0, .Y = 0, .Width = _videoCodecContext->width, .Height = _videoCodecContext->height};
+    _targetRect = {.X = 0, .Y = (600 / 2) - (int)((float)(800 * ratio) / 2), .Width = 800, .Height = (int)(800 * ratio)};
 
     _videoTexture = Engine::Get()->GetSystemIO().CreateTexture(ITexture::Format::YUV, _videoCodecContext->width, _videoCodecContext->height);
 
@@ -161,17 +162,15 @@ void AbyssEngine::Video::MouseEventCallback(const AbyssEngine::MouseEvent &event
 
     Node::MouseEventCallback(event);
 }
+
 int AbyssEngine::Video::VideoStreamRead(uint8_t *buffer, int size) {
     if (!_isPlaying)
         return 0;
 
-    int read = 0;
-
-    while (read < size && !_stream.eof())
-        buffer[read++] = _stream.get();
-
-    return read;
+    _stream.read((char*)buffer, size);
+    return _stream.gcount();
 }
+
 int64_t AbyssEngine::Video::VideoStreamSeek(int64_t offset, int whence) {
     if (!_isPlaying)
         return -1;
@@ -210,8 +209,10 @@ bool AbyssEngine::Video::ProcessFrame() {
     auto &systemIO = Engine::Get()->GetSystemIO();
 
     AVPacket packet;
-    if (av_read_frame(_avFormatContext, &packet) < 0) {
+    absl::Cleanup cleanup_packet([&] {
         av_packet_unref(&packet);
+    });
+    if (av_read_frame(_avFormatContext, &packet) < 0) {
         _isPlaying = false;
         return true;
     }
@@ -240,8 +241,6 @@ bool AbyssEngine::Video::ProcessFrame() {
         sws_scale(_swsContext, (const unsigned char *const *)_avFrame->data, _avFrame->linesize, 0, _videoCodecContext->height, data, lineSize);
         _videoTexture->SetYUVData(_yPlane, _videoCodecContext->width, _uPlane, _uvPitch, _vPlane, _uvPitch);
 
-        av_packet_unref(&packet);
-
         return true;
     }
 
@@ -268,7 +267,6 @@ bool AbyssEngine::Video::ProcessFrame() {
             systemIO.PushAudioData(outBuff);
         }
 
-        av_packet_unref(&packet);
         return false;
     }
 

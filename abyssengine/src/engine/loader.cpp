@@ -1,4 +1,5 @@
 #include "loader.h"
+#include <absl/strings/str_cat.h>
 
 AbyssEngine::Loader::Loader() : _mutex(), _providers() {
 
@@ -27,5 +28,5 @@ LibAbyss::InputStream AbyssEngine::Loader::Load(const std::filesystem::path &pat
         if (provider->Exists(path))
             return provider->Load(path);
 
-    throw std::runtime_error("File not found.");
+    throw std::runtime_error(absl::StrCat("File not found: ", path.string()));
 }

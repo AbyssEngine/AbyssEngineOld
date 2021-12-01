@@ -1,22 +1,18 @@
-#ifndef LIBABYSS_MPQSTREAM_H
-#define LIBABYSS_MPQSTREAM_H
+#ifndef LIBABYSS_CASCSTREAM_H
+#define LIBABYSS_CASCSTREAM_H
 
 #include <ios>
 #include <streambuf>
 #include <vector>
-#include <libabyss/mpq.h>
+#include <libabyss/casc.h>
 
 namespace LibAbyss {
 
-    class MPQStream : public std::basic_streambuf<char> {
+    class CASCStream : public std::basic_streambuf<char> {
     public:
-        MPQStream(HANDLE mpq, std::string fileName);
+        CASCStream(HANDLE casc, std::string fileName);
 
-        ~MPQStream() override;
-
-        std::streamsize StartOfBlockForTesting() const {
-            return _startOfBlock;
-        }
+        ~CASCStream() override;
 
     protected:
         int underflow() override;
@@ -26,11 +22,11 @@ namespace LibAbyss {
                          std::ios_base::openmode which) override;
 
     private:
-        HANDLE _mpqFile = 0;
+        HANDLE _file = 0;
         std::streamsize _startOfBlock = 0;
         char _buffer[2048] = {};
     };
 
 }
 
-#endif //LIBABYSS_MPQSTREAM_H
+#endif //LIBABYSS_CASCSTREAM_H

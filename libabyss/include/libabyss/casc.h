@@ -1,40 +1,39 @@
-#ifndef LIBABYSS_MPQ_H
-#define LIBABYSS_MPQ_H
+#ifndef LIBABYSS_CASC_H
+#define LIBABYSS_CASC_H
 
-#define STORMLIB_NO_AUTO_LINK 1
+#define CASCLIB_NO_AUTO_LINK_LIBRARY 1
 
 #include <fstream>
 #include <vector>
 #include <string>
 #include <memory>
 #include <mutex>
-#include <StormLib.h>
+#include <CascLib.h>
 #include <istream>
 #include <filesystem>
 #include <libabyss/inputstream.h>
 
 namespace LibAbyss {
 
-    class MPQ {
+    class CASC {
     public:
 
-        /// Proxy constructor that creates an MPQ based on the specified filename.
-        /// \param mpqPath Path to the MPQ file to load.
-        explicit MPQ(const std::filesystem::path &mpqPath);
+        /// Proxy constructor that creates an CASC based on the specified filename.
+        /// \param cascPath Path to the CASC dir to load.
+        explicit CASC(const std::filesystem::path &cascPath);
 
-        ~MPQ();
+        ~CASC();
 
         bool HasFile(std::string_view fileName);
         InputStream Load(std::string_view fileName);
         std::vector<std::string> FileList();
 
     private:
-        HANDLE _stormMpq;
-        std::string _mpqPath;
+        HANDLE _storage;
 
         std::string FixPath(std::string_view str);
     };
 
 } // namespace LibAbyss
 
-#endif // LIBABYSS_MPQ_H
+#endif // LIBABYSS_CASC_H

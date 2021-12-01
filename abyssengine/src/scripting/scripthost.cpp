@@ -2,9 +2,11 @@
 #include "../engine/engine.h"
 #include "../engine/filesystemprovider.h"
 #include "../engine/mpqprovider.h"
+#include "../engine/cascprovider.h"
 #include "../node/dc6sprite.h"
 #include "../node/label.h"
 #include <absl/strings/ascii.h>
+#include <absl/strings/str_cat.h>
 #include <filesystem>
 #include <memory>
 #include <sol/sol.hpp>
@@ -183,23 +185,20 @@ void AbyssEngine::ScriptHost::LuaLog(std::string_view level, std::string_view me
 }
 
 void AbyssEngine::ScriptHost::LuaAddLoaderProvider(std::string_view providerType, std::string_view providerPath) {
+    std::filesystem::path path(providerPath);
+    std::unique_ptr<Provider> provider;
+
     if (providerType == "mpq") {
-        auto path = std::filesystem::path(providerPath);
-        auto provider = std::make_unique<AbyssEngine::MPQProvider>(path);
-        _engine->GetLoader().AddProvider(std::move(provider));
-
-        return;
+        provider = std::make_unique<AbyssEngine::MPQProvider>(path);
+    } else if (providerType == "casc") {
+        provider = std::make_unique<AbyssEngine::CASCProvider>(path);
+    } else if (providerType == "filesystem") {
+        provider = std::make_unique<AbyssEngine::FileSystemProvider>(path);
+    } else {
+        throw std::runtime_error(absl::StrCat("Unknown provider type: ", providerType));
     }
 
-    if (providerType == "filesystem") {
-        auto path = std::filesystem::path(providerPath);
-        auto provider = std::make_unique<AbyssEngine::FileSystemProvider>(path);
-        _engine->GetLoader().AddProvider(std::move(provider));
-
-        return;
-    }
-
-    throw std::runtime_error("Unknown provider type: " + std::string(providerType));
+    _engine->GetLoader().AddProvider(std::move(provider));
 }
 
 void AbyssEngine::ScriptHost::LuaLoadPalette(std::string_view paletteName, std::string_view path) {

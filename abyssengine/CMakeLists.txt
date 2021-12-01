@@ -28,9 +28,6 @@ if (NOT sdl2-ttf_FOUND)
     add_library(SDL2::SDL2_ttf ALIAS PkgConfig::SDL2TTF)
 endif ()
 
-include(../cmake/CPM.cmake)
-CPMAddPackage("https://github.com/ladislav-zezula/CascLib.git#85800c22281fe6827c61e8d9ebc9ca83d161d901")
-
 if (APPLE)
     find_library(OSX_VIDEOTOOLBOX VideoToolbox)
     find_library(OSX_COREMEDIA CoreMedia)
@@ -83,9 +80,6 @@ configure_file(
 
 target_compile_options(${PROJECT_NAME} PRIVATE ${FFMPEG_DEFINITIONS})
 
-file(GLOB_RECURSE CASC_SOURCES "${CascLib_SOURCE_DIR}/src/*.cpp")
-
-
 if (MSVC)
     list(APPEND SOURCE_EXTRA
             src/hostnotify/hostnotify_windows.cpp
@@ -106,6 +100,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/engine/engine.cpp
         src/engine/loader.cpp
         src/engine/filesystemprovider.cpp
+        src/engine/cascprovider.cpp
         src/engine/mpqprovider.cpp
         src/engine/spritefont.cpp
         src/common/inifile.cpp
@@ -135,8 +130,6 @@ target_sources(${PROJECT_NAME} PRIVATE
 
         # Others -------------------------------------------------------
         ${SOURCE_APP}
-        ${CASC_SOURCES}
-        ${CascLib_SOURCE_DIR}/src/jenkins/lookup3.c
         )
 
 
@@ -144,7 +137,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
         ${PROJECT_BINARY_DIR}
         ${LUA_INCLUDE_DIR}
         ${FFMPEG_INCLUDE_DIRS}
-        ${CascLib_SOURCE_DIR}/src
         )
 
 message(Defs: ${FFMPEG_LIBRARIES})
@@ -172,7 +164,6 @@ if (UNIX)
 endif ()
 
 if (WIN32)
-    target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32) # for CASC
     install(TARGETS ${PROJECT_NAME}
             RUNTIME_DEPENDENCIES
             PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
