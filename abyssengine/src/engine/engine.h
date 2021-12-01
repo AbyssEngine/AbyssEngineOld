@@ -8,9 +8,9 @@
 #include "libabyss/palette.h"
 #include "loader.h"
 #include <filesystem>
-#include <map>
 #include <mutex>
 #include <thread>
+#include <absl/container/node_hash_map.h>
 
 namespace AbyssEngine {
 
@@ -40,7 +40,7 @@ class Engine {
     Loader _loader;
     std::unique_ptr<AbyssEngine::SystemIO> _systemIO;
     std::mutex _mutex;
-    std::map<std::string, LibAbyss::Palette> _palettes;
+    absl::node_hash_map<std::string, LibAbyss::Palette> _palettes;
     std::unique_ptr<ScriptHost> _scriptHost;
     Node _rootNode;
     Node *_focusedNode = nullptr;
