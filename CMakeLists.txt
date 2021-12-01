@@ -8,11 +8,6 @@ endif ()
 set(VCPKG_LIBRARY_LINKAGE dynamic)
 set(VCPKG_BUILD_TYPE release)
 
-if (MSVC)
-    # TODO: remove this when depending on CASC
-    add_definitions(-DCASCLIB_NO_AUTO_LINK_LIBRARY)
-endif (MSVC)
-
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 if (DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)

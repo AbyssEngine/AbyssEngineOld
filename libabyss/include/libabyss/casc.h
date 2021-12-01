@@ -1,5 +1,5 @@
-#ifndef LIBABYSS_MPQ_H
-#define LIBABYSS_MPQ_H
+#ifndef LIBABYSS_CASC_H
+#define LIBABYSS_CASC_H
 
 #include <fstream>
 #include <vector>
@@ -12,26 +12,25 @@
 
 namespace LibAbyss {
 
-    class MPQ {
+    class CASC {
     public:
 
-        /// Proxy constructor that creates an MPQ based on the specified filename.
-        /// \param mpqPath Path to the MPQ file to load.
-        explicit MPQ(const std::filesystem::path &mpqPath);
+        /// Proxy constructor that creates an CASC based on the specified filename.
+        /// \param cascPath Path to the CASC dir to load.
+        explicit CASC(const std::filesystem::path &cascPath);
 
-        ~MPQ();
+        ~CASC();
 
         bool HasFile(std::string_view fileName);
         InputStream Load(std::string_view fileName);
         std::vector<std::string> FileList();
 
     private:
-        void* _stormMpq;
-        std::string _mpqPath;
+        void* _storage;
 
         std::string FixPath(std::string_view str);
     };
 
 } // namespace LibAbyss
 
-#endif // LIBABYSS_MPQ_H
+#endif // LIBABYSS_CASC_H

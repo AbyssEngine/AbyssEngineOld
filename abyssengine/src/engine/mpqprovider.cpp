@@ -1,5 +1,4 @@
 #include "mpqprovider.h"
-#include <libabyss/mpqstream.h>
 
 AbyssEngine::MPQProvider::MPQProvider(const std::filesystem::path &path) : _mpq(path) {
 

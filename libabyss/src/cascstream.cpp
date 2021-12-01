@@ -1,29 +1,29 @@
-#include "libabyss/mpqstream.h"
+#include "libabyss/cascstream.h"
 #include <ios>
 #include <absl/strings/str_format.h>
 
-#define STORMLIB_NO_AUTO_LINK 1
-#include <StormLib.h>
+#define CASCLIB_NO_AUTO_LINK_LIBRARY 1
+#include <CascLib.h>
 
 namespace LibAbyss {
 
-MPQStream::MPQStream(HANDLE mpq, std::string fileName) {
-    if (!SFileOpenFileEx(mpq, fileName.c_str(), SFILE_OPEN_FROM_MPQ, &_mpqFile)) {
-        throw std::runtime_error(absl::StrFormat("Failed to open file '%s' from MPQ", fileName));
+CASCStream::CASCStream(HANDLE storage, std::string fileName) {
+    if (!CascOpenFile(storage, fileName.c_str(), 0, CASC_OPEN_BY_NAME, &_file)) {
+        throw std::runtime_error(absl::StrFormat("Failed to open file '%s' from CASC", fileName));
     }
 }
 
-MPQStream::~MPQStream() {
-    SFileCloseFile(_mpqFile);
+CASCStream::~CASCStream() {
+    CascCloseFile(_file);
 }
 
-int MPQStream::underflow() {
+int CASCStream::underflow() {
     if (gptr() == egptr()) {
         _startOfBlock += egptr() - eback();
         DWORD amountRead;
-        if (!SFileReadFile(_mpqFile, _buffer, sizeof(_buffer), &amountRead, nullptr)) {
-            if (GetLastError() != ERROR_HANDLE_EOF) {
-                throw std::runtime_error("Error reading file from MPQ");
+        if (!CascReadFile(_file, _buffer, sizeof(_buffer), &amountRead)) {
+            if (GetCascError() != ERROR_HANDLE_EOF) {
+                throw std::runtime_error("Error reading file from CASC");
             }
         }
         setg(_buffer, _buffer, _buffer + amountRead);
@@ -32,12 +32,12 @@ int MPQStream::underflow() {
     return gptr() == egptr() ? traits_type::eof() : traits_type::to_int_type(*gptr());
 }
 
-MPQStream::pos_type MPQStream::seekpos(pos_type pos,
+CASCStream::pos_type CASCStream::seekpos(pos_type pos,
         std::ios_base::openmode which) {
     return seekoff(pos, std::ios_base::beg, which);
 }
 
-MPQStream::pos_type MPQStream::seekoff(off_type off, std::ios_base::seekdir dir,
+CASCStream::pos_type CASCStream::seekoff(off_type off, std::ios_base::seekdir dir,
         std::ios_base::openmode) {
     std::streamsize newPos = 0;
     switch (dir) {
@@ -48,7 +48,12 @@ MPQStream::pos_type MPQStream::seekoff(off_type off, std::ios_base::seekdir dir,
             newPos = _startOfBlock + (gptr() - eback()) + off;
             break;
         case std::ios_base::end:
-            newPos = SFileGetFileSize(_mpqFile, nullptr) + off;
+            {
+                ULONGLONG ulongsize;
+                CascGetFileSize64(_file, &ulongsize);
+                newPos = ulongsize;
+                newPos += off;
+            }
             break;
         default:
             break;
@@ -58,7 +63,7 @@ MPQStream::pos_type MPQStream::seekoff(off_type off, std::ios_base::seekdir dir,
         setg(eback(), eback() + newPos - _startOfBlock, egptr());
     } else {
         // Drop buffer, it will be read in underflow
-        SFileSetFilePointer(_mpqFile, (int)newPos, nullptr, 0);
+        CascSetFilePointer64(_file, newPos, nullptr, 0);
         setg(nullptr, nullptr, nullptr);
         _startOfBlock = newPos;
     }

@@ -1,4 +1,5 @@
 #include "sdl2texture.h"
+#include <stdexcept>
 
 AbyssEngine::SDL2::SDL2Texture::SDL2Texture(SDL_Renderer *renderer, ITexture::Format textureFormat, uint32_t width, uint32_t height)
     : _texture(nullptr), _renderer(renderer), _width(width), _height(height), _textureFormat(textureFormat) {
@@ -40,7 +41,9 @@ void AbyssEngine::SDL2::SDL2Texture::SetYUVData(std::span<const uint8_t> yPlane,
     if (_textureFormat != ITexture::Format::YUV)
         throw std::runtime_error("Cannot set YUV data on a non YUV texture.");
 
-    SDL_UpdateYUVTexture(_texture, nullptr, yPlane.data(), yPitch, uPlane.data(), uPitch, vPlane.data(), vPitch);
+    if (SDL_UpdateYUVTexture(_texture, nullptr, yPlane.data(), yPitch, uPlane.data(), uPitch, vPlane.data(), vPitch) < 0) {
+        throw std::runtime_error("Cannot set YUV data");
+    }
 }
 
 void AbyssEngine::SDL2::SDL2Texture::SetBlendMode(AbyssEngine::eBlendMode blendMode) {
