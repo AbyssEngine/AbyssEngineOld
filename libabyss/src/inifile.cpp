@@ -1,10 +1,10 @@
-#include "inifile.h"
+#include "libabyss/inifile.h"
 #include <algorithm>
 #include <spdlog/spdlog.h>
 #include <fstream>
 #include <absl/strings/str_split.h>
 
-AbyssEngine::Common::INIFile::INIFile(const std::filesystem::path &iniFilePath) {
+LibAbyss::INIFile::INIFile(const std::filesystem::path &iniFilePath) {
     SPDLOG_TRACE("creating ini file from '{0}'", iniFilePath.string());
 
     std::ifstream input_file(iniFilePath);
@@ -61,7 +61,7 @@ AbyssEngine::Common::INIFile::INIFile(const std::filesystem::path &iniFilePath) 
 
 }
 
-std::string AbyssEngine::Common::INIFile::GetValue(std::string_view category, std::string_view name) {
+std::string LibAbyss::INIFile::GetValue(std::string_view category, std::string_view name) {
     if (!_values.contains(absl::AsciiStrToLower(category)))
         return {};
 
@@ -72,12 +72,12 @@ std::string AbyssEngine::Common::INIFile::GetValue(std::string_view category, st
     return result;
 }
 
-bool AbyssEngine::Common::INIFile::GetValueBool(std::string_view category, std::string_view name) {
+bool LibAbyss::INIFile::GetValueBool(std::string_view category, std::string_view name) {
     auto value = absl::AsciiStrToLower(GetValue(category, name));
 
     return (value == "true" || value == "1" || value == "yes" || value == "y");
 }
 
-void AbyssEngine::Common::INIFile::SetValue(std::string_view category, std::string_view name, std::string_view value) {
+void LibAbyss::INIFile::SetValue(std::string_view category, std::string_view name, std::string_view value) {
     _values[absl::AsciiStrToLower(category)][absl::AsciiStrToLower(name)] = value;
 }

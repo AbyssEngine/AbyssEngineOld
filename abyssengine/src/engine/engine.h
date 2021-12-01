@@ -1,12 +1,12 @@
 #ifndef ABYSS_ENGINE_H
 #define ABYSS_ENGINE_H
 
-#include "../common/inifile.h"
 #include "../node/sprite.h"
 #include "../scripting/scripthost.h"
 #include "../systemio/interface.h"
 #include "libabyss/palette.h"
 #include "loader.h"
+#include "libabyss/inifile.h"
 #include <filesystem>
 #include <map>
 #include <mutex>
@@ -16,7 +16,7 @@ namespace AbyssEngine {
 
 class Engine {
   public:
-    Engine(Common::INIFile iniFile, std::unique_ptr<SystemIO> systemIo);
+    Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO> systemIo);
     ~Engine();
 
     void Run();

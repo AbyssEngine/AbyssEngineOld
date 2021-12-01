@@ -5,7 +5,7 @@
 
 AbyssEngine::Engine *engineGlobalInstance = nullptr;
 
-AbyssEngine::Engine::Engine(Common::INIFile iniFile, std::unique_ptr<SystemIO> systemIo)
+AbyssEngine::Engine::Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO> systemIo)
     : _iniFile(std::move(iniFile)), _systemIO(std::move(systemIo)), _loader(), _palettes(), _scriptHost(std::make_unique<ScriptHost>(this)),
       _rootNode() {
     SPDLOG_TRACE("creating engine");
