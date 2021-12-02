@@ -149,7 +149,7 @@ std::string AbyssEngine::ScriptHost::LuaGetConfig(std::string_view category, std
     return _engine->GetIniFile().GetValue(category, value);
 }
 
-void AbyssEngine::ScriptHost::LuaShowSystemCursor(bool show) { _engine->GetSystemIO().ShowSystemCursor(show); }
+void AbyssEngine::ScriptHost::LuaShowSystemCursor(bool show) { _engine->ShowSystemCursor(show); }
 
 void AbyssEngine::ScriptHost::LuaLog(std::string_view level, std::string_view message) {
     if (level == "info") {
@@ -239,16 +239,16 @@ std::unique_ptr<AbyssEngine::Button> AbyssEngine::ScriptHost::LuaLoadButton(Spri
 }
 
 void AbyssEngine::ScriptHost::LuaSetCursor(Sprite &sprite, int offsetX, int offsetY) {
-    _engine->GetSystemIO().SetCursorSprite(&sprite, offsetX, offsetY);
+    _engine->SetCursorSprite(&sprite, offsetX, offsetY);
 }
 
 AbyssEngine::Node &AbyssEngine::ScriptHost::LuaGetRootNode() { return AbyssEngine::Engine::Get()->GetRootNode(); }
 
 void AbyssEngine::ScriptHost::LuaPlayVideo(std::string_view videoPath, bool wait) {
     auto stream = _engine->GetLoader().Load(std::filesystem::path(videoPath));
-    _engine->GetSystemIO().PlayVideo(std::move(stream), wait);
+    _engine->PlayVideo(std::move(stream), wait);
     if (wait)
-        _engine->GetSystemIO().WaitForVideoToFinish();
+        _engine->WaitForVideoToFinish();
 }
 
 template <class T, typename X>
@@ -268,7 +268,7 @@ template <class T> void AbyssEngine::ScriptHost::BindNodeFunctions(sol::basic_us
     val["active"] = sol::property(&T::GetActive, &T::SetActive);
 }
 
-void AbyssEngine::ScriptHost::LuaResetMouseState() { _engine->GetSystemIO().ResetMouseButtonState(); }
+void AbyssEngine::ScriptHost::LuaResetMouseState() { _engine->ResetMouseButtonState(); }
 std::string AbyssEngine::ScriptHost::LuaLoadText(std::string_view filePath) {
     if (!_engine->GetLoader().FileExists(filePath))
         throw std::runtime_error(absl::StrCat("Path does not exist: ", filePath));

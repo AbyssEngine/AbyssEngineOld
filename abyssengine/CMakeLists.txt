@@ -13,7 +13,6 @@ project(abyssengine CXX)
 
 find_package(ZLIB REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
-find_package(PNG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(Lua 5.4 EXACT REQUIRED)
 find_package(sol2 CONFIG REQUIRED)
@@ -103,12 +102,10 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/engine/cascprovider.cpp
         src/engine/mpqprovider.cpp
         src/engine/spritefont.cpp
-        src/common/inifile.cpp
         src/common/ringbuffer.cpp
         src/common/alignment.cpp
         src/common/blendmode.cpp
         src/common/color.cpp
-        src/systemio/interface.cpp
 
         # Nodes --------------------------------------------------------
         src/node/node.cpp
@@ -149,7 +146,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         SDL2::SDL2main
         SDL2::SDL2
         SDL2::SDL2_ttf
-        PNG::PNG
         spdlog::spdlog_header_only
         sol2::sol2
         ${FFMPEG_LIBRARIES}

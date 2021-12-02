@@ -8,8 +8,8 @@
 #include <SDL_stdinc.h>
 #include <SDL_syswm.h>
 #include <cstdint>
-#include <spdlog/spdlog.h>
 #include <span>
+#include <spdlog/spdlog.h>
 #ifdef __APPLE__
 #include "../../hostnotify/hostnotify_mac_shim.h"
 #endif // __APPLE__
@@ -18,8 +18,7 @@ namespace {
 const int AudioBufferSize = 1024 * 128;
 }
 
-AbyssEngine::SDL2::SDL2SystemIO::SDL2SystemIO()
-    : AbyssEngine::SystemIO::SystemIO(), _runMainLoop(false), _audioBuffer(AudioBufferSize), _audioSpec(), _videoMutex(), _videoNode() {
+AbyssEngine::SDL2::SDL2SystemIO::SDL2SystemIO() : AbyssEngine::SystemIO::SystemIO(), _audioBuffer(AudioBufferSize), _audioSpec() {
     SPDLOG_TRACE("Creating SDL2 System IO");
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER | SDL_INIT_TIMER | SDL_INIT_AUDIO) != 0)
@@ -97,79 +96,15 @@ void AbyssEngine::SDL2::SDL2SystemIO::PauseAudio(bool pause) {
 
 void AbyssEngine::SDL2::SDL2SystemIO::SetFullscreen(bool fullscreen) { SDL_SetWindowFullscreen(_sdlWindow.get(), fullscreen ? SDL_TRUE : SDL_FALSE); }
 
-void AbyssEngine::SDL2::SDL2SystemIO::RunMainLoop(Node &rootNode) {
-    SPDLOG_TRACE("Starting main loop");
-
-    SDL_Event sdlEvent;
-
-    _runMainLoop = true;
-    _lastTicks = SDL_GetTicks();
-
-    while (_runMainLoop) {
-        while (SDL_PollEvent(&sdlEvent)) {
-            HandleSdlEvent(sdlEvent, rootNode);
-        }
-
-        if (!_runMainLoop)
-            break;
-
-        const auto newTicks = SDL_GetTicks();
-        const auto tickDiff = newTicks - _lastTicks;
-
-        if (tickDiff == 0)
-            continue;
-
-        _lastTicks = newTicks;
-
-        {
-            std::lock_guard<std::mutex> guard(_mutex);
-
-            SDL_RenderClear(_sdlRenderer.get());
-
-            if (_videoNode != nullptr) {
-                _videoNode->UpdateCallback(tickDiff);
-                if (!_videoNode->GetIsPlaying()) {
-                    _videoNode = nullptr;
-                    if (_waitVideoPlayback)
-                        _videoMutex.unlock();
-
-                    continue;
-                }
-                _videoNode->RenderCallback(0, 0);
-            } else {
-                rootNode.UpdateCallback(tickDiff);
-                rootNode.RenderCallback(0, 0);
-
-                if (_showSystemCursor && _cursorSprite != nullptr) {
-                    _cursorSprite->X = _cursorX;
-                    _cursorSprite->Y = _cursorY;
-                    _cursorSprite->RenderCallback(_cursorOffsetX, _cursorOffsetY);
-                }
-            }
-            SDL_RenderPresent(_sdlRenderer.get());
-        }
-    }
-
-    SPDLOG_TRACE("Leaving main loop");
-}
-
-void AbyssEngine::SDL2::SDL2SystemIO::HandleSdlEvent(const SDL_Event &sdlEvent, Node &rootNode) {
-    auto &targetNode = (_videoNode != nullptr) ? *_videoNode : rootNode;
-
+bool AbyssEngine::SDL2::SDL2SystemIO::HandleSdlEvent(const SDL_Event &sdlEvent, Node &rootNode) {
     switch (sdlEvent.type) {
     case SDL_MOUSEMOTION: {
         _cursorX = sdlEvent.motion.x;
         _cursorY = sdlEvent.motion.y;
 
-        if (_cursorSprite == nullptr)
-            break;
-
-        _cursorSprite->X = _cursorX;
-        _cursorSprite->Y = _cursorY;
-
-        targetNode.MouseEventCallback(MouseMoveEvent{.X = sdlEvent.motion.x, .Y = sdlEvent.motion.y});
+        rootNode.MouseEventCallback(MouseMoveEvent{.X = sdlEvent.motion.x, .Y = sdlEvent.motion.y});
     }
-        return;
+        return true;
     case SDL_MOUSEBUTTONDOWN: {
         eMouseButton button;
         switch (sdlEvent.button.button) {
@@ -183,12 +118,13 @@ void AbyssEngine::SDL2::SDL2SystemIO::HandleSdlEvent(const SDL_Event &sdlEvent, 
             button = eMouseButton::Right;
             break;
         default:
-            return;
+            return true;
         }
-        _mouseButtonState.set(static_cast<unsigned int>(button), true);
-        targetNode.MouseEventCallback(MouseButtonEvent{.Button = button, .IsPressed = true});
+        _mouseButtonState += button ;
+        rootNode.MouseEventCallback(MouseButtonEvent{.Button = button, .IsPressed = true});
+
+        return true;
     }
-        return;
     case SDL_MOUSEBUTTONUP: {
         eMouseButton button;
         switch (sdlEvent.button.button) {
@@ -202,24 +138,18 @@ void AbyssEngine::SDL2::SDL2SystemIO::HandleSdlEvent(const SDL_Event &sdlEvent, 
             button = eMouseButton::Right;
             break;
         default:
-            return;
+            return true;
         }
 
-        _mouseButtonState.set(static_cast<unsigned int>(button), false);
-        targetNode.MouseEventCallback(MouseButtonEvent{.Button = button, .IsPressed = false});
+        _mouseButtonState -= button;
+        rootNode.MouseEventCallback(MouseButtonEvent{.Button = button, .IsPressed = false});
+        return true;
     }
-        return;
     case SDL_QUIT:
-        if (_videoNode != nullptr)
-            _videoNode->StopVideo();
-        _videoMutex.unlock();
-        _runMainLoop = false;
-        return;
+        return false;
+    default:
+        return true;
     }
-}
-
-void AbyssEngine::SDL2::SDL2SystemIO::Stop() {
-    _runMainLoop = false;
 }
 
 std::unique_ptr<AbyssEngine::ITexture> AbyssEngine::SDL2::SDL2SystemIO::CreateTexture(ITexture::Format textureFormat, uint32_t width,
@@ -263,29 +193,29 @@ void AbyssEngine::SDL2::SDL2SystemIO::FinalizeAudio() const {
 }
 void AbyssEngine::SDL2::SDL2SystemIO::PushAudioData(std::span<const uint8_t> data) { _audioBuffer.PushData(data); }
 
-void AbyssEngine::SDL2::SDL2SystemIO::PlayVideo(LibAbyss::InputStream stream, bool wait) {
-    if (!_runMainLoop)
-        return;
-
-    _videoMutex.lock();
-    _waitVideoPlayback = wait;
-
-    _videoNode = std::make_unique<Video>(std::move(stream));
-}
-
-void AbyssEngine::SDL2::SDL2SystemIO::WaitForVideoToFinish() {
-    if (!_waitVideoPlayback)
-        return;
-
-    while (true) {
-        if (!_videoMutex.try_lock()) {
-            SDL_Delay(50);
-            if (!_runMainLoop)
-                break;
-        } else {
-            break;
-        }
-    }
-    _videoMutex.unlock();
-}
 void AbyssEngine::SDL2::SDL2SystemIO::ResetAudio() { _audioBuffer.Reset(); }
+
+bool AbyssEngine::SDL2::SDL2SystemIO::HandleInputEvents(Node &rootNode) {
+    SDL_Event sdlEvent;
+
+    while (SDL_PollEvent(&sdlEvent)) {
+        if (!HandleSdlEvent(sdlEvent, rootNode))
+            return false;
+    }
+
+    return true;
+}
+
+uint32_t AbyssEngine::SDL2::SDL2SystemIO::GetTicks() { return SDL_GetTicks(); }
+
+void AbyssEngine::SDL2::SDL2SystemIO::RenderStart() { SDL_RenderClear(_sdlRenderer.get()); }
+
+void AbyssEngine::SDL2::SDL2SystemIO::RenderEnd() { SDL_RenderPresent(_sdlRenderer.get()); }
+
+void AbyssEngine::SDL2::SDL2SystemIO::Delay(uint32_t ms) { SDL_Delay(ms); }
+
+void AbyssEngine::SDL2::SDL2SystemIO::GetCursorState(int &cursorX, int &cursorY, eMouseButton &buttonState) {
+    cursorX = _cursorX;
+    cursorY = _cursorY;
+    buttonState = _mouseButtonState;
+}

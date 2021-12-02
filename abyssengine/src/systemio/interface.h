@@ -2,16 +2,14 @@
 #define ABYSS_SYSTEMIO_INTERFACE_H
 
 #include "../common/blendmode.h"
+#include "../common/events.h"
 #include "../common/rectangle.h"
 #include "libabyss/inputstream.h"
-#include "../common/events.h"
-#include <bitset>
 #include <memory>
 #include <mutex>
 #include <span>
 #include <string>
 #include <vector>
-#include <bitset>
 
 namespace AbyssEngine {
 
@@ -45,12 +43,6 @@ class SystemIO {
     /// \param fullscreen Window is set to fullscreen if true, or windowed if false.
     virtual void SetFullscreen(bool fullscreen) = 0;
 
-    /// Starts the main system loop.
-    virtual void RunMainLoop(Node &rootNode) = 0;
-
-    /// Stops the main loop
-    virtual void Stop() = 0;
-
     /// Creates a new texture.
     /// \param textureFormat The format of the texture.
     /// \param width The width of the texture.
@@ -62,49 +54,31 @@ class SystemIO {
     /// \param data The data to write to the audio buffer.
     virtual void PushAudioData(std::span<const uint8_t> data) = 0;
 
-    /// Plays the specified video.
-    /// \param stream The video stream
-    /// \param wait If true, allows WaitForVideoToFinish() to halt thread before returning.
-    virtual void PlayVideo(LibAbyss::InputStream stream, bool wait) = 0;
-
-    /// When video is playing with wait set to true, this function will wait for video playback to complete.
-    virtual void WaitForVideoToFinish() = 0;
-
     /// Resets all audio buffers.
     virtual void ResetAudio() = 0;
 
-    /// Sets the cursor sprite (or clears if null)
-    /// \param cursorSprite The sprite to use for the cursor.
-    /// \param offsetX X offset from origin
-    /// \param offsetY Y offset from origin
-    void SetCursorSprite(Sprite *cursorSprite, int offsetX, int offsetY);
+    /// Handles input events from the host system.
+    /// \returns True if the engine should continue, false if it should halt.
+    virtual bool HandleInputEvents(Node &rootNode) = 0;
 
-    /// Hides or shows the cursor.
-    /// \param show True to show the cursor, otherwise false.
-    void ShowSystemCursor(bool show);
+    /// Returns the system ticks
+    virtual uint32_t GetTicks() = 0;
 
-    /// Returns the cursor position.
-    /// \param x This reference is set to the X cursor position.
-    /// \param y This reference is set to the Y cursor position.
-    void GetCursorPosition(int &x, int &y) const;
+    /// Starts the rendering process (and clears the render buffer)
+    virtual void RenderStart() = 0;
 
-    /// Gets the mouse button state.
-    /// \return The mouse button state.
-    std::bitset<3> GetMouseButtonState();
+    // Ends the rendering process (and draws to the screen)
+    virtual void RenderEnd() = 0;
 
-    /// Resets the mouse button state.
-    void ResetMouseButtonState();
+    /// Delays execution
+    /// \param ms The number of milliseconds to delay.
+    virtual void Delay(uint32_t ms) = 0;
 
-  protected:
-    Sprite *_cursorSprite = nullptr;
-    bool _showSystemCursor = false;
-    int _cursorX = 0;
-    int _cursorY = 0;
-    int _cursorOffsetX = 0;
-    int _cursorOffsetY = 0;
-    std::bitset<3> _mouseButtonState;
-
-    std::mutex _mutex;
+    /// Returns the cursor state.
+    /// \param cursorX The X coordinate of the cursor.
+    /// \param cursorY The Y coordinate of the cursor.
+    /// \param buttonState The button state.
+    virtual void GetCursorState(int &cursorX, int &cursorY, eMouseButton &buttonState) = 0;
 };
 
 } // namespace AbyssEngine

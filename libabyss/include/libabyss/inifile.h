@@ -7,7 +7,7 @@
 #include <string_view>
 #include <absl/container/flat_hash_map.h>
 
-namespace AbyssEngine::Common {
+namespace LibAbyss {
     class INIFile {
     public:
         explicit INIFile(const std::filesystem::path &iniFilePath);

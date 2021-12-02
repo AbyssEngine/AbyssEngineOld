@@ -19,6 +19,7 @@ include(../cmake/CPM.cmake)
 
 find_package(ZLIB REQUIRED)
 find_package(BZip2 REQUIRED)
+find_package(PNG REQUIRED)
 find_library(STORMLIB storm)
 if(STORMLIB)
     add_library(stormlib::stormlib UNKNOWN IMPORTED)
@@ -44,11 +45,13 @@ add_library(${PROJECT_NAME}
         src/palette.cpp
         src/dc6.cpp
         src/streamreader.cpp
+        src/pngloader.cpp
+        src/inifile.cpp
+        src/abysssprite.cpp
 
         # TODO: make this a proper dependency, requires some packaging
         ${CASC_SOURCES}
-        ${CascLib_SOURCE_DIR}/src/jenkins/lookup3.c
-        )
+        ${CascLib_SOURCE_DIR}/src/jenkins/lookup3.c)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
         FOLDER "Libraries/"
@@ -64,6 +67,7 @@ target_link_libraries(${PROJECT_NAME}
         PUBLIC
         ZLIB::ZLIB
         BZip2::BZip2
+        PNG::PNG
         stormlib::stormlib
         ${CMAKE_THREAD_LIBS_INIT}
         absl::str_format
