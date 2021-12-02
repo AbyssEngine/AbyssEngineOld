@@ -4,6 +4,7 @@
 #include "../engine/mpqprovider.h"
 #include "../engine/cascprovider.h"
 #include "../node/dc6sprite.h"
+#include "../node/d2rsprite.h"
 #include "../node/label.h"
 #include <absl/strings/ascii.h>
 #include <absl/strings/str_cat.h>
@@ -214,7 +215,7 @@ bool AbyssEngine::ScriptHost::LuaFileExists(std::string_view fileName) {
     return _engine->GetLoader().FileExists(path);
 }
 
-std::unique_ptr<AbyssEngine::Sprite> AbyssEngine::ScriptHost::LuaLoadSprite(std::string_view spritePath, std::string_view paletteName) {
+std::unique_ptr<AbyssEngine::Sprite> AbyssEngine::ScriptHost::LuaLoadSprite(std::string_view spritePath, std::string_view paletteName = "") {
     const auto &engine = AbyssEngine::Engine::Get();
     const std::filesystem::path path(spritePath);
 
@@ -222,10 +223,13 @@ std::unique_ptr<AbyssEngine::Sprite> AbyssEngine::ScriptHost::LuaLoadSprite(std:
         throw std::runtime_error("File not found: " + std::string(spritePath));
 
     auto stream = engine->GetLoader().Load(path);
-    const auto &palette = engine->GetPalette(paletteName);
 
-    if (absl::AsciiStrToLower(spritePath).ends_with(".dc6")) {
+    std::string lower = absl::AsciiStrToLower(spritePath);
+    if (lower.ends_with(".dc6")) {
+        const auto &palette = engine->GetPalette(paletteName);
         return std::make_unique<DC6Sprite>(stream, palette);
+    } else if (lower.ends_with(".sprite")) {
+        return std::make_unique<D2RSprite>(stream);
     } else
         throw std::runtime_error(absl::StrCat("Unknowns sprite format for file: ", spritePath));
 }

@@ -27,9 +27,9 @@ AbyssEngine::SpriteFont::SpriteFont(std::string_view filePath, std::string_view 
 
     auto dataStream = engine->GetLoader().Load(tblPath);
     LibAbyss::StreamReader sr(dataStream);
-    char signature[6] = {};
-    sr.ReadBytes((uint8_t *)signature, 5);
-    if (std::string(signature) != "Woo!\x01")
+    uint8_t signature[5] = {};
+    sr.ReadBytes(signature);
+    if (std::string_view(reinterpret_cast<const char*>(signature), 5) != "Woo!\x01")
         throw std::runtime_error("Invalid signature on font table: " + tblPath.string());
 
     dataStream.ignore(7); // Skip unknown bytes
