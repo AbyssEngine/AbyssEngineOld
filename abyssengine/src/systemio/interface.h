@@ -5,7 +5,6 @@
 #include "../common/events.h"
 #include "../common/rectangle.h"
 #include "libabyss/inputstream.h"
-#include <bitset>
 #include <memory>
 #include <mutex>
 #include <span>
@@ -23,8 +22,8 @@ class ITexture {
 
     virtual ~ITexture() = default;
     virtual void SetPixels(std::span<const uint32_t> pixels) = 0;
-    virtual void SetYUVData(std::span<const uint8_t> yPlane, int yPitch, std::span<const uint8_t> uPlane, int uPitch, std::span<const uint8_t> vPlane,
-                            int vPitch) = 0;
+    virtual void SetPixels(std::span<const uint8_t> pixels) = 0;
+    virtual void SetYUVData(std::span<const uint8_t> yPlane, int yPitch, std::span<const uint8_t> uPlane, int uPitch, std::span<const uint8_t> vPlane, int vPitch) = 0;
     virtual void Render(const AbyssEngine::Rectangle &sourceRect, const AbyssEngine::Rectangle &destRect) = 0;
     virtual void SetBlendMode(eBlendMode blendMode) = 0;
     virtual void SetColorMod(uint8_t red, uint8_t green, uint8_t blue) = 0;
@@ -79,7 +78,7 @@ class SystemIO {
     /// \param cursorX The X coordinate of the cursor.
     /// \param cursorY The Y coordinate of the cursor.
     /// \param buttonState The button state.
-    virtual void GetCursorState(int &cursorX, int &cursorY, std::bitset<3> buttonState) = 0;
+    virtual void GetCursorState(int &cursorX, int &cursorY, eMouseButton &buttonState) = 0;
 };
 
 } // namespace AbyssEngine

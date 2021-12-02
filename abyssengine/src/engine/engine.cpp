@@ -62,7 +62,8 @@ void AbyssEngine::Engine::RunMainLoop() {
     _running = true;
 
     while (_running) {
-        if (!_systemIO->HandleInputEvents(_rootNode)) {
+
+        if (!_systemIO->HandleInputEvents(_videoNode != nullptr ? *_videoNode : _rootNode)) {
             Stop();
             break;
         }
@@ -71,7 +72,6 @@ void AbyssEngine::Engine::RunMainLoop() {
             break;
 
         _systemIO->GetCursorState(_cursorX, _cursorY, _mouseButtonState);
-
 
         const auto newTicks = _systemIO->GetTicks();
         const auto tickDiff = newTicks - _lastTicks;
@@ -126,14 +126,18 @@ void AbyssEngine::Engine::ShowSystemCursor(bool show) {
     _showSystemCursor = show;
 }
 
-void AbyssEngine::Engine::GetCursorPosition(int &x, int &y) const {
+void AbyssEngine::Engine::GetCursorPosition(int &x, int &y) {
+    _systemIO->GetCursorState(_cursorX, _cursorY, _mouseButtonState);
     x = _cursorX;
     y = _cursorY;
 }
 
-std::bitset<3> AbyssEngine::Engine::GetMouseButtonState() { return _mouseButtonState; }
+AbyssEngine::eMouseButton AbyssEngine::Engine::GetMouseButtonState() {
+    _systemIO->GetCursorState(_cursorX, _cursorY, _mouseButtonState);
+    return _mouseButtonState;
+}
 
-void AbyssEngine::Engine::ResetMouseButtonState() { _mouseButtonState.reset(); }
+void AbyssEngine::Engine::ResetMouseButtonState() { _mouseButtonState = (eMouseButton)0; }
 
 void AbyssEngine::Engine::WaitForVideoToFinish() {
     if (!_waitVideoPlayback)

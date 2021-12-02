@@ -5,9 +5,9 @@
 #include "../../node/video.h"
 #include "../interface.h"
 #include <SDL2/SDL.h>
+#include <functional>
 #include <mutex>
 #include <string>
-#include <functional>
 
 namespace AbyssEngine::SDL2 {
 
@@ -15,7 +15,7 @@ class SDL2SystemIO : public SystemIO {
   public:
     SDL2SystemIO();
     ~SDL2SystemIO() override;
-    void GetCursorState(int &cursorX, int &cursorY, std::bitset<3> buttonState) override;
+    void GetCursorState(int &cursorX, int &cursorY, eMouseButton &buttonState) override;
 
     std::string_view Name() final;
     void PauseAudio(bool pause) final;
@@ -36,8 +36,8 @@ class SDL2SystemIO : public SystemIO {
     void HandleAudio(uint8_t *stream, int length);
     bool HandleSdlEvent(const SDL_Event &sdlEvent, Node &rootNode);
 
-    std::unique_ptr<SDL_Window, std::function<void(SDL_Window*)>> _sdlWindow;
-    std::unique_ptr<SDL_Renderer, std::function<void(SDL_Renderer*)>> _sdlRenderer;
+    std::unique_ptr<SDL_Window, std::function<void(SDL_Window *)>> _sdlWindow;
+    std::unique_ptr<SDL_Renderer, std::function<void(SDL_Renderer *)>> _sdlRenderer;
 
     bool _hasAudio = false;
     SDL_AudioSpec _audioSpec;
@@ -45,7 +45,7 @@ class SDL2SystemIO : public SystemIO {
     RingBuffer _audioBuffer;
     int _cursorX = 0;
     int _cursorY = 0;
-    std::bitset<3> _mouseButtonState;
+    eMouseButton _mouseButtonState;
 };
 
 } // namespace AbyssEngine::SDL2

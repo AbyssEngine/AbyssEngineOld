@@ -11,6 +11,7 @@ class SDL2Texture : public ITexture {
     SDL2Texture(SDL_Renderer *renderer, ITexture::Format textureFormat, uint32_t width, uint32_t height);
     ~SDL2Texture() override;
     void SetPixels(std::span<const uint32_t> pixels) final;
+    void SetPixels(std::span<const uint8_t> pixels) final;
     void Render(const AbyssEngine::Rectangle &sourceRect, const AbyssEngine::Rectangle &destRect) final;
     void SetYUVData(std::span<const uint8_t> yPlane, int yPitch, std::span<const uint8_t> uPlane, int uPitch, std::span<const uint8_t> vPlane, int vPitch) final;
     void SetBlendMode(eBlendMode blendMode) final;

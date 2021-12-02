@@ -1,8 +1,8 @@
 #include "video.h"
 #include "../common/overload.h"
 #include "../engine/engine.h"
-#include <absl/strings/ascii.h>
 #include <absl/cleanup/cleanup.h>
+#include <absl/strings/ascii.h>
 #include <ios>
 #include <spdlog/spdlog.h>
 
@@ -169,8 +169,8 @@ int AbyssEngine::Video::VideoStreamRead(uint8_t *buffer, int size) {
     if (!_isPlaying)
         return 0;
 
-    _stream.read((char*)buffer, size);
-    return _stream.gcount();
+    _stream.read((char *)buffer, size);
+    return (int)_stream.gcount();
 }
 
 int64_t AbyssEngine::Video::VideoStreamSeek(int64_t offset, int whence) {
@@ -211,9 +211,7 @@ bool AbyssEngine::Video::ProcessFrame() {
     auto &systemIO = Engine::Get()->GetSystemIO();
 
     AVPacket packet;
-    absl::Cleanup cleanup_packet([&] {
-        av_packet_unref(&packet);
-    });
+    absl::Cleanup cleanup_packet([&] { av_packet_unref(&packet); });
     if (av_read_frame(_avFormatContext, &packet) < 0) {
         _isPlaying = false;
         return true;

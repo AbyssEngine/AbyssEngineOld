@@ -111,6 +111,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/node/node.cpp
         src/node/sprite.cpp
         src/node/dc6sprite.cpp
+        src/node/d2rsprite.cpp
         src/node/video.cpp
         src/node/label.cpp
         src/node/button.cpp

@@ -120,7 +120,7 @@ bool AbyssEngine::SDL2::SDL2SystemIO::HandleSdlEvent(const SDL_Event &sdlEvent, 
         default:
             return true;
         }
-        _mouseButtonState.set(static_cast<unsigned int>(button), true);
+        _mouseButtonState += button ;
         rootNode.MouseEventCallback(MouseButtonEvent{.Button = button, .IsPressed = true});
 
         return true;
@@ -141,7 +141,7 @@ bool AbyssEngine::SDL2::SDL2SystemIO::HandleSdlEvent(const SDL_Event &sdlEvent, 
             return true;
         }
 
-        _mouseButtonState.set(static_cast<unsigned int>(button), false);
+        _mouseButtonState -= button;
         rootNode.MouseEventCallback(MouseButtonEvent{.Button = button, .IsPressed = false});
         return true;
     }
@@ -150,7 +150,6 @@ bool AbyssEngine::SDL2::SDL2SystemIO::HandleSdlEvent(const SDL_Event &sdlEvent, 
     default:
         return true;
     }
-
 }
 
 std::unique_ptr<AbyssEngine::ITexture> AbyssEngine::SDL2::SDL2SystemIO::CreateTexture(ITexture::Format textureFormat, uint32_t width,
@@ -194,7 +193,6 @@ void AbyssEngine::SDL2::SDL2SystemIO::FinalizeAudio() const {
 }
 void AbyssEngine::SDL2::SDL2SystemIO::PushAudioData(std::span<const uint8_t> data) { _audioBuffer.PushData(data); }
 
-
 void AbyssEngine::SDL2::SDL2SystemIO::ResetAudio() { _audioBuffer.Reset(); }
 
 bool AbyssEngine::SDL2::SDL2SystemIO::HandleInputEvents(Node &rootNode) {
@@ -216,7 +214,7 @@ void AbyssEngine::SDL2::SDL2SystemIO::RenderEnd() { SDL_RenderPresent(_sdlRender
 
 void AbyssEngine::SDL2::SDL2SystemIO::Delay(uint32_t ms) { SDL_Delay(ms); }
 
-void AbyssEngine::SDL2::SDL2SystemIO::GetCursorState(int &cursorX, int &cursorY, std::bitset<3> buttonState) {
+void AbyssEngine::SDL2::SDL2SystemIO::GetCursorState(int &cursorX, int &cursorY, eMouseButton &buttonState) {
     cursorX = _cursorX;
     cursorY = _cursorY;
     buttonState = _mouseButtonState;

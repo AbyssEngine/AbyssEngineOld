@@ -9,9 +9,9 @@
 #include "libabyss/palette.h"
 #include "loader.h"
 #include <filesystem>
-#include <map>
 #include <mutex>
 #include <thread>
+#include <absl/container/node_hash_map.h>
 
 namespace AbyssEngine {
 
@@ -29,8 +29,8 @@ class Engine {
     void SetFocusedNode(Node *node);
     void SetCursorSprite(Sprite *cursorSprite, int offsetX, int offsetY);
     void ShowSystemCursor(bool show);
-    void GetCursorPosition(int &x, int &y) const;
-    std::bitset<3> GetMouseButtonState();
+    void GetCursorPosition(int &x, int &y);
+    eMouseButton GetMouseButtonState();
     void ResetMouseButtonState();
     void WaitForVideoToFinish();
     void PlayVideo(LibAbyss::InputStream stream, bool wait);
@@ -50,7 +50,7 @@ class Engine {
     std::unique_ptr<AbyssEngine::SystemIO> _systemIO;
     std::mutex _mutex;
     std::mutex _videoMutex;
-    std::map<std::string, LibAbyss::Palette> _palettes;
+    absl::node_hash_map<std::string, LibAbyss::Palette> _palettes;
     std::unique_ptr<ScriptHost> _scriptHost;
     Node _rootNode;
     Node *_focusedNode = nullptr;
@@ -62,7 +62,7 @@ class Engine {
     bool _showSystemCursor = false;
     int _cursorX = 0;
     int _cursorY = 0;
-    std::bitset<3> _mouseButtonState;
+    eMouseButton _mouseButtonState;
     int _cursorOffsetX = 0;
     int _cursorOffsetY = 0;
 };

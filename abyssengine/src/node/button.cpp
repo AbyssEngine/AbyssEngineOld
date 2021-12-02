@@ -4,8 +4,8 @@
 #include <absl/strings/ascii.h>
 #include <absl/strings/str_cat.h>
 
-#include <utility>
 #include <spdlog/spdlog.h>
+#include <utility>
 
 AbyssEngine::Button::Button(AbyssEngine::SpriteFont *spriteFont, Sprite *sprite) : _spriteFont(spriteFont), _sprite(sprite) {}
 
@@ -25,7 +25,7 @@ void AbyssEngine::Button::UpdateCallback(uint32_t ticks) {
     const auto ny2 = ny1 + _fixedHeight;
 
     const auto mouse_hovered = (mx >= nx1) && (mx < nx2) && (my >= ny1) && (my < ny2);
-    const auto mouse_clicked = mouse_state[static_cast<int>(eMouseButton::Left)] > 0;
+    const auto mouse_clicked = (int)(mouse_state & eMouseButton::Left) > 0;
     const auto focused_node = engine->GetFocusedNode();
     const bool this_is_focused = this == focused_node;
     const bool any_is_focused = focused_node != nullptr;
@@ -184,6 +184,4 @@ void AbyssEngine::Button::LuaSetFrameIndex(std::string_view frameType, int index
 }
 
 void AbyssEngine::Button::LuaSetActivateCallback(sol::safe_function luaActivateCallback) { _luaActivateCallback = std::move(luaActivateCallback); }
-AbyssEngine::Button::~Button() {
-    SPDLOG_TRACE("Button Deleted: {0}", _caption);
-}
+AbyssEngine::Button::~Button() { SPDLOG_TRACE("Button Deleted: {0}", _caption); }
