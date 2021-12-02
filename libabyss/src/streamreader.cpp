@@ -8,5 +8,5 @@ void LibAbyss::StreamReader::ReadBytes(std::span<uint8_t> data) {
     if (data.empty()) {
         return;
     }
-    _inputStream.read(reinterpret_cast<char*>(&data[0]), data.size());
+    _inputStream.read(reinterpret_cast<char *>(&data[0]), (long)data.size());
 }

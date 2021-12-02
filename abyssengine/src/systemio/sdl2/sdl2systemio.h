@@ -31,7 +31,7 @@ class SDL2SystemIO : public SystemIO {
 
   private:
     void InitializeAudio();
-    void FinalizeAudio() const;
+    void FinalizeAudio();
     static void HandleAudioCallback(void *userData, Uint8 *stream, int length);
     void HandleAudio(uint8_t *stream, int length);
     bool HandleSdlEvent(const SDL_Event &sdlEvent, Node &rootNode);
@@ -39,6 +39,7 @@ class SDL2SystemIO : public SystemIO {
     std::unique_ptr<SDL_Window, std::function<void(SDL_Window *)>> _sdlWindow;
     std::unique_ptr<SDL_Renderer, std::function<void(SDL_Renderer *)>> _sdlRenderer;
 
+    std::mutex _mutex;
     bool _hasAudio = false;
     SDL_AudioSpec _audioSpec;
     SDL_AudioDeviceID _audioDeviceId = 0;

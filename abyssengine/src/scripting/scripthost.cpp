@@ -1,10 +1,10 @@
 #include "scripthost.h"
+#include "../engine/cascprovider.h"
 #include "../engine/engine.h"
 #include "../engine/filesystemprovider.h"
 #include "../engine/mpqprovider.h"
-#include "../engine/cascprovider.h"
-#include "../node/dc6sprite.h"
 #include "../node/d2rsprite.h"
+#include "../node/dc6sprite.h"
 #include "../node/label.h"
 #include <absl/strings/ascii.h>
 #include <absl/strings/str_cat.h>
@@ -18,36 +18,38 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _lua(), _engine(engine) {
     _lua.open_libraries();
 
     _environment = sol::environment(_lua, sol::create, _lua.globals());
+    sol::table module = _lua.create_table("abyss");
 
     // Overload loading functions ---------------------------------------------------------------------------------------------------------
+
     _environment.set_function("loadstring", &ScriptHost::LuaLoadString, this);
     _environment.set_function("loadfile", &ScriptHost::LuaLoadFile, this);
     _environment.set_function("dofile", &ScriptHost::LuaDoFile, this);
     _environment.set_function("require", &ScriptHost::LuaLoadFile, this);
 
     // Engine Functions -------------------------------------------------------------------------------------------------------------------
-    _environment.set_function("addLoaderProvider", &ScriptHost::LuaAddLoaderProvider, this);
-    _environment.set_function("createButton", &ScriptHost::LuaLoadButton, this);
-    _environment.set_function("fileExists", &ScriptHost::LuaFileExists, this);
-    _environment.set_function("getConfig", &ScriptHost::LuaGetConfig, this);
-    _environment.set_function("getRootNode", &ScriptHost::LuaGetRootNode, this);
-    _environment.set_function("loadPalette", &ScriptHost::LuaLoadPalette, this);
-    _environment.set_function("loadSprite", &ScriptHost::LuaLoadSprite, this);
-    _environment.set_function("loadString", &ScriptHost::LuaLoadText, this);
-    _environment.set_function("log", &ScriptHost::LuaLog, this);
-    _environment.set_function("playVideo", &ScriptHost::LuaPlayVideo, this);
-    _environment.set_function("resetMouseState", &ScriptHost::LuaResetMouseState, this);
-    _environment.set_function("setCursor", &ScriptHost::LuaSetCursor, this);
-    _environment.set_function("showSystemCursor", &ScriptHost::LuaShowSystemCursor, this);
-    _environment.set_function("shutdown", &ScriptHost::LuaFuncShutdown, this);
+    module.set_function("addLoaderProvider", &ScriptHost::LuaAddLoaderProvider, this);
+    module.set_function("createButton", &ScriptHost::LuaLoadButton, this);
+    module.set_function("fileExists", &ScriptHost::LuaFileExists, this);
+    module.set_function("getConfig", &ScriptHost::LuaGetConfig, this);
+    module.set_function("getRootNode", &ScriptHost::LuaGetRootNode, this);
+    module.set_function("loadPalette", &ScriptHost::LuaLoadPalette, this);
+    module.set_function("loadSprite", &ScriptHost::LuaLoadSprite, this);
+    module.set_function("loadString", &ScriptHost::LuaLoadText, this);
+    module.set_function("log", &ScriptHost::LuaLog, this);
+    module.set_function("playVideo", &ScriptHost::LuaPlayVideo, this);
+    module.set_function("resetMouseState", &ScriptHost::LuaResetMouseState, this);
+    module.set_function("setCursor", &ScriptHost::LuaSetCursor, this);
+    module.set_function("showSystemCursor", &ScriptHost::LuaShowSystemCursor, this);
+    module.set_function("shutdown", &ScriptHost::LuaFuncShutdown, this);
 
     // User Types -------------------------------------------------------------------------------------------------------------------------
 
     // SpriteFont (Not node based)
-    _environment.new_usertype<SpriteFont>("SpriteFont", sol::constructors<SpriteFont(std::string_view, std::string_view)>());
+    module.new_usertype<SpriteFont>("SpriteFont", sol::constructors<SpriteFont(std::string_view, std::string_view)>());
 
     // Button
-    auto buttonType = CreateLuaObjectType<Button>("Button", sol::no_constructor);
+    auto buttonType = CreateLuaObjectType<Button>(module, "Button", sol::no_constructor);
     buttonType["setSegments"] = &Button::SetSegments;
     buttonType["setFixedSize"] = &Button::SetSize;
     buttonType["caption"] = sol::property(&Button::GetCaption, &Button::SetCaption);
@@ -56,17 +58,17 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _lua(), _engine(engine) {
     buttonType["onActivate"] = &Button::LuaSetActivateCallback;
 
     // Node
-    auto nodeType = _environment.new_usertype<Node>("Node", sol::no_constructor);
+    auto nodeType = module.new_usertype<Node>("Node", sol::no_constructor);
     BindNodeFunctions(nodeType);
 
     // Label
-    auto labelType = CreateLuaObjectType<Label>("Label", sol::constructors<Label(SpriteFont *)>());
+    auto labelType = CreateLuaObjectType<Label>(module, "Label", sol::constructors<Label(SpriteFont *)>());
     labelType["setCaption"] = &Label::SetCaption;
     labelType["setAlignment"] = &Label::SetAlignmentStr;
     labelType["setColorMod"] = &Label::SetColorMod;
 
     // Sprite
-    auto spriteType = CreateLuaObjectType<Sprite>("Sprite", sol::no_constructor);
+    auto spriteType = CreateLuaObjectType<Sprite>(module, "Sprite", sol::no_constructor);
     spriteType["setCellSize"] = &Sprite::SetCellSize;
     spriteType["getCellSize"] = &Sprite::GetCellSize;
     spriteType["onMouseButtonDown"] = &Sprite::SetLuaMouseButtonDownHandler;
@@ -74,6 +76,8 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _lua(), _engine(engine) {
     spriteType["blendMode"] = sol::property(&Sprite::LuaGetBlendMode, &Sprite::LuaSetBlendMode);
     spriteType["bottomOrigin"] = sol::property(&Sprite::GetIsBottomOrigin, &Sprite::SetIsBottomOrigin);
     spriteType["playMode"] = sol::property(&Sprite::LuaGetPlayMode, &Sprite::LuaSetPlayMode);
+
+    _environment.add(module);
 }
 
 std::tuple<sol::object, sol::object> AbyssEngine::ScriptHost::LuaLoadString(const std::string_view str, std::string_view chunkName) {
@@ -238,9 +242,7 @@ std::unique_ptr<AbyssEngine::Button> AbyssEngine::ScriptHost::LuaLoadButton(Spri
     return std::make_unique<Button>(spriteFont, sprite);
 }
 
-void AbyssEngine::ScriptHost::LuaSetCursor(Sprite &sprite, int offsetX, int offsetY) {
-    _engine->SetCursorSprite(&sprite, offsetX, offsetY);
-}
+void AbyssEngine::ScriptHost::LuaSetCursor(Sprite &sprite, int offsetX, int offsetY) { _engine->SetCursorSprite(&sprite, offsetX, offsetY); }
 
 AbyssEngine::Node &AbyssEngine::ScriptHost::LuaGetRootNode() { return AbyssEngine::Engine::Get()->GetRootNode(); }
 
@@ -252,8 +254,8 @@ void AbyssEngine::ScriptHost::LuaPlayVideo(std::string_view videoPath, bool wait
 }
 
 template <class T, typename X>
-sol::basic_usertype<T, sol::basic_reference<false>> AbyssEngine::ScriptHost::CreateLuaObjectType(std::string_view name, X &&constructor) {
-    auto val = _environment.new_usertype<T>(name, "new", std::forward<X>(constructor), sol::base_classes, sol::bases<Node>());
+sol::basic_usertype<T, sol::basic_reference<false>> AbyssEngine::ScriptHost::CreateLuaObjectType(sol::table &module, std::string_view name, X &&constructor) {
+    auto val = module.new_usertype<T>(name, "new", std::forward<X>(constructor), sol::base_classes, sol::bases<Node>());
     BindNodeFunctions(val);
     return val;
 }

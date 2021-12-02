@@ -8,42 +8,97 @@
 #include "libabyss/inifile.h"
 #include "libabyss/palette.h"
 #include "loader.h"
+#include <absl/container/node_hash_map.h>
+#include <exception>
 #include <filesystem>
 #include <mutex>
 #include <thread>
-#include <absl/container/node_hash_map.h>
 
 namespace AbyssEngine {
 
+/// @brief Engine class
+/// @details This class is the main class of the engine. It is responsible for
+///          loading all the resources and initializing the engine.
 class Engine {
   public:
     Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO> systemIo);
     ~Engine();
 
+    /// Starts the engine
     void Run();
+
+    /// Stops the engine
     void Stop();
+
+    /// Returns the engine's script host
     void ScriptingThread();
+
+    /// Adds a new palette to the engine
     void AddPalette(std::string_view paletteName, const LibAbyss::Palette &palette);
+
+    /// Returns the root node
+    /// \return The root node
     Node &GetRootNode();
+
+    /// Gets the currently focused node (for UI)
+    /// \return The currently focused node
     Node *GetFocusedNode();
+
+    /// Sets the focused node
     void SetFocusedNode(Node *node);
+
+    /// Sets the cursor sprite
+    /// \param cursorSprite The cursor sprite
+    /// \param offsetX The cursor offset X
+    /// \param offsetY The cursor offset Y
     void SetCursorSprite(Sprite *cursorSprite, int offsetX, int offsetY);
+
+    /// Shows the system cursor
+    /// \param show True to show the cursor, false to hide it
     void ShowSystemCursor(bool show);
+
+    /// Gets the current cursor position
     void GetCursorPosition(int &x, int &y);
+
+    /// Gets the mouse button state
+    /// \return The mouse button state
     eMouseButton GetMouseButtonState();
+
+    /// Resets the mouse button state
     void ResetMouseButtonState();
+
+    /// Waits for video playback to complete
     void WaitForVideoToFinish();
+
+    /// Plays a video
+    /// \param stream The stream to play
+    /// \param wait If true, the engine will wait for the video to finish before returning
     void PlayVideo(LibAbyss::InputStream stream, bool wait);
-    Loader &GetLoader() { return _loader; }
-    LibAbyss::INIFile &GetIniFile() { return _iniFile; }
+
+    /// Returns the resource loader
+    /// \return s The resource loader
+    Loader &GetLoader();
+
+    /// Returns the INI configuration file
+    /// \return s The INI configuration file
+    LibAbyss::INIFile &GetIniFile();
+
+    /// Returns the IO subsystem
+    /// \return s The IO subsystem
     SystemIO &GetSystemIO() { return *_systemIO; }
 
+    /// Returns a singleton instance of the engine
     static Engine *Get();
 
-    [[nodiscard]] const LibAbyss::Palette &GetPalette(std::string_view paletteName) const;
+    /// Returns the specified palette
+    ///  \param paletteName The name of the palette to return
+    ///  \return The palette
+    [[nodiscard]] const LibAbyss::Palette &GetPalette(std::string_view paletteName);
 
   private:
     void RunMainLoop();
+    void UpdateVideo(uint32_t tickDiff);
+    void UpdateRootNode(uint32_t tickDiff);
 
     LibAbyss::INIFile _iniFile;
     Loader _loader;
@@ -65,7 +120,13 @@ class Engine {
     eMouseButton _mouseButtonState;
     int _cursorOffsetX = 0;
     int _cursorOffsetY = 0;
+
+    void RenderVideo();
+    void RenderRootNode();
 };
+
+extern std::exception_ptr globalExceptionPtr;
+
 } // namespace AbyssEngine
 
 #endif // ABYSS_ENGINE_H

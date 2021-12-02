@@ -29,7 +29,7 @@ namespace LibAbyss {
         void* _stormMpq;
         std::string _mpqPath;
 
-        std::string FixPath(std::string_view str);
+        static std::string FixPath(std::string_view str);
     };
 
 } // namespace LibAbyss

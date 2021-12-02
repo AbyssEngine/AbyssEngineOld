@@ -1,13 +1,12 @@
 #include "sdl2systemio.h"
 #include "../../hostnotify/hostnotify.h"
-#include "../../node/sprite.h"
 #include "config.h"
 #include "sdl2texture.h"
+#include <cstdint>
 #include <SDL.h>
 #include <SDL_hints.h>
 #include <SDL_stdinc.h>
 #include <SDL_syswm.h>
-#include <cstdint>
 #include <span>
 #include <spdlog/spdlog.h>
 #ifdef __APPLE__
@@ -18,7 +17,7 @@ namespace {
 const int AudioBufferSize = 1024 * 128;
 }
 
-AbyssEngine::SDL2::SDL2SystemIO::SDL2SystemIO() : AbyssEngine::SystemIO::SystemIO(), _audioBuffer(AudioBufferSize), _audioSpec() {
+AbyssEngine::SDL2::SDL2SystemIO::SDL2SystemIO() : AbyssEngine::SystemIO::SystemIO(), _audioBuffer(AudioBufferSize), _audioSpec(), _mutex() {
     SPDLOG_TRACE("Creating SDL2 System IO");
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER | SDL_INIT_TIMER | SDL_INIT_AUDIO) != 0)
@@ -88,13 +87,19 @@ AbyssEngine::SDL2::SDL2SystemIO::~SDL2SystemIO() {
 std::string_view AbyssEngine::SDL2::SDL2SystemIO::Name() { return "SDL2"; }
 
 void AbyssEngine::SDL2::SDL2SystemIO::PauseAudio(bool pause) {
+    std::lock_guard<std::mutex> lock(_mutex);
+
     if (!_hasAudio)
         return;
 
     SDL_PauseAudioDevice(_audioDeviceId, pause ? SDL_TRUE : SDL_FALSE);
 }
 
-void AbyssEngine::SDL2::SDL2SystemIO::SetFullscreen(bool fullscreen) { SDL_SetWindowFullscreen(_sdlWindow.get(), fullscreen ? SDL_TRUE : SDL_FALSE); }
+void AbyssEngine::SDL2::SDL2SystemIO::SetFullscreen(bool fullscreen) {
+    std::lock_guard<std::mutex> lock(_mutex);
+
+    SDL_SetWindowFullscreen(_sdlWindow.get(), fullscreen ? SDL_TRUE : SDL_FALSE);
+}
 
 bool AbyssEngine::SDL2::SDL2SystemIO::HandleSdlEvent(const SDL_Event &sdlEvent, Node &rootNode) {
     switch (sdlEvent.type) {
@@ -120,7 +125,7 @@ bool AbyssEngine::SDL2::SDL2SystemIO::HandleSdlEvent(const SDL_Event &sdlEvent, 
         default:
             return true;
         }
-        _mouseButtonState += button ;
+        _mouseButtonState += button;
         rootNode.MouseEventCallback(MouseButtonEvent{.Button = button, .IsPressed = true});
 
         return true;
@@ -154,9 +159,13 @@ bool AbyssEngine::SDL2::SDL2SystemIO::HandleSdlEvent(const SDL_Event &sdlEvent, 
 
 std::unique_ptr<AbyssEngine::ITexture> AbyssEngine::SDL2::SDL2SystemIO::CreateTexture(ITexture::Format textureFormat, uint32_t width,
                                                                                       uint32_t height) {
+    std::lock_guard<std::mutex> lock(_mutex);
+
     return std::make_unique<SDL2Texture>(_sdlRenderer.get(), textureFormat, width, height);
 }
 void AbyssEngine::SDL2::SDL2SystemIO::InitializeAudio() {
+    std::lock_guard<std::mutex> lock(_mutex);
+
     SDL_AudioSpec requestedAudioSpec{
         .freq = 44100,
         .format = AUDIO_S16LSB,
@@ -182,9 +191,15 @@ void AbyssEngine::SDL2::SDL2SystemIO::HandleAudioCallback(void *userData, Uint8 
     source->HandleAudio(stream, length);
 }
 
-void AbyssEngine::SDL2::SDL2SystemIO::HandleAudio(uint8_t *stream, int length) { _audioBuffer.ReadData(std::span(stream, length)); }
+void AbyssEngine::SDL2::SDL2SystemIO::HandleAudio(uint8_t *stream, int length) {
+    std::lock_guard<std::mutex> lock(_mutex);
 
-void AbyssEngine::SDL2::SDL2SystemIO::FinalizeAudio() const {
+    _audioBuffer.ReadData(std::span(stream, length));
+}
+
+void AbyssEngine::SDL2::SDL2SystemIO::FinalizeAudio() {
+    std::lock_guard<std::mutex> lock(_mutex);
+
     if (!_hasAudio)
         return;
 
@@ -215,6 +230,8 @@ void AbyssEngine::SDL2::SDL2SystemIO::RenderEnd() { SDL_RenderPresent(_sdlRender
 void AbyssEngine::SDL2::SDL2SystemIO::Delay(uint32_t ms) { SDL_Delay(ms); }
 
 void AbyssEngine::SDL2::SDL2SystemIO::GetCursorState(int &cursorX, int &cursorY, eMouseButton &buttonState) {
+    std::lock_guard<std::mutex> lock(_mutex);
+
     cursorX = _cursorX;
     cursorY = _cursorY;
     buttonState = _mouseButtonState;
