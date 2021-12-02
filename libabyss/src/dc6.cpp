@@ -15,7 +15,7 @@ LibAbyss::DC6::DC6(LibAbyss::InputStream &stream) : Directions(), Termination() 
     Version = sr.ReadInt32();
     Flags = sr.ReadUInt32();
     Encoding = sr.ReadUInt32();
-    sr.ReadBytes(Termination, 4);
+    sr.ReadBytes(Termination);
 
     NumberOfDirections = sr.ReadUInt32();
     FramesPerDirection = sr.ReadUInt32();
@@ -47,8 +47,8 @@ LibAbyss::DC6::Direction::Frame::Frame(StreamReader &sr)  {
     NextBlock = sr.ReadUInt32();
     Length = sr.ReadUInt32();
     FrameData.resize(Length);
-    sr.ReadBytes(FrameData.data(), Length);
-    sr.ReadBytes(Terminator, sizeof(Terminator));
+    sr.ReadBytes(FrameData);
+    sr.ReadBytes(Terminator);
     IndexData.resize(Width * Height);
 
     Decode();

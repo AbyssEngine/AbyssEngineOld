@@ -51,7 +51,7 @@ void AbyssEngine::RingBuffer::ReadData(std::span<uint8_t> outBuffer) {
 
     const auto toRead = std::min(_remainingToRead, (uint32_t)outBuffer.size());
 
-    if (outBuffer.empty() == 0 || toRead == 0) {
+    if (outBuffer.empty() || toRead == 0) {
         memset(outBuffer.data(), 0, outBuffer.size());
         return;
     }

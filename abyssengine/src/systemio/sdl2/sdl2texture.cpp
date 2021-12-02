@@ -29,6 +29,13 @@ void AbyssEngine::SDL2::SDL2Texture::SetPixels(std::span<const uint32_t> pixels)
     SDL_UpdateTexture(_texture, nullptr, pixels.data(), 4 * (int)_width);
 }
 
+void AbyssEngine::SDL2::SDL2Texture::SetPixels(std::span<const uint8_t> pixels) {
+    if (pixels.size() != (4 * _width * _height))
+        throw std::runtime_error("Attempted to set pixels on the texture, but the data was the incorrect size.");
+
+    SDL_UpdateTexture(_texture, nullptr, pixels.data(), 4 * (int)_width);
+}
+
 void AbyssEngine::SDL2::SDL2Texture::Render(const AbyssEngine::Rectangle &sourceRect, const AbyssEngine::Rectangle &destRect) {
     SDL_Rect sr{.x = sourceRect.X, .y = sourceRect.Y, .w = sourceRect.Width, .h = sourceRect.Height};
     SDL_Rect dr{.x = destRect.X, .y = destRect.Y, .w = destRect.Width, .h = destRect.Height};

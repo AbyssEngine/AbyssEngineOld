@@ -4,6 +4,7 @@
 #include "inputstream.h"
 #include <cstdint>
 #include <concepts>
+#include <span>
 
 namespace LibAbyss {
 class StreamReader {
@@ -11,7 +12,7 @@ class StreamReader {
     explicit StreamReader(InputStream &inputStream);
 
     uint8_t ReadByte();
-    void ReadBytes(uint8_t* data, unsigned int size);
+    void ReadBytes(std::span<uint8_t> data);
 
     template <std::unsigned_integral T> T ReadUnsigned() {
         T result = 0;
