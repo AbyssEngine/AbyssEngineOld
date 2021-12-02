@@ -106,7 +106,6 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/common/alignment.cpp
         src/common/blendmode.cpp
         src/common/color.cpp
-        src/systemio/interface.cpp
 
         # Nodes --------------------------------------------------------
         src/node/node.cpp

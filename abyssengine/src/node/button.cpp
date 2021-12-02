@@ -12,13 +12,13 @@ AbyssEngine::Button::Button(AbyssEngine::SpriteFont *spriteFont, Sprite *sprite)
 void AbyssEngine::Button::UpdateCallback(uint32_t ticks) {
     auto engine = Engine::Get();
 
-    auto mouse_state = engine->GetSystemIO().GetMouseButtonState();
+    auto mouse_state = engine->GetMouseButtonState();
     int mx;
     int my;
     int nx1 = 0;
     int ny1 = 0;
 
-    engine->GetSystemIO().GetCursorPosition(mx, my);
+    engine->GetCursorPosition(mx, my);
     GetEffectiveLayout(nx1, ny1);
 
     const auto nx2 = nx1 + _fixedWidth;

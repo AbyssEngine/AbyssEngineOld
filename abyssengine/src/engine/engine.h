@@ -2,11 +2,12 @@
 #define ABYSS_ENGINE_H
 
 #include "../node/sprite.h"
+#include "../node/video.h"
 #include "../scripting/scripthost.h"
 #include "../systemio/interface.h"
+#include "libabyss/inifile.h"
 #include "libabyss/palette.h"
 #include "loader.h"
-#include "libabyss/inifile.h"
 #include <filesystem>
 #include <map>
 #include <mutex>
@@ -26,9 +27,15 @@ class Engine {
     Node &GetRootNode();
     Node *GetFocusedNode();
     void SetFocusedNode(Node *node);
-
+    void SetCursorSprite(Sprite *cursorSprite, int offsetX, int offsetY);
+    void ShowSystemCursor(bool show);
+    void GetCursorPosition(int &x, int &y) const;
+    std::bitset<3> GetMouseButtonState();
+    void ResetMouseButtonState();
+    void WaitForVideoToFinish();
+    void PlayVideo(LibAbyss::InputStream stream, bool wait);
     Loader &GetLoader() { return _loader; }
-    Common::INIFile &GetIniFile() { return _iniFile; }
+    LibAbyss::INIFile &GetIniFile() { return _iniFile; }
     SystemIO &GetSystemIO() { return *_systemIO; }
 
     static Engine *Get();
@@ -36,14 +43,28 @@ class Engine {
     [[nodiscard]] const LibAbyss::Palette &GetPalette(std::string_view paletteName) const;
 
   private:
-    Common::INIFile _iniFile;
+    void RunMainLoop();
+
+    LibAbyss::INIFile _iniFile;
     Loader _loader;
     std::unique_ptr<AbyssEngine::SystemIO> _systemIO;
     std::mutex _mutex;
+    std::mutex _videoMutex;
     std::map<std::string, LibAbyss::Palette> _palettes;
     std::unique_ptr<ScriptHost> _scriptHost;
     Node _rootNode;
     Node *_focusedNode = nullptr;
+    bool _running = true;
+    uint32_t _lastTicks = 0;
+    std::unique_ptr<Video> _videoNode;
+    bool _waitVideoPlayback = false;
+    Sprite *_cursorSprite = nullptr;
+    bool _showSystemCursor = false;
+    int _cursorX = 0;
+    int _cursorY = 0;
+    std::bitset<3> _mouseButtonState;
+    int _cursorOffsetX = 0;
+    int _cursorOffsetY = 0;
 };
 } // namespace AbyssEngine
 

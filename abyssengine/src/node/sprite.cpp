@@ -43,11 +43,6 @@ void AbyssEngine::Sprite::Render(uint32_t startFrameIdx, int offsetX, int offset
 
         for (auto cellOffsetX = 0; cellOffsetX < _cellSizeX; cellOffsetX++) {
             const auto cellIndex = startFrameIdx + (cellOffsetX + (cellOffsetY * _cellSizeX));
-
-            int frameOffsetX;
-            int frameOffsetY;
-            GetFrameOffset(cellIndex, frameOffsetX, frameOffsetY);
-
             const auto framePos = _framePositions[(_currentAnimation * totalFrames) + cellIndex];
 
             Rectangle destRect = framePos.Rect;

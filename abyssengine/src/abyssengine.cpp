@@ -40,7 +40,7 @@ int main(int, char *argv[]) {
     try {
         auto configPath = GetConfigPath(argv[0]);
 
-        AbyssEngine::Common::INIFile iniFile(configPath / "config.ini");
+        LibAbyss::INIFile iniFile(configPath / "config.ini");
         iniFile.SetValue("#Abyss", "BasePath", std::filesystem::absolute(configPath).string());
 
         std::unique_ptr<AbyssEngine::SystemIO> systemIo = std::make_unique<AbyssEngine::SDL2::SDL2SystemIO>();
