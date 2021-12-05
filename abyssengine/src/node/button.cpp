@@ -193,3 +193,6 @@ void AbyssEngine::Button::LuaSetFrameIndex(std::string_view frameType, int index
 }
 
 void AbyssEngine::Button::LuaSetActivateCallback(sol::safe_function luaActivateCallback) { _luaActivateCallback = std::move(luaActivateCallback); }
+void AbyssEngine::Button::Initialize() {
+    _sprite->Initialize();
+}

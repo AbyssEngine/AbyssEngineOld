@@ -8,7 +8,7 @@ AbyssEngine::Engine *engineGlobalInstance = nullptr;
 
 AbyssEngine::Engine::Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO> systemIo)
     : _iniFile(std::move(iniFile)), _systemIO(std::move(systemIo)), _loader(), _palettes(), _scriptHost(std::make_unique<ScriptHost>(this)),
-      _rootNode("__root"), _videoNode(), _videoMutex(), _mouseButtonState((eMouseButton)0), _zmqContex(),
+      _rootNode("__root"), _videoNode(), _mouseButtonState((eMouseButton)0), _zmqContex(),
       _zmqSocket(_zmqContex, zmq::socket_type::router) {
     SPDLOG_TRACE("Creating engine");
 
@@ -63,8 +63,6 @@ void AbyssEngine::Engine::Stop() {
 
     _running = false;
     _videoNode = nullptr;
-    _videoMutex.try_lock();
-    _videoMutex.unlock();
 }
 
 void AbyssEngine::Engine::AddPalette(std::string_view paletteName, const LibAbyss::Palette &palette) {
@@ -108,7 +106,6 @@ void AbyssEngine::Engine::RunMainLoop() {
         if (_systemIO->GetTicks() - _luaLastGc > _luaGcRateMsec) {
             _luaLastGc = _systemIO->GetTicks();
             _scriptHost->GC();
-
         }
 
         if (!_systemIO->HandleInputEvents(_videoNode != nullptr ? *_videoNode : _rootNode)) {
@@ -123,15 +120,6 @@ void AbyssEngine::Engine::RunMainLoop() {
         if (!_running)
             break;
 
-        {
-            std::lock_guard<std::mutex> guard(_mutex);
-            _systemIO->GetCursorState(_cursorX, _cursorY, _mouseButtonState);
-
-            _systemIO->RenderStart();
-            _videoNode != nullptr ? RenderVideo() : RenderRootNode();
-            _systemIO->RenderEnd();
-        }
-
         const auto newTicks = _systemIO->GetTicks();
         const auto tickDiff = newTicks - _lastTicks;
 
@@ -141,6 +129,21 @@ void AbyssEngine::Engine::RunMainLoop() {
         _lastTicks = newTicks;
 
         _videoNode != nullptr ? UpdateVideo(tickDiff) : UpdateRootNode(tickDiff);
+
+        _rootNode.DoInitialize();
+
+        if (_cursorSprite != nullptr)
+            _cursorSprite->DoInitialize();
+
+        {
+            std::lock_guard<std::mutex> guard(_mutex);
+            _systemIO->GetCursorState(_cursorX, _cursorY, _mouseButtonState);
+
+            _systemIO->RenderStart();
+            _videoNode != nullptr ? RenderVideo() : RenderRootNode();
+            _systemIO->RenderEnd();
+        }
+
 
     }
 }
@@ -188,16 +191,19 @@ void AbyssEngine::Engine::WaitForVideoToFinish() {
         return;
 
     while (true) {
-        if (!_videoMutex.try_lock()) {
-            _systemIO->Delay(50);
-            if (!_running)
-                break;
-        } else {
-            break;
-        }
-    }
+        {
+            std::lock_guard lock(_mutex);
 
-    _videoMutex.unlock();
+            if (_videoNode == nullptr || !_videoNode->GetIsPlaying()) {
+                break;
+            }
+        }
+
+        _systemIO->Delay(50);
+
+        if (!_running)
+            break;
+    }
 }
 
 void AbyssEngine::Engine::PlayVideo(std::string_view name, LibAbyss::InputStream stream, bool wait) {
@@ -210,7 +216,6 @@ void AbyssEngine::Engine::PlayVideo(std::string_view name, LibAbyss::InputStream
         return;
     }
 
-    _videoMutex.lock();
     _waitVideoPlayback = wait;
     _videoNode = std::make_unique<Video>(name, std::move(stream));
 }
@@ -224,8 +229,6 @@ void AbyssEngine::Engine::UpdateVideo(uint32_t tickDiff) {
 
     if (!_videoNode->GetIsPlaying()) {
         _videoNode = nullptr;
-        if (_waitVideoPlayback)
-            _videoMutex.unlock();
 
         return;
     }

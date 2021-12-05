@@ -26,6 +26,7 @@ class Sprite : public Node {
     void RenderCallback(int offsetX, int offsetY) final;
     void MouseEventCallback(const MouseEvent& event) final;
     void Render(uint32_t startFrameIdx, int offsetX, int offsetY);
+    void Initialize() override;
 
     virtual void GetFrameOffset(uint32_t frame, int &offsetX, int &offsetY) = 0;
     virtual void GetFrameSize(uint32_t frame, uint32_t &width, uint32_t &height) = 0;
@@ -43,7 +44,9 @@ class Sprite : public Node {
     void LuaSetPlayMode(std::string_view mode);
     std::string_view LuaGetPlayMode();
 
-    [[nodiscard]] std::string_view NodeType() const final { return "Sprite Node"; };
+    [[nodiscard]] std::string_view NodeType() const final { return "Sprite Node"; }
+
+    ;
 
   protected:
     virtual void RegenerateAtlas() = 0;

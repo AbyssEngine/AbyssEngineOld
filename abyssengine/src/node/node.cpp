@@ -1,7 +1,7 @@
 #include "node.h"
 #include <spdlog/spdlog.h>
 
-AbyssEngine::Node::Node() : _addChildQueue(), _removeChildQueue(), _mutex() { SPDLOG_TRACE("Node Created"); }
+AbyssEngine::Node::Node() : _addChildQueue(), _removeChildQueue(), _mutex() {}
 
 AbyssEngine::Node::Node(std::string_view name) : Name(name) {}
 
@@ -125,3 +125,15 @@ void AbyssEngine::Node::ProcessQueuedActions() {
         _removeChildQueue.pop();
     }
 }
+
+void AbyssEngine::Node::DoInitialize() {
+    if (!_initialized) {
+        Initialize();
+        _initialized = true;
+    }
+
+    for (auto &item : Children) {
+        item->DoInitialize();
+    }
+}
+void AbyssEngine::Node::Initialize() {}

@@ -20,7 +20,10 @@ class Node {
     virtual void UpdateCallback(uint32_t ticks);
     virtual void RenderCallback(int offsetX, int offsetY);
     virtual void MouseEventCallback(const MouseEvent &event);
+    virtual void Initialize();
     [[nodiscard]] virtual std::string_view NodeType() const { return "Node"; };
+
+    void DoInitialize();
     void GetEffectiveLayout(int &x, int &y);
     void AppendChild(Node *childNode);
     void RemoveChild(Node *nodeRef);
@@ -42,11 +45,13 @@ class Node {
     std::vector<Node *> Children;
 
   private:
+
     std::queue<Node *> _addChildQueue;
     std::queue<Node *> _removeChildQueue;
     bool _removeAllChildren = false;
     std::string Name;
     std::mutex _mutex;
+    bool _initialized = false;
 };
 
 } // namespace AbyssEngine

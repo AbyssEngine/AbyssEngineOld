@@ -112,7 +112,6 @@ class Engine {
     Loader _loader;
     std::unique_ptr<AbyssEngine::SystemIO> _systemIO;
     std::mutex _mutex;
-    std::mutex _videoMutex;
     absl::node_hash_map<std::string, LibAbyss::Palette> _palettes;
     std::unique_ptr<ScriptHost> _scriptHost;
     Node _rootNode;
