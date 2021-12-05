@@ -89,6 +89,9 @@ class SystemIO {
     /// \param level The new master volume.
     virtual void SetMasterAudioLevel(float level) = 0;
 
+    /// Resets the mouse button state.
+    virtual void ResetMouseButtonState() = 0;
+
 };
 
 } // namespace AbyssEngine

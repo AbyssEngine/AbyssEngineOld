@@ -14,6 +14,7 @@
 #include <mutex>
 #include <thread>
 #include <string>
+#include <zmq.hpp>
 
 namespace AbyssEngine {
 
@@ -102,7 +103,11 @@ class Engine {
     void RunMainLoop();
     void UpdateVideo(uint32_t tickDiff);
     void UpdateRootNode(uint32_t tickDiff);
+    void RenderVideo();
+    void RenderRootNode();
 
+    zmq::context_t _zmqContex;
+    zmq::socket_t _zmqSocket;
     LibAbyss::INIFile _iniFile;
     Loader _loader;
     std::unique_ptr<AbyssEngine::SystemIO> _systemIO;
@@ -123,9 +128,8 @@ class Engine {
     eMouseButton _mouseButtonState;
     int _cursorOffsetX = 0;
     int _cursorOffsetY = 0;
-
-    void RenderVideo();
-    void RenderRootNode();
+    uint32_t _luaGcRateMsec = 1024;
+    uint32_t _luaLastGc = 0;
 };
 
 extern std::exception_ptr globalExceptionPtr;

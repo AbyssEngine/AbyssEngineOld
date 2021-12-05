@@ -36,6 +36,8 @@ int main(int, char *argv[]) {
     spdlog::set_level(spdlog::level::trace);
 #endif
 
+    SPDLOG_INFO("SOL version " SOL_VERSION_STRING);
+    SPDLOG_INFO("Lua Version "  LUA_VERSION_MAJOR "." LUA_VERSION_MINOR);
 
     try {
         auto configPath = GetConfigPath(argv[0]);

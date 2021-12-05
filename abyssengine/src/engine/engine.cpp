@@ -8,7 +8,8 @@ AbyssEngine::Engine *engineGlobalInstance = nullptr;
 
 AbyssEngine::Engine::Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO> systemIo)
     : _iniFile(std::move(iniFile)), _systemIO(std::move(systemIo)), _loader(), _palettes(), _scriptHost(std::make_unique<ScriptHost>(this)),
-      _rootNode("__root"), _videoNode(), _videoMutex(), _mouseButtonState((eMouseButton)0) {
+      _rootNode("__root"), _videoNode(), _videoMutex(), _mouseButtonState((eMouseButton)0), _zmqContex(),
+      _zmqSocket(_zmqContex, zmq::socket_type::router) {
     SPDLOG_TRACE("Creating engine");
 
     // Set up the global instance
@@ -16,6 +17,11 @@ AbyssEngine::Engine::Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO>
 
     // Set the full screen mode based on the INI file
     _systemIO->SetFullscreen(_iniFile.GetValueBool("Video", "FullScreen"));
+
+    // Bind the ZMQ socket
+    // _zmqSocket.bind("inproc://engine");
+
+    _luaGcRateMsec = _iniFile.GetValueInt("System", "LuaGcRateMsecs");
 }
 
 void AbyssEngine::Engine::Run() {
@@ -95,8 +101,15 @@ void AbyssEngine::Engine::SetFocusedNode(AbyssEngine::Node *node) {
 
 void AbyssEngine::Engine::RunMainLoop() {
     _running = true;
+    _luaLastGc = _systemIO->GetTicks();
 
     while (_running) {
+
+        if (_systemIO->GetTicks() - _luaLastGc > _luaGcRateMsec) {
+            _luaLastGc = _systemIO->GetTicks();
+            _scriptHost->GC();
+
+        }
 
         if (!_systemIO->HandleInputEvents(_videoNode != nullptr ? *_videoNode : _rootNode)) {
             Stop();
@@ -110,7 +123,14 @@ void AbyssEngine::Engine::RunMainLoop() {
         if (!_running)
             break;
 
-        _systemIO->GetCursorState(_cursorX, _cursorY, _mouseButtonState);
+        {
+            std::lock_guard<std::mutex> guard(_mutex);
+            _systemIO->GetCursorState(_cursorX, _cursorY, _mouseButtonState);
+
+            _systemIO->RenderStart();
+            _videoNode != nullptr ? RenderVideo() : RenderRootNode();
+            _systemIO->RenderEnd();
+        }
 
         const auto newTicks = _systemIO->GetTicks();
         const auto tickDiff = newTicks - _lastTicks;
@@ -122,12 +142,6 @@ void AbyssEngine::Engine::RunMainLoop() {
 
         _videoNode != nullptr ? UpdateVideo(tickDiff) : UpdateRootNode(tickDiff);
 
-        {
-            std::lock_guard<std::mutex> guard(_mutex);
-            _systemIO->RenderStart();
-            _videoNode != nullptr ? RenderVideo() : RenderRootNode();
-            _systemIO->RenderEnd();
-        }
     }
 }
 
@@ -166,6 +180,7 @@ void AbyssEngine::Engine::ResetMouseButtonState() {
     std::lock_guard<std::mutex> guard(_mutex);
 
     _mouseButtonState = (eMouseButton)0;
+    _systemIO->ResetMouseButtonState();
 }
 
 void AbyssEngine::Engine::WaitForVideoToFinish() {

@@ -1,8 +1,13 @@
-#include <spdlog/spdlog.h>
 #include "node.h"
-#include "../engine/engine.h"
+#include <spdlog/spdlog.h>
+
+AbyssEngine::Node::Node() : _addChildQueue(), _removeChildQueue(), _mutex() { SPDLOG_TRACE("Node Created"); }
+
+AbyssEngine::Node::Node(std::string_view name) : Name(name) {}
 
 void AbyssEngine::Node::UpdateCallback(uint32_t ticks) {
+    ProcessQueuedActions();
+
     for (auto &item : Children) {
         if (!item->Active)
             continue;
@@ -21,6 +26,8 @@ void AbyssEngine::Node::RenderCallback(int offsetX, int offsetY) {
 }
 
 void AbyssEngine::Node::GetEffectiveLayout(int &x, int &y) {
+    std::lock_guard<std::mutex> lock(_mutex);
+
     x += X;
     y += Y;
 
@@ -30,28 +37,66 @@ void AbyssEngine::Node::GetEffectiveLayout(int &x, int &y) {
 }
 
 void AbyssEngine::Node::AppendChild(Node *childNode) {
+    std::lock_guard<std::mutex> lock(_mutex);
+
     if (childNode == nullptr)
         throw std::runtime_error("Attempted to append null node!");
 
-    Children.push_back(childNode);
+    _addChildQueue.push(childNode);
 }
 
-void AbyssEngine::Node::RemoveChild(AbyssEngine::Node *nodeRef) {
-    Children.erase(std::remove(Children.begin(), Children.end(), nodeRef), Children.end());
+void AbyssEngine::Node::RemoveChild(Node *nodeRef) {
+    std::lock_guard<std::mutex> lock(_mutex);
+
+    if (nodeRef == nullptr)
+        throw std::runtime_error("Attempted to remove null node!");
+
+    _removeChildQueue.push(nodeRef);
 }
+
 void AbyssEngine::Node::RemoveAllChildren() {
-    std::lock_guard<std::mutex> lock(Engine::Get()->GetMutex());
-    Children.clear();
+    std::lock_guard<std::mutex> lock(_mutex);
+
+    _removeAllChildren = true;
 }
+
 void AbyssEngine::Node::SetPosition(int x, int y) {
+    std::lock_guard<std::mutex> lock(_mutex);
+
     X = x;
     Y = y;
 }
-std::tuple<int, int> AbyssEngine::Node::GetPosition() { return {X, Y}; }
-void AbyssEngine::Node::SetActive(bool active) { Active = active; }
-bool AbyssEngine::Node::GetActive() const { return Active; }
-void AbyssEngine::Node::SetVisible(bool visible) { Visible = visible; }
-bool AbyssEngine::Node::GetVisible() const { return Visible; }
+
+std::tuple<int, int> AbyssEngine::Node::GetPosition() {
+    std::lock_guard<std::mutex> lock(_mutex);
+
+    return {X, Y};
+}
+
+void AbyssEngine::Node::SetActive(bool active) {
+    std::lock_guard<std::mutex> lock(_mutex);
+
+    Active = active;
+}
+
+bool AbyssEngine::Node::GetActive() {
+    std::lock_guard<std::mutex> lock(_mutex);
+
+    return Active;
+}
+
+void AbyssEngine::Node::SetVisible(bool visible) {
+    std::lock_guard<std::mutex> lock(_mutex);
+
+    Visible = visible;
+}
+
+bool AbyssEngine::Node::GetVisible() {
+    std::lock_guard<std::mutex> lock(_mutex);
+
+    return Visible;
+}
+
 void AbyssEngine::Node::MouseEventCallback(const AbyssEngine::MouseEvent &event) {
     for (auto &item : Children) {
         if (!item->Active || !item->Visible)
@@ -61,15 +106,22 @@ void AbyssEngine::Node::MouseEventCallback(const AbyssEngine::MouseEvent &event)
             item->MouseEventCallback(event);
     }
 }
-AbyssEngine::Node::Node() {
-    SPDLOG_TRACE("Node Created");
-}
-AbyssEngine::Node::~Node() {
-    if (!Name.empty())
-        SPDLOG_TRACE("Node Destroyed: {0}", Name);
-    else
-        SPDLOG_TRACE("Node Destroyed");
-}
-AbyssEngine::Node::Node(std::string_view name) : Name(name){
-    SPDLOG_TRACE("Node Created: {0}", Name);
+
+void AbyssEngine::Node::ProcessQueuedActions() {
+    std::lock_guard<std::mutex> lock(_mutex);
+
+    if (_removeAllChildren) {
+        _removeAllChildren = false;
+        Children.clear();
+    }
+
+    while (!_addChildQueue.empty()) {
+        Children.push_back(_addChildQueue.front());
+        _addChildQueue.pop();
+    }
+
+    while (!_removeChildQueue.empty()) {
+        Children.erase(std::remove(Children.begin(), Children.end(), _removeChildQueue.front()), Children.end());
+        _removeChildQueue.pop();
+    }
 }

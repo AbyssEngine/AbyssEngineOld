@@ -1,5 +1,4 @@
 #include "button.h"
-#include "../common/overload.h"
 #include "../engine/engine.h"
 #include "../hostnotify/hostnotify.h"
 #include <absl/strings/ascii.h>
@@ -13,8 +12,9 @@ AbyssEngine::Button::Button(AbyssEngine::SpriteFont *spriteFont, Sprite *sprite)
         throw std::runtime_error("Attempted to create a button with no sprite font.");
     if (sprite == nullptr)
         throw std::runtime_error("Attempted to create a button with no sprite.");
-
 }
+
+AbyssEngine::Button::~Button() = default;
 
 void AbyssEngine::Button::UpdateCallback(uint32_t ticks) {
     auto engine = Engine::Get();
@@ -193,4 +193,3 @@ void AbyssEngine::Button::LuaSetFrameIndex(std::string_view frameType, int index
 }
 
 void AbyssEngine::Button::LuaSetActivateCallback(sol::safe_function luaActivateCallback) { _luaActivateCallback = std::move(luaActivateCallback); }
-AbyssEngine::Button::~Button() { SPDLOG_TRACE("Button Deleted: {0}", _caption); }

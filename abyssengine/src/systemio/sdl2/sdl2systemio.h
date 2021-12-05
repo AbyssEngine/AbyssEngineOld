@@ -30,6 +30,7 @@ class SDL2SystemIO : public SystemIO {
     void Delay(uint32_t ms) override;
     float GetMasterAudioLevel() override;
     void SetMasterAudioLevel(float level) override;
+    void ResetMouseButtonState() override;
 
   private:
     void InitializeAudio();

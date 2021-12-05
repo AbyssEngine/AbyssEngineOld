@@ -13,8 +13,33 @@
 #include <sol/sol.hpp>
 #include <spdlog/spdlog.h>
 
-AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _lua(), _engine(engine) {
 
+int my_exception_handler(lua_State* L, sol::optional<const std::exception&> maybe_exception, sol::string_view description) {
+    // L is the lua state, which you can wrap in a state_view if necessary
+    // maybe_exception will contain exception, if it exists
+    // description will either be the what() of the exception or a description saying that we hit the general-case catch(...)
+    std::cout << "An exception occurred in a function, here's what it says ";
+    if (maybe_exception) {
+        std::cout << "(straight from the exception): ";
+        const std::exception& ex = *maybe_exception;
+        std::cout << ex.what() << std::endl;
+    }
+    else {
+        std::cout << "(from the description parameter): ";
+        std::cout.write(description.data(), static_cast<std::streamsize>(description.size()));
+        std::cout << std::endl;
+    }
+
+    // you must push 1 element onto the stack to be
+    // transported through as the error object in Lua
+    // note that Lua -- and 99.5% of all Lua users and libraries -- expects a string
+    // so we push a single string (in our case, the description of the error)
+    return sol::stack::push(L, description);
+}
+
+AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _lua(), _engine(engine) {
+    _lua.stop_gc();
+    _lua.set_exception_handler(&my_exception_handler);
     _lua.open_libraries();
 
     _environment = sol::environment(_lua, sol::create, _lua.globals());
@@ -239,7 +264,7 @@ bool AbyssEngine::ScriptHost::LuaFileExists(std::string_view fileName) {
     return _engine->GetLoader().FileExists(path);
 }
 
-std::unique_ptr<AbyssEngine::Sprite> AbyssEngine::ScriptHost::LuaLoadSprite(std::string_view spritePath, std::string_view paletteName = "") {
+std::shared_ptr<AbyssEngine::Sprite> AbyssEngine::ScriptHost::LuaLoadSprite(std::string_view spritePath, std::string_view paletteName = "") {
     const auto &engine = _engine;
     const std::filesystem::path path(spritePath);
 
@@ -251,15 +276,15 @@ std::unique_ptr<AbyssEngine::Sprite> AbyssEngine::ScriptHost::LuaLoadSprite(std:
     std::string lower = absl::AsciiStrToLower(spritePath);
     if (lower.ends_with(".dc6")) {
         const auto &palette = engine->GetPalette(paletteName);
-        return std::make_unique<DC6Sprite>(spritePath, stream, palette);
+        return std::make_shared<DC6Sprite>(spritePath, stream, palette);
     } else if (lower.ends_with(".sprite")) {
-        return std::make_unique<D2RSprite>(stream);
+        return std::make_shared<D2RSprite>(stream);
     } else
         throw std::runtime_error(absl::StrCat("Unknowns sprite format for file: ", spritePath));
 }
 
-std::unique_ptr<AbyssEngine::Button> AbyssEngine::ScriptHost::LuaLoadButton(SpriteFont *spriteFont, Sprite *sprite) {
-    return std::make_unique<Button>(spriteFont, sprite);
+std::shared_ptr<AbyssEngine::Button> AbyssEngine::ScriptHost::LuaLoadButton(SpriteFont *spriteFont, Sprite *sprite) {
+    return std::make_shared<Button>(spriteFont, sprite);
 }
 
 void AbyssEngine::ScriptHost::LuaSetCursor(Sprite &sprite, int offsetX, int offsetY) { _engine->SetCursorSprite(&sprite, offsetX, offsetY); }
@@ -300,9 +325,12 @@ std::string AbyssEngine::ScriptHost::LuaLoadText(std::string_view filePath) {
     return {std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>()};
 }
 
-std::unique_ptr<AbyssEngine::SpriteFont> AbyssEngine::ScriptHost::LuaLoadSpriteFont(std::string_view fontPath, std::string_view paletteName) {
-    return std::make_unique<SpriteFont>(fontPath, paletteName);
+std::shared_ptr<AbyssEngine::SpriteFont> AbyssEngine::ScriptHost::LuaLoadSpriteFont(std::string_view fontPath, std::string_view paletteName) {
+    return std::make_shared<SpriteFont>(fontPath, paletteName);
 }
-std::unique_ptr<AbyssEngine::Label> AbyssEngine::ScriptHost::LuaLoadLabel(AbyssEngine::SpriteFont *spriteFont) {
-    return std::make_unique<AbyssEngine::Label>(spriteFont);
+std::shared_ptr<AbyssEngine::Label> AbyssEngine::ScriptHost::LuaLoadLabel(AbyssEngine::SpriteFont *spriteFont) {
+    return std::make_shared<AbyssEngine::Label>(spriteFont);
+}
+void AbyssEngine::ScriptHost::GC() {
+    _lua.collect_garbage();
 }

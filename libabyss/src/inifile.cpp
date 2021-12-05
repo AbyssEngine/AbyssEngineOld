@@ -81,3 +81,8 @@ bool LibAbyss::INIFile::GetValueBool(std::string_view category, std::string_view
 void LibAbyss::INIFile::SetValue(std::string_view category, std::string_view name, std::string_view value) {
     _values[absl::AsciiStrToLower(category)][absl::AsciiStrToLower(name)] = value;
 }
+
+int LibAbyss::INIFile::GetValueInt(std::string_view category, std::string_view name) {
+    auto value = GetValue(category, name);
+    return std::stoi(value);
+}

@@ -10,8 +10,8 @@
 #include <span>
 #include <spdlog/spdlog.h>
 #ifdef __APPLE__
-#include "../../hostnotify/hostnotify_mac_shim.h"
 #include "../../engine/engine.h"
+#include "../../hostnotify/hostnotify_mac_shim.h"
 #endif // __APPLE__
 
 namespace {
@@ -106,6 +106,8 @@ void AbyssEngine::SDL2::SDL2SystemIO::SetFullscreen(bool fullscreen) {
 bool AbyssEngine::SDL2::SDL2SystemIO::HandleSdlEvent(const SDL_Event &sdlEvent, Node &rootNode) {
     switch (sdlEvent.type) {
     case SDL_MOUSEMOTION: {
+        std::lock_guard<std::mutex> lock(_mutex);
+
         _cursorX = sdlEvent.motion.x;
         _cursorY = sdlEvent.motion.y;
 
@@ -113,6 +115,7 @@ bool AbyssEngine::SDL2::SDL2SystemIO::HandleSdlEvent(const SDL_Event &sdlEvent, 
     }
         return true;
     case SDL_MOUSEBUTTONDOWN: {
+        std::lock_guard<std::mutex> lock(_mutex);
         eMouseButton button;
         switch (sdlEvent.button.button) {
         case SDL_BUTTON_LEFT:
@@ -133,6 +136,7 @@ bool AbyssEngine::SDL2::SDL2SystemIO::HandleSdlEvent(const SDL_Event &sdlEvent, 
         return true;
     }
     case SDL_MOUSEBUTTONUP: {
+        std::lock_guard<std::mutex> lock(_mutex);
         eMouseButton button;
         switch (sdlEvent.button.button) {
         case SDL_BUTTON_LEFT:
@@ -213,6 +217,7 @@ void AbyssEngine::SDL2::SDL2SystemIO::FinalizeAudio() {
     SDL_PauseAudioDevice(_audioDeviceId, SDL_TRUE);
     SDL_CloseAudioDevice(_audioDeviceId);
 }
+
 void AbyssEngine::SDL2::SDL2SystemIO::PushAudioData(std::span<const uint8_t> data) { _audioBuffer.PushData(data); }
 
 void AbyssEngine::SDL2::SDL2SystemIO::ResetAudio() { _audioBuffer.Reset(); }
@@ -247,3 +252,5 @@ void AbyssEngine::SDL2::SDL2SystemIO::GetCursorState(int &cursorX, int &cursorY,
 float AbyssEngine::SDL2::SDL2SystemIO::GetMasterAudioLevel() { return _masterAudioLevel; }
 
 void AbyssEngine::SDL2::SDL2SystemIO::SetMasterAudioLevel(float level) { _masterAudioLevel = level; }
+
+void AbyssEngine::SDL2::SDL2SystemIO::ResetMouseButtonState() { _mouseButtonState = (eMouseButton)0; }

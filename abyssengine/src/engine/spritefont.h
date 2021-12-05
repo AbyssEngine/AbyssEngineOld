@@ -27,7 +27,7 @@ class SpriteFont {
     };
 
     SpriteFont(std::string_view filePath, std::string_view paletteName);
-    ~SpriteFont() { SPDLOG_TRACE("SpriteFont destroyed"); }
+    ~SpriteFont() = default;
     void GetMetrics(std::string_view text, int &width, int &height);
     void RenderText(int x, int y, std::string_view text, eBlendMode blendMode, RGB colorMod);
 
