@@ -76,7 +76,7 @@ AbyssEngine::Engine *AbyssEngine::Engine::Get() { return engineGlobalInstance; }
 const LibAbyss::Palette &AbyssEngine::Engine::GetPalette(std::string_view paletteName) {
     std::lock_guard<std::mutex> guard(_mutex);
 
-    return _palettes.at(std::string(paletteName));
+    return _palettes.at(paletteName);
 }
 
 AbyssEngine::Node &AbyssEngine::Engine::GetRootNode() {
