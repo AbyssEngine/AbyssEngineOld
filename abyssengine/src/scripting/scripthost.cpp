@@ -3,9 +3,9 @@
 #include "../engine/engine.h"
 #include "../engine/filesystemprovider.h"
 #include "../engine/mpqprovider.h"
+#include "../hostnotify/hostnotify.h"
 #include "../node/d2rsprite.h"
 #include "../node/dc6sprite.h"
-#include "../node/label.h"
 #include <absl/strings/ascii.h>
 #include <absl/strings/str_cat.h>
 #include <filesystem>
@@ -36,6 +36,8 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _lua(), _engine(engine) {
     module.set_function("loadPalette", &ScriptHost::LuaLoadPalette, this);
     module.set_function("loadSprite", &ScriptHost::LuaLoadSprite, this);
     module.set_function("loadString", &ScriptHost::LuaLoadText, this);
+    module.set_function("loadSpriteFont", &ScriptHost::LuaLoadSpriteFont, this);
+    module.set_function("loadLabel", &ScriptHost::LuaLoadLabel, this);
     module.set_function("log", &ScriptHost::LuaLog, this);
     module.set_function("playVideo", &ScriptHost::LuaPlayVideo, this);
     module.set_function("resetMouseState", &ScriptHost::LuaResetMouseState, this);
@@ -43,10 +45,11 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _lua(), _engine(engine) {
     module.set_function("showSystemCursor", &ScriptHost::LuaShowSystemCursor, this);
     module.set_function("shutdown", &ScriptHost::LuaFuncShutdown, this);
 
+
     // User Types -------------------------------------------------------------------------------------------------------------------------
 
     // SpriteFont (Not node based)
-    module.new_usertype<SpriteFont>("SpriteFont", sol::constructors<SpriteFont(std::string_view, std::string_view)>());
+    module.new_usertype<SpriteFont>("SpriteFont", sol::no_constructor);
 
     // Button
     auto buttonType = CreateLuaObjectType<Button>(module, "Button", sol::no_constructor);
@@ -62,7 +65,7 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _lua(), _engine(engine) {
     BindNodeFunctions(nodeType);
 
     // Label
-    auto labelType = CreateLuaObjectType<Label>(module, "Label", sol::constructors<Label(SpriteFont *)>());
+    auto labelType = CreateLuaObjectType<Label>(module, "Label", sol::no_constructor);
     labelType["setCaption"] = &Label::SetCaption;
     labelType["setAlignment"] = &Label::SetAlignmentStr;
     labelType["setColorMod"] = &Label::SetColorMod;
@@ -107,8 +110,9 @@ std::tuple<sol::object, sol::object> AbyssEngine::ScriptHost::LuaLoadFile(std::s
 
     // TODO: Ensure we haven't already loaded this
 
-    if (!_engine->GetLoader().FileExists(path))
+    if (!_engine->GetLoader().FileExists(path)) {
         return std::make_tuple(sol::nil, sol::make_object(_lua, "Path does not exist."));
+    }
 
     auto stream = _engine->GetLoader().Load(path);
 
@@ -117,8 +121,17 @@ std::tuple<sol::object, sol::object> AbyssEngine::ScriptHost::LuaLoadFile(std::s
 
     auto ret = LuaLoadString(str, "@" + path.string());
 
-    if (std::get<0>(ret) == sol::nil) {
-        throw sol::error(std::get<1>(ret).as<std::string>());
+    SPDLOG_TRACE("Loaded file {0}", path.string());
+
+    try {
+        if (std::get<0>(ret) == sol::nil) {
+            throw sol::error(std::get<1>(ret).as<std::string>());
+        }
+    } catch (std::runtime_error &e) {
+        SPDLOG_ERROR("Error loading file {0}: {1}", path.string(), e.what());
+        HostNotify::Notify(eNotifyType::Fatal, "Script Error", e.what());
+        _engine->Stop();
+        return std::tuple<sol::nil_t, sol::nil_t>();
     }
 
     sol::unsafe_function func = std::get<0>(ret);
@@ -128,18 +141,25 @@ std::tuple<sol::object, sol::object> AbyssEngine::ScriptHost::LuaLoadFile(std::s
 void AbyssEngine::ScriptHost::ExecuteString(std::string_view code) {
     auto result = _lua.script(code, _environment);
     if (!result.valid()) {
-        const sol::error error = result;
-        const std::string errorMessage = error.what();
-        throw std::runtime_error(errorMessage);
+        const sol::error e = result;
+        SPDLOG_ERROR("Script Error: {0}", e.what());
+        HostNotify::Notify(eNotifyType::Fatal, "Script Error", e.what());
+        _engine->Stop();
+        return;
     }
 }
 
 sol::object AbyssEngine::ScriptHost::LuaDoFile(std::string_view path) {
     std::tuple<sol::object, sol::object> ret = LuaLoadFile(path);
     if (std::get<0>(ret) == sol::nil) {
-        throw sol::error(std::get<1>(ret).as<std::string>());
+        auto e = sol::error(std::get<1>(ret).as<std::string>());
+        SPDLOG_ERROR("Script Error: {0}", e.what());
+        HostNotify::Notify(eNotifyType::Fatal, "Script Error", e.what());
+        _engine->Stop();
+        return sol::nil;
     }
 
+    SPDLOG_TRACE("Loaded file {0}", path);
     sol::unsafe_function func = std::get<0>(ret);
     return func();
 }
@@ -220,7 +240,7 @@ bool AbyssEngine::ScriptHost::LuaFileExists(std::string_view fileName) {
 }
 
 std::unique_ptr<AbyssEngine::Sprite> AbyssEngine::ScriptHost::LuaLoadSprite(std::string_view spritePath, std::string_view paletteName = "") {
-    const auto &engine = AbyssEngine::Engine::Get();
+    const auto &engine = _engine;
     const std::filesystem::path path(spritePath);
 
     if (!engine->GetLoader().FileExists(path))
@@ -231,7 +251,7 @@ std::unique_ptr<AbyssEngine::Sprite> AbyssEngine::ScriptHost::LuaLoadSprite(std:
     std::string lower = absl::AsciiStrToLower(spritePath);
     if (lower.ends_with(".dc6")) {
         const auto &palette = engine->GetPalette(paletteName);
-        return std::make_unique<DC6Sprite>(stream, palette);
+        return std::make_unique<DC6Sprite>(spritePath, stream, palette);
     } else if (lower.ends_with(".sprite")) {
         return std::make_unique<D2RSprite>(stream);
     } else
@@ -244,17 +264,18 @@ std::unique_ptr<AbyssEngine::Button> AbyssEngine::ScriptHost::LuaLoadButton(Spri
 
 void AbyssEngine::ScriptHost::LuaSetCursor(Sprite &sprite, int offsetX, int offsetY) { _engine->SetCursorSprite(&sprite, offsetX, offsetY); }
 
-AbyssEngine::Node &AbyssEngine::ScriptHost::LuaGetRootNode() { return AbyssEngine::Engine::Get()->GetRootNode(); }
+AbyssEngine::Node &AbyssEngine::ScriptHost::LuaGetRootNode() { return _engine->GetRootNode(); }
 
 void AbyssEngine::ScriptHost::LuaPlayVideo(std::string_view videoPath, bool wait) {
     auto stream = _engine->GetLoader().Load(std::filesystem::path(videoPath));
-    _engine->PlayVideo(std::move(stream), wait);
+    _engine->PlayVideo(videoPath, std::move(stream), wait);
     if (wait)
         _engine->WaitForVideoToFinish();
 }
 
 template <class T, typename X>
-sol::basic_usertype<T, sol::basic_reference<false>> AbyssEngine::ScriptHost::CreateLuaObjectType(sol::table &module, std::string_view name, X &&constructor) {
+sol::basic_usertype<T, sol::basic_reference<false>> AbyssEngine::ScriptHost::CreateLuaObjectType(sol::table &module, std::string_view name,
+                                                                                                 X &&constructor) {
     auto val = module.new_usertype<T>(name, "new", std::forward<X>(constructor), sol::base_classes, sol::bases<Node>());
     BindNodeFunctions(val);
     return val;
@@ -277,4 +298,11 @@ std::string AbyssEngine::ScriptHost::LuaLoadText(std::string_view filePath) {
 
     auto stream = _engine->GetLoader().Load(filePath);
     return {std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>()};
+}
+
+std::unique_ptr<AbyssEngine::SpriteFont> AbyssEngine::ScriptHost::LuaLoadSpriteFont(std::string_view fontPath, std::string_view paletteName) {
+    return std::make_unique<SpriteFont>(fontPath, paletteName);
+}
+std::unique_ptr<AbyssEngine::Label> AbyssEngine::ScriptHost::LuaLoadLabel(AbyssEngine::SpriteFont *spriteFont) {
+    return std::make_unique<AbyssEngine::Label>(spriteFont);
 }

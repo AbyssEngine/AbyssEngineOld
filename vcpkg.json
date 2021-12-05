@@ -12,6 +12,7 @@
     "sdl2-ttf",
     "sol2",
     "gtest",
+    "cppzmq",
     "fmt",
     {
       "name": "ffmpeg",

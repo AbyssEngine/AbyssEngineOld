@@ -3,6 +3,7 @@
 
 #include "../common/events.h"
 #include <memory>
+#include <string>
 #include <tuple>
 #include <vector>
 
@@ -11,11 +12,13 @@ namespace AbyssEngine {
 class Node {
   public:
     Node();
+    explicit Node(std::string_view name);
     virtual ~Node();
 
     virtual void UpdateCallback(uint32_t ticks);
     virtual void RenderCallback(int offsetX, int offsetY);
     virtual void MouseEventCallback(const MouseEvent &event);
+    virtual std::string_view NodeType() const { return "Node"; };
     void GetEffectiveLayout(int &x, int &y);
     void AppendChild(Node *childNode);
     void RemoveChild(Node *nodeRef);
@@ -34,6 +37,7 @@ class Node {
 
     Node *Parent = nullptr;
     std::vector<Node *> Children;
+    std::string Name;
 };
 
 } // namespace AbyssEngine

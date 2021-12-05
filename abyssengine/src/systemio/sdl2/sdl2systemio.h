@@ -28,6 +28,8 @@ class SDL2SystemIO : public SystemIO {
     void RenderStart() override;
     void RenderEnd() override;
     void Delay(uint32_t ms) override;
+    float GetMasterAudioLevel() override;
+    void SetMasterAudioLevel(float level) override;
 
   private:
     void InitializeAudio();
@@ -46,6 +48,7 @@ class SDL2SystemIO : public SystemIO {
     RingBuffer _audioBuffer;
     int _cursorX = 0;
     int _cursorY = 0;
+    float _masterAudioLevel = 1.0f;
     eMouseButton _mouseButtonState;
 };
 

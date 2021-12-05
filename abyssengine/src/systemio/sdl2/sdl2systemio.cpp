@@ -11,13 +11,15 @@
 #include <spdlog/spdlog.h>
 #ifdef __APPLE__
 #include "../../hostnotify/hostnotify_mac_shim.h"
+#include "../../engine/engine.h"
 #endif // __APPLE__
 
 namespace {
 const int AudioBufferSize = 1024 * 128;
 }
 
-AbyssEngine::SDL2::SDL2SystemIO::SDL2SystemIO() : AbyssEngine::SystemIO::SystemIO(), _audioBuffer(AudioBufferSize), _audioSpec(), _mutex() {
+AbyssEngine::SDL2::SDL2SystemIO::SDL2SystemIO()
+    : AbyssEngine::SystemIO::SystemIO(), _audioBuffer(AudioBufferSize), _audioSpec(), _mutex(), _mouseButtonState((eMouseButton)0) {
     SPDLOG_TRACE("Creating SDL2 System IO");
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER | SDL_INIT_TIMER | SDL_INIT_AUDIO) != 0)
@@ -194,6 +196,11 @@ void AbyssEngine::SDL2::SDL2SystemIO::HandleAudioCallback(void *userData, Uint8 
 void AbyssEngine::SDL2::SDL2SystemIO::HandleAudio(uint8_t *stream, int length) {
     std::lock_guard<std::mutex> lock(_mutex);
 
+    if (length & 1) {
+        SPDLOG_WARN("Audio callback length is not even, dropping samples");
+        return;
+    }
+
     _audioBuffer.ReadData(std::span(stream, length));
 }
 
@@ -236,3 +243,7 @@ void AbyssEngine::SDL2::SDL2SystemIO::GetCursorState(int &cursorX, int &cursorY,
     cursorY = _cursorY;
     buttonState = _mouseButtonState;
 }
+
+float AbyssEngine::SDL2::SDL2SystemIO::GetMasterAudioLevel() { return _masterAudioLevel; }
+
+void AbyssEngine::SDL2::SDL2SystemIO::SetMasterAudioLevel(float level) { _masterAudioLevel = level; }

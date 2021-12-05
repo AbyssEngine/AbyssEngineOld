@@ -12,6 +12,9 @@ namespace AbyssEngine {
 
 class Sprite : public Node {
   public:
+    Sprite() = default;
+    explicit Sprite(std::string_view name) : Node(name) {}
+
     enum class ePlayMode { Unknown, Paused, Forwards, Backwards };
     struct FramePosition {
         Rectangle Rect;
@@ -36,9 +39,11 @@ class Sprite : public Node {
     std::string_view LuaGetBlendMode();
     void LuaSetBlendMode(std::string_view val);
     void SetIsBottomOrigin(bool val);
-    bool GetIsBottomOrigin() const;
+    [[nodiscard]] bool GetIsBottomOrigin() const;
     void LuaSetPlayMode(std::string_view mode);
     std::string_view LuaGetPlayMode();
+
+    [[nodiscard]] std::string_view NodeType() const final { return "Sprite Node"; };
 
   protected:
     virtual void RegenerateAtlas() = 0;

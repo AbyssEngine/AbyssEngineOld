@@ -1,6 +1,9 @@
 #include "label.h"
 #include <spdlog/spdlog.h>
-AbyssEngine::Label::Label(SpriteFont *spriteFont) : _spriteFont(spriteFont), _caption() {}
+AbyssEngine::Label::Label(SpriteFont *spriteFont) : _spriteFont(spriteFont), _caption() {
+    if (spriteFont == nullptr)
+        throw std::runtime_error("SpriteFont is null");
+}
 
 AbyssEngine::Label::~Label() { SPDLOG_TRACE("Label deleted: {0}", _caption); }
 

@@ -37,6 +37,10 @@ std::vector<std::string> LibAbyss::MPQ::FileList() {
         if (stream.eof()) {
             break;
         }
+
+        // Remove the \r character from the line
+        line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
+
         result.push_back(line);
     }
 

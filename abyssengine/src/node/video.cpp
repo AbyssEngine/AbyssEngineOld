@@ -10,9 +10,9 @@ namespace {
 const int DecodeBufferSize = 1024 * 32;
 } // namespace
 
-AbyssEngine::Video::Video(LibAbyss::InputStream stream)
-    : _stream(std::move(stream)), _avBuffer(), _videoStreamIdx(-1), _audioStreamIdx(-1), _videoCodecContext(), _audioCodecContext(), _yPlane(),
-      _uPlane(), _vPlane(), _avFrame(), _videoTexture(), _sourceRect(), _targetRect() {
+AbyssEngine::Video::Video(std::string_view name, LibAbyss::InputStream stream)
+    : Node(name), _stream(std::move(stream)), _avBuffer(), _videoStreamIdx(-1), _audioStreamIdx(-1), _videoCodecContext(), _audioCodecContext(),
+      _yPlane(), _uPlane(), _vPlane(), _avFrame(), _videoTexture(), _sourceRect(), _targetRect() {
 
     _avBuffer = (unsigned char *)av_malloc(DecodeBufferSize); // AVIO is going to free this automagically... because why not?
     memset(_avBuffer, 0, DecodeBufferSize);
@@ -273,6 +273,7 @@ bool AbyssEngine::Video::ProcessFrame() {
     return false;
 }
 void AbyssEngine::Video::StopVideo() { _isPlaying = false; }
+
 std::string AbyssEngine::Video::AvErrorCodeToString(int avError) {
     char str[2048] = {};
 

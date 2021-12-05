@@ -8,6 +8,7 @@
 #include "../engine/provider.h"
 #include "../node/button.h"
 #include "../node/sprite.h"
+#include "../node/label.h"
 #include <filesystem>
 
 namespace AbyssEngine {
@@ -43,6 +44,8 @@ class ScriptHost {
     std::string LuaLoadText(std::string_view filePath);
     std::unique_ptr<AbyssEngine::Sprite> LuaLoadSprite(std::string_view spritePath, std::string_view paletteName);
     std::unique_ptr<AbyssEngine::Button> LuaLoadButton(SpriteFont *spriteFont, Sprite *sprite);
+    std::unique_ptr<AbyssEngine::SpriteFont> LuaLoadSpriteFont(std::string_view fontPath, std::string_view paletteName);
+    std::unique_ptr<AbyssEngine::Label> LuaLoadLabel(SpriteFont *spriteFont);
     void LuaSetCursor(Sprite &sprite, int offsetX, int offsetY);
     void LuaPlayVideo(std::string_view videoPath, bool wait);
     Node &LuaGetRootNode();

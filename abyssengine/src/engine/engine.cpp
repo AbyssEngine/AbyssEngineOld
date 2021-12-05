@@ -8,7 +8,7 @@ AbyssEngine::Engine *engineGlobalInstance = nullptr;
 
 AbyssEngine::Engine::Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO> systemIo)
     : _iniFile(std::move(iniFile)), _systemIO(std::move(systemIo)), _loader(), _palettes(), _scriptHost(std::make_unique<ScriptHost>(this)),
-      _rootNode(), _videoNode(), _videoMutex(), _mouseButtonState((eMouseButton)0) {
+      _rootNode("__root"), _videoNode(), _videoMutex(), _mouseButtonState((eMouseButton)0) {
     SPDLOG_TRACE("Creating engine");
 
     // Set up the global instance
@@ -185,7 +185,7 @@ void AbyssEngine::Engine::WaitForVideoToFinish() {
     _videoMutex.unlock();
 }
 
-void AbyssEngine::Engine::PlayVideo(LibAbyss::InputStream stream, bool wait) {
+void AbyssEngine::Engine::PlayVideo(std::string_view name, LibAbyss::InputStream stream, bool wait) {
     std::lock_guard<std::mutex> guard(_mutex);
     if (!_running)
         return;
@@ -197,7 +197,7 @@ void AbyssEngine::Engine::PlayVideo(LibAbyss::InputStream stream, bool wait) {
 
     _videoMutex.lock();
     _waitVideoPlayback = wait;
-    _videoNode = std::make_unique<Video>(std::move(stream));
+    _videoNode = std::make_unique<Video>(name, std::move(stream));
 }
 
 LibAbyss::INIFile &AbyssEngine::Engine::GetIniFile() { return _iniFile; }
@@ -230,3 +230,5 @@ void AbyssEngine::Engine::RenderRootNode() {
     _cursorSprite->Y = _cursorY;
     _cursorSprite->RenderCallback(_cursorOffsetX, _cursorOffsetY);
 }
+std::mutex &AbyssEngine::Engine::GetMutex() { return _mutex; }
+AbyssEngine::SystemIO &AbyssEngine::Engine::GetSystemIO() { return *_systemIO; }

@@ -1,5 +1,6 @@
 #include <spdlog/spdlog.h>
 #include "node.h"
+#include "../engine/engine.h"
 
 void AbyssEngine::Node::UpdateCallback(uint32_t ticks) {
     for (auto &item : Children) {
@@ -38,7 +39,10 @@ void AbyssEngine::Node::AppendChild(Node *childNode) {
 void AbyssEngine::Node::RemoveChild(AbyssEngine::Node *nodeRef) {
     Children.erase(std::remove(Children.begin(), Children.end(), nodeRef), Children.end());
 }
-void AbyssEngine::Node::RemoveAllChildren() { Children.clear(); }
+void AbyssEngine::Node::RemoveAllChildren() {
+    std::lock_guard<std::mutex> lock(Engine::Get()->GetMutex());
+    Children.clear();
+}
 void AbyssEngine::Node::SetPosition(int x, int y) {
     X = x;
     Y = y;
@@ -53,12 +57,19 @@ void AbyssEngine::Node::MouseEventCallback(const AbyssEngine::MouseEvent &event)
         if (!item->Active || !item->Visible)
             continue;
 
-        item->MouseEventCallback(event);
+        if (item != this)
+            item->MouseEventCallback(event);
     }
 }
 AbyssEngine::Node::Node() {
     SPDLOG_TRACE("Node Created");
 }
 AbyssEngine::Node::~Node() {
-    SPDLOG_TRACE("Node Destroyed");
+    if (!Name.empty())
+        SPDLOG_TRACE("Node Destroyed: {0}", Name);
+    else
+        SPDLOG_TRACE("Node Destroyed");
+}
+AbyssEngine::Node::Node(std::string_view name) : Name(name){
+    SPDLOG_TRACE("Node Created: {0}", Name);
 }

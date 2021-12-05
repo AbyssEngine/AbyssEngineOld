@@ -8,7 +8,13 @@
 #include <spdlog/spdlog.h>
 #include <utility>
 
-AbyssEngine::Button::Button(AbyssEngine::SpriteFont *spriteFont, Sprite *sprite) : _spriteFont(spriteFont), _sprite(sprite) {}
+AbyssEngine::Button::Button(AbyssEngine::SpriteFont *spriteFont, Sprite *sprite) : _spriteFont(spriteFont), _sprite(sprite) {
+    if (spriteFont == nullptr)
+        throw std::runtime_error("Attempted to create a button with no sprite font.");
+    if (sprite == nullptr)
+        throw std::runtime_error("Attempted to create a button with no sprite.");
+
+}
 
 void AbyssEngine::Button::UpdateCallback(uint32_t ticks) {
     auto engine = Engine::Get();

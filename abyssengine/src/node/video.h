@@ -24,7 +24,7 @@ namespace AbyssEngine {
 
 class Video : public Node {
   public:
-    explicit Video(LibAbyss::InputStream stream);
+    Video(std::string_view name, LibAbyss::InputStream stream);
     ~Video() override;
 
     void UpdateCallback(uint32_t ticks) final;
@@ -32,6 +32,8 @@ class Video : public Node {
     void MouseEventCallback(const MouseEvent &event) final;
     bool GetIsPlaying() const { return _isPlaying; }
     void StopVideo();
+
+    [[nodiscard]] std::string_view NodeType() const final { return "Video Node"; };
 
   private:
     int VideoStreamRead(uint8_t *buffer, int size);

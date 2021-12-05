@@ -13,6 +13,7 @@
 #include <filesystem>
 #include <mutex>
 #include <thread>
+#include <string>
 
 namespace AbyssEngine {
 
@@ -73,7 +74,7 @@ class Engine {
     /// Plays a video
     /// \param stream The stream to play
     /// \param wait If true, the engine will wait for the video to finish before returning
-    void PlayVideo(LibAbyss::InputStream stream, bool wait);
+    void PlayVideo(std::string_view name, LibAbyss::InputStream stream, bool wait);
 
     /// Returns the resource loader
     /// \return s The resource loader
@@ -85,7 +86,7 @@ class Engine {
 
     /// Returns the IO subsystem
     /// \return s The IO subsystem
-    SystemIO &GetSystemIO() { return *_systemIO; }
+    SystemIO &GetSystemIO();
 
     /// Returns a singleton instance of the engine
     static Engine *Get();
@@ -94,6 +95,8 @@ class Engine {
     ///  \param paletteName The name of the palette to return
     ///  \return The palette
     [[nodiscard]] const LibAbyss::Palette &GetPalette(std::string_view paletteName);
+
+    std::mutex& GetMutex();
 
   private:
     void RunMainLoop();

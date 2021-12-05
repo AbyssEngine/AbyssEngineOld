@@ -81,6 +81,14 @@ class SystemIO {
     /// \param cursorY The Y coordinate of the cursor.
     /// \param buttonState The button state.
     virtual void GetCursorState(int &cursorX, int &cursorY, eMouseButton &buttonState) = 0;
+
+    /// Returns the master volume.
+    virtual float GetMasterAudioLevel() = 0;
+
+    /// Sets the master volume.
+    /// \param level The new master volume.
+    virtual void SetMasterAudioLevel(float level) = 0;
+
 };
 
 } // namespace AbyssEngine

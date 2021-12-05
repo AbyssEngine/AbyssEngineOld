@@ -1,6 +1,7 @@
 #include "spritefont.h"
 #include "engine.h"
 #include <filesystem>
+#include <spdlog/spdlog.h>
 
 namespace {
 const uint32_t MaxSpriteFontAtlasWidth = 1024;
@@ -59,6 +60,8 @@ AbyssEngine::SpriteFont::SpriteFont(std::string_view filePath, std::string_view 
 
         _glyphs.push_back(glyph);
     }
+
+    SPDLOG_TRACE("SpriteFont constructed");
 }
 
 void AbyssEngine::SpriteFont::RegenerateAtlas() {

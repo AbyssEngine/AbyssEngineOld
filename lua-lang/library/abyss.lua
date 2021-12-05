@@ -20,6 +20,12 @@ function abyss.addLoaderProvider(providerType, providerPath) end
 function abyss.fileExists(filePath) end
 
 
+---Loads a sprite.
+---@param filePath string # The path to the file
+---@param paletteName string # The name of the palette to use
+---@return Sprite value # The sprite
+function abyss.loadSprite(filePath, paletteName) end
+
 
 ---Gets a configuration value
 ---@param category string     # The category that the variable is defined under.
