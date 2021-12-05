@@ -20,6 +20,7 @@ find_package(Threads REQUIRED)
 find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE POSTPROC REQUIRED)
 find_package(sdl2-ttf)
 find_package(absl CONFIG REQUIRED)
+find_package(cppzmq CONFIG REQUIRED)
 
 if (NOT sdl2-ttf_FOUND)
     find_package(PkgConfig REQUIRED)
@@ -148,6 +149,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         SDL2::SDL2_ttf
         spdlog::spdlog_header_only
         sol2::sol2
+        cppzmq
         ${FFMPEG_LIBRARIES}
         ${LUA_LIBRARIES}
         )

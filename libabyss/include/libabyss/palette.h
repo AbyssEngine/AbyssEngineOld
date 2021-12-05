@@ -21,7 +21,7 @@ namespace LibAbyss {
             Blue = b;
             Alpha = 0xFF;
         }
-        PaletteColor(uint8_t c) {
+        explicit PaletteColor(uint8_t c) {
             Red = c;
             Green = c;
             Blue = c;

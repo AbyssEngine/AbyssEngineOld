@@ -17,12 +17,6 @@ void AbyssEngine::Sprite::UpdateCallback(uint32_t ticks) {
 }
 
 void AbyssEngine::Sprite::Render(uint32_t startFrameIdx, int offsetX, int offsetY) {
-    if (_atlas == nullptr) {
-        RegenerateAtlas();
-        _atlas->SetBlendMode(_blendMode);
-    }
-
-
     const auto totalFrames = GetFramesPerAnimation();
     // const auto totalAnimations = GetNumberOfAnimations();
 
@@ -129,8 +123,7 @@ void AbyssEngine::Sprite::MouseEventCallback(const AbyssEngine::MouseEvent &even
                                     throw std::runtime_error(err.what());
                                 }
 
-                            }
-                            else if (!evt.IsPressed && _mouseButtonUpHandler.valid()) {
+                            } else if (!evt.IsPressed && _mouseButtonUpHandler.valid()) {
                                 auto result = _mouseButtonUpHandler();
                                 if (!result.valid()) {
                                     sol::error err = result;
@@ -195,7 +188,9 @@ void AbyssEngine::Sprite::SetLuaMouseButtonDownHandler(sol::protected_function m
     _mouseButtonDownHandler = std::move(mouseButtonDownHandler);
 }
 
-void AbyssEngine::Sprite::SetLuaMouseButtonUpHandler(sol::protected_function mouseButtonUpHandler) { _mouseButtonUpHandler = std::move(mouseButtonUpHandler); }
+void AbyssEngine::Sprite::SetLuaMouseButtonUpHandler(sol::protected_function mouseButtonUpHandler) {
+    _mouseButtonUpHandler = std::move(mouseButtonUpHandler);
+}
 
 std::string_view AbyssEngine::Sprite::LuaGetBlendMode() { return BlendModeToString(_blendMode); }
 
@@ -238,3 +233,7 @@ std::string_view AbyssEngine::Sprite::LuaGetPlayMode() {
     return "";
 }
 
+void AbyssEngine::Sprite::Initialize() {
+    RegenerateAtlas();
+    _atlas->SetBlendMode(_blendMode);
+}

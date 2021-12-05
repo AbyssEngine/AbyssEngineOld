@@ -1,13 +1,20 @@
 #include "button.h"
-#include "../common/overload.h"
 #include "../engine/engine.h"
+#include "../hostnotify/hostnotify.h"
 #include <absl/strings/ascii.h>
 #include <absl/strings/str_cat.h>
 
 #include <spdlog/spdlog.h>
 #include <utility>
 
-AbyssEngine::Button::Button(AbyssEngine::SpriteFont *spriteFont, Sprite *sprite) : _spriteFont(spriteFont), _sprite(sprite) {}
+AbyssEngine::Button::Button(AbyssEngine::SpriteFont *spriteFont, Sprite *sprite) : _spriteFont(spriteFont), _sprite(sprite) {
+    if (spriteFont == nullptr)
+        throw std::runtime_error("Attempted to create a button with no sprite font.");
+    if (sprite == nullptr)
+        throw std::runtime_error("Attempted to create a button with no sprite.");
+}
+
+AbyssEngine::Button::~Button() = default;
 
 void AbyssEngine::Button::UpdateCallback(uint32_t ticks) {
     auto engine = Engine::Get();
@@ -52,7 +59,9 @@ void AbyssEngine::Button::UpdateCallback(uint32_t ticks) {
                 auto result = _luaActivateCallback();
                 if (!result.valid()) {
                     sol::error err = result;
-                    throw std::runtime_error(err.what());
+                    SPDLOG_ERROR(err.what());
+                    AbyssEngine::HostNotify::Notify(eNotifyType::Fatal, "Script Error", err.what());
+                    return;
                 }
             }
             Node::UpdateCallback(ticks);
@@ -184,4 +193,6 @@ void AbyssEngine::Button::LuaSetFrameIndex(std::string_view frameType, int index
 }
 
 void AbyssEngine::Button::LuaSetActivateCallback(sol::safe_function luaActivateCallback) { _luaActivateCallback = std::move(luaActivateCallback); }
-AbyssEngine::Button::~Button() { SPDLOG_TRACE("Button Deleted: {0}", _caption); }
+void AbyssEngine::Button::Initialize() {
+    _sprite->Initialize();
+}

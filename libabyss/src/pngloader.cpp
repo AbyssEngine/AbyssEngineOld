@@ -1,11 +1,12 @@
 #include "pngloader.h"
+#include <absl/cleanup/cleanup.h>
 #include <exception>
 #include <memory>
 #include <png.h>
 
 #define PNG_SIGNATURE_SIZE 8
 
-void readPngDataStream(png_structp pngPtr, png_bytep data, png_size_t length) {
+static void readPngDataStream(png_structp pngPtr, png_bytep data, png_size_t length) {
     png_voidp a = png_get_io_ptr(pngPtr);
     ((std::istream *)a)->read((char *)data, (std::streamsize)length);
 }
@@ -30,13 +31,13 @@ LibAbyss::PNGLoader::PNGLoader(LibAbyss::InputStream &stream) : _pixelData() {
         throw std::runtime_error("Failed to initialize PNG info structure.");
 
     png_bytepp rowPointers = nullptr;
+    auto rowPointersCleanup = absl::Cleanup([rowPointers] { delete[] rowPointers; });
+
     char *data = nullptr;
+    auto cleanupData = absl::Cleanup([data] { delete[] data; });
 
     if (setjmp(png_jmpbuf(pngPtr))) { // NOLINT(cert-err52-cpp)
         png_destroy_read_struct(&pngPtr, &infoPtr, nullptr);
-        delete[] rowPointers;
-        delete[] data;
-
         throw std::runtime_error("Failed to load PNG.");
     }
 
@@ -105,7 +106,6 @@ LibAbyss::PNGLoader::PNGLoader(LibAbyss::InputStream &stream) : _pixelData() {
         _pixelData.emplace_back(((uint32_t)red) | ((uint32_t)green << 8) | ((uint32_t)blue << 16) | ((uint32_t)alpha << 24));
     }
 
-    delete[](png_bytep) rowPointers;
     png_destroy_read_struct(&pngPtr, &infoPtr, nullptr);
 }
 

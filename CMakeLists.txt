@@ -19,6 +19,10 @@ project(abyss)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+#add_compile_options(-fsanitize=leak)
+#add_link_options(-fsanitize=leak)
+
+
 set(${PROJECT_NAME}_VERSION_MAJOR 0)
 set(${PROJECT_NAME}_VERSION_MINOR 1)
 

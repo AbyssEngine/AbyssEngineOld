@@ -1,11 +1,11 @@
 #include "../include/libabyss/casc.h"
 #include "../include/libabyss/cascstream.h"
-#include <memory>
-#include <spdlog/spdlog.h>
-#include <string>
 #include <absl/strings/str_cat.h>
 #include <absl/strings/str_format.h>
 #include <absl/strings/strip.h>
+#include <memory>
+#include <spdlog/spdlog.h>
+#include <string>
 
 #define CASCLIB_NO_AUTO_LINK_LIBRARY 1
 #include <CascLib.h>
@@ -14,12 +14,7 @@ namespace LibAbyss {
 
 namespace {
 
-static bool casc_progress_callback(
-        void *PtrUserParam,
-        LPCSTR szWork,
-        LPCSTR szObject,
-        DWORD CurrentValue,
-        DWORD TotalValue) {
+static bool casc_progress_callback(void *PtrUserParam, LPCSTR szWork, LPCSTR szObject, DWORD CurrentValue, DWORD TotalValue) {
     if (szObject) {
         if (TotalValue) {
             SPDLOG_TRACE("CASC progress: {0} ({1}), {2}/{3}", szWork, szObject, CurrentValue, TotalValue);
@@ -36,25 +31,20 @@ static bool casc_progress_callback(
     return false;
 }
 
-}
+} // namespace
 
 CASC::CASC(const std::filesystem::path &cascPath) {
     std::string path = std::filesystem::absolute(cascPath).string();
     CASC_OPEN_STORAGE_ARGS args = {};
     args.PfnProgressCallback = casc_progress_callback;
     if (!CascOpenStorageEx(path.c_str(), &args, 0, &_storage)) {
-        throw std::runtime_error(absl::StrFormat("Error occurred while opening CASC %s: %d", cascPath.string(),
-                    GetCascError()));
+        throw std::runtime_error(absl::StrFormat("Error occurred while opening CASC %s: %d", cascPath.string(), GetCascError()));
     }
 }
 
-CASC::~CASC() {
-    CascCloseStorage(_storage);
-}
+CASC::~CASC() { CascCloseStorage(_storage); }
 
-InputStream CASC::Load(std::string_view fileName) {
-    return InputStream(std::make_unique<CASCStream>(_storage, FixPath(fileName)));
-}
+InputStream CASC::Load(std::string_view fileName) { return InputStream(std::make_unique<CASCStream>(_storage, FixPath(fileName))); }
 
 bool CASC::HasFile(std::string_view fileName) {
     HANDLE file;

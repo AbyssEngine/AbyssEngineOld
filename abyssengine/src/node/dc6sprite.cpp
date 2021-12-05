@@ -1,7 +1,8 @@
 #include "dc6sprite.h"
 #include "../engine/engine.h"
 
-AbyssEngine::DC6Sprite::DC6Sprite(LibAbyss::InputStream &stream, const LibAbyss::Palette &palette) : _palette(palette), _dc6(stream) {
+AbyssEngine::DC6Sprite::DC6Sprite(std::string_view name, LibAbyss::InputStream &stream, const LibAbyss::Palette &palette)
+    : Sprite(name), _palette(palette), _dc6(stream) {
     if (_dc6.FramesPerDirection == 0 || _dc6.NumberOfDirections == 0)
         throw std::runtime_error("DC6 has no frames!");
 }
@@ -71,7 +72,7 @@ void AbyssEngine::DC6Sprite::RegenerateAtlas() {
 
             for (auto y = 0; y < frame.Height; y++) {
                 for (auto x = 0; x < frame.Width; x++) {
-                    const auto& color = _palette.BasePalette[frame.IndexData[x + (y*frame.Width)]];
+                    const auto &color = _palette.BasePalette[frame.IndexData[x + (y * frame.Width)]];
                     buffer[startX + x + ((startY + y) * atlasWidth)] = (uint32_t)color;
                 }
             }

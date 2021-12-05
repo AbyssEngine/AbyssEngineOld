@@ -6,8 +6,9 @@
 // -------------------------------------
 
 #include "../engine/provider.h"
-#include "../node/sprite.h"
 #include "../node/button.h"
+#include "../node/sprite.h"
+#include "../node/label.h"
 #include <filesystem>
 
 namespace AbyssEngine {
@@ -19,6 +20,7 @@ class ScriptHost {
     explicit ScriptHost(Engine *engine);
     void ExecuteString(std::string_view code);
     void ExecuteFile(std::string_view path);
+    void GC();
 
   private:
     Engine *_engine;
@@ -41,12 +43,15 @@ class ScriptHost {
     bool LuaFileExists(std::string_view fileName);
     void LuaResetMouseState();
     std::string LuaLoadText(std::string_view filePath);
-    std::unique_ptr<AbyssEngine::Sprite> LuaLoadSprite(std::string_view spritePath, std::string_view paletteName);
-    std::unique_ptr<AbyssEngine::Button> LuaLoadButton(SpriteFont* spriteFont, Sprite* sprite);
+    std::shared_ptr<AbyssEngine::Sprite> LuaLoadSprite(std::string_view spritePath, std::string_view paletteName);
+    std::shared_ptr<AbyssEngine::Button> LuaLoadButton(SpriteFont *spriteFont, Sprite *sprite);
+    std::shared_ptr<AbyssEngine::SpriteFont> LuaLoadSpriteFont(std::string_view fontPath, std::string_view paletteName);
+    std::shared_ptr<AbyssEngine::Label> LuaLoadLabel(SpriteFont *spriteFont);
     void LuaSetCursor(Sprite &sprite, int offsetX, int offsetY);
     void LuaPlayVideo(std::string_view videoPath, bool wait);
     Node &LuaGetRootNode();
-    template <class T, typename X> sol::basic_usertype<T, sol::basic_reference<false>> CreateLuaObjectType(std::string_view name, X &&constructor);
+    template <class T, typename X>
+    sol::basic_usertype<T, sol::basic_reference<false>> CreateLuaObjectType(sol::table &module, std::string_view name, X &&constructor);
     template <class T> void BindNodeFunctions(sol::basic_usertype<T, sol::basic_reference<false>> &val);
 };
 

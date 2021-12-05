@@ -25,6 +25,10 @@ class Button : public Node {
     void LuaSetFrameIndex(std::string_view frameType, int index);
     void LuaSetActivateCallback(sol::safe_function luaActivateCallback);
 
+    [[nodiscard]] std::string_view NodeType() const final { return "Button Node"; }
+    void Initialize() override;
+    ;
+
   private:
     Sprite *_sprite;
     SpriteFont *_spriteFont;

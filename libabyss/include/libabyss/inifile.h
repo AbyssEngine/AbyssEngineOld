@@ -16,6 +16,8 @@ namespace LibAbyss {
 
         bool GetValueBool(std::string_view category, std::string_view name);
 
+        int GetValueInt(std::string_view category, std::string_view name);
+
         void SetValue(std::string_view category, std::string_view name, std::string_view value);
 
     private:

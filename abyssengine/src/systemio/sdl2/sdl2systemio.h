@@ -28,10 +28,13 @@ class SDL2SystemIO : public SystemIO {
     void RenderStart() override;
     void RenderEnd() override;
     void Delay(uint32_t ms) override;
+    float GetMasterAudioLevel() override;
+    void SetMasterAudioLevel(float level) override;
+    void ResetMouseButtonState() override;
 
   private:
     void InitializeAudio();
-    void FinalizeAudio() const;
+    void FinalizeAudio();
     static void HandleAudioCallback(void *userData, Uint8 *stream, int length);
     void HandleAudio(uint8_t *stream, int length);
     bool HandleSdlEvent(const SDL_Event &sdlEvent, Node &rootNode);
@@ -39,12 +42,14 @@ class SDL2SystemIO : public SystemIO {
     std::unique_ptr<SDL_Window, std::function<void(SDL_Window *)>> _sdlWindow;
     std::unique_ptr<SDL_Renderer, std::function<void(SDL_Renderer *)>> _sdlRenderer;
 
+    std::mutex _mutex;
     bool _hasAudio = false;
     SDL_AudioSpec _audioSpec;
     SDL_AudioDeviceID _audioDeviceId = 0;
     RingBuffer _audioBuffer;
     int _cursorX = 0;
     int _cursorY = 0;
+    float _masterAudioLevel = 1.0f;
     eMouseButton _mouseButtonState;
 };
 
