@@ -20,6 +20,8 @@ namespace LibAbyss {
 
         void SetValue(std::string_view category, std::string_view name, std::string_view value);
 
+        float GetValueFloat(std::string_view category, std::string_view name);
+
     private:
         absl::flat_hash_map<std::string, absl::flat_hash_map<std::string, std::string>> _values;
     };

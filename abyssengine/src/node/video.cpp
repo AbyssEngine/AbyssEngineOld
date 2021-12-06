@@ -7,7 +7,7 @@
 #include <spdlog/spdlog.h>
 
 namespace {
-const int DecodeBufferSize = 1024 * 32;
+const int DecodeBufferSize = 1024;
 } // namespace
 
 AbyssEngine::Video::Video(std::string_view name, LibAbyss::InputStream stream)
@@ -264,7 +264,7 @@ bool AbyssEngine::Video::ProcessFrame() {
             uint8_t *outBuffArray[1];
             outBuffArray[0] = (unsigned char *)outBuff.data();
             swr_convert(_resampleContext, outBuffArray, _avFrame->nb_samples, (const uint8_t **)_avFrame->data, _avFrame->nb_samples);
-            systemIO.PushAudioData(outBuff);
+            systemIO.PushAudioData(eAudioIntent::Video, outBuff);
         }
 
         return false;

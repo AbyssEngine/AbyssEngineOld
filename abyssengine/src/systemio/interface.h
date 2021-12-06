@@ -4,7 +4,8 @@
 #include "../common/blendmode.h"
 #include "../common/events.h"
 #include "../common/rectangle.h"
-#include "libabyss/inputstream.h"
+#include "../common/audiointent.h"
+#include "libabyss/audiostream.h"
 #include <memory>
 #include <mutex>
 #include <span>
@@ -54,7 +55,7 @@ class SystemIO {
 
     /// Writes data to the audio buffer.
     /// \param data The data to write to the audio buffer.
-    virtual void PushAudioData(std::span<const uint8_t> data) = 0;
+    virtual void PushAudioData(eAudioIntent intent, std::span<uint8_t> data) = 0;
 
     /// Resets all audio buffers.
     virtual void ResetAudio() = 0;
@@ -82,15 +83,18 @@ class SystemIO {
     /// \param buttonState The button state.
     virtual void GetCursorState(int &cursorX, int &cursorY, eMouseButton &buttonState) = 0;
 
-    /// Returns the master volume.
-    virtual float GetMasterAudioLevel() = 0;
+    /// Returns the volume.
+    virtual float GetAudioLevel(eAudioIntent intent) = 0;
 
-    /// Sets the master volume.
-    /// \param level The new master volume.
-    virtual void SetMasterAudioLevel(float level) = 0;
+    /// Sets the volume.
+    /// \param intent The intent of the audio.
+    /// \param level The new volume.
+    virtual void SetAudioLevel(eAudioIntent intent, float level) = 0;
 
     /// Resets the mouse button state.
     virtual void ResetMouseButtonState() = 0;
+
+    virtual void SetBackgroundMusic(std::unique_ptr<LibAbyss::AudioStream> stream) = 0;
 
 };
 

@@ -3,7 +3,7 @@
 
 #include "../node/sprite.h"
 #include "../node/video.h"
-#include "../scripting/scripthost.h"
+#include "scripthost.h"
 #include "../systemio/interface.h"
 #include "libabyss/inifile.h"
 #include "libabyss/palette.h"

@@ -2,14 +2,14 @@
 #include "../hostnotify/hostnotify.h"
 #include "filesystemprovider.h"
 #include <spdlog/spdlog.h>
+#include <cmath>
 
 std::exception_ptr AbyssEngine::globalExceptionPtr = nullptr;
 AbyssEngine::Engine *engineGlobalInstance = nullptr;
 
 AbyssEngine::Engine::Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO> systemIo)
     : _iniFile(std::move(iniFile)), _systemIO(std::move(systemIo)), _loader(), _palettes(), _scriptHost(std::make_unique<ScriptHost>(this)),
-      _rootNode("__root"), _videoNode(), _mouseButtonState((eMouseButton)0), _zmqContex(),
-      _zmqSocket(_zmqContex, zmq::socket_type::router) {
+      _rootNode("__root"), _videoNode(), _mouseButtonState((eMouseButton)0), _zmqContex(), _zmqSocket(_zmqContex, zmq::socket_type::router) {
     SPDLOG_TRACE("Creating engine");
 
     // Set up the global instance
@@ -22,6 +22,11 @@ AbyssEngine::Engine::Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO>
     // _zmqSocket.bind("inproc://engine");
 
     _luaGcRateMsec = _iniFile.GetValueInt("System", "LuaGcRateMsecs");
+
+    _systemIO->SetAudioLevel(eAudioIntent::Master, _iniFile.GetValueFloat("Audio", "MasterVolume"));
+    _systemIO->SetAudioLevel(eAudioIntent::Video, _iniFile.GetValueFloat("Audio", "VideoVolume"));
+    _systemIO->SetAudioLevel(eAudioIntent::SoundEffect, _iniFile.GetValueFloat("Audio", "SoundEffectsVolume"));
+    _systemIO->SetAudioLevel(eAudioIntent::BackgroundMusic, _iniFile.GetValueFloat("Audio", "BackgroundMusicVolume"));
 }
 
 void AbyssEngine::Engine::Run() {
@@ -79,11 +84,7 @@ const LibAbyss::Palette &AbyssEngine::Engine::GetPalette(std::string_view palett
     return _palettes.at(std::string(paletteName));
 }
 
-AbyssEngine::Node &AbyssEngine::Engine::GetRootNode() {
-    std::lock_guard<std::mutex> guard(_mutex);
-
-    return _rootNode;
-}
+AbyssEngine::Node &AbyssEngine::Engine::GetRootNode() { return _rootNode; }
 
 AbyssEngine::Node *AbyssEngine::Engine::GetFocusedNode() {
     std::lock_guard<std::mutex> guard(_mutex);
@@ -143,8 +144,6 @@ void AbyssEngine::Engine::RunMainLoop() {
             _videoNode != nullptr ? RenderVideo() : RenderRootNode();
             _systemIO->RenderEnd();
         }
-
-
     }
 }
 

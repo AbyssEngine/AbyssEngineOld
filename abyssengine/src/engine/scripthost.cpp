@@ -1,11 +1,11 @@
 #include "scripthost.h"
-#include "../engine/cascprovider.h"
-#include "../engine/engine.h"
-#include "../engine/filesystemprovider.h"
-#include "../engine/mpqprovider.h"
 #include "../hostnotify/hostnotify.h"
 #include "../node/d2rsprite.h"
 #include "../node/dc6sprite.h"
+#include "cascprovider.h"
+#include "engine.h"
+#include "filesystemprovider.h"
+#include "mpqprovider.h"
 #include <absl/strings/ascii.h>
 #include <absl/strings/str_cat.h>
 #include <filesystem>
@@ -13,18 +13,16 @@
 #include <sol/sol.hpp>
 #include <spdlog/spdlog.h>
 
-
-int my_exception_handler(lua_State* L, sol::optional<const std::exception&> maybe_exception, sol::string_view description) {
+static int my_exception_handler(lua_State *L, sol::optional<const std::exception &> maybe_exception, sol::string_view description) {
     // L is the lua state, which you can wrap in a state_view if necessary
     // maybe_exception will contain exception, if it exists
     // description will either be the what() of the exception or a description saying that we hit the general-case catch(...)
     std::cout << "An exception occurred in a function, here's what it says ";
     if (maybe_exception) {
         std::cout << "(straight from the exception): ";
-        const std::exception& ex = *maybe_exception;
+        const std::exception &ex = *maybe_exception;
         std::cout << ex.what() << std::endl;
-    }
-    else {
+    } else {
         std::cout << "(from the description parameter): ";
         std::cout.write(description.data(), static_cast<std::streamsize>(description.size()));
         std::cout << std::endl;
@@ -64,12 +62,12 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _lua(), _engine(engine) {
     module.set_function("loadSpriteFont", &ScriptHost::LuaLoadSpriteFont, this);
     module.set_function("loadLabel", &ScriptHost::LuaLoadLabel, this);
     module.set_function("log", &ScriptHost::LuaLog, this);
+    module.set_function("playBackgroundMusic", &ScriptHost::LuaPlayBackgroundMusic, this);
     module.set_function("playVideo", &ScriptHost::LuaPlayVideo, this);
     module.set_function("resetMouseState", &ScriptHost::LuaResetMouseState, this);
     module.set_function("setCursor", &ScriptHost::LuaSetCursor, this);
     module.set_function("showSystemCursor", &ScriptHost::LuaShowSystemCursor, this);
     module.set_function("shutdown", &ScriptHost::LuaFuncShutdown, this);
-
 
     // User Types -------------------------------------------------------------------------------------------------------------------------
 
@@ -264,7 +262,7 @@ bool AbyssEngine::ScriptHost::LuaFileExists(std::string_view fileName) {
     return _engine->GetLoader().FileExists(path);
 }
 
-std::shared_ptr<AbyssEngine::Sprite> AbyssEngine::ScriptHost::LuaLoadSprite(std::string_view spritePath, std::string_view paletteName = "") {
+std::unique_ptr<AbyssEngine::Sprite> AbyssEngine::ScriptHost::LuaLoadSprite(std::string_view spritePath, std::string_view paletteName = "") {
     const auto &engine = _engine;
     const std::filesystem::path path(spritePath);
 
@@ -276,15 +274,15 @@ std::shared_ptr<AbyssEngine::Sprite> AbyssEngine::ScriptHost::LuaLoadSprite(std:
     std::string lower = absl::AsciiStrToLower(spritePath);
     if (lower.ends_with(".dc6")) {
         const auto &palette = engine->GetPalette(paletteName);
-        return std::make_shared<DC6Sprite>(spritePath, stream, palette);
+        return std::make_unique<DC6Sprite>(spritePath, stream, palette);
     } else if (lower.ends_with(".sprite")) {
-        return std::make_shared<D2RSprite>(stream);
+        return std::make_unique<D2RSprite>(stream);
     } else
         throw std::runtime_error(absl::StrCat("Unknowns sprite format for file: ", spritePath));
 }
 
-std::shared_ptr<AbyssEngine::Button> AbyssEngine::ScriptHost::LuaLoadButton(SpriteFont *spriteFont, Sprite *sprite) {
-    return std::make_shared<Button>(spriteFont, sprite);
+std::unique_ptr<AbyssEngine::Button> AbyssEngine::ScriptHost::LuaLoadButton(SpriteFont *spriteFont, Sprite *sprite) {
+    return std::make_unique<Button>(spriteFont, sprite);
 }
 
 void AbyssEngine::ScriptHost::LuaSetCursor(Sprite &sprite, int offsetX, int offsetY) { _engine->SetCursorSprite(&sprite, offsetX, offsetY); }
@@ -317,6 +315,7 @@ template <class T> void AbyssEngine::ScriptHost::BindNodeFunctions(sol::basic_us
 }
 
 void AbyssEngine::ScriptHost::LuaResetMouseState() { _engine->ResetMouseButtonState(); }
+
 std::string AbyssEngine::ScriptHost::LuaLoadText(std::string_view filePath) {
     if (!_engine->GetLoader().FileExists(filePath))
         throw std::runtime_error(absl::StrCat("Path does not exist: ", filePath));
@@ -325,12 +324,22 @@ std::string AbyssEngine::ScriptHost::LuaLoadText(std::string_view filePath) {
     return {std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>()};
 }
 
-std::shared_ptr<AbyssEngine::SpriteFont> AbyssEngine::ScriptHost::LuaLoadSpriteFont(std::string_view fontPath, std::string_view paletteName) {
-    return std::make_shared<SpriteFont>(fontPath, paletteName);
+std::unique_ptr<AbyssEngine::SpriteFont> AbyssEngine::ScriptHost::LuaLoadSpriteFont(std::string_view fontPath, std::string_view paletteName) {
+    return std::make_unique<SpriteFont>(fontPath, paletteName);
 }
-std::shared_ptr<AbyssEngine::Label> AbyssEngine::ScriptHost::LuaLoadLabel(AbyssEngine::SpriteFont *spriteFont) {
-    return std::make_shared<AbyssEngine::Label>(spriteFont);
+
+std::unique_ptr<AbyssEngine::Label> AbyssEngine::ScriptHost::LuaLoadLabel(AbyssEngine::SpriteFont *spriteFont) {
+    return std::make_unique<AbyssEngine::Label>(spriteFont);
 }
-void AbyssEngine::ScriptHost::GC() {
-    _lua.collect_garbage();
+void AbyssEngine::ScriptHost::GC() { _lua.collect_garbage(); }
+
+void AbyssEngine::ScriptHost::LuaPlayBackgroundMusic(std::string_view fileName) {
+    auto& loader = _engine->GetLoader();
+
+    if (!loader.FileExists(fileName))
+        throw std::runtime_error(absl::StrCat("File not found: ", fileName));
+
+    auto stream = std::make_unique<LibAbyss::InputStream>(loader.Load(fileName));
+
+    _engine->GetSystemIO().SetBackgroundMusic(std::move(std::make_unique<LibAbyss::AudioStream>(std::move(stream))));
 }

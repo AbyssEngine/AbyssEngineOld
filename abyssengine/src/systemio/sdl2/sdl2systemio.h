@@ -21,16 +21,17 @@ class SDL2SystemIO : public SystemIO {
     void PauseAudio(bool pause) final;
     void SetFullscreen(bool fullscreen) final;
     std::unique_ptr<ITexture> CreateTexture(ITexture::Format textureFormat, uint32_t width, uint32_t height) final;
-    void PushAudioData(std::span<const uint8_t> data) final;
+    void PushAudioData(eAudioIntent intent, std::span<uint8_t> data) final;
     void ResetAudio() final;
     bool HandleInputEvents(Node &rootNode) final;
     uint32_t GetTicks() final;
-    void RenderStart() override;
-    void RenderEnd() override;
-    void Delay(uint32_t ms) override;
-    float GetMasterAudioLevel() override;
-    void SetMasterAudioLevel(float level) override;
-    void ResetMouseButtonState() override;
+    void RenderStart() final;
+    void RenderEnd() final;
+    void Delay(uint32_t ms) final;
+    float GetAudioLevel(eAudioIntent intent) final;
+    void SetAudioLevel(eAudioIntent intent, float level) final;
+    void ResetMouseButtonState() final;
+    void SetBackgroundMusic(std::unique_ptr<LibAbyss::AudioStream> stream) final;
 
   private:
     void InitializeAudio();
@@ -41,7 +42,8 @@ class SDL2SystemIO : public SystemIO {
 
     std::unique_ptr<SDL_Window, std::function<void(SDL_Window *)>> _sdlWindow;
     std::unique_ptr<SDL_Renderer, std::function<void(SDL_Renderer *)>> _sdlRenderer;
-
+    std::unique_ptr<LibAbyss::AudioStream> _backgroundMusicStream;
+    int _backgroundMusicSampleRate = 0;
     std::mutex _mutex;
     bool _hasAudio = false;
     SDL_AudioSpec _audioSpec;
@@ -49,8 +51,15 @@ class SDL2SystemIO : public SystemIO {
     RingBuffer _audioBuffer;
     int _cursorX = 0;
     int _cursorY = 0;
-    float _masterAudioLevel = 1.0f;
     eMouseButton _mouseButtonState;
+    float _masterAudioLevel = 1.0f;
+    float _masterAudioLevelActual = 1.0f;
+    float _videoAudioLevel = 1.0f;
+    float _videoAudioLevelActual = 1.0f;
+    float _backgroundMusicAudioLevel = 1.0f;
+    float _backgroundMusicAudioLevelActual = 1.0f;
+    float _soundEffectsAudioLevel = 1.0f;
+    float _soundEffectsAudioLevelActual = 1.0f;
 };
 
 } // namespace AbyssEngine::SDL2

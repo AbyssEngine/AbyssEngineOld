@@ -5,10 +5,10 @@
 #include <sol/sol.hpp>
 // -------------------------------------
 
-#include "../engine/provider.h"
 #include "../node/button.h"
-#include "../node/sprite.h"
 #include "../node/label.h"
+#include "../node/sprite.h"
+#include "provider.h"
 #include <filesystem>
 
 namespace AbyssEngine {
@@ -42,11 +42,12 @@ class ScriptHost {
     void LuaLoadPalette(std::string_view paletteName, std::string_view path);
     bool LuaFileExists(std::string_view fileName);
     void LuaResetMouseState();
+    void LuaPlayBackgroundMusic(std::string_view fileName);
     std::string LuaLoadText(std::string_view filePath);
-    std::shared_ptr<AbyssEngine::Sprite> LuaLoadSprite(std::string_view spritePath, std::string_view paletteName);
-    std::shared_ptr<AbyssEngine::Button> LuaLoadButton(SpriteFont *spriteFont, Sprite *sprite);
-    std::shared_ptr<AbyssEngine::SpriteFont> LuaLoadSpriteFont(std::string_view fontPath, std::string_view paletteName);
-    std::shared_ptr<AbyssEngine::Label> LuaLoadLabel(SpriteFont *spriteFont);
+    std::unique_ptr<AbyssEngine::Sprite> LuaLoadSprite(std::string_view spritePath, std::string_view paletteName);
+    std::unique_ptr<AbyssEngine::Button> LuaLoadButton(SpriteFont *spriteFont, Sprite *sprite);
+    std::unique_ptr<AbyssEngine::SpriteFont> LuaLoadSpriteFont(std::string_view fontPath, std::string_view paletteName);
+    std::unique_ptr<AbyssEngine::Label> LuaLoadLabel(SpriteFont *spriteFont);
     void LuaSetCursor(Sprite &sprite, int offsetX, int offsetY);
     void LuaPlayVideo(std::string_view videoPath, bool wait);
     Node &LuaGetRootNode();

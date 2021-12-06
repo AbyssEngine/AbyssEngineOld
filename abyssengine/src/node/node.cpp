@@ -79,7 +79,7 @@ void AbyssEngine::Node::SetActive(bool active) {
     Active = active;
 }
 
-bool AbyssEngine::Node::GetActive() {
+bool AbyssEngine::Node::GetActive() const {
     std::lock_guard<std::mutex> lock(_mutex);
 
     return Active;

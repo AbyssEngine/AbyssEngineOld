@@ -31,7 +31,7 @@ class Node {
     void SetPosition(int x, int y);
     void ProcessQueuedActions();
     void SetActive(bool active);
-    [[nodiscard]] bool GetActive();
+    [[nodiscard]] bool GetActive() const;
     void SetVisible(bool visible);
     [[nodiscard]] bool GetVisible();
     std::tuple<int, int> GetPosition();
@@ -50,7 +50,7 @@ class Node {
     std::queue<Node *> _removeChildQueue;
     bool _removeAllChildren = false;
     std::string Name;
-    std::mutex _mutex;
+    mutable std::mutex _mutex;
     bool _initialized = false;
 };
 

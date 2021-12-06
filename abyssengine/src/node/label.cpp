@@ -5,7 +5,7 @@ AbyssEngine::Label::Label(SpriteFont *spriteFont) : _spriteFont(spriteFont), _ca
         throw std::runtime_error("SpriteFont is null");
 }
 
-AbyssEngine::Label::~Label() { SPDLOG_TRACE("Label deleted: {0}", _caption); }
+AbyssEngine::Label::~Label() = default;
 
 void AbyssEngine::Label::UpdateCallback(uint32_t ticks) { Node::UpdateCallback(ticks); }
 

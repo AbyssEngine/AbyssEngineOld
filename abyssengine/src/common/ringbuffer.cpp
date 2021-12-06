@@ -61,7 +61,7 @@ void AbyssEngine::RingBuffer::ReadData(std::span<uint8_t> outBuffer) {
     while (readPos >= _bufferSize)
         readPos -= _bufferSize;
 
-    for(auto i = 0; i < toRead; i++) {
+    for (auto i = 0; i < toRead; i++) {
         outBuffer[i] = _buffer[readPos++];
 
         while (readPos >= _bufferSize)
@@ -78,3 +78,4 @@ void AbyssEngine::RingBuffer::Reset() {
     _writePosition = 0;
     _remainingToRead = 0;
 }
+

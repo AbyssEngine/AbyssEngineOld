@@ -86,3 +86,7 @@ int LibAbyss::INIFile::GetValueInt(std::string_view category, std::string_view n
     auto value = GetValue(category, name);
     return std::stoi(value);
 }
+float LibAbyss::INIFile::GetValueFloat(std::string_view category, std::string_view name) {
+    auto value = GetValue(category, name);
+    return std::stof(value);
+}

@@ -118,7 +118,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         src/node/button.cpp
 
         # Scripting ----------------------------------------------------
-        src/scripting/scripthost.cpp
+        src/engine/scripthost.cpp
 
         # SystemIO - SDL2 ----------------------------------------------
         src/systemio/sdl2/sdl2systemio.cpp
@@ -138,7 +138,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
         ${FFMPEG_INCLUDE_DIRS}
         )
 
-message(Defs: ${FFMPEG_LIBRARIES})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
         libabyss

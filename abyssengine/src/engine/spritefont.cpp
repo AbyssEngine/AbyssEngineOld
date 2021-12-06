@@ -60,8 +60,6 @@ AbyssEngine::SpriteFont::SpriteFont(std::string_view filePath, std::string_view 
 
         _glyphs.push_back(glyph);
     }
-
-    SPDLOG_TRACE("SpriteFont constructed");
 }
 
 void AbyssEngine::SpriteFont::RegenerateAtlas() {

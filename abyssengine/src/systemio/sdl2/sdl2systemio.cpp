@@ -10,7 +10,6 @@
 #include <span>
 #include <spdlog/spdlog.h>
 #ifdef __APPLE__
-#include "../../engine/engine.h"
 #include "../../hostnotify/hostnotify_mac_shim.h"
 #endif // __APPLE__
 
@@ -19,7 +18,8 @@ const int AudioBufferSize = 1024 * 128;
 }
 
 AbyssEngine::SDL2::SDL2SystemIO::SDL2SystemIO()
-    : AbyssEngine::SystemIO::SystemIO(), _audioBuffer(AudioBufferSize), _audioSpec(), _mutex(), _mouseButtonState((eMouseButton)0) {
+    : AbyssEngine::SystemIO::SystemIO(), _audioBuffer(AudioBufferSize), _audioSpec(), _mutex(), _mouseButtonState((eMouseButton)0),
+      _backgroundMusicStream() {
     SPDLOG_TRACE("Creating SDL2 System IO");
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER | SDL_INIT_TIMER | SDL_INIT_AUDIO) != 0)
@@ -206,6 +206,28 @@ void AbyssEngine::SDL2::SDL2SystemIO::HandleAudio(uint8_t *stream, int length) {
     }
 
     _audioBuffer.ReadData(std::span(stream, length));
+
+    // Apply the master volume level
+    for (auto i = 0; i < length; i += 2) {
+        int32_t sample = ((int16_t)stream[i]) | (((int16_t)stream[i + 1]) << 8);
+
+        // Add in the background music
+        // Note the background music plays at half the native sample rate
+        if (_backgroundMusicStream)
+            sample += _backgroundMusicStream->GetSample();
+
+        // Apply the master audio volume level
+        sample = (int16_t)(((float)sample) * _masterAudioLevelActual);
+
+        // Clamp the output
+        if (sample > 32767)
+            sample = 32767;
+        else if (sample < -32768)
+            sample = -32768;
+
+        stream[i] = (uint8_t)(sample & 0xFF);
+        stream[i + 1] = (uint8_t)((sample >> 8) & 0xFF);
+    }
 }
 
 void AbyssEngine::SDL2::SDL2SystemIO::FinalizeAudio() {
@@ -218,7 +240,39 @@ void AbyssEngine::SDL2::SDL2SystemIO::FinalizeAudio() {
     SDL_CloseAudioDevice(_audioDeviceId);
 }
 
-void AbyssEngine::SDL2::SDL2SystemIO::PushAudioData(std::span<const uint8_t> data) { _audioBuffer.PushData(data); }
+void AbyssEngine::SDL2::SDL2SystemIO::PushAudioData(eAudioIntent intent, std::span<uint8_t> data) {
+    const auto length = data.size();
+
+    if (length & 1) {
+        SPDLOG_WARN("Audio data size is not even, dropping samples");
+        return;
+    }
+
+    float adjust = 1.0;
+    switch (intent) {
+    case eAudioIntent::BackgroundMusic:
+        adjust = _backgroundMusicAudioLevelActual;
+        break;
+    case eAudioIntent::SoundEffect:
+        adjust = _soundEffectsAudioLevelActual;
+        break;
+    case eAudioIntent::Video:
+        adjust = _videoAudioLevelActual;
+        break;
+    case eAudioIntent::Master:
+        throw std::runtime_error("Attempted to push audio data to master audio stream");
+    }
+
+    // Apply the master volume level
+    for (auto i = 0; i < length; i += 2) {
+        int16_t sample = ((int16_t)data[i]) | (((int16_t)data[i + 1]) << 8);
+        sample = (int16_t)(((float)sample) * adjust);
+        data[i] = (uint8_t)(sample & 0xFF);
+        data[i + 1] = (uint8_t)((sample >> 8) & 0xFF);
+    }
+
+    _audioBuffer.PushData(data);
+}
 
 void AbyssEngine::SDL2::SDL2SystemIO::ResetAudio() { _audioBuffer.Reset(); }
 
@@ -249,8 +303,43 @@ void AbyssEngine::SDL2::SDL2SystemIO::GetCursorState(int &cursorX, int &cursorY,
     buttonState = _mouseButtonState;
 }
 
-float AbyssEngine::SDL2::SDL2SystemIO::GetMasterAudioLevel() { return _masterAudioLevel; }
+float AbyssEngine::SDL2::SDL2SystemIO::GetAudioLevel(eAudioIntent intent) {
+    std::lock_guard<std::mutex> lock(_mutex);
+    return _masterAudioLevel;
+}
 
-void AbyssEngine::SDL2::SDL2SystemIO::SetMasterAudioLevel(float level) { _masterAudioLevel = level; }
+void AbyssEngine::SDL2::SDL2SystemIO::SetAudioLevel(eAudioIntent intent, float level) {
+    std::lock_guard<std::mutex> lock(_mutex);
+
+    if (level < 0)
+        level = 0;
+
+    if (level > 1)
+        level = 1;
+
+    const auto finalLevel = level;
+    const auto finalLevelActual = std::pow(level, 2.0f);
+
+    switch (intent) {
+    case eAudioIntent::BackgroundMusic:
+        _backgroundMusicAudioLevel = finalLevel;
+        _backgroundMusicAudioLevelActual = finalLevelActual;
+        break;
+    case eAudioIntent::SoundEffect:
+        _soundEffectsAudioLevel = finalLevel;
+        _soundEffectsAudioLevelActual = finalLevelActual;
+        break;
+    case eAudioIntent::Video:
+        _videoAudioLevel = finalLevel;
+        _videoAudioLevelActual = finalLevelActual;
+        break;
+    case eAudioIntent::Master:
+        _masterAudioLevel = finalLevel;
+        _masterAudioLevelActual = finalLevelActual;
+        break;
+    }
+}
 
 void AbyssEngine::SDL2::SDL2SystemIO::ResetMouseButtonState() { _mouseButtonState = (eMouseButton)0; }
+
+void AbyssEngine::SDL2::SDL2SystemIO::SetBackgroundMusic(std::unique_ptr<LibAbyss::AudioStream> stream) { _backgroundMusicStream = std::move(stream); }
