@@ -5,12 +5,13 @@ extern "C" {
 #include "libabyss/audiostream.h"
 #include <absl/cleanup/cleanup.h>
 #include <absl/strings/str_cat.h>
+#include <spdlog/spdlog.h>
 
 namespace {
 const int DecodeBufferSize = 1024;
 } // namespace
 
-LibAbyss::AudioStream::AudioStream(std::unique_ptr<InputStream> stream) : _stream(std::move(stream)), _ringBuffer(8192) {
+LibAbyss::AudioStream::AudioStream(std::unique_ptr<InputStream> stream) : _stream(std::move(stream)), _ringBuffer(1024*16) {
     _avFormatContext = avformat_alloc_context();
 
     _avBuffer = (unsigned char *)av_malloc(DecodeBufferSize); // AVIO is going to free this automagically... because why not?
@@ -130,7 +131,7 @@ void LibAbyss::AudioStream::Update() {
     absl::Cleanup cleanup_packet([&] { av_packet_unref(&packet); });
 
     if ((avError = av_read_frame(_avFormatContext, &packet)) < 0) {
-        avio_seek_time(_avioContext, 0, AVSEEK_FLAG_FRAME, 0);
+        av_seek_frame(_avFormatContext, _audioStreamIdx, 0, 0);
         return;
     }
 
