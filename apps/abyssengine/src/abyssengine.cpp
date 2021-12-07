@@ -1,7 +1,7 @@
 #include <filesystem>
 #include "engine/engine.h"
 #include "hostnotify/hostnotify.h"
-#include <config.h>
+#include "config.h"
 #include <memory>
 #include "systemio/sdl2/sdl2systemio.h"
 #include <spdlog/spdlog.h>

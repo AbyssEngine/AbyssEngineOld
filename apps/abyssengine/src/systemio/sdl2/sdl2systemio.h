@@ -1,12 +1,12 @@
 #ifndef ABYSS_SDL2SYSTEMIO_H
 #define ABYSS_SDL2SYSTEMIO_H
 
-#include "../../common/ringbuffer.h"
 #include "../../node/video.h"
 #include "../interface.h"
-#include <SDL2/SDL.h>
 #include <functional>
+#include <libabyss/ringbuffer.h>
 #include <mutex>
+#include <SDL2/SDL.h>
 #include <string>
 
 namespace AbyssEngine::SDL2 {
@@ -48,7 +48,7 @@ class SDL2SystemIO : public SystemIO {
     bool _hasAudio = false;
     SDL_AudioSpec _audioSpec;
     SDL_AudioDeviceID _audioDeviceId = 0;
-    RingBuffer _audioBuffer;
+    LibAbyss::RingBuffer _audioBuffer;
     int _cursorX = 0;
     int _cursorY = 0;
     eMouseButton _mouseButtonState;

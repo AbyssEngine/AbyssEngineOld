@@ -1,8 +1,8 @@
 #include "config.h"
-#include "libabyss/mpqstream.h"
 #include <argh.h>
 #include <cstdlib>
 #include <filesystem>
+#include "libabyss/mpqstream.h"
 #include <spdlog/spdlog.h>
 
 void ExtractMPQ(std::string_view mpqFile, const std::filesystem::path &outputPath) {
@@ -13,7 +13,7 @@ void ExtractMPQ(std::string_view mpqFile, const std::filesystem::path &outputPat
 
     LibAbyss::MPQ mpq(mpqFile);
 
-    for (const auto& line : mpq.FileList()) {
+    for (const auto &line : mpq.FileList()) {
 
         if (!mpq.HasFile(line))
             continue;
@@ -33,21 +33,15 @@ void ExtractMPQ(std::string_view mpqFile, const std::filesystem::path &outputPat
             while (true) {
                 readFile.read(buff, 4096);
                 auto toWrite = readFile.gcount();
-                if (toWrite <= 0) break;
+                if (toWrite <= 0)
+                    break;
                 writeFile.write(buff, toWrite);
             }
-
-
-
-
 
         } catch (std::exception &ex) {
             SPDLOG_ERROR("Error reading {0}", filePath.string());
         }
-
     }
-
-
 }
 
 void ListMPQ(std::string_view mpqFile) {
@@ -62,10 +56,9 @@ void ListMPQ(std::string_view mpqFile) {
         SPDLOG_ERROR("MPQ does not contain a listfile.");
     }
 
-    for (const auto& line : mpq.FileList()) {
+    for (const auto &line : mpq.FileList()) {
         SPDLOG_INFO(line);
     }
-
 }
 
 void ListMPQContents(std::string_view mpqFile) { SPDLOG_INFO("Listing contents of {0}:", mpqFile); }

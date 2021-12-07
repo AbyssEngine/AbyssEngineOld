@@ -1,12 +1,16 @@
-#include <absl/strings/str_cat.h>
+extern "C" {
 #include <libavutil/opt.h>
+};
+
 #include "libabyss/audiostream.h"
+#include <absl/cleanup/cleanup.h>
+#include <absl/strings/str_cat.h>
 
 namespace {
 const int DecodeBufferSize = 1024;
 } // namespace
 
-LibAbyss::AudioStream::AudioStream(std::unique_ptr<InputStream> stream) : _stream(std::move(stream)) {
+LibAbyss::AudioStream::AudioStream(std::unique_ptr<InputStream> stream) : _stream(std::move(stream)), _ringBuffer(8192) {
     _avFormatContext = avformat_alloc_context();
 
     _avBuffer = (unsigned char *)av_malloc(DecodeBufferSize); // AVIO is going to free this automagically... because why not?
@@ -27,6 +31,7 @@ LibAbyss::AudioStream::AudioStream(std::unique_ptr<InputStream> stream) : _strea
     if ((avError = avformat_find_stream_info(_avFormatContext, nullptr)) < 0)
         throw std::runtime_error(absl::StrCat("Failed to find stream info: ", AvErrorCodeToString(avError)));
 
+    _audioStreamIdx = -1;
     for (auto i = 0; i < _avFormatContext->nb_streams; i++) {
         if (_avFormatContext->streams[i]->codecpar->codec_type != AVMEDIA_TYPE_AUDIO)
             continue;
@@ -35,7 +40,7 @@ LibAbyss::AudioStream::AudioStream(std::unique_ptr<InputStream> stream) : _strea
         break;
     }
 
-    if (_audioStreamIdx == 0)
+    if (_audioStreamIdx < 0)
         throw std::runtime_error("No audio stream found");
 
     const auto audioCodecPar = _avFormatContext->streams[_audioStreamIdx]->codecpar;
@@ -52,7 +57,8 @@ LibAbyss::AudioStream::AudioStream(std::unique_ptr<InputStream> stream) : _strea
         throw std::runtime_error(absl::StrCat("Failed to open audio context: ", AvErrorCodeToString(avError)));
 
     _resampleContext = swr_alloc();
-    av_opt_set_channel_layout(_resampleContext, "in_channel_layout", (int64_t)_audioCodecContext->channel_layout, 0);
+    av_opt_set_channel_layout(_resampleContext, "in_channel_layout",
+                              (int64_t)_audioCodecContext->channels == 2 ? AV_CH_LAYOUT_STEREO : AV_CH_LAYOUT_MONO, 0);
     av_opt_set_channel_layout(_resampleContext, "out_channel_layout", AV_CH_LAYOUT_STEREO, 0);
     av_opt_set_int(_resampleContext, "in_sample_rate", _audioCodecContext->sample_rate, 0);
     av_opt_set_int(_resampleContext, "out_sample_rate", 44100, 0);
@@ -68,8 +74,8 @@ LibAbyss::AudioStream::AudioStream(std::unique_ptr<InputStream> stream) : _strea
 LibAbyss::AudioStream::~AudioStream() {
     av_free(_avioContext->buffer);
     avio_context_free(&_avioContext);
-//    avcodec_free_context(&_videoCodecContext);
-//    sws_freeContext(_swsContext);
+    //    avcodec_free_context(&_videoCodecContext);
+    //    sws_freeContext(_swsContext);
     if (_audioStreamIdx >= 0) {
         avcodec_free_context(&_audioCodecContext);
         swr_free(&_resampleContext);
@@ -78,22 +84,12 @@ LibAbyss::AudioStream::~AudioStream() {
     avformat_free_context(_avFormatContext);
 }
 
-int16_t LibAbyss::AudioStream::GetSample() {
-    return 0;
-}
-
 int LibAbyss::AudioStream::StreamRead(uint8_t *buffer, int size) {
-    if (!_isPlaying)
-        return 0;
-
     _stream->read((char *)buffer, size);
     return (int)_stream->gcount();
 }
 
 int64_t LibAbyss::AudioStream::StreamSeek(int64_t offset, int whence) {
-    if (!_isPlaying)
-        return -1;
-
     std::ios_base::seekdir dir;
 
     switch (whence) {
@@ -117,8 +113,6 @@ int64_t LibAbyss::AudioStream::StreamSeek(int64_t offset, int whence) {
         return -1;
     }
 
-    _stream->seekg(offset, dir);
-
     return 0;
 }
 
@@ -126,4 +120,52 @@ std::string LibAbyss::AudioStream::AvErrorCodeToString(int avError) {
     char str[2048] = {};
     av_make_error_string(str, 2048, avError);
     return {str};
+}
+void LibAbyss::AudioStream::Update() {
+    if (_avFormatContext == nullptr || !_isPlaying)
+        return;
+
+    int avError;
+    AVPacket packet;
+    absl::Cleanup cleanup_packet([&] { av_packet_unref(&packet); });
+
+    if ((avError = av_read_frame(_avFormatContext, &packet)) < 0) {
+        avio_seek_time(_avioContext, 0, AVSEEK_FLAG_FRAME, 0);
+        return;
+    }
+
+    if (packet.stream_index != _audioStreamIdx)
+        return;
+
+    if ((avError = avcodec_send_packet(_audioCodecContext, &packet)) < 0)
+        throw std::runtime_error(absl::StrCat("Error decoding audio packet: ", AvErrorCodeToString(avError)));
+
+    while (true) {
+        if ((avError = avcodec_receive_frame(_audioCodecContext, _avFrame)) < 0) {
+            if (avError == AVERROR(EAGAIN) || avError == AVERROR_EOF)
+                break;
+
+            throw std::runtime_error(absl::StrCat("Error decoding audio packet: ", AvErrorCodeToString(avError)));
+        }
+
+        const int outSize = av_samples_get_buffer_size(nullptr, _audioCodecContext->channels, _avFrame->nb_samples, AV_SAMPLE_FMT_S16, 1);
+        std::vector<unsigned char> outBuff;
+        outBuff.resize(outSize);
+        uint8_t *outBuffArray[1];
+        outBuffArray[0] = (unsigned char *)outBuff.data();
+        swr_convert(_resampleContext, outBuffArray, _avFrame->nb_samples, (const uint8_t **)_avFrame->data, _avFrame->nb_samples);
+        _ringBuffer.PushData(outBuff);
+        // systemIO.PushAudioData(eAudioIntent::Video, outBuff);
+    }
+}
+int16_t LibAbyss::AudioStream::GetSample() {
+    if (!_isPlaying)
+        return 0;
+
+    if (_ringBuffer.Available() < 2)
+        Update();
+
+    uint8_t data[2];
+    _ringBuffer.ReadData(std::span(data, 2));
+    return (int16_t)((uint16_t)(data[0] & 0xFF) | ((uint16_t)data[1] << 8));
 }

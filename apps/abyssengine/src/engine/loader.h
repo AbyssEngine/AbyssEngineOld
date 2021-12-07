@@ -3,11 +3,11 @@
 
 #include "provider.h"
 #include <vector>
-#include <libabyss/mpq.h>
+#include "libabyss/mpq.h"
 #include <mutex>
 #include <filesystem>
 #include <istream>
-#include <libabyss/inputstream.h>
+#include "libabyss/inputstream.h"
 
 namespace AbyssEngine {
 

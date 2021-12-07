@@ -1,7 +1,7 @@
 #include "d2rsprite.h"
 #include "../engine/engine.h"
 #include <absl/strings/str_cat.h>
-#include <libabyss/streamreader.h>
+#include "libabyss/streamreader.h"
 
 namespace AbyssEngine {
 

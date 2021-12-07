@@ -1,19 +1,11 @@
 cmake_minimum_required(VERSION 3.20)
 
-if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
-    set(VCPKG_BUILD_TYPE release)
-endif()
-
-project(abysstoolset CXX)
-
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(APP_NAME abysstoolset)
 
 find_package(spdlog CONFIG REQUIRED)
 find_package(argh CONFIG REQUIRED)
 
-add_executable(${PROJECT_NAME})
+add_executable(${APP_NAME})
 
 if (MSVC)
     add_definitions(-D_HAS_DEPRECATED_RESULT_OF=1)
@@ -28,21 +20,21 @@ configure_file(
         ${PROJECT_BINARY_DIR}/config.h
 )
 
-target_sources(${PROJECT_NAME}
+target_sources(${APP_NAME}
         PRIVATE
         src/abt.cpp
         )
 
-set_target_properties(${PROJECT_NAME} PROPERTIES
+set_target_properties(${APP_NAME} PROPERTIES
         OUTPUT_NAME "abt"
         FOLDER "Applications/"
         )
 
-target_include_directories(${PROJECT_NAME} PRIVATE
+target_include_directories(${APP_NAME} PRIVATE
         ${PROJECT_BINARY_DIR}
         )
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${APP_NAME}
         PRIVATE
         libabyss
         spdlog::spdlog_header_only
@@ -50,7 +42,7 @@ target_link_libraries(${PROJECT_NAME}
         )
 
 if (WIN32)
-    install(TARGETS ${PROJECT_NAME}
+    install(TARGETS ${APP_NAME}
             RUNTIME_DEPENDENCIES
             PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
             POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
@@ -59,5 +51,5 @@ if (WIN32)
             ARCHIVE DESTINATION bin
             )
 else (WIN32)
-    install(TARGETS ${PROJECT_NAME})
+    install(TARGETS ${APP_NAME})
 endif (WIN32)

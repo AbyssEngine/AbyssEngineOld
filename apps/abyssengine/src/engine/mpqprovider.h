@@ -2,7 +2,7 @@
 #define ABYSS_MPQPROVIDER_H
 
 #include "provider.h"
-#include <libabyss/mpq.h>
+#include "libabyss/mpq.h"
 
 namespace AbyssEngine {
 

@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
+
+macro(include_sdl2)
+    find_package(SDL2 CONFIG REQUIRED)
+    find_package(sdl2-ttf)
+    if (NOT sdl2-ttf_FOUND)
+        find_package(PkgConfig REQUIRED)
+        pkg_check_modules(SDL2TTF REQUIRED IMPORTED_TARGET SDL2_ttf)
+        add_library(SDL2::SDL2_ttf ALIAS PkgConfig::SDL2TTF)
+    endif ()
+endmacro()

@@ -6,13 +6,14 @@
 #include <span>
 #include <mutex>
 
-namespace AbyssEngine {
+namespace LibAbyss {
 class RingBuffer {
   public:
     explicit RingBuffer(uint32_t bufferSize);
     void PushData(std::span<const uint8_t> data);
     void ReadData(std::span<uint8_t> outBuffer);
     void Reset();
+    uint32_t Available();
 
   private:
     const uint32_t _bufferSize;

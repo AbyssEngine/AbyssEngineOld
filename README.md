@@ -7,7 +7,7 @@
 
 Join us on IRC: [irc.libera.chat #opendiablo2](https://web.libera.chat/#opendiablo2)
 
-![AbyssEngine Engine](abyssengine/abysslogo.png)
+![AbyssEngine Engine](apps/abyssengine/abysslogo.png)
 
 ----
 AbyssEngine is a game engine designed to run games similar to 2000's style ARPGs such as Diablo II.
