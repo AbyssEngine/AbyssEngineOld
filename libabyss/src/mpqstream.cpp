@@ -4,6 +4,7 @@
 
 #define STORMLIB_NO_AUTO_LINK 1
 #include <StormLib.h>
+#include <spdlog/spdlog.h>
 
 namespace LibAbyss {
 
