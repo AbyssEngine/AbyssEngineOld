@@ -176,6 +176,7 @@ int AbyssEngine::Video::VideoStreamRead(uint8_t *buffer, int size) {
 int64_t AbyssEngine::Video::VideoStreamSeek(int64_t offset, int whence) {
     if (!_isPlaying)
         return -1;
+    _stream.clear();
 
     std::ios_base::seekdir dir;
 
@@ -201,8 +202,7 @@ int64_t AbyssEngine::Video::VideoStreamSeek(int64_t offset, int whence) {
     }
 
     _stream.seekg(offset, dir);
-
-    return 0;
+    return _stream.tellg();
 }
 bool AbyssEngine::Video::ProcessFrame() {
     if (_avFormatContext == nullptr || !_isPlaying)

@@ -10,7 +10,7 @@ namespace {
 const int DecodeBufferSize = 32;
 } // namespace
 
-LibAbyss::AudioStream::AudioStream(std::unique_ptr<InputStream> stream) : _stream(std::move(stream)), _ringBuffer(1024 * 1024) {
+LibAbyss::AudioStream::AudioStream(InputStream stream) : _stream(std::move(stream)), _ringBuffer(1024 * 1024) {
     _avFormatContext = avformat_alloc_context();
 
     _avBuffer = (unsigned char *)av_malloc(DecodeBufferSize); // AVIO is going to free this automagically... because why not?
@@ -82,12 +82,13 @@ LibAbyss::AudioStream::~AudioStream() {
 }
 
 int LibAbyss::AudioStream::StreamRead(uint8_t *buffer, int size) {
-    _stream->read((char *)buffer, size);
-    return (int)_stream->gcount();
+    _stream.read((char *)buffer, size);
+    return (int)_stream.gcount();
 }
 
 int64_t LibAbyss::AudioStream::StreamSeek(int64_t offset, int whence) {
     std::ios_base::seekdir dir;
+    _stream.clear();
 
     switch (whence) {
     case SEEK_SET:
@@ -100,17 +101,18 @@ int64_t LibAbyss::AudioStream::StreamSeek(int64_t offset, int whence) {
         dir = std::ios_base::end;
         break;
     case AVSEEK_SIZE: {
-        const auto curPos = _stream->tellg();
-        _stream->seekg(0, std::ios_base::end);
-        const auto endPos = _stream->tellg();
-        _stream->seekg(curPos, std::ios_base::beg);
+        const auto curPos = _stream.tellg();
+        _stream.seekg(0, std::ios_base::end);
+        const auto endPos = _stream.tellg();
+        _stream.seekg(curPos, std::ios_base::beg);
         return endPos;
     }
     default:
         return -1;
     }
 
-    return _stream->tellg();
+    _stream.seekg(offset, dir);
+    return _stream.tellg();
 }
 
 std::string LibAbyss::AudioStream::AvErrorCodeToString(int avError) {

@@ -20,7 +20,7 @@ extern "C" {
 namespace LibAbyss {
 class AudioStream {
   public:
-    explicit AudioStream(std::unique_ptr<InputStream> stream);
+    explicit AudioStream(InputStream stream);
     ~AudioStream();
     int16_t GetSample();
 
@@ -32,7 +32,7 @@ class AudioStream {
     static std::string AvErrorCodeToString(int avError);
     void Update();
 
-    std::unique_ptr<InputStream> _stream;
+    InputStream _stream;
     unsigned char *_avBuffer;
     AVIOContext *_avioContext;
     AVFormatContext *_avFormatContext;
