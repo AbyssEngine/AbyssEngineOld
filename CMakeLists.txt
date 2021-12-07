@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
 # -------------------------------------------------------------------------------------------------
 # Abyss Project
@@ -53,7 +53,7 @@ endif ()
 add_subdirectory(libabyss)
 #add_subdirectory(abyssengine)
 #add_subdirectory(abysstoolset)
-#add_subdirectory(tests)
+add_subdirectory(tests)
 
 #
 #find_package(ZLIB REQUIRED)
