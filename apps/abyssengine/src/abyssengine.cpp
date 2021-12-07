@@ -6,6 +6,12 @@
 #include "systemio/sdl2/sdl2systemio.h"
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+#include <libavformat/version.h>
+#include <libavresample/version.h>
+#include <libavutil/version.h>
+#include <libavcodec/version.h>
+#include <libavfilter/version.h>
+#include <libswresample/version.h>
 
 static std::filesystem::path GetConfigPath(std::string_view exePath) {
     auto testPath = std::filesystem::current_path() / "config.ini";
@@ -37,7 +43,14 @@ int main(int, char *argv[]) {
 #endif
 
     SPDLOG_INFO("SOL version " SOL_VERSION_STRING);
-    SPDLOG_INFO("Lua Version "  LUA_VERSION_MAJOR "." LUA_VERSION_MINOR);
+    SPDLOG_INFO("Lua Version " LUA_VERSION_MAJOR "." LUA_VERSION_MINOR);
+    SPDLOG_INFO("FFMPEG Library:");
+    SPDLOG_INFO("   AVFormat Version    - " AV_STRINGIFY(LIBAVFORMAT_VERSION));
+    SPDLOG_INFO("   AVResample Version  - " AV_STRINGIFY(LIBAVRESAMPLE_VERSION));
+    SPDLOG_INFO("   AVUtil Version      - " AV_STRINGIFY(LIBAVUTIL_VERSION));
+    SPDLOG_INFO("   AVCodec Version     - " AV_STRINGIFY(LIBAVCODEC_VERSION));
+    SPDLOG_INFO("   AVFilter Version    - " AV_STRINGIFY(LIBAVFILTER_VERSION));
+    SPDLOG_INFO("   SwResample Version  - " AV_STRINGIFY(LIBSWRESAMPLE_VERSION));
 
     try {
         auto configPath = GetConfigPath(argv[0]);
