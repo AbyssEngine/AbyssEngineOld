@@ -26,8 +26,8 @@ add_library(${APP_NAME}
         src/ringbuffer.cpp
 
         # Strange CASClib inclusion
+        # TODO: depend on it properly
         ${CASC_SOURCES}
-        ${CascLib_SOURCE_DIR}/src/jenkins/lookup3.c
         )
 
 
