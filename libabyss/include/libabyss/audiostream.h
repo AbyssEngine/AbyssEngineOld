@@ -48,6 +48,8 @@ class AudioStream {
     SwrContext *_resampleContext;
     AVFrame *_avFrame;
     RingBuffer _ringBuffer;
+    uint8_t **_destData;
+    int _lineSize;
 
     std::mutex _mutex;
 

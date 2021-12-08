@@ -10,7 +10,7 @@ namespace {
 const int DecodeBufferSize = 1024 * 4;
 } // namespace
 
-LibAbyss::AudioStream::AudioStream(InputStream stream) : _stream(std::move(stream)), _ringBuffer(1024 * 8), _mutex() {
+LibAbyss::AudioStream::AudioStream(InputStream stream) : _stream(std::move(stream)), _ringBuffer(1024 * 8), _mutex(), _destData(nullptr), _lineSize(0) {
     _avFormatContext = avformat_alloc_context();
 
     const auto streamSize = _stream.size();
@@ -60,20 +60,29 @@ LibAbyss::AudioStream::AudioStream(InputStream stream) : _stream(std::move(strea
         throw std::runtime_error(absl::StrCat("Failed to open audio context: ", AvErrorCodeToString(avError)));
 
     _resampleContext = swr_alloc();
+
     av_opt_set_channel_layout(_resampleContext, "in_channel_layout", av_get_default_channel_layout(_audioCodecContext->channels), 0);
-    av_opt_set_channel_layout(_resampleContext, "out_channel_layout", AV_CH_LAYOUT_STEREO, 0);
     av_opt_set_int(_resampleContext, "in_sample_rate", _audioCodecContext->sample_rate, 0);
-    av_opt_set_int(_resampleContext, "out_sample_rate", 44100, 0);
     av_opt_set_sample_fmt(_resampleContext, "in_sample_fmt", _audioCodecContext->sample_fmt, 0);
+
+    av_opt_set_channel_layout(_resampleContext, "out_channel_layout", AV_CH_LAYOUT_STEREO, 0);
+    av_opt_set_int(_resampleContext, "out_sample_rate", 44100, 0);
     av_opt_set_sample_fmt(_resampleContext, "out_sample_fmt", AV_SAMPLE_FMT_S16, 0);
 
     if ((avError = swr_init(_resampleContext)) < 0)
         throw std::runtime_error(absl::StrCat("Failed to initialize sound re-sampler: ", AvErrorCodeToString(avError)));
 
     _avFrame = av_frame_alloc();
+
+    if ((avError = av_samples_alloc_array_and_samples(&_destData, &_lineSize, 2, 44100, AV_SAMPLE_FMT_S16, 0)) < 0)
+        throw std::runtime_error(absl::StrCat("Failed to allocate samples: ", AvErrorCodeToString(avError)));
 }
 
 LibAbyss::AudioStream::~AudioStream() {
+    if (_destData)
+        av_freep(&_destData[0]);
+    av_freep(&_destData);
+
     av_free(_avioContext->buffer);
     avio_context_free(&_avioContext);
     if (_audioStreamIdx >= 0) {
@@ -122,7 +131,7 @@ std::string LibAbyss::AudioStream::AvErrorCodeToString(int avError) {
     return {str};
 }
 void LibAbyss::AudioStream::Update() {
-    if (_avFormatContext == nullptr || !_isPlaying)
+    if (_avFormatContext == nullptr || (!_isPlaying && _ringBuffer.Available() == 0))
         return;
 
     int avError;
@@ -154,11 +163,9 @@ void LibAbyss::AudioStream::Update() {
             throw std::runtime_error(absl::StrCat("Error decoding audio packet: ", AvErrorCodeToString(avError)));
         }
 
-        const int outSize = av_samples_get_buffer_size(nullptr, _audioCodecContext->channels, _avFrame->nb_samples, AV_SAMPLE_FMT_S16, 1);
-        auto outBuff = (uint8_t *)av_malloc(outSize);
-        swr_convert(_resampleContext, &outBuff, _avFrame->nb_samples, (const uint8_t **)_avFrame->data, _avFrame->nb_samples);
-        _ringBuffer.PushData(std::span(outBuff, outSize));
-        av_free(outBuff);
+        const int outSize = av_samples_get_buffer_size(&_lineSize, _audioCodecContext->channels, _avFrame->nb_samples, AV_SAMPLE_FMT_S16, 1);
+        swr_convert(_resampleContext, _destData, _avFrame->nb_samples, (const uint8_t **)_avFrame->data, _avFrame->nb_samples);
+        _ringBuffer.PushData(std::span(_destData[0], outSize));
     }
 }
 int16_t LibAbyss::AudioStream::GetSample() {

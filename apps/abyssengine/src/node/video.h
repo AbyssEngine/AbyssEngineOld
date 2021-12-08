@@ -53,6 +53,8 @@ class Video : public Node {
     AVCodecContext* _videoCodecContext;
     AVCodecContext* _audioCodecContext;
     AVFrame* _avFrame;
+    uint8_t **_destData;
+    int _lineSize;
 
     unsigned char* _avBuffer;
     std::vector<uint8_t> _yPlane;
