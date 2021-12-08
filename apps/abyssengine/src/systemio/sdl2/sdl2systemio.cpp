@@ -214,11 +214,11 @@ void AbyssEngine::SDL2::SDL2SystemIO::HandleAudio(uint8_t *stream, int length) {
         // Add in the background music
         // Note the background music plays at half the native sample rate
         if (_backgroundMusicStream) {
-            sample += _backgroundMusicStream->GetSample();
+            sample += _backgroundMusicStream->GetSample() * _backgroundMusicAudioLevelActual;
         }
 
         // Apply the master audio volume level
-        sample = (int16_t)(((float)sample) * _masterAudioLevelActual);
+        sample *= _masterAudioLevelActual;
 
         // Clamp the output
         if (sample > 32767)
@@ -267,7 +267,7 @@ void AbyssEngine::SDL2::SDL2SystemIO::PushAudioData(eAudioIntent intent, std::sp
     // Apply the master volume level
     for (auto i = 0; i < length; i += 2) {
         int16_t sample = ((int16_t)data[i]) | (((int16_t)data[i + 1]) << 8);
-        sample = (int16_t)(((float)sample) * adjust);
+        sample *= adjust;
         data[i] = (uint8_t)(sample & 0xFF);
         data[i + 1] = (uint8_t)((sample >> 8) & 0xFF);
     }

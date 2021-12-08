@@ -192,7 +192,7 @@ void AbyssEngine::ScriptHost::LuaFuncShutdown() {
     _engine->Stop();
 }
 
-std::string AbyssEngine::ScriptHost::LuaGetConfig(std::string_view category, std::string_view value) {
+std::string_view AbyssEngine::ScriptHost::LuaGetConfig(std::string_view category, std::string_view value) {
     return _engine->GetIniFile().GetValue(category, value);
 }
 
