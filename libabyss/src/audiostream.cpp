@@ -83,7 +83,10 @@ LibAbyss::AudioStream::~AudioStream() {
 
 int LibAbyss::AudioStream::StreamRead(uint8_t *buffer, int size) {
     _stream.read((char *)buffer, size);
-    return (int)_stream.gcount();
+    if (_stream) {
+        return (int)_stream.gcount();
+    }
+    return -1;
 }
 
 int64_t LibAbyss::AudioStream::StreamSeek(int64_t offset, int whence) {
