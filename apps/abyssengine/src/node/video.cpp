@@ -4,7 +4,6 @@
 #include <absl/cleanup/cleanup.h>
 #include <absl/strings/ascii.h>
 #include <ios>
-#include <spdlog/spdlog.h>
 
 namespace {
 const int DecodeBufferSize = 1024;
@@ -256,7 +255,7 @@ bool AbyssEngine::Video::ProcessFrame() {
                 throw std::runtime_error(absl::StrCat("Error decoding audio packet: ", AvErrorCodeToString(avError)));
             }
 
-            const int outSize = av_samples_get_buffer_size(nullptr, _audioCodecContext->channels, _avFrame->nb_samples, AV_SAMPLE_FMT_S16, 1);
+            const int outSize = av_samples_get_buffer_size(nullptr, _audioCodecContext->channels, _avFrame->nb_samples, AV_SAMPLE_FMT_S16, 0);
             auto outBuff = (uint8_t*)av_malloc(outSize);
             swr_convert(_resampleContext, &outBuff, _avFrame->nb_samples, (const uint8_t **)_avFrame->data, _avFrame->nb_samples);
             systemIO.PushAudioData(eAudioIntent::Video, std::span(outBuff, outSize));

@@ -209,16 +209,19 @@ void AbyssEngine::SDL2::SDL2SystemIO::HandleAudio(uint8_t *stream, int length) {
 
     // Apply the master volume level
     for (auto i = 0; i < length; i += 2) {
-        int32_t sample = ((int16_t)stream[i]) | (((int16_t)stream[i + 1]) << 8);
+         int32_t sample = (int16_t)(((uint16_t)stream[i]) | (((uint16_t)stream[i + 1]) << 8));
 
         // Add in the background music
         // Note the background music plays at half the native sample rate
         if (_backgroundMusicStream) {
-            sample += _backgroundMusicStream->GetSample();
+            sample += (int32_t)((float)_backgroundMusicStream->GetSample() * _backgroundMusicAudioLevelActual);
         }
 
         // Add in the sound effects
         for (auto &effect : _soundEffects) {
+            if (!effect->GetIsPlaying())
+                continue;
+
             auto sfxSample = (int32_t)effect->GetSample();
             sfxSample = (int32_t)((float)sfxSample * _soundEffectsAudioLevelActual);
 
@@ -226,7 +229,7 @@ void AbyssEngine::SDL2::SDL2SystemIO::HandleAudio(uint8_t *stream, int length) {
         }
 
         // Apply the master audio volume level
-        sample = (int16_t)(((float)sample) * _masterAudioLevelActual);
+        sample = (int32_t)((float)sample * _masterAudioLevelActual);
 
         // Clamp the output
         if (sample > 32767)
@@ -274,7 +277,7 @@ void AbyssEngine::SDL2::SDL2SystemIO::PushAudioData(eAudioIntent intent, std::sp
 
     // Apply the master volume level
     for (auto i = 0; i < length; i += 2) {
-        auto sample = (int16_t)(((int16_t)data[i]) | (int16_t)((data[i + 1]) << 8));
+        auto sample = (int16_t)(((int16_t)data[i]) | (((int16_t)data[i + 1]) << 8));
         sample = (int16_t)((float)sample * adjust);
         data[i] = (uint8_t)(sample & 0xFF);
         data[i + 1] = (uint8_t)((sample >> 8) & 0xFF);

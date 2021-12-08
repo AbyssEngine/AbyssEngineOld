@@ -3,6 +3,9 @@
 #include <spdlog/spdlog.h>
 #include <fstream>
 #include <absl/strings/str_split.h>
+#include <absl/strings/str_format.h>
+#include <charconv>
+#include <stdexcept>
 
 LibAbyss::INIFile::INIFile(const std::filesystem::path &iniFilePath) {
     SPDLOG_TRACE("creating ini file from '{0}'", iniFilePath.string());
@@ -61,18 +64,20 @@ LibAbyss::INIFile::INIFile(const std::filesystem::path &iniFilePath) {
 
 }
 
-std::string LibAbyss::INIFile::GetValue(std::string_view category, std::string_view name) {
-    if (!_values.contains(absl::AsciiStrToLower(category)))
-        return {};
+std::string_view LibAbyss::INIFile::GetValue(std::string_view category, std::string_view name) const {
+    auto itcat = _values.find(absl::AsciiStrToLower(category));
+    if (itcat == _values.end())
+        return "";
+    const auto& cat = itcat->second;
 
-    if (!_values[absl::AsciiStrToLower(category)].contains(absl::AsciiStrToLower(name)))
-        return {};
+    auto it = cat.find(absl::AsciiStrToLower(name));
+    if (it == cat.end())
+        return "";
 
-    auto result = _values[absl::AsciiStrToLower(category)][absl::AsciiStrToLower(name)];
-    return result;
+    return it->second;
 }
 
-bool LibAbyss::INIFile::GetValueBool(std::string_view category, std::string_view name) {
+bool LibAbyss::INIFile::GetValueBool(std::string_view category, std::string_view name) const {
     auto value = absl::AsciiStrToLower(GetValue(category, name));
 
     return (value == "true" || value == "1" || value == "yes" || value == "y");
@@ -82,11 +87,35 @@ void LibAbyss::INIFile::SetValue(std::string_view category, std::string_view nam
     _values[absl::AsciiStrToLower(category)][absl::AsciiStrToLower(name)] = value;
 }
 
-int LibAbyss::INIFile::GetValueInt(std::string_view category, std::string_view name) {
+int LibAbyss::INIFile::GetValueInt(std::string_view category, std::string_view name) const {
     auto value = GetValue(category, name);
-    return std::stoi(value);
+    int result = 0;
+    auto [ptr, ec] = std::from_chars((const char*)value.data(), (const char*)value.data() + value.size(), result, 10);
+    if (ec != std::errc() || ptr != (const char*)value.data() + value.size()) {
+        throw std::runtime_error(absl::StrFormat("Can't parse %s.%s from ini as int: '%s'", category, name, value));
+    }
+    return result;
 }
-float LibAbyss::INIFile::GetValueFloat(std::string_view category, std::string_view name) {
+float LibAbyss::INIFile::GetValueFloat(std::string_view category, std::string_view name) const {
+    // TODO: use std::from_chars instead, when it's implemented in libc++
     auto value = GetValue(category, name);
-    return std::stof(value);
+    float result = 0;
+    bool fp = false;
+    float coef = 1;
+    for (char c : value) {
+        if (c == '.') {
+            if (fp) {
+                throw std::runtime_error(absl::StrFormat("Can't parse %s.%s from ini as float: '%s'", category, name, value));
+            }
+            fp = true;
+        } else if (c < '0' || c > '9') {
+            throw std::runtime_error(absl::StrFormat("Can't parse %s.%s from ini as float: '%s'", category, name, value));
+        } else if (fp) {
+            coef *= 0.1;
+            result += (c - '0') * coef;
+        } else {
+            result = result * 10 + (c - '0');
+        }
+    }
+    return result;
 }

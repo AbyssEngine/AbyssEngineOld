@@ -12,15 +12,15 @@ namespace LibAbyss {
     public:
         explicit INIFile(const std::filesystem::path &iniFilePath);
 
-        std::string GetValue(std::string_view category, std::string_view name);
+        std::string_view GetValue(std::string_view category, std::string_view name) const;
 
-        bool GetValueBool(std::string_view category, std::string_view name);
+        bool GetValueBool(std::string_view category, std::string_view name) const;
 
-        int GetValueInt(std::string_view category, std::string_view name);
+        int GetValueInt(std::string_view category, std::string_view name) const;
 
         void SetValue(std::string_view category, std::string_view name, std::string_view value);
 
-        float GetValueFloat(std::string_view category, std::string_view name);
+        float GetValueFloat(std::string_view category, std::string_view name) const;
 
     private:
         absl::flat_hash_map<std::string, absl::flat_hash_map<std::string, std::string>> _values;
