@@ -35,7 +35,7 @@ class ScriptHost {
     // Script Functions -------------------
 
     void LuaFuncShutdown();
-    std::string LuaGetConfig(std::string_view category, std::string_view value);
+    std::string_view LuaGetConfig(std::string_view category, std::string_view value);
     void LuaShowSystemCursor(bool show);
     void LuaLog(std::string_view level, std::string_view message);
     void LuaAddLoaderProvider(std::string_view providerType, std::string_view providerPath);
