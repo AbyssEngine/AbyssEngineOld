@@ -8,6 +8,7 @@
 #include <mutex>
 #include <SDL2/SDL.h>
 #include <string>
+#include <vector>
 
 namespace AbyssEngine::SDL2 {
 
@@ -32,6 +33,8 @@ class SDL2SystemIO : public SystemIO {
     void SetAudioLevel(eAudioIntent intent, float level) final;
     void ResetMouseButtonState() final;
     void SetBackgroundMusic(std::unique_ptr<LibAbyss::AudioStream> stream) final;
+    void AddSoundEffect(SoundEffect *soundEffect) final;
+    void RemoveSoundEffect(SoundEffect *soundEffect) final;
 
   private:
     void InitializeAudio();
@@ -43,6 +46,7 @@ class SDL2SystemIO : public SystemIO {
     std::unique_ptr<SDL_Window, std::function<void(SDL_Window *)>> _sdlWindow;
     std::unique_ptr<SDL_Renderer, std::function<void(SDL_Renderer *)>> _sdlRenderer;
     std::unique_ptr<LibAbyss::AudioStream> _backgroundMusicStream;
+    std::vector<SoundEffect*> _soundEffects;
     int _backgroundMusicSampleRate = 0;
     std::mutex _mutex;
     bool _hasAudio = false;

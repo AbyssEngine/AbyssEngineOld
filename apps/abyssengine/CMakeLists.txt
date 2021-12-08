@@ -35,6 +35,7 @@ target_sources(${APP_NAME} PRIVATE
         src/engine/cascprovider.cpp
         src/engine/mpqprovider.cpp
         src/engine/spritefont.cpp
+        src/engine/soundeffect.cpp
         src/common/alignment.cpp
         src/common/blendmode.cpp
         src/common/color.cpp

@@ -257,12 +257,10 @@ bool AbyssEngine::Video::ProcessFrame() {
             }
 
             const int outSize = av_samples_get_buffer_size(nullptr, _audioCodecContext->channels, _avFrame->nb_samples, AV_SAMPLE_FMT_S16, 1);
-            std::vector<unsigned char> outBuff;
-            outBuff.resize(outSize);
-            uint8_t *outBuffArray[1];
-            outBuffArray[0] = (unsigned char *)outBuff.data();
-            swr_convert(_resampleContext, outBuffArray, _avFrame->nb_samples, (const uint8_t **)_avFrame->data, _avFrame->nb_samples);
-            systemIO.PushAudioData(eAudioIntent::Video, outBuff);
+            auto outBuff = (uint8_t*)av_malloc(outSize);
+            swr_convert(_resampleContext, &outBuff, _avFrame->nb_samples, (const uint8_t **)_avFrame->data, _avFrame->nb_samples);
+            systemIO.PushAudioData(eAudioIntent::Video, std::span(outBuff, outSize));
+            av_freep(&outBuff);
         }
 
         return false;

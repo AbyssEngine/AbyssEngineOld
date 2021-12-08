@@ -24,6 +24,7 @@ class Button : public Node {
     void SetTextOffset(int x, int y);
     void LuaSetFrameIndex(std::string_view frameType, int index);
     void LuaSetActivateCallback(sol::safe_function luaActivateCallback);
+    void LuaSetPressCallback(sol::safe_function luaPressCallback);
 
     [[nodiscard]] std::string_view NodeType() const final { return "Button Node"; }
     void Initialize() override;
@@ -54,6 +55,7 @@ class Button : public Node {
     int _curCaptionHeight = 0;
     bool _ignoreMouseActivation = false;
     sol::safe_function _luaActivateCallback;
+    sol::safe_function _luaPressedCallback;
 };
 } // namespace AbyssEngine
 

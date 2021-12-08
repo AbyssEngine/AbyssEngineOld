@@ -6,6 +6,7 @@
 #include "../common/rectangle.h"
 #include "../common/audiointent.h"
 #include "libabyss/audiostream.h"
+#include "../engine/soundeffect.h"
 #include <memory>
 #include <mutex>
 #include <span>
@@ -97,6 +98,14 @@ class SystemIO {
     /// Sets the background music.
     /// \param stream The stream to play.
     virtual void SetBackgroundMusic(std::unique_ptr<LibAbyss::AudioStream> stream) = 0;
+
+    /// Adds a sound effect to the sound effects list.
+    /// \param soundEffect The sound effect to add.
+    virtual void AddSoundEffect(SoundEffect *soundEffect) = 0;
+
+    /// Removes a sound effect from the sound effects list.
+    /// \param soundEffect The sound effect to remove.
+    virtual void RemoveSoundEffect(SoundEffect *soundEffect) = 0;
 
 };
 

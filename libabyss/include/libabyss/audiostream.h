@@ -10,6 +10,7 @@ extern "C" {
 #include "inputstream.h"
 #include "ringbuffer.h"
 #include <memory>
+#include <mutex>
 
 // Compatability with newer API
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55, 28, 1)
@@ -25,6 +26,11 @@ class AudioStream {
     int16_t GetSample();
     void SetLoop(bool loop);
     bool IsLooped();
+    bool IsPlaying();
+    bool IsPaused();
+    void Pause();
+    void Play();
+    void Stop();
 
   private:
     int StreamRead(uint8_t *buffer, int size);
@@ -43,7 +49,10 @@ class AudioStream {
     AVFrame *_avFrame;
     RingBuffer _ringBuffer;
 
-    bool _isPlaying = true;
+    std::mutex _mutex;
+
+    bool _isPlaying = false;
+    bool _isPaused = false;
     bool _loop = false;
     int _audioStreamIdx = 0;
 };

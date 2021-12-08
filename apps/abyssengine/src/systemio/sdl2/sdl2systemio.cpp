@@ -19,7 +19,7 @@ const int AudioBufferSize = 1024 * 128;
 
 AbyssEngine::SDL2::SDL2SystemIO::SDL2SystemIO()
     : AbyssEngine::SystemIO::SystemIO(), _audioBuffer(AudioBufferSize), _audioSpec(), _mutex(), _mouseButtonState((eMouseButton)0),
-      _backgroundMusicStream() {
+      _backgroundMusicStream(), _soundEffects() {
     SPDLOG_TRACE("Creating SDL2 System IO");
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER | SDL_INIT_TIMER | SDL_INIT_AUDIO) != 0)
@@ -217,6 +217,14 @@ void AbyssEngine::SDL2::SDL2SystemIO::HandleAudio(uint8_t *stream, int length) {
             sample += _backgroundMusicStream->GetSample();
         }
 
+        // Add in the sound effects
+        for (auto &effect : _soundEffects) {
+            auto sfxSample = (int32_t)effect->GetSample();
+            sfxSample = (int32_t)((float)sfxSample * _soundEffectsAudioLevelActual);
+
+            sample += sfxSample;
+        }
+
         // Apply the master audio volume level
         sample = (int16_t)(((float)sample) * _masterAudioLevelActual);
 
@@ -266,8 +274,8 @@ void AbyssEngine::SDL2::SDL2SystemIO::PushAudioData(eAudioIntent intent, std::sp
 
     // Apply the master volume level
     for (auto i = 0; i < length; i += 2) {
-        int16_t sample = ((int16_t)data[i]) | (((int16_t)data[i + 1]) << 8);
-        sample = (int16_t)(((float)sample) * adjust);
+        auto sample = (int16_t)(((int16_t)data[i]) | (int16_t)((data[i + 1]) << 8));
+        sample = (int16_t)((float)sample * adjust);
         data[i] = (uint8_t)(sample & 0xFF);
         data[i + 1] = (uint8_t)((sample >> 8) & 0xFF);
     }
@@ -312,14 +320,19 @@ float AbyssEngine::SDL2::SDL2SystemIO::GetAudioLevel(eAudioIntent intent) {
 void AbyssEngine::SDL2::SDL2SystemIO::SetAudioLevel(eAudioIntent intent, float level) {
     std::lock_guard<std::mutex> lock(_mutex);
 
-    if (level < 0)
-        level = 0;
+    if (level < 0.0f)
+        level = 0.0f;
 
-    if (level > 1)
-        level = 1;
+    if (level > 1.0f)
+        level = 1.0f;
 
     const auto finalLevel = level;
-    const auto finalLevelActual = std::pow(level, 2.0f);
+    auto finalLevelActual = std::pow(level, 2.0f);
+
+    if (finalLevelActual > 1.0f)
+        finalLevelActual = 1.0f;
+    else if (finalLevelActual < 0.0f)
+        finalLevelActual = 0.0f;
 
     switch (intent) {
     case eAudioIntent::BackgroundMusic:
@@ -347,4 +360,15 @@ void AbyssEngine::SDL2::SDL2SystemIO::SetBackgroundMusic(std::unique_ptr<LibAbys
     std::lock_guard<std::mutex> lock(_mutex);
 
     _backgroundMusicStream = std::move(stream);
+}
+void AbyssEngine::SDL2::SDL2SystemIO::AddSoundEffect(AbyssEngine::SoundEffect *soundEffect) {
+    std::lock_guard<std::mutex> lock(_mutex);
+
+    _soundEffects.push_back(soundEffect);
+}
+
+void AbyssEngine::SDL2::SDL2SystemIO::RemoveSoundEffect(AbyssEngine::SoundEffect *soundEffect) {
+    std::lock_guard<std::mutex> lock(_mutex);
+
+    _soundEffects.erase(std::remove(_soundEffects.begin(), _soundEffects.end(), soundEffect), _soundEffects.end());
 }

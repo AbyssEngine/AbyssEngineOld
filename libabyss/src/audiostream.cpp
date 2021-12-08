@@ -10,14 +10,17 @@ namespace {
 const int DecodeBufferSize = 1024 * 4;
 } // namespace
 
-LibAbyss::AudioStream::AudioStream(InputStream stream) : _stream(std::move(stream)), _ringBuffer(1024 * 8) {
+LibAbyss::AudioStream::AudioStream(InputStream stream) : _stream(std::move(stream)), _ringBuffer(1024 * 8), _mutex() {
     _avFormatContext = avformat_alloc_context();
+
+    const auto streamSize = _stream.size();
+    const int decodeBufferSize = streamSize < DecodeBufferSize ? streamSize : DecodeBufferSize;
 
     _avBuffer = (unsigned char *)av_malloc(DecodeBufferSize); // AVIO is going to free this automagically... because why not?
     memset(_avBuffer, 0, DecodeBufferSize);
 
     _avioContext =
-        avio_alloc_context(_avBuffer, DecodeBufferSize, 0, this, &AudioStream::StreamReadCallback, nullptr, &AudioStream::StreamSeekCallback);
+        avio_alloc_context(_avBuffer, decodeBufferSize, 0, this, &AudioStream::StreamReadCallback, nullptr, &AudioStream::StreamSeekCallback);
 
     _avFormatContext = avformat_alloc_context();
     _avFormatContext->pb = _avioContext;
@@ -129,7 +132,8 @@ void LibAbyss::AudioStream::Update() {
     if ((avError = av_read_frame(_avFormatContext, &packet)) < 0) {
         if (_loop) {
             av_seek_frame(_avFormatContext, -1, 0, AVSEEK_FLAG_BYTE);
-            av_read_frame(_avFormatContext, &packet);
+            Update();
+            return;
         } else {
             _isPlaying = false;
             return;
@@ -151,23 +155,72 @@ void LibAbyss::AudioStream::Update() {
         }
 
         const int outSize = av_samples_get_buffer_size(nullptr, _audioCodecContext->channels, _avFrame->nb_samples, AV_SAMPLE_FMT_S16, 1);
-        std::vector<unsigned char> outBuff;
-        outBuff.resize(outSize);
-        uint8_t *outBuffArray;
-        outBuffArray = (unsigned char *)outBuff.data();
-        swr_convert(_resampleContext, &outBuffArray, _avFrame->nb_samples, (const uint8_t **)_avFrame->data, _avFrame->nb_samples);
-        _ringBuffer.PushData(outBuff);
+        auto outBuff = (uint8_t *)av_malloc(outSize);
+        swr_convert(_resampleContext, &outBuff, _avFrame->nb_samples, (const uint8_t **)_avFrame->data, _avFrame->nb_samples);
+        _ringBuffer.PushData(std::span(outBuff, outSize));
+        av_free(outBuff);
     }
 }
 int16_t LibAbyss::AudioStream::GetSample() {
+    std::lock_guard<std::mutex> lock(_mutex);
+
+    if (!_isPlaying || _isPaused)
+        return 0;
+
     if (_ringBuffer.Available() < 2)
         Update();
+
+    if (!_isPlaying)
+        return 0;
 
     uint8_t data[2];
     _ringBuffer.ReadData(std::span(data, 2));
     return (int16_t)((uint16_t)(data[0] & 0xFF) | ((uint16_t)data[1] << 8));
 }
 
-void LibAbyss::AudioStream::SetLoop(bool loop) { _loop = loop; }
+void LibAbyss::AudioStream::SetLoop(bool loop) {
+    std::lock_guard<std::mutex> lock(_mutex);
 
-bool LibAbyss::AudioStream::IsLooped() { return _loop; }
+    _loop = loop;
+}
+
+bool LibAbyss::AudioStream::IsLooped() {
+    std::lock_guard<std::mutex> lock(_mutex);
+
+    return _loop;
+}
+
+bool LibAbyss::AudioStream::IsPlaying() {
+    std::lock_guard<std::mutex> lock(_mutex);
+
+    return _isPlaying;
+}
+
+bool LibAbyss::AudioStream::IsPaused() {
+    std::lock_guard<std::mutex> lock(_mutex);
+
+    return _isPaused;
+}
+
+void LibAbyss::AudioStream::Pause() {
+    std::lock_guard<std::mutex> lock(_mutex);
+
+    _isPaused = true;
+}
+
+void LibAbyss::AudioStream::Play() {
+    std::lock_guard<std::mutex> lock(_mutex);
+
+    _isPaused = false;
+    _isPlaying = true;
+
+    _ringBuffer.Reset();
+    av_seek_frame(_avFormatContext, -1, 0, AVSEEK_FLAG_FRAME);
+}
+
+void LibAbyss::AudioStream::Stop() {
+    std::lock_guard<std::mutex> lock(_mutex);
+
+    _isPlaying = false;
+    _isPaused = false;
+}

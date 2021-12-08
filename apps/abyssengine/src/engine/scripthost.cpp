@@ -52,15 +52,16 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _lua(), _engine(engine) {
 
     // Engine Functions -------------------------------------------------------------------------------------------------------------------
     module.set_function("addLoaderProvider", &ScriptHost::LuaAddLoaderProvider, this);
-    module.set_function("createButton", &ScriptHost::LuaLoadButton, this);
+    module.set_function("createButton", &ScriptHost::LuaCreateButton, this);
+    module.set_function("createLabel", &ScriptHost::LuaCreateLabel, this);
+    module.set_function("createPalette", &ScriptHost::LuaCreatePalette, this);
+    module.set_function("createSoundEffect", &ScriptHost::LuaCreateSoundEffect, this);
+    module.set_function("createSprite", &ScriptHost::LuaCreateSprite, this);
+    module.set_function("createSpriteFont", &ScriptHost::LuaCreateSpriteFont, this);
+    module.set_function("createString", &ScriptHost::LuaCreateText, this);
     module.set_function("fileExists", &ScriptHost::LuaFileExists, this);
     module.set_function("getConfig", &ScriptHost::LuaGetConfig, this);
     module.set_function("getRootNode", &ScriptHost::LuaGetRootNode, this);
-    module.set_function("loadPalette", &ScriptHost::LuaLoadPalette, this);
-    module.set_function("loadSprite", &ScriptHost::LuaLoadSprite, this);
-    module.set_function("loadString", &ScriptHost::LuaLoadText, this);
-    module.set_function("loadSpriteFont", &ScriptHost::LuaLoadSpriteFont, this);
-    module.set_function("loadLabel", &ScriptHost::LuaLoadLabel, this);
     module.set_function("log", &ScriptHost::LuaLog, this);
     module.set_function("playBackgroundMusic", &ScriptHost::LuaPlayBackgroundMusic, this);
     module.set_function("playVideo", &ScriptHost::LuaPlayVideo, this);
@@ -82,6 +83,7 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _lua(), _engine(engine) {
     buttonType["setTextOffset"] = &Button::SetTextOffset;
     buttonType["setFrameIndex"] = &Button::LuaSetFrameIndex;
     buttonType["onActivate"] = &Button::LuaSetActivateCallback;
+    buttonType["onPressed"] = &Button::LuaSetPressCallback;
 
     // Node
     auto nodeType = module.new_usertype<Node>("Node", sol::no_constructor);
@@ -102,6 +104,16 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _lua(), _engine(engine) {
     spriteType["blendMode"] = sol::property(&Sprite::LuaGetBlendMode, &Sprite::LuaSetBlendMode);
     spriteType["bottomOrigin"] = sol::property(&Sprite::GetIsBottomOrigin, &Sprite::SetIsBottomOrigin);
     spriteType["playMode"] = sol::property(&Sprite::LuaGetPlayMode, &Sprite::LuaSetPlayMode);
+
+    // Sound Effect
+    auto soundEffect =  module.new_usertype<SoundEffect>("SoundEffect", sol::no_constructor);
+    soundEffect["play"] = &SoundEffect::Play;
+    soundEffect["stop"] = &SoundEffect::Stop;
+    soundEffect["pause"] = &SoundEffect::Pause;
+    soundEffect["isPlaying"] = &SoundEffect::GetIsPlaying;
+    soundEffect["isPaused"] = &SoundEffect::GetIsPaused;
+    soundEffect["volume"] = sol::property(&SoundEffect::GetVolume, &SoundEffect::SetVolume);
+    soundEffect["loop"] = sol::property(&SoundEffect::GetLoop, &SoundEffect::SetLoop);
 
     _environment.add(module);
 }
@@ -249,7 +261,7 @@ void AbyssEngine::ScriptHost::LuaAddLoaderProvider(std::string_view providerType
     _engine->GetLoader().AddProvider(std::move(provider));
 }
 
-void AbyssEngine::ScriptHost::LuaLoadPalette(std::string_view paletteName, std::string_view path) {
+void AbyssEngine::ScriptHost::LuaCreatePalette(std::string_view paletteName, std::string_view path) {
     bool isDat = !absl::AsciiStrToLower(path).ends_with(".pl2");
     std::filesystem::path filePath(path);
     auto stream = _engine->GetLoader().Load(filePath);
@@ -262,7 +274,7 @@ bool AbyssEngine::ScriptHost::LuaFileExists(std::string_view fileName) {
     return _engine->GetLoader().FileExists(path);
 }
 
-std::unique_ptr<AbyssEngine::Sprite> AbyssEngine::ScriptHost::LuaLoadSprite(std::string_view spritePath, std::string_view paletteName = "") {
+std::unique_ptr<AbyssEngine::Sprite> AbyssEngine::ScriptHost::LuaCreateSprite(std::string_view spritePath, std::string_view paletteName = "") {
     const auto &engine = _engine;
     const std::filesystem::path path(spritePath);
 
@@ -281,7 +293,7 @@ std::unique_ptr<AbyssEngine::Sprite> AbyssEngine::ScriptHost::LuaLoadSprite(std:
         throw std::runtime_error(absl::StrCat("Unknowns sprite format for file: ", spritePath));
 }
 
-std::unique_ptr<AbyssEngine::Button> AbyssEngine::ScriptHost::LuaLoadButton(SpriteFont *spriteFont, Sprite *sprite) {
+std::unique_ptr<AbyssEngine::Button> AbyssEngine::ScriptHost::LuaCreateButton(SpriteFont *spriteFont, Sprite *sprite) {
     return std::make_unique<Button>(spriteFont, sprite);
 }
 
@@ -316,7 +328,7 @@ template <class T> void AbyssEngine::ScriptHost::BindNodeFunctions(sol::basic_us
 
 void AbyssEngine::ScriptHost::LuaResetMouseState() { _engine->ResetMouseButtonState(); }
 
-std::string AbyssEngine::ScriptHost::LuaLoadText(std::string_view filePath) {
+std::string AbyssEngine::ScriptHost::LuaCreateText(std::string_view filePath) {
     if (!_engine->GetLoader().FileExists(filePath))
         throw std::runtime_error(absl::StrCat("Path does not exist: ", filePath));
 
@@ -324,13 +336,14 @@ std::string AbyssEngine::ScriptHost::LuaLoadText(std::string_view filePath) {
     return {std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>()};
 }
 
-std::unique_ptr<AbyssEngine::SpriteFont> AbyssEngine::ScriptHost::LuaLoadSpriteFont(std::string_view fontPath, std::string_view paletteName) {
+std::unique_ptr<AbyssEngine::SpriteFont> AbyssEngine::ScriptHost::LuaCreateSpriteFont(std::string_view fontPath, std::string_view paletteName) {
     return std::make_unique<SpriteFont>(fontPath, paletteName);
 }
 
-std::unique_ptr<AbyssEngine::Label> AbyssEngine::ScriptHost::LuaLoadLabel(AbyssEngine::SpriteFont *spriteFont) {
+std::unique_ptr<AbyssEngine::Label> AbyssEngine::ScriptHost::LuaCreateLabel(AbyssEngine::SpriteFont *spriteFont) {
     return std::make_unique<AbyssEngine::Label>(spriteFont);
 }
+
 void AbyssEngine::ScriptHost::GC() { _lua.collect_garbage(); }
 
 void AbyssEngine::ScriptHost::LuaPlayBackgroundMusic(std::string_view fileName) {
@@ -342,5 +355,18 @@ void AbyssEngine::ScriptHost::LuaPlayBackgroundMusic(std::string_view fileName) 
     auto stream = loader.Load(fileName);
     auto result = std::make_unique<LibAbyss::AudioStream>(std::move(stream));
     result->SetLoop(true);
+    result->Play();
     _engine->GetSystemIO().SetBackgroundMusic(std::move(result));
+}
+
+std::unique_ptr<AbyssEngine::SoundEffect> AbyssEngine::ScriptHost::LuaCreateSoundEffect(std::string_view fileName) {
+    auto& loader = _engine->GetLoader();
+
+    if (!loader.FileExists(fileName))
+        throw std::runtime_error(absl::StrCat("File not found: ", fileName));
+
+    auto stream = loader.Load(fileName);
+    auto audioStream = std::make_unique<LibAbyss::AudioStream>(std::move(stream));
+
+    return std::make_unique<SoundEffect>(std::move(audioStream));
 }

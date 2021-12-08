@@ -2,9 +2,8 @@
 #include <cstring>
 
 LibAbyss::RingBuffer::RingBuffer(uint32_t bufferSize)
-    : _bufferSize(bufferSize), _buffer(), _readPosition(0), _writePosition(0), _remainingToRead(0), _mutex() {
-    _buffer.resize(bufferSize);
-}
+    : _bufferSize(bufferSize), _buffer(bufferSize), _readPosition(0), _writePosition(0), _remainingToRead(0), _mutex() {}
+
 void LibAbyss::RingBuffer::PushData(std::span<const uint8_t> data) {
     std::lock_guard<std::mutex> guard(_mutex);
 
