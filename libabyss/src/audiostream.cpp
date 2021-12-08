@@ -10,7 +10,7 @@ namespace {
 const int DecodeBufferSize = 1024 * 4;
 } // namespace
 
-LibAbyss::AudioStream::AudioStream(InputStream stream) : _stream(std::move(stream)), _ringBuffer(1024 * 1024) {
+LibAbyss::AudioStream::AudioStream(InputStream stream) : _stream(std::move(stream)), _ringBuffer(1024 * 8) {
     _avFormatContext = avformat_alloc_context();
 
     _avBuffer = (unsigned char *)av_malloc(DecodeBufferSize); // AVIO is going to free this automagically... because why not?
