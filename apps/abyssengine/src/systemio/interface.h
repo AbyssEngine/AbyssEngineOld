@@ -94,6 +94,8 @@ class SystemIO {
     /// Resets the mouse button state.
     virtual void ResetMouseButtonState() = 0;
 
+    /// Sets the background music.
+    /// \param stream The stream to play.
     virtual void SetBackgroundMusic(std::unique_ptr<LibAbyss::AudioStream> stream) = 0;
 
 };

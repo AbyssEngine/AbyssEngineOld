@@ -7,7 +7,7 @@ extern "C" {
 #include <absl/strings/str_cat.h>
 
 namespace {
-const int DecodeBufferSize = 32;
+const int DecodeBufferSize = 1024 * 4;
 } // namespace
 
 LibAbyss::AudioStream::AudioStream(InputStream stream) : _stream(std::move(stream)), _ringBuffer(1024 * 1024) {
@@ -124,9 +124,13 @@ void LibAbyss::AudioStream::Update() {
     absl::Cleanup cleanup_packet([&] { av_packet_unref(&packet); });
 
     if ((avError = av_read_frame(_avFormatContext, &packet)) < 0) {
-        av_seek_frame(_avFormatContext, -1, 0, AVSEEK_FLAG_BYTE);
-        //_isPlaying = false;
-        return;
+        if (_loop) {
+            av_seek_frame(_avFormatContext, -1, 0, AVSEEK_FLAG_BYTE);
+            av_read_frame(_avFormatContext, &packet);
+        } else {
+            _isPlaying = false;
+            return;
+        }
     }
 
     if (packet.stream_index != _audioStreamIdx)
@@ -160,3 +164,7 @@ int16_t LibAbyss::AudioStream::GetSample() {
     _ringBuffer.ReadData(std::span(data, 2));
     return (int16_t)((uint16_t)(data[0] & 0xFF) | ((uint16_t)data[1] << 8));
 }
+
+void LibAbyss::AudioStream::SetLoop(bool loop) { _loop = loop; }
+
+bool LibAbyss::AudioStream::IsLooped() { return _loop; }

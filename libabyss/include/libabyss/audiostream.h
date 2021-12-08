@@ -23,6 +23,8 @@ class AudioStream {
     explicit AudioStream(InputStream stream);
     ~AudioStream();
     int16_t GetSample();
+    void SetLoop(bool loop);
+    bool IsLooped();
 
   private:
     int StreamRead(uint8_t *buffer, int size);
@@ -42,6 +44,7 @@ class AudioStream {
     RingBuffer _ringBuffer;
 
     bool _isPlaying = true;
+    bool _loop = false;
     int _audioStreamIdx = 0;
 };
 } // namespace LibAbyss
