@@ -5,10 +5,11 @@
 #include <streambuf>
 #include <vector>
 #include <libabyss/casc.h>
+#include <libabyss/inputstream.h>
 
 namespace LibAbyss {
 
-    class CASCStream : public std::basic_streambuf<char> {
+    class CASCStream : public SizeableStreambuf {
     public:
         CASCStream(void* casc, std::string fileName);
 
@@ -20,6 +21,7 @@ namespace LibAbyss {
                          std::ios_base::openmode which) override;
         pos_type seekoff(off_type off, std::ios_base::seekdir dir,
                          std::ios_base::openmode which) override;
+        std::streamsize size() const override;
 
     private:
         void* _file = 0;

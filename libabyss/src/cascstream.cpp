@@ -48,12 +48,7 @@ CASCStream::pos_type CASCStream::seekoff(off_type off, std::ios_base::seekdir di
             newPos = _startOfBlock + (gptr() - eback()) + off;
             break;
         case std::ios_base::end:
-            {
-                ULONGLONG ulongsize;
-                CascGetFileSize64(_file, &ulongsize);
-                newPos = ulongsize;
-                newPos += off;
-            }
+            newPos = size() + off;
             break;
         default:
             break;
@@ -68,6 +63,12 @@ CASCStream::pos_type CASCStream::seekoff(off_type off, std::ios_base::seekdir di
         _startOfBlock = newPos;
     }
     return _startOfBlock + (gptr() - eback());
+}
+
+std::streamsize CASCStream::size() const {
+    ULONGLONG ulongsize;
+    CascGetFileSize64(_file, &ulongsize);
+    return ulongsize;
 }
 
 }

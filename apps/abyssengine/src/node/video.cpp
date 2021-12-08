@@ -190,13 +190,8 @@ int64_t AbyssEngine::Video::VideoStreamSeek(int64_t offset, int whence) {
     case SEEK_END:
         dir = std::ios_base::end;
         break;
-    case AVSEEK_SIZE: {
-        const auto curPos = _stream.tellg();
-        _stream.seekg(0, std::ios_base::end);
-        const auto endPos = _stream.tellg();
-        _stream.seekg(curPos, std::ios_base::beg);
-        return endPos;
-    }
+    case AVSEEK_SIZE:
+        return _stream.size();
     default:
         return -1;
     }
