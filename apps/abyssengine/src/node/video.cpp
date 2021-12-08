@@ -170,7 +170,10 @@ int AbyssEngine::Video::VideoStreamRead(uint8_t *buffer, int size) {
         return 0;
 
     _stream.read((char *)buffer, size);
-    return (int)_stream.gcount();
+    if (_stream) {
+        return (int)_stream.gcount();
+    }
+    return -1;
 }
 
 int64_t AbyssEngine::Video::VideoStreamSeek(int64_t offset, int whence) {
