@@ -248,5 +248,7 @@ void AbyssEngine::Engine::RenderRootNode() {
     _cursorSprite->Y = _cursorY;
     _cursorSprite->RenderCallback(_cursorOffsetX, _cursorOffsetY);
 }
+
 std::mutex &AbyssEngine::Engine::GetMutex() { return _mutex; }
+
 AbyssEngine::SystemIO &AbyssEngine::Engine::GetSystemIO() { return *_systemIO; }
