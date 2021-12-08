@@ -333,7 +333,10 @@ std::string AbyssEngine::ScriptHost::LuaCreateText(std::string_view filePath) {
         throw std::runtime_error(absl::StrCat("Path does not exist: ", filePath));
 
     auto stream = _engine->GetLoader().Load(filePath);
-    return {std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>()};
+    auto result = std::string();
+    result.resize(stream.size());
+    stream.read(result.data(), stream.size());
+    return result;
 }
 
 std::unique_ptr<AbyssEngine::SpriteFont> AbyssEngine::ScriptHost::LuaCreateSpriteFont(std::string_view fontPath, std::string_view paletteName) {

@@ -131,7 +131,7 @@ std::string LibAbyss::AudioStream::AvErrorCodeToString(int avError) {
     return {str};
 }
 void LibAbyss::AudioStream::Update() {
-    if (_avFormatContext == nullptr || (!_isPlaying && _ringBuffer.Available() == 0))
+    if (_avFormatContext == nullptr || !_isPlaying)
         return;
 
     int avError;
@@ -222,7 +222,7 @@ void LibAbyss::AudioStream::Play() {
     _isPlaying = true;
 
     _ringBuffer.Reset();
-    av_seek_frame(_avFormatContext, -1, 0, AVSEEK_FLAG_FRAME);
+    av_seek_frame(_avFormatContext, -1, 0, AVSEEK_FLAG_BYTE);
 }
 
 void LibAbyss::AudioStream::Stop() {
