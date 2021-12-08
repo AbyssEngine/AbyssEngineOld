@@ -339,7 +339,7 @@ void AbyssEngine::ScriptHost::LuaPlayBackgroundMusic(std::string_view fileName) 
     if (!loader.FileExists(fileName))
         throw std::runtime_error(absl::StrCat("File not found: ", fileName));
 
-    auto stream = std::make_unique<LibAbyss::InputStream>(loader.Load(fileName));
+    auto stream = loader.Load(fileName);
 
-    _engine->GetSystemIO().SetBackgroundMusic(std::move(std::make_unique<LibAbyss::AudioStream>(std::move(stream))));
+    _engine->GetSystemIO().SetBackgroundMusic(std::make_unique<LibAbyss::AudioStream>(std::move(stream)));
 }

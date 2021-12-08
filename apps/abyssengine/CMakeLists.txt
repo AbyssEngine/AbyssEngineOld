@@ -102,19 +102,21 @@ endif ()
 # MacOS Bundle Information
 # -------------------------------------------------------------------------------------------------
 
-set_target_properties(${APP_NAME} PROPERTIES
-        FOLDER "Applications/"
-        BUNDLE TRUE
-        MACOSX_BUNDLE_GUI_IDENTIFIER "Abyss Engine"
-        MACOSX_PRODUCT_BUNDLE_IDENTIFIER abyssengine
-        PRODUCT_BUNDLE_IDENTIFIER ABYSSENGINE
-        OUTPUT_NAME "Abyss Engine"
-        MACOSX_BUNDLE_BUNDLE_NAME "Abyss Engine"
-        CPACK_BUNDLE_APPLE_ENTITLEMENTS "macos.entitlements"
-        MACOSX_BUNDLE_BUNDLE_VERSION "${abyss_VERSION_MAJOR}.${abyss_VERSION_MINOR}"
-        MACOSX_BUNDLE_SHORT_VERSION_STRING "${abyss_VERSION_MAJOR}.${abyss_VERSION_MINOR}"
-        MACOSX_BUNDLE_ICON_FILE abyssbadge.icns
-        )
+if (APPLE)
+    set_target_properties(${APP_NAME} PROPERTIES
+            FOLDER "Applications/"
+            BUNDLE TRUE
+            MACOSX_BUNDLE_GUI_IDENTIFIER "Abyss Engine"
+            MACOSX_PRODUCT_BUNDLE_IDENTIFIER abyssengine
+            PRODUCT_BUNDLE_IDENTIFIER ABYSSENGINE
+            OUTPUT_NAME "Abyss Engine"
+            MACOSX_BUNDLE_BUNDLE_NAME "Abyss Engine"
+            CPACK_BUNDLE_APPLE_ENTITLEMENTS "macos.entitlements"
+            MACOSX_BUNDLE_BUNDLE_VERSION "${abyss_VERSION_MAJOR}.${abyss_VERSION_MINOR}"
+            MACOSX_BUNDLE_SHORT_VERSION_STRING "${abyss_VERSION_MAJOR}.${abyss_VERSION_MINOR}"
+            MACOSX_BUNDLE_ICON_FILE abyssbadge.icns
+            )
+endif()
 
 
 # -------------------------------------------------------------------------------------------------

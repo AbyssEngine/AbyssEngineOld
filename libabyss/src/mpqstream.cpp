@@ -43,7 +43,7 @@ MPQStream::pos_type MPQStream::seekoff(off_type off, std::ios_base::seekdir dir,
         newPos = _startOfBlock + (gptr() - eback()) + off;
         break;
     case std::ios_base::end:
-        newPos = SFileGetFileSize(_mpqFile, nullptr) + off;
+        newPos = size() + off;
         break;
     default:
         break;
@@ -58,6 +58,10 @@ MPQStream::pos_type MPQStream::seekoff(off_type off, std::ios_base::seekdir dir,
         _startOfBlock = newPos;
     }
     return _startOfBlock + (gptr() - eback());
+}
+
+std::streamsize MPQStream::size() const {
+    return SFileGetFileSize(_mpqFile, nullptr);
 }
 
 } // namespace LibAbyss
