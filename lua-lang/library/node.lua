@@ -1,7 +1,7 @@
 ---@meta
 
----@class Label
-Label = {
+---@class Node
+Node = {
     ---If true, the node is visible, otherwise it is hidden.
     ---@type boolean
     visible = true,
@@ -12,21 +12,21 @@ Label = {
 }
 
 ---Removes all children from this node
-function Label:removeAllChildren() end
+function Node:removeAllChildren() end
 
 ---Removes a child from this node.
 ---@param child Node
-function Label:removeChild(child) end
+function Node:removeChild(child) end
 
 ---Appends a child to this node
 ---@param child Node
-function Label:appendChild(child) end
+function Node:appendChild(child) end
 
 ---Gets the node's position
 ---@return number x, number y
-function Label:getPosition() end
+function Node:getPosition() end
 
 ---Sets the node's position
 ---@param x number
 ---@param y number
-function Label:setPosition(x, y) end
+function Node:setPosition(x, y) end
