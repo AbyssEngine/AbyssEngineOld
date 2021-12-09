@@ -89,21 +89,45 @@ jobs:
         working-directory: builds/ninja-multi-vcpkg/
         run: cpack -G ZIP -C MinSizeRel ./
 
+      - name: Upload Release (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: "builds/ninja-multi-vcpkg/package/abyss-windows.zip"
+          overwrite: true
+          prerelease: true
+          tag: unstable
+          body: "Unstable Release"
+
       - name: Package (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
         working-directory: builds/ninja-multi-vcpkg/
         run: cpack -G TGZ -C MinSizeRel ./
+
+      - name: Upload Release (Windows)
+        if: matrix.os == 'ubuntu-latest'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: "builds/ninja-multi-vcpkg/package/abyss-linux.tar.gz"
+          overwrite: true
+          prerelease: true
+          tag: unstable
+          body: "Unstable Release"
+
 
       - name: Package (MacOS)
         if: matrix.os == 'macos-11'
         working-directory: builds/ninja-multi-vcpkg/
         run: cpack -G DragNDrop -C MinSizeRel ./
 
-      - name: Upload Releases
+      - name: Upload Release (OSX)
+        if: matrix.os == 'macos-11'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: "builds/ninja-multi-vcpkg/package/*"
+          file: "builds/ninja-multi-vcpkg/package/abyss-darwin.zip"
           overwrite: true
           prerelease: true
           tag: unstable
