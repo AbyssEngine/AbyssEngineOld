@@ -84,12 +84,6 @@ jobs:
       - name: Test
         run: builds/ninja-multi-vcpkg/tests/Debug/abyss_test
 
-  publish:
-    name: Public (${{ matrix.name }})
-    on:
-      - push
-    runs-on: ${{ matrix.os }}
-    - steps:
       - name: Package (Windows)
         if: matrix.os == 'windows-latest'
         working-directory: builds/ninja-multi-vcpkg/
