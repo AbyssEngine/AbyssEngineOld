@@ -41,15 +41,4 @@ target_link_libraries(${APP_NAME}
         argh
         )
 
-if (WIN32)
-    install(TARGETS ${APP_NAME}
-            RUNTIME_DEPENDENCIES
-            PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
-            POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
-            DIRECTORIES C:/DevLibs/bin
-            LIBRARY DESTINATION bin
-            ARCHIVE DESTINATION bin
-            )
-else (WIN32)
-    install(TARGETS ${APP_NAME})
-endif (WIN32)
+install(TARGETS ${APP_NAME})

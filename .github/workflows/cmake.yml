@@ -4,7 +4,7 @@ on:
   - pull_request
 
 jobs:
-  job:
+  build:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -23,6 +23,7 @@ jobs:
     env:
       CMAKE_BUILD_DIR: ${{ github.workspace }}/builddir/
       VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      CMAKE_BUILD_TYPE: "MinSizeRel"
 
     steps:
       - name: Setup XCode
@@ -82,3 +83,52 @@ jobs:
 
       - name: Test
         run: builds/ninja-multi-vcpkg/tests/Debug/abyss_test
+
+      - name: Package (Windows)
+        if: ${{ matrix.os == 'windows-latest' && github.event_name == 'push' }}
+        working-directory: builds/ninja-multi-vcpkg/
+        run: cpack -G ZIP -C Debug ./
+
+      - name: Upload Release (Windows)
+        if: ${{ matrix.os == 'windows-latest' && github.event_name == 'push' }}
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: "builds/ninja-multi-vcpkg/package/abyss-windows.zip"
+          overwrite: true
+          prerelease: true
+          tag: unstable
+          body: "Unstable Release"
+
+      - name: Package (Ubuntu)
+        if: ${{ matrix.os == 'ubuntu-latest' && github.event_name == 'push' }}
+        working-directory: builds/ninja-multi-vcpkg/
+        run: cpack -G TGZ -C Debug ./
+
+      - name: Upload Release (Windows)
+        if: ${{ matrix.os == 'ubuntu-latest' && github.event_name == 'push' }}
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: "builds/ninja-multi-vcpkg/package/abyss-linux.tar.gz"
+          overwrite: true
+          prerelease: true
+          tag: unstable
+          body: "Unstable Release"
+
+
+      - name: Package (MacOS)
+        if: ${{ matrix.os == 'macos-11' && github.event_name == 'push' }}
+        working-directory: builds/ninja-multi-vcpkg/
+        run: cpack -G DragNDrop -C Debug ./
+
+      - name: Upload Release (MacOS)
+        if: ${{ matrix.os == 'macos-11' && github.event_name == 'push' }}
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: "builds/ninja-multi-vcpkg/package/abyss-darwin.dmg"
+          overwrite: true
+          prerelease: true
+          tag: unstable
+          body: "Unstable Release"
