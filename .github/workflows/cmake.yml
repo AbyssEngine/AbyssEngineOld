@@ -90,7 +90,7 @@ jobs:
         run: cpack -G ZIP -C Debug ./
 
       - name: Upload Release (Windows)
-        if: matrix.os == 'windows-latest'
+        if: ${{ matrix.os == 'windows-latest' && github.event_name == 'push' }}
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -106,7 +106,7 @@ jobs:
         run: cpack -G TGZ -C Debug ./
 
       - name: Upload Release (Windows)
-        if: matrix.os == 'ubuntu-latest'
+        if: ${{ matrix.os == 'ubuntu-latest' && github.event_name == 'push' }}
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -118,7 +118,7 @@ jobs:
 
 
       - name: Package (MacOS)
-        if: matrix.os == 'macos-11'
+        if: ${{ matrix.os == 'macos-11' && github.event_name == 'push' }}
         working-directory: builds/ninja-multi-vcpkg/
         run: cpack -G DragNDrop -C Debug ./
 
