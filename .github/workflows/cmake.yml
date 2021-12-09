@@ -85,9 +85,7 @@ jobs:
         run: builds/ninja-multi-vcpkg/tests/Debug/abyss_test
 
       - name: Package (Windows)
-        if: matrix.os == 'windows-latest'
-        on:
-          - push
+        if: ${{ matrix.os == 'windows-latest' && github.event_name == 'push' }}
         working-directory: builds/ninja-multi-vcpkg/
         run: cpack -G ZIP -C Debug ./
 
@@ -103,14 +101,12 @@ jobs:
           body: "Unstable Release"
 
       - name: Package (Ubuntu)
-        if: matrix.os == 'ubuntu-latest'
+        if: ${{ matrix.os == 'ubuntu-latest' && github.event_name == 'push' }}
         working-directory: builds/ninja-multi-vcpkg/
         run: cpack -G TGZ -C Debug ./
 
       - name: Upload Release (Windows)
         if: matrix.os == 'ubuntu-latest'
-        on:
-          - push
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -127,9 +123,7 @@ jobs:
         run: cpack -G DragNDrop -C Debug ./
 
       - name: Upload Release (MacOS)
-        if: matrix.os == 'macos-11'
-        on:
-          - push
+        if: ${{ matrix.os == 'macos-11' && github.event_name == 'push' }}
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
