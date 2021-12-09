@@ -87,7 +87,7 @@ jobs:
       - name: Package (Windows)
         if: matrix.os == 'windows-latest'
         working-directory: builds/ninja-multi-vcpkg/
-        run: cpack -G ZIP -C MinSizeRel ./
+        run: cpack -G ZIP -C Debug ./
 
       - name: Upload Release (Windows)
         if: matrix.os == 'windows-latest'
@@ -103,7 +103,7 @@ jobs:
       - name: Package (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
         working-directory: builds/ninja-multi-vcpkg/
-        run: cpack -G TGZ -C MinSizeRel ./
+        run: cpack -G TGZ -C Debug ./
 
       - name: Upload Release (Windows)
         if: matrix.os == 'ubuntu-latest'
@@ -120,7 +120,7 @@ jobs:
       - name: Package (MacOS)
         if: matrix.os == 'macos-11'
         working-directory: builds/ninja-multi-vcpkg/
-        run: cpack -G DragNDrop -C MinSizeRel ./
+        run: cpack -G DragNDrop -C Debug ./
 
       - name: Upload Release (OSX)
         if: matrix.os == 'macos-11'

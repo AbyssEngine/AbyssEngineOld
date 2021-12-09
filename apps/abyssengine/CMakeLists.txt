@@ -159,7 +159,7 @@ endif ()
 # -------------------------------------------------------------------------------------------------
 
 if (WIN32)
-    install(TARGETS ${APP_NAME}.exe
+    install(TARGETS ${APP_NAME}
             RUNTIME_DEPENDENCIES
             PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
             POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
