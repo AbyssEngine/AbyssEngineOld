@@ -127,7 +127,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: "builds/ninja-multi-vcpkg/package/abyss-darwin.zip"
+          file: "builds/ninja-multi-vcpkg/package/abyss-darwin.dmg"
           overwrite: true
           prerelease: true
           tag: unstable

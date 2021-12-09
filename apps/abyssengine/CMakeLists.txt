@@ -171,8 +171,7 @@ endif (WIN32)
 
 
 if (APPLE)
-    install(TARGETS ${APP_NAME}
-            BUNDLE DESTINATION bin)
+    install(TARGETS ${APP_NAME} BUNDLE DESTINATION bin)
 endif ()
 
 # -------------------------------------------------------------------------------------------------

@@ -41,8 +41,4 @@ target_link_libraries(${APP_NAME}
         argh
         )
 
-if (WIN32)
-    install(TARGETS ${APP_NAME})
-else (WIN32)
-    install(TARGETS ${APP_NAME})
-endif (WIN32)
+install(TARGETS ${APP_NAME})
