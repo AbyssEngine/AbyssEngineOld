@@ -1,4 +1,5 @@
 #include "sdl2systemio.h"
+#include "../../engine/engine.h"
 #include "../../hostnotify/hostnotify.h"
 #include "config.h"
 #include "sdl2texture.h"
