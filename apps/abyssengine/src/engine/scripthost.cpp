@@ -13,6 +13,11 @@
 #include <sol/sol.hpp>
 #include <spdlog/spdlog.h>
 
+// Undo damage done by /Applications/Xcode_13.0.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk/usr/include/MacTypes.h which sets nil to nullptr
+#ifdef nil
+#undef nil
+#endif
+
 static int my_exception_handler(lua_State *L, sol::optional<const std::exception &> maybe_exception, sol::string_view description) {
     // L is the lua state, which you can wrap in a state_view if necessary
     // maybe_exception will contain exception, if it exists
