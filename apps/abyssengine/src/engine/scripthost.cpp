@@ -91,7 +91,7 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _lua(), _engine(engine) {
 
     // Label
     auto labelType = CreateLuaObjectType<Label>(module, "Label", sol::no_constructor);
-    labelType["setCaption"] = &Label::SetCaption;
+    labelType["caption"] = sol::property(&Label::GetCaption, &Label::SetCaption);
     labelType["setAlignment"] = &Label::SetAlignmentStr;
     labelType["setColorMod"] = &Label::SetColorMod;
 
