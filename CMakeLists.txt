@@ -6,8 +6,8 @@ cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
 project(abyss)
 
-set(ABYSS_VERSION_MAJOR 0)
-set(ABYSS_VERSION_MINOR 2)
+set(abyss_VERSION_MAJOR 0)
+set(abyss_VERSION_MINOR 2)
 
 
 # -------------------------------------------------------------------------------------------------
@@ -51,6 +51,7 @@ configure_file(
         ${CMAKE_SOURCE_DIR}/config.h.in
         ${PROJECT_BINARY_DIR}/config.h
 )
+include_directories("${PROJECT_BINARY_DIR}")
 
 
 # -------------------------------------------------------------------------------------------------
