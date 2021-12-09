@@ -82,3 +82,9 @@ jobs:
 
       - name: Test
         run: builds/ninja-multi-vcpkg/tests/Debug/abyss_test
+
+
+      - name: Publish (MacOS)
+        #if: matrix.os == 'macos-11' && ${{ github.ref == 'refs/heads/main' }} && ${{ github.event == 'push' }}
+        run: |
+          cpack -G DragNDrop -C Release
