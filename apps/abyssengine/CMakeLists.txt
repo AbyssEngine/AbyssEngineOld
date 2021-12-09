@@ -171,12 +171,7 @@ endif (WIN32)
 
 
 if (APPLE)
-    install(TARGETS ${APP_NAME}
-            RUNTIME_DEPENDENCIES
-            DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}
-            LIBRARY DESTINATION bin
-            ARCHIVE DESTINATION bin
-            BUNDLE DESTINATION bin)
+    install(TARGETS ${APP_NAME})
 endif ()
 
 # -------------------------------------------------------------------------------------------------
