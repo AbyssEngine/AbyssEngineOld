@@ -11,7 +11,8 @@ const int DecodeBufferSize = 1024;
 
 AbyssEngine::Video::Video(std::string_view name, LibAbyss::InputStream stream)
     : Node(name), _stream(std::move(stream)), _avBuffer(), _videoStreamIdx(-1), _audioStreamIdx(-1), _videoCodecContext(), _audioCodecContext(),
-      _yPlane(), _uPlane(), _vPlane(), _avFrame(), _videoTexture(), _sourceRect(), _targetRect(), _destData(nullptr), _lineSize(0) {
+      _yPlane(), _uPlane(), _vPlane(), _avFrame(), _videoTexture(), _sourceRect(), _targetRect(), _destData(nullptr), _lineSize(0),
+      _isPlayingMutex() {
 
     _avBuffer = (unsigned char *)av_malloc(DecodeBufferSize); // AVIO is going to free this automagically... because why not?
     memset(_avBuffer, 0, DecodeBufferSize);
@@ -163,7 +164,11 @@ void AbyssEngine::Video::MouseEventCallback(const AbyssEngine::MouseEvent &event
                             if (!evt.IsPressed || (evt.Button != eMouseButton::Left) || (_totalTicks < 1000))
                                 return;
 
-                            _isPlaying = false;
+                            {
+                                std::lock_guard<std::mutex> lock(_isPlayingMutex);
+                                _isPlaying = false;
+                            }
+
                             Engine::Get()->GetSystemIO().ResetAudio();
                         }},
                event);
@@ -217,6 +222,7 @@ bool AbyssEngine::Video::ProcessFrame() {
     AVPacket packet;
     absl::Cleanup cleanup_packet([&] { av_packet_unref(&packet); });
     if (av_read_frame(_avFormatContext, &packet) < 0) {
+        std::lock_guard<std::mutex> lock(_isPlayingMutex);
         _isPlaying = false;
         return true;
     }
@@ -280,4 +286,9 @@ std::string AbyssEngine::Video::AvErrorCodeToString(int avError) {
     av_make_error_string(str, 2048, avError);
 
     return {str};
+}
+
+bool AbyssEngine::Video::GetIsPlaying() const {
+    std::lock_guard<std::mutex> lock(_isPlayingMutex);
+    return _isPlaying;
 }

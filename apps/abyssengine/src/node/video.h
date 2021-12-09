@@ -30,7 +30,7 @@ class Video : public Node {
     void UpdateCallback(uint32_t ticks) final;
     void RenderCallback(int offsetX, int offsetY) final;
     void MouseEventCallback(const MouseEvent &event) final;
-    bool GetIsPlaying() const { return _isPlaying; }
+    bool GetIsPlaying() const;
     void StopVideo();
 
     [[nodiscard]] std::string_view NodeType() const final { return "Video Node"; };
@@ -47,16 +47,17 @@ class Video : public Node {
 
     std::unique_ptr<ITexture> _videoTexture;
 
-    AVFormatContext* _avFormatContext;
-    AVIOContext* _avioContext;
-    SwrContext* _resampleContext;
-    AVCodecContext* _videoCodecContext;
-    AVCodecContext* _audioCodecContext;
-    AVFrame* _avFrame;
+    AVFormatContext *_avFormatContext;
+    AVIOContext *_avioContext;
+    SwrContext *_resampleContext;
+    AVCodecContext *_videoCodecContext;
+    AVCodecContext *_audioCodecContext;
+    AVFrame *_avFrame;
     uint8_t **_destData;
     int _lineSize;
+    mutable std::mutex _isPlayingMutex;
 
-    unsigned char* _avBuffer;
+    unsigned char *_avBuffer;
     std::vector<uint8_t> _yPlane;
     std::vector<uint8_t> _uPlane;
     std::vector<uint8_t> _vPlane;

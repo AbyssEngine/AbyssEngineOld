@@ -49,6 +49,7 @@ class SDL2SystemIO : public SystemIO {
     std::vector<SoundEffect*> _soundEffects;
     int _backgroundMusicSampleRate = 0;
     std::mutex _mutex;
+    std::mutex _buttonStateMutex;
     bool _hasAudio = false;
     SDL_AudioSpec _audioSpec;
     SDL_AudioDeviceID _audioDeviceId = 0;

@@ -141,7 +141,6 @@ void LibAbyss::AudioStream::Update() {
     if ((avError = av_read_frame(_avFormatContext, &packet)) < 0) {
         if (_loop) {
             av_seek_frame(_avFormatContext, -1, 0, AVSEEK_FLAG_BYTE);
-            Update();
             return;
         } else {
             _isPlaying = false;
@@ -163,7 +162,7 @@ void LibAbyss::AudioStream::Update() {
             throw std::runtime_error(absl::StrCat("Error decoding audio packet: ", AvErrorCodeToString(avError)));
         }
 
-        const int outSize = av_samples_get_buffer_size(&_lineSize, _audioCodecContext->channels, _avFrame->nb_samples, AV_SAMPLE_FMT_S16, 1);
+        const int outSize = av_samples_get_buffer_size(&_lineSize, _audioCodecContext->channels, _avFrame->nb_samples, AV_SAMPLE_FMT_S16, 0);
         swr_convert(_resampleContext, _destData, _avFrame->nb_samples, (const uint8_t **)_avFrame->data, _avFrame->nb_samples);
         _ringBuffer.PushData(std::span(_destData[0], outSize));
     }
@@ -171,13 +170,13 @@ void LibAbyss::AudioStream::Update() {
 int16_t LibAbyss::AudioStream::GetSample() {
     std::lock_guard<std::mutex> lock(_mutex);
 
-    if (!_isPlaying || _isPaused)
+    if ((!_isPlaying && _ringBuffer.Available() == 0) || _isPaused)
         return 0;
 
-    if (_ringBuffer.Available() < 2)
+    if (_ringBuffer.Available() < 4)
         Update();
 
-    if (!_isPlaying)
+    if (!_isPlaying && _ringBuffer.Available() == 0)
         return 0;
 
     uint8_t data[2];
@@ -222,7 +221,7 @@ void LibAbyss::AudioStream::Play() {
     _isPlaying = true;
 
     _ringBuffer.Reset();
-    av_seek_frame(_avFormatContext, -1, 0, AVSEEK_FLAG_BYTE);
+    av_seek_frame(_avFormatContext, _audioStreamIdx, 0, AVSEEK_FLAG_FRAME);
 }
 
 void LibAbyss::AudioStream::Stop() {
