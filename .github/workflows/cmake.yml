@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    name: Build - ${{ matrix.name }}
+    name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -89,16 +89,6 @@ jobs:
         working-directory: builds/ninja-multi-vcpkg/
         run: cpack -G ZIP -C MinSizeRel ./
 
-      - name: Upload Release (Windows)
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: "builds/ninja-multi-vcpkg/package/abyss-windows.zip"
-          overwrite: true
-          prerelease: true
-          tag: unstable
-          body: "Unstable Release"
-
       - name: Package (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
         working-directory: builds/ninja-multi-vcpkg/
@@ -108,3 +98,13 @@ jobs:
         if: matrix.os == 'macos-11'
         working-directory: builds/ninja-multi-vcpkg/
         run: cpack -G DragNDrop -C MinSizeRel ./
+
+      - name: Upload Releases
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: "builds/ninja-multi-vcpkg/package/*"
+          overwrite: true
+          prerelease: true
+          tag: unstable
+          body: "Unstable Release"
