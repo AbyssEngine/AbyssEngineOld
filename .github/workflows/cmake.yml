@@ -23,6 +23,7 @@ jobs:
     env:
       CMAKE_BUILD_DIR: ${{ github.workspace }}/builddir/
       VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      CMAKE_BUILD_TYPE: "MinSizeRel"
 
     steps:
       - name: Setup XCode
@@ -86,14 +87,14 @@ jobs:
       - name: Publish (Windows)
         if: matrix.os == 'windows-latest' # && ${{ github.ref == 'refs/heads/main' }} && ${{ github.event == 'push' }}
         working-directory: builds/ninja-multi-vcpkg/
-        run: cpack -G ZIP -C Release ./
+        run: cpack -G ZIP -C MinSizeRel ./
 
       - name: Publish (Ubuntu)
         if: matrix.os == 'ubuntu-latest' # && ${{ github.ref == 'refs/heads/main' }} && ${{ github.event == 'push' }}
         working-directory: builds/ninja-multi-vcpkg/
-        run: cpack -G TGZ -C Release ./
+        run: cpack -G TGZ -C MinSizeRel ./
 
       - name: Publish (MacOS)
         if: matrix.os == 'macos-11' # && ${{ github.ref == 'refs/heads/main' }} && ${{ github.event == 'push' }}
         working-directory: builds/ninja-multi-vcpkg/
-        run: cpack -G DragNDrop -C Release ./
+        run: cpack -G DragNDrop -C MinSizeRel ./
