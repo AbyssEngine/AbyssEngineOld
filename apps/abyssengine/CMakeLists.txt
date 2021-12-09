@@ -9,7 +9,7 @@ cmake_minimum_required(VERSION 3.20)
 set(APP_NAME abyssengine)
 
 if (MSVC)
-    set(OPTIONS WIN32)
+    set(OPTIONS WIN32 BIGOBJ)
     set(SOURCE_EXTRA resource.rc)
     set(APP_NAME "AbyssEngine")
     add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_HAS_DEPRECATED_RESULT_OF=1)
