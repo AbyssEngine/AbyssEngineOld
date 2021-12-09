@@ -86,6 +86,8 @@ jobs:
 
       - name: Package (Windows)
         if: matrix.os == 'windows-latest'
+        on:
+          - push
         working-directory: builds/ninja-multi-vcpkg/
         run: cpack -G ZIP -C Debug ./
 
@@ -107,6 +109,8 @@ jobs:
 
       - name: Upload Release (Windows)
         if: matrix.os == 'ubuntu-latest'
+        on:
+          - push
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -122,8 +126,10 @@ jobs:
         working-directory: builds/ninja-multi-vcpkg/
         run: cpack -G DragNDrop -C Debug ./
 
-      - name: Upload Release (OSX)
+      - name: Upload Release (MacOS)
         if: matrix.os == 'macos-11'
+        on:
+          - push
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
