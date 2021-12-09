@@ -1,15 +1,16 @@
 #include "engine.h"
 #include "../hostnotify/hostnotify.h"
 #include "filesystemprovider.h"
-#include <spdlog/spdlog.h>
 #include <cmath>
+#include <spdlog/spdlog.h>
 
 std::exception_ptr AbyssEngine::globalExceptionPtr = nullptr;
 AbyssEngine::Engine *engineGlobalInstance = nullptr;
 
 AbyssEngine::Engine::Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO> systemIo)
     : _iniFile(std::move(iniFile)), _systemIO(std::move(systemIo)), _loader(), _palettes(), _scriptHost(std::make_unique<ScriptHost>(this)),
-      _rootNode("__root"), _videoNode(), _mouseButtonState((eMouseButton)0), _zmqContex(), _zmqSocket(_zmqContex, zmq::socket_type::router) {
+      _rootNode("__root"), _videoNode(), _mouseButtonState((eMouseButton)0), _zmqContex(), _runningMutex(), _videoMutex(),
+      _zmqSocket(_zmqContex, zmq::socket_type::router) {
     SPDLOG_TRACE("Creating engine");
 
     // Set up the global instance
@@ -66,8 +67,15 @@ void AbyssEngine::Engine::ScriptingThread() {
 void AbyssEngine::Engine::Stop() {
     std::lock_guard<std::mutex> guard(_mutex);
 
-    _running = false;
-    _videoNode = nullptr;
+    {
+        std::lock_guard<std::mutex> runningGuard(_runningMutex);
+        _running = false;
+    }
+
+    {
+        std::lock_guard<std::mutex> videoGuard(_videoMutex);
+        _videoNode = nullptr;
+    }
 }
 
 void AbyssEngine::Engine::AddPalette(std::string_view paletteName, const LibAbyss::Palette &palette) {
@@ -99,17 +107,25 @@ void AbyssEngine::Engine::SetFocusedNode(AbyssEngine::Node *node) {
 }
 
 void AbyssEngine::Engine::RunMainLoop() {
-    _running = true;
+    {
+        std::lock_guard<std::mutex> guard(_runningMutex);
+        _running = true;
+    }
     _luaLastGc = _systemIO->GetTicks();
 
-    while (_running) {
+    while (true) {
+        {
+            std::lock_guard<std::mutex> runningGuard(_runningMutex);
+            if (!_running)
+                break;
+        }
 
         if (_systemIO->GetTicks() - _luaLastGc > _luaGcRateMsec) {
             _luaLastGc = _systemIO->GetTicks();
             _scriptHost->GC();
         }
 
-        if (!_systemIO->HandleInputEvents(_videoNode != nullptr ? *_videoNode : _rootNode)) {
+        if (!_systemIO->HandleInputEvents(GetRootNodeOrVideo())) {
             Stop();
             break;
         }
@@ -118,8 +134,11 @@ void AbyssEngine::Engine::RunMainLoop() {
             std::rethrow_exception(globalExceptionPtr);
         }
 
-        if (!_running)
-            break;
+        {
+            std::lock_guard<std::mutex> runningGuard(_runningMutex);
+            if (!_running)
+                break;
+        }
 
         const auto newTicks = _systemIO->GetTicks();
         const auto tickDiff = newTicks - _lastTicks;
@@ -129,7 +148,12 @@ void AbyssEngine::Engine::RunMainLoop() {
 
         _lastTicks = newTicks;
 
-        _videoNode != nullptr ? UpdateVideo(tickDiff) : UpdateRootNode(tickDiff);
+        bool doVideoNode;
+        {
+            std::lock_guard<std::mutex> videoGuard(_videoMutex);
+            doVideoNode = _videoNode != nullptr;
+        }
+        doVideoNode ? UpdateVideo(tickDiff) : UpdateRootNode(tickDiff);
 
         _rootNode.DoInitialize();
 
@@ -192,7 +216,7 @@ void AbyssEngine::Engine::WaitForVideoToFinish() {
 
     while (true) {
         {
-            std::lock_guard lock(_mutex);
+            std::lock_guard<std::mutex> guard(_videoMutex);
 
             if (_videoNode == nullptr || !_videoNode->GetIsPlaying()) {
                 break;
@@ -201,23 +225,37 @@ void AbyssEngine::Engine::WaitForVideoToFinish() {
 
         _systemIO->Delay(50);
 
-        if (!_running)
-            break;
+        {
+            std::lock_guard<std::mutex> guard(_runningMutex);
+            if (!_running)
+                break;
+        }
     }
 }
 
 void AbyssEngine::Engine::PlayVideo(std::string_view name, LibAbyss::InputStream stream, bool wait) {
     std::lock_guard<std::mutex> guard(_mutex);
-    if (!_running)
-        return;
 
-    if (_videoNode != nullptr) {
-        SPDLOG_WARN("Video already playing");
-        return;
+    {
+        std::lock_guard<std::mutex> runningGuard(_runningMutex);
+        if (!_running)
+            return;
+    }
+
+    {
+        std::lock_guard<std::mutex> videoGuard(_videoMutex);
+
+        if (_videoNode != nullptr) {
+            SPDLOG_WARN("Video already playing");
+            return;
+        }
     }
 
     _waitVideoPlayback = wait;
-    _videoNode = std::make_unique<Video>(name, std::move(stream));
+    {
+        std::lock_guard<std::mutex> videoGuard(_videoMutex);
+        _videoNode = std::make_unique<Video>(name, std::move(stream));
+    }
 }
 
 LibAbyss::INIFile &AbyssEngine::Engine::GetIniFile() { return _iniFile; }
@@ -225,6 +263,8 @@ LibAbyss::INIFile &AbyssEngine::Engine::GetIniFile() { return _iniFile; }
 AbyssEngine::Loader &AbyssEngine::Engine::GetLoader() { return _loader; }
 
 void AbyssEngine::Engine::UpdateVideo(uint32_t tickDiff) {
+    std::lock_guard<std::mutex> videoGuard(_videoMutex);
+
     _videoNode->UpdateCallback(tickDiff);
 
     if (!_videoNode->GetIsPlaying()) {
@@ -236,7 +276,10 @@ void AbyssEngine::Engine::UpdateVideo(uint32_t tickDiff) {
 
 void AbyssEngine::Engine::UpdateRootNode(uint32_t tickDiff) { _rootNode.UpdateCallback(tickDiff); }
 
-void AbyssEngine::Engine::RenderVideo() { _videoNode->RenderCallback(0, 0); }
+void AbyssEngine::Engine::RenderVideo() {
+    std::lock_guard<std::mutex> videoGuard(_videoMutex);
+    _videoNode->RenderCallback(0, 0);
+}
 
 void AbyssEngine::Engine::RenderRootNode() {
     _rootNode.RenderCallback(0, 0);
@@ -252,3 +295,12 @@ void AbyssEngine::Engine::RenderRootNode() {
 std::mutex &AbyssEngine::Engine::GetMutex() { return _mutex; }
 
 AbyssEngine::SystemIO &AbyssEngine::Engine::GetSystemIO() { return *_systemIO; }
+
+bool AbyssEngine::Engine::IsRunning() const {
+    std::lock_guard<std::mutex> guard(_runningMutex);
+    return _running;
+}
+AbyssEngine::Node &AbyssEngine::Engine::GetRootNodeOrVideo() {
+    std::lock_guard<std::mutex> videoGuard(_videoMutex);
+    return _videoNode != nullptr ? *_videoNode : _rootNode;
+}

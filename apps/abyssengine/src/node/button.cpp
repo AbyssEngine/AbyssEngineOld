@@ -7,9 +7,12 @@
 #include <spdlog/spdlog.h>
 #include <utility>
 
-AbyssEngine::Button::Button(AbyssEngine::SpriteFont *spriteFont, Sprite *sprite) : _spriteFont(spriteFont), _sprite(sprite) {
+AbyssEngine::Button::Button(AbyssEngine::SpriteFont *spriteFont, Sprite *sprite)
+    : _spriteFont(spriteFont), _sprite(sprite), _luaPressedCallback(), _luaActivateCallback() {
+
     if (spriteFont == nullptr)
         throw std::runtime_error("Attempted to create a button with no sprite font.");
+
     if (sprite == nullptr)
         throw std::runtime_error("Attempted to create a button with no sprite.");
 }
@@ -69,7 +72,9 @@ void AbyssEngine::Button::UpdateCallback(uint32_t ticks) {
         }
 
         _buttonState = eState::Normal;
+
         Node::UpdateCallback(ticks);
+
         return;
     }
 
@@ -95,6 +100,17 @@ void AbyssEngine::Button::UpdateCallback(uint32_t ticks) {
         _buttonState = eState::Pressed;
         engine->SetFocusedNode(this);
         Node::UpdateCallback(ticks);
+
+        if (_luaPressedCallback.valid()) {
+            auto result = _luaPressedCallback();
+            if (!result.valid()) {
+                sol::error err = result;
+                SPDLOG_ERROR(err.what());
+                AbyssEngine::HostNotify::Notify(eNotifyType::Fatal, "Script Error", err.what());
+                return;
+            }
+        }
+
         return;
     }
 
@@ -193,6 +209,7 @@ void AbyssEngine::Button::LuaSetFrameIndex(std::string_view frameType, int index
 }
 
 void AbyssEngine::Button::LuaSetActivateCallback(sol::safe_function luaActivateCallback) { _luaActivateCallback = std::move(luaActivateCallback); }
-void AbyssEngine::Button::Initialize() {
-    _sprite->Initialize();
-}
+
+void AbyssEngine::Button::Initialize() { _sprite->Initialize(); }
+
+void AbyssEngine::Button::LuaSetPressCallback(sol::safe_function luaPressCallback) { _luaPressedCallback = std::move(luaPressCallback); }

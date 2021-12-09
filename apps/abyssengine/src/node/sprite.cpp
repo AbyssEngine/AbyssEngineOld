@@ -20,6 +20,9 @@ void AbyssEngine::Sprite::Render(uint32_t startFrameIdx, int offsetX, int offset
     const auto totalFrames = GetFramesPerAnimation();
     // const auto totalAnimations = GetNumberOfAnimations();
 
+    if (_framePositions.empty())
+        return;
+
     uint32_t frameWidth;
     uint32_t frameHeight;
     GetFrameSize(_currentFrame, frameWidth, frameHeight);

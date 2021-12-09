@@ -13,6 +13,7 @@ if (MSVC)
     set(SOURCE_EXTRA resource.rc)
     set(APP_NAME "AbyssEngine")
     add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_HAS_DEPRECATED_RESULT_OF=1)
+    add_compile_options(/bigobj)
 endif (MSVC)
 
 if (APPLE)
@@ -35,6 +36,7 @@ target_sources(${APP_NAME} PRIVATE
         src/engine/cascprovider.cpp
         src/engine/mpqprovider.cpp
         src/engine/spritefont.cpp
+        src/engine/soundeffect.cpp
         src/common/alignment.cpp
         src/common/blendmode.cpp
         src/common/color.cpp

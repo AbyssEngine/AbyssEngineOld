@@ -99,19 +99,24 @@ class Engine {
 
     std::mutex& GetMutex();
 
+    bool IsRunning() const;
+
   private:
     void RunMainLoop();
     void UpdateVideo(uint32_t tickDiff);
     void UpdateRootNode(uint32_t tickDiff);
     void RenderVideo();
     void RenderRootNode();
+    Node &GetRootNodeOrVideo();
 
     zmq::context_t _zmqContex;
     zmq::socket_t _zmqSocket;
     LibAbyss::INIFile _iniFile;
     Loader _loader;
     std::unique_ptr<AbyssEngine::SystemIO> _systemIO;
-    std::mutex _mutex;
+    mutable std::mutex _mutex;
+    mutable std::mutex _runningMutex;
+    mutable std::mutex _videoMutex;
     absl::node_hash_map<std::string, LibAbyss::Palette> _palettes;
     std::unique_ptr<ScriptHost> _scriptHost;
     Node _rootNode;

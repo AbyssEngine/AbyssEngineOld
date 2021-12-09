@@ -4,7 +4,6 @@
 #include <absl/cleanup/cleanup.h>
 #include <absl/strings/ascii.h>
 #include <ios>
-#include <spdlog/spdlog.h>
 
 namespace {
 const int DecodeBufferSize = 1024;
@@ -12,7 +11,8 @@ const int DecodeBufferSize = 1024;
 
 AbyssEngine::Video::Video(std::string_view name, LibAbyss::InputStream stream)
     : Node(name), _stream(std::move(stream)), _avBuffer(), _videoStreamIdx(-1), _audioStreamIdx(-1), _videoCodecContext(), _audioCodecContext(),
-      _yPlane(), _uPlane(), _vPlane(), _avFrame(), _videoTexture(), _sourceRect(), _targetRect() {
+      _yPlane(), _uPlane(), _vPlane(), _avFrame(), _videoTexture(), _sourceRect(), _targetRect(), _destData(nullptr), _lineSize(0),
+      _isPlayingMutex() {
 
     _avBuffer = (unsigned char *)av_malloc(DecodeBufferSize); // AVIO is going to free this automagically... because why not?
     memset(_avBuffer, 0, DecodeBufferSize);
@@ -114,9 +114,16 @@ AbyssEngine::Video::Video(std::string_view name, LibAbyss::InputStream stream)
     _videoTimestamp = av_gettime();
 
     Engine::Get()->GetSystemIO().ResetAudio();
+
+    if ((avError = av_samples_alloc_array_and_samples(&_destData, &_lineSize, 2, 44100, AV_SAMPLE_FMT_S16, 0)) < 0)
+        throw std::runtime_error(absl::StrCat("Failed to allocate samples: ", AvErrorCodeToString(avError)));
 }
 
 AbyssEngine::Video::~Video() {
+    if (_destData)
+        av_freep(&_destData[0]);
+    av_freep(&_destData);
+
     av_free(_avioContext->buffer);
     avio_context_free(&_avioContext);
     avcodec_free_context(&_videoCodecContext);
@@ -157,7 +164,11 @@ void AbyssEngine::Video::MouseEventCallback(const AbyssEngine::MouseEvent &event
                             if (!evt.IsPressed || (evt.Button != eMouseButton::Left) || (_totalTicks < 1000))
                                 return;
 
-                            _isPlaying = false;
+                            {
+                                std::lock_guard<std::mutex> lock(_isPlayingMutex);
+                                _isPlaying = false;
+                            }
+
                             Engine::Get()->GetSystemIO().ResetAudio();
                         }},
                event);
@@ -211,6 +222,7 @@ bool AbyssEngine::Video::ProcessFrame() {
     AVPacket packet;
     absl::Cleanup cleanup_packet([&] { av_packet_unref(&packet); });
     if (av_read_frame(_avFormatContext, &packet) < 0) {
+        std::lock_guard<std::mutex> lock(_isPlayingMutex);
         _isPlaying = false;
         return true;
     }
@@ -256,13 +268,9 @@ bool AbyssEngine::Video::ProcessFrame() {
                 throw std::runtime_error(absl::StrCat("Error decoding audio packet: ", AvErrorCodeToString(avError)));
             }
 
-            const int outSize = av_samples_get_buffer_size(nullptr, _audioCodecContext->channels, _avFrame->nb_samples, AV_SAMPLE_FMT_S16, 1);
-            std::vector<unsigned char> outBuff;
-            outBuff.resize(outSize);
-            uint8_t *outBuffArray[1];
-            outBuffArray[0] = (unsigned char *)outBuff.data();
-            swr_convert(_resampleContext, outBuffArray, _avFrame->nb_samples, (const uint8_t **)_avFrame->data, _avFrame->nb_samples);
-            systemIO.PushAudioData(eAudioIntent::Video, outBuff);
+            const int outSize = av_samples_get_buffer_size(&_lineSize, _audioCodecContext->channels, _avFrame->nb_samples, AV_SAMPLE_FMT_S16, 0);
+            swr_convert(_resampleContext, _destData, _avFrame->nb_samples, (const uint8_t **)_avFrame->data, _avFrame->nb_samples);
+            systemIO.PushAudioData(eAudioIntent::Video, std::span(_destData[0], outSize));
         }
 
         return false;
@@ -278,4 +286,9 @@ std::string AbyssEngine::Video::AvErrorCodeToString(int avError) {
     av_make_error_string(str, 2048, avError);
 
     return {str};
+}
+
+bool AbyssEngine::Video::GetIsPlaying() const {
+    std::lock_guard<std::mutex> lock(_isPlayingMutex);
+    return _isPlaying;
 }
