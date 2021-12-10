@@ -1,6 +1,7 @@
 #ifndef ABYSS_VIDEO_H
 #define ABYSS_VIDEO_H
 
+#include <sol/sol.hpp>
 #include "../systemio/interface.h"
 #include "libabyss/inputstream.h"
 #include "node.h"
