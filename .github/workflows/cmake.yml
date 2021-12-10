@@ -38,12 +38,21 @@ jobs:
       - uses: lukka/get-cmake@latest
         name: Get CMake
 
-
-      - name: Install Deps (Windows)
+      - name: Install Deps 1 (Windows)
         if: matrix.os == 'windows-latest'
         uses: crazy-max/ghaction-chocolatey@v1
         with:
           args: install nasm
+
+      - name: Install Deps 2 (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+            Invoke-WebRequest -Uri https://download.videolan.org/pub/videolan/vlc/3.0.16/win64/vlc-3.0.16-win64.7z -OutFile vlc-3.0.16-win64.7z
+            7z x vlc-3.0.16-win64.7z
+            echo "LIBVLC_COPY_PLUGINS=${{ github.workspace }}/vlc-3.0.16/plugins" | Out-File -FilePath $env:GITHUB_ENV -Append
+            echo "LIBVLC_INCLUDE_PATH=${{ github.workspace }}/vlc-3.0.16/sdk/include" | Out-File -FilePath $env:GITHUB_ENV -Append
+            echo "LIBVLC_LIBRARY_PATH=${{ github.workspace }}/vlc-3.0.16/sdk/lib" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Use MSVC (Windows)
         if: matrix.os == 'windows-latest'
@@ -65,7 +74,7 @@ jobs:
 
       - name: Install Deps (MacOS)
         if: matrix.os == 'macos-11'
-        run: brew install nasm ffmpeg vlc && echo "CC=$LLVM_PATH/bin/clang" >> $GITHUB_ENV && echo "CXX=$LLVM_PATH/bin/clang++" >> $GITHUB_ENV
+        run: brew install nasm ffmpeg vlc && echo "CC=$LLVM_PATH/bin/clang" >> $GITHUB_ENV && echo "CXX=$LLVM_PATH/bin/clang++" >> $GITHUB_ENV && echo "LIBVLC_COPY_PLUGINS=/Applications/VLC.app/Contents/MacOS/plugins/" >> $GITHUB_ENV
 
       - name: Run vcpkg
         uses: lukka/run-vcpkg@v10
@@ -84,10 +93,17 @@ jobs:
       - name: Test
         run: builds/ninja-multi-vcpkg/tests/Debug/abyss_test
 
+      - name: Prepare deps for package (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+            Copy-Item vlc-3.0.16\libvlc.dll -Destination builds\ninja-multi-vcpkg\apps\abyssengine\Debug
+            Copy-Item vlc-3.0.16\libvlccore.dll -Destination builds\ninja-multi-vcpkg\apps\abyssengine\Debug
+
       - name: Package (Windows)
         if: ${{ matrix.os == 'windows-latest' && github.event_name == 'push' }}
         working-directory: builds/ninja-multi-vcpkg/
-        run: cpack -G ZIP -C Debug ./
+        run: cpack --verbose -G ZIP -C Debug ./
 
       - name: Upload Release (Windows)
         if: ${{ matrix.os == 'windows-latest' && github.event_name == 'push' }}
@@ -105,7 +121,7 @@ jobs:
         working-directory: builds/ninja-multi-vcpkg/
         run: cpack -G TGZ -C Debug ./
 
-      - name: Upload Release (Windows)
+      - name: Upload Release (Ubuntu)
         if: ${{ matrix.os == 'ubuntu-latest' && github.event_name == 'push' }}
         uses: svenstaro/upload-release-action@v2
         with:

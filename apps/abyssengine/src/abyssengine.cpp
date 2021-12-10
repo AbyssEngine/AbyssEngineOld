@@ -13,6 +13,10 @@
 #include <libavfilter/version.h>
 #include <libswresample/version.h>
 
+#ifdef _MSC_VER
+#include <windows.h>
+#endif
+
 static std::filesystem::path GetConfigPath(std::string_view exePath) {
     auto testPath = std::filesystem::current_path() / "config.ini";
 
@@ -35,6 +39,16 @@ static std::filesystem::path GetConfigPath(std::string_view exePath) {
     return {};
 }
 
+static void SetVLCPath(std::string_view exePath) {
+    // On Windows and MacOS we'll have LibVLC plugins in some specific directory
+    auto vlc_path = std::filesystem::absolute(exePath).remove_filename() / "abyss-vlc-plugins";
+#ifdef _MSC_VER
+    SetEnvironmentVariableA("VLC_PLUGIN_PATH", vlc_path.string().c_str());
+#else
+    setenv("VLC_PLUGIN_PATH", vlc_path.c_str(), 1);
+#endif
+}
+
 int main(int, char *argv[]) {
     SPDLOG_INFO(ABYSS_VERSION_STRING);
 
@@ -51,6 +65,8 @@ int main(int, char *argv[]) {
     SPDLOG_INFO("   AVCodec Version     - " AV_STRINGIFY(LIBAVCODEC_VERSION));
     SPDLOG_INFO("   AVFilter Version    - " AV_STRINGIFY(LIBAVFILTER_VERSION));
     SPDLOG_INFO("   SwResample Version  - " AV_STRINGIFY(LIBSWRESAMPLE_VERSION));
+
+    SetVLCPath(argv[0]);
 
     try {
         auto configPath = GetConfigPath(argv[0]);

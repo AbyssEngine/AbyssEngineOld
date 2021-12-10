@@ -49,13 +49,14 @@ FIND_PATH(LIBVLC_INCLUDE_DIR vlc/vlc.h
     "/usr/local/include/vlc"
     #mingw
     c:/msys/local/include
+    "c:/Program Files/VideoLAN/VLC/sdk/include"
     "c:/Program Files (x86)/VideoLAN/VLC/sdk/include"
   )
 FIND_PATH(LIBVLC_INCLUDE_DIR PATHS "${CMAKE_INCLUDE_PATH}/vlc" NAMES vlc.h)
 
 #Put here path to custom location
 #example: /home/user/vlc/lib etc..
-FIND_LIBRARY(LIBVLC_LIBRARY NAMES vlc libvlc
+FIND_LIBRARY(LIBVLC_LIBRARY NAMES libvlc vlc
   HINTS "$ENV{LIBVLC_LIBRARY_PATH}"
   PATHS
     "$ENV{LIB_DIR}/lib"
@@ -66,10 +67,10 @@ FIND_LIBRARY(LIBVLC_LIBRARY NAMES vlc libvlc
     "/Applications/VLC.app/Contents/MacOS/plugins"
     #mingw
     c:/msys/local/lib
+    "c:/Program Files/VideoLAN/VLC/sdk/lib"
     "c:/Program Files (x86)/VideoLAN/VLC/sdk/lib"
   )
-FIND_LIBRARY(LIBVLC_LIBRARY NAMES vlc libvlc)
-FIND_LIBRARY(LIBVLCCORE_LIBRARY NAMES vlccore libvlccore
+FIND_LIBRARY(LIBVLCCORE_LIBRARY NAMES libvlccore vlccore
   HINTS "$ENV{LIBVLC_LIBRARY_PATH}"
   PATHS
     "$ENV{LIB_DIR}/lib"
@@ -80,9 +81,9 @@ FIND_LIBRARY(LIBVLCCORE_LIBRARY NAMES vlccore libvlccore
     "/Applications/VLC.app/Contents/MacOS/plugins"
     #mingw
     c:/msys/local/lib
+    "c:/Program Files/VideoLAN/VLC/sdk/lib"
     "c:/Program Files (x86)/VideoLAN/VLC/sdk/lib"
   )
-FIND_LIBRARY(LIBVLCCORE_LIBRARY NAMES vlccore libvlccore)
 
 IF (LIBVLC_INCLUDE_DIR AND LIBVLC_LIBRARY AND LIBVLCCORE_LIBRARY)
    SET(LIBVLC_FOUND TRUE)
