@@ -1,3 +1,5 @@
+#ifndef ABYSS_USE_LIBVLC
+
 extern "C" {
 #include <libavutil/opt.h>
 };
@@ -230,3 +232,5 @@ void LibAbyss::AudioStream::Stop() {
     _isPlaying = false;
     _isPaused = false;
 }
+
+#endif // ABYSS_USE_LIBVLC

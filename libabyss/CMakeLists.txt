@@ -23,6 +23,7 @@ add_library(${APP_NAME}
         src/inifile.cpp
         src/abysssprite.cpp
         src/audiostream.cpp
+        src/audiostream-vlc.cpp
         src/ringbuffer.cpp
 
         # Strange CASClib inclusion
@@ -66,6 +67,11 @@ target_link_libraries(${APP_NAME}
         fmt::fmt
         ${FFMPEG_LIBRARIES}
         )
+
+if(USE_LIBVLC)
+    target_link_libraries(${APP_NAME} PRIVATE VLC::VLC)
+    target_compile_definitions(${APP_NAME} PUBLIC ABYSS_USE_LIBVLC)
+endif()
 
 
 # -------------------------------------------------------------------------------------------------

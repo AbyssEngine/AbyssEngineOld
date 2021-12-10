@@ -1,6 +1,10 @@
 #ifndef ABYSS_AUDIOSTREAM_H
 #define ABYSS_AUDIOSTREAM_H
 
+#ifdef ABYSS_USE_LIBVLC
+#include <libabyss/audiostream-vlc.h>
+#else
+
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -60,4 +64,5 @@ class AudioStream {
 };
 } // namespace LibAbyss
 
+#endif // ABYSS_USE_LIBVLC
 #endif // ABYSS_AUDIOSTREAM_H
