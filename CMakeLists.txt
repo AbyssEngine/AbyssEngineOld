@@ -20,6 +20,7 @@ include(${CMAKE_SOURCE_DIR}/cmake/ConfigureVCPKG.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/Stormlib.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/Casclib.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/SDL2.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/VLC.cmake)
 
 
 # -------------------------------------------------------------------------------------------------
@@ -78,6 +79,7 @@ find_package(PNG REQUIRED)
 include_sdl2()
 include_stormlib()
 include_casclib()
+include_libvlc()
 
 if (APPLE)
     find_library(OSX_VIDEOTOOLBOX VideoToolbox)

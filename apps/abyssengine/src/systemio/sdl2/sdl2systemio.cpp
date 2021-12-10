@@ -210,6 +210,10 @@ void AbyssEngine::SDL2::SDL2SystemIO::HandleAudio(uint8_t *stream, int length) {
     std::lock_guard<std::mutex> lock(_mutex);
 
     memset(stream, 0, length);
+    if (Engine::Get() == nullptr) {
+        // It's still startup
+        return;
+    }
     if (!Engine::Get()->IsRunning()) {
         return;
     }
