@@ -80,7 +80,7 @@ include_sdl2()
 include_stormlib()
 include_casclib()
 
-if(UNIX AND NOT APPLE)
+if(UNIX)
     option(USE_LIBVLC "Use libvlc instead of ffmpeg for audio" ON)
 else()
     option(USE_LIBVLC "Use libvlc instead of ffmpeg for audio" OFF)

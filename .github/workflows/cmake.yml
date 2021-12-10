@@ -51,7 +51,7 @@ jobs:
 
       - name: Install Deps (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get update && sudo apt-get install nasm libxext-dev libavcodec-dev libavformat-dev libavdevice-dev libavfilter-dev libvlc-dev
+        run: sudo apt-get update && sudo apt-get install nasm libxext-dev libavcodec-dev libavformat-dev libavdevice-dev libavfilter-dev libvlc-dev libvlccore-dev
 
       - name: Install GCC (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
@@ -65,7 +65,7 @@ jobs:
 
       - name: Install Deps (MacOS)
         if: matrix.os == 'macos-11'
-        run: brew install nasm ffmpeg && echo "CC=$LLVM_PATH/bin/clang" >> $GITHUB_ENV && echo "CXX=$LLVM_PATH/bin/clang++" >> $GITHUB_ENV
+        run: brew install nasm ffmpeg vlc && echo "CC=$LLVM_PATH/bin/clang" >> $GITHUB_ENV && echo "CXX=$LLVM_PATH/bin/clang++" >> $GITHUB_ENV
 
       - name: Run vcpkg
         uses: lukka/run-vcpkg@v10
