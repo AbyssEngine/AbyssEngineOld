@@ -8,7 +8,7 @@ LibAbyss::AudioStream::AudioStream(InputStream stream)
 #if LIBVLC_VERSION_INT < LIBVLC_VERSION(4, 0, 0, 0)
       ,
       _looper([this]() {
-          // libvlc doesn't currently provide a way to loop the playback, hence this hack
+          // libvlc before version 4 doesn't provide a way to loop the playback, hence this hack
           std::unique_lock<std::mutex> lk(_mutex);
           while (true) {
               _loop_cv.wait(lk, [this]() { return _loop_do || _loop_exit; });
@@ -42,6 +42,7 @@ LibAbyss::AudioStream::AudioStream(InputStream stream)
             return _stream.gcount();
         },
         [this](void *, uint64_t seek) -> int {
+            _stream.clear();
             _stream.seekg(seek, std::ios_base::beg);
             return 0;
         },

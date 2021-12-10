@@ -38,7 +38,6 @@ jobs:
       - uses: lukka/get-cmake@latest
         name: Get CMake
 
-
       - name: Install Deps 1 (Windows)
         if: matrix.os == 'windows-latest'
         uses: crazy-max/ghaction-chocolatey@v1
@@ -48,11 +47,6 @@ jobs:
       - name: Install Deps 2 (Windows)
         if: matrix.os == 'windows-latest'
         run: nuget install VideoLAN.LibVLC.Windows -Version 3.0.16 -OutputDirectory libvlc
-
-      - name: Check Deps (Windows)
-        if: matrix.os == 'windows-latest'
-        shell: pwsh
-        run: Get-ChildItem -Recurse
 
       - name: Use MSVC (Windows)
         if: matrix.os == 'windows-latest'
@@ -74,7 +68,7 @@ jobs:
 
       - name: Install Deps (MacOS)
         if: matrix.os == 'macos-11'
-        run: brew install nasm ffmpeg && echo "CC=$LLVM_PATH/bin/clang" >> $GITHUB_ENV && echo "CXX=$LLVM_PATH/bin/clang++" >> $GITHUB_ENV && wget https://artifacts.videolan.org/vlc/nightly-macos-x86_64/20211209-0423/vlc-macos-sdk-4.0.0-dev-intel64-c8797d1a.tar.gz && mkdir libvlc && cd libvlc && tar -xf ../vlc-macos*.tar.gz && ls -lR && cd ..
+        run: brew install nasm ffmpeg && echo "CC=$LLVM_PATH/bin/clang" >> $GITHUB_ENV && echo "CXX=$LLVM_PATH/bin/clang++" >> $GITHUB_ENV && wget https://artifacts.videolan.org/vlc/nightly-macos-x86_64/20211209-0423/vlc-macos-sdk-4.0.0-dev-intel64-c8797d1a.tar.gz && mkdir libvlc && cd libvlc && tar -xf ../vlc-macos*.tar.gz && cd ..
 
       - name: Run vcpkg
         uses: lukka/run-vcpkg@v10
@@ -89,9 +83,18 @@ jobs:
         with:
           configurePreset: 'ninja-multi-vcpkg'
           buildPreset: 'ninja-multi-vcpkg'
+        env:
+          LIBVLC_LIBDIR: "./libvlc/lib;./libvlc/VideoLAN.LibVLC.Windows.3.0.16/build/x64"
+          LIBVLC_INC: "./libvlc/include;./libvlc/VideoLAN.LibVLC.Windows.3.0.16/build/x64/include"
 
       - name: Test
         run: builds/ninja-multi-vcpkg/tests/Debug/abyss_test
+
+      - name: Prepare VLC for package (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+            cp -Rp libvlc/VideoLAN.LibVLC.Windows.3.0.16/build/x64/plugins builds/ninja-multi-vcpkg/apps/abyssengine/Debug/
+            cp libvlc/VideoLAN.LibVLC.Windows.3.0.16/build/x64/*.dll builds/ninja-multi-vcpkg/apps/abyssengine/Debug/
 
       - name: Package (Windows)
         if: ${{ matrix.os == 'windows-latest' && github.event_name == 'push' }}
@@ -125,6 +128,9 @@ jobs:
           tag: unstable
           body: "Unstable Release"
 
+      - name: Prepare VLC for package (MacOS)
+        if: matrix.os == 'macos-11'
+        run: cp -Rp libvlc builds/ninja-multi-vcpkg/apps/abyssengine/Debug/
 
       - name: Package (MacOS)
         if: ${{ matrix.os == 'macos-11' && github.event_name == 'push' }}
