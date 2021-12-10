@@ -39,20 +39,11 @@ jobs:
         name: Get CMake
 
 
-      - name: Install Deps 1 (Windows)
+      - name: Install Deps (Windows)
         if: matrix.os == 'windows-latest'
         uses: crazy-max/ghaction-chocolatey@v1
         with:
-          args: install nasm nuget.commandline
-
-      - name: Install Deps 2 (Windows)
-        if: matrix.os == 'windows-latest'
-        run: nuget install VideoLAN.LibVLC.Windows -Version 3.0.16 -OutputDirectory libvlc
-
-      - name: Check Deps (Windows)
-        if: matrix.os == 'windows-latest'
-        shell: pwsh
-        run: Get-ChildItem -Recurse
+          args: install nasm
 
       - name: Use MSVC (Windows)
         if: matrix.os == 'windows-latest'
@@ -60,7 +51,7 @@ jobs:
 
       - name: Install Deps (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get update && sudo apt-get install nasm libxext-dev libavcodec-dev libavformat-dev libavdevice-dev libavfilter-dev libvlc-dev
+        run: sudo apt-get update && sudo apt-get install nasm libxext-dev libavcodec-dev libavformat-dev libavdevice-dev libavfilter-dev
 
       - name: Install GCC (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
@@ -74,7 +65,7 @@ jobs:
 
       - name: Install Deps (MacOS)
         if: matrix.os == 'macos-11'
-        run: brew install nasm ffmpeg && echo "CC=$LLVM_PATH/bin/clang" >> $GITHUB_ENV && echo "CXX=$LLVM_PATH/bin/clang++" >> $GITHUB_ENV && wget https://artifacts.videolan.org/vlc/nightly-macos-x86_64/20211209-0423/vlc-macos-sdk-4.0.0-dev-intel64-c8797d1a.tar.gz && mkdir libvlc && cd libvlc && tar -xf ../vlc-macos*.tar.gz && ls -lR && cd ..
+        run: brew install nasm ffmpeg && echo "CC=$LLVM_PATH/bin/clang" >> $GITHUB_ENV && echo "CXX=$LLVM_PATH/bin/clang++" >> $GITHUB_ENV
 
       - name: Run vcpkg
         uses: lukka/run-vcpkg@v10
@@ -96,7 +87,7 @@ jobs:
       - name: Package (Windows)
         if: ${{ matrix.os == 'windows-latest' && github.event_name == 'push' }}
         working-directory: builds/ninja-multi-vcpkg/
-        run: cpack --verbose --trace --debug -G ZIP -C Debug ./
+        run: cpack -G ZIP -C Debug ./
 
       - name: Upload Release (Windows)
         if: ${{ matrix.os == 'windows-latest' && github.event_name == 'push' }}

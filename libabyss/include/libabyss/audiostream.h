@@ -1,14 +1,22 @@
 #ifndef ABYSS_AUDIOSTREAM_H
 #define ABYSS_AUDIOSTREAM_H
 
+extern "C" {
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libswresample/swresample.h>
+};
+
 #include "inputstream.h"
-#include "readerwriterqueue.h"
 #include "ringbuffer.h"
-#include <condition_variable>
 #include <memory>
 #include <mutex>
-#include <thread>
-#include <vlcpp/vlc.hpp>
+
+// Compatability with newer API
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55, 28, 1)
+#define av_frame_alloc avcodec_alloc_frame
+#define av_frame_free avcodec_free_frame
+#endif
 
 namespace LibAbyss {
 class AudioStream {
@@ -25,27 +33,30 @@ class AudioStream {
     void Stop();
 
   private:
+    int StreamRead(uint8_t *buffer, int size);
+    static int StreamReadCallback(void *opaque, uint8_t *buffer, int size) { return ((AudioStream *)opaque)->StreamRead(buffer, size); };
+    int64_t StreamSeek(int64_t offset, int whence);
+    static int64_t StreamSeekCallback(void *opaque, int64_t offset, int whence) { return ((AudioStream *)opaque)->StreamSeek(offset, whence); };
+    static std::string AvErrorCodeToString(int avError);
+    void Update();
+
     InputStream _stream;
+    unsigned char *_avBuffer;
+    AVIOContext *_avioContext;
+    AVFormatContext *_avFormatContext;
+    AVCodecContext *_audioCodecContext;
+    SwrContext *_resampleContext;
+    AVFrame *_avFrame;
+    RingBuffer _ringBuffer;
+    uint8_t **_destData;
+    int _lineSize;
+
     std::mutex _mutex;
 
     bool _isPlaying = false;
     bool _isPaused = false;
     bool _loop = false;
-
-    VLC::Instance _instance;
-    VLC::Media _media;
-#if LIBVLC_VERSION_INT >= LIBVLC_VERSION(4, 0, 0, 0)
-    VLC::MediaList _list;
-    VLC::MediaListPlayer _list_player;
-#else
-    std::thread _looper;
-    bool _loop_do = false;
-    bool _loop_exit = false;
-    std::condition_variable _loop_cv;
-#endif
-    VLC::MediaPlayer _player;
-
-    moodycamel::ReaderWriterQueue<uint16_t> _queue;
+    int _audioStreamIdx = 0;
 };
 } // namespace LibAbyss
 
