@@ -3,7 +3,6 @@
 
 #include "../common/events.h"
 #include <memory>
-#include <mutex>
 #include <queue>
 #include <string>
 #include <tuple>
@@ -24,7 +23,7 @@ class Node {
     [[nodiscard]] virtual std::string_view NodeType() const { return "Node"; };
 
     void DoInitialize();
-    void GetEffectiveLayout(int &x, int &y);
+    void GetEffectiveLayout(int &x, int &y) const;
     void AppendChild(Node *childNode);
     void RemoveChild(Node *nodeRef);
     void RemoveAllChildren();
@@ -50,7 +49,6 @@ class Node {
     std::queue<Node *> _removeChildQueue;
     bool _removeAllChildren = false;
     std::string Name;
-    mutable std::mutex _mutex;
     bool _initialized = false;
 };
 

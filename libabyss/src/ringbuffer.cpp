@@ -65,6 +65,7 @@ void LibAbyss::RingBuffer::ReadData(std::span<uint8_t> outBuffer) {
 
         while (readPos >= _bufferSize)
             readPos -= _bufferSize;
+
     }
 
     _readPosition = readPos;

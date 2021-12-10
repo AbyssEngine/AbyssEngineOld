@@ -11,10 +11,7 @@
 #include <absl/container/node_hash_map.h>
 #include <exception>
 #include <filesystem>
-#include <mutex>
-#include <thread>
 #include <string>
-#include <zmq.hpp>
 
 namespace AbyssEngine {
 
@@ -31,9 +28,6 @@ class Engine {
 
     /// Stops the engine
     void Stop();
-
-    /// Returns the engine's script host
-    void ScriptingThread();
 
     /// Adds a new palette to the engine
     void AddPalette(std::string_view paletteName, const LibAbyss::Palette &palette);
@@ -69,13 +63,10 @@ class Engine {
     /// Resets the mouse button state
     void ResetMouseButtonState();
 
-    /// Waits for video playback to complete
-    void WaitForVideoToFinish();
-
     /// Plays a video
     /// \param stream The stream to play
     /// \param wait If true, the engine will wait for the video to finish before returning
-    void PlayVideo(std::string_view name, LibAbyss::InputStream stream, bool wait);
+    void PlayVideo(std::string_view name, LibAbyss::InputStream stream, const sol::safe_function& callback);
 
     /// Returns the resource loader
     /// \return s The resource loader
@@ -97,8 +88,6 @@ class Engine {
     ///  \return The palette
     [[nodiscard]] const LibAbyss::Palette &GetPalette(std::string_view paletteName);
 
-    std::mutex& GetMutex();
-
     bool IsRunning() const;
 
   private:
@@ -109,14 +98,9 @@ class Engine {
     void RenderRootNode();
     Node &GetRootNodeOrVideo();
 
-    zmq::context_t _zmqContex;
-    zmq::socket_t _zmqSocket;
     LibAbyss::INIFile _iniFile;
     Loader _loader;
     std::unique_ptr<AbyssEngine::SystemIO> _systemIO;
-    mutable std::mutex _mutex;
-    mutable std::mutex _runningMutex;
-    mutable std::mutex _videoMutex;
     absl::node_hash_map<std::string, LibAbyss::Palette> _palettes;
     std::unique_ptr<ScriptHost> _scriptHost;
     Node _rootNode;
@@ -124,7 +108,6 @@ class Engine {
     bool _running = true;
     uint32_t _lastTicks = 0;
     std::unique_ptr<Video> _videoNode;
-    bool _waitVideoPlayback = false;
     Sprite *_cursorSprite = nullptr;
     bool _showSystemCursor = false;
     int _cursorX = 0;

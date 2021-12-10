@@ -5,10 +5,10 @@
 #include "../interface.h"
 #include <functional>
 #include <libabyss/ringbuffer.h>
-#include <mutex>
 #include <SDL2/SDL.h>
 #include <string>
 #include <vector>
+#include <mutex>
 
 namespace AbyssEngine::SDL2 {
 
@@ -48,8 +48,6 @@ class SDL2SystemIO : public SystemIO {
     std::unique_ptr<LibAbyss::AudioStream> _backgroundMusicStream;
     std::vector<SoundEffect*> _soundEffects;
     int _backgroundMusicSampleRate = 0;
-    std::mutex _mutex;
-    std::mutex _buttonStateMutex;
     bool _hasAudio = false;
     SDL_AudioSpec _audioSpec;
     SDL_AudioDeviceID _audioDeviceId = 0;
@@ -65,6 +63,8 @@ class SDL2SystemIO : public SystemIO {
     float _backgroundMusicAudioLevelActual = 1.0f;
     float _soundEffectsAudioLevel = 1.0f;
     float _soundEffectsAudioLevelActual = 1.0f;
+
+    std::mutex _mutex;
 };
 
 } // namespace AbyssEngine::SDL2

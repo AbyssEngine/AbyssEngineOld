@@ -83,8 +83,8 @@ function abyss.playBackgroundMusic(fileName) end
 
 ---Plays the specified video
 ---@param videoPath string @ The path to the video file
----@param wait boolean     @ True if the script will wait until it is done playing before continuing on.
-function abyss.playVideo(videoPath, wait) end
+---@param onFinishedCallback function @ The callback to call when the video finishes playing.
+function abyss.playVideo(videoPath, onFinishedCallback) end
 
 ---Resets the mouse state.
 ---This is usefull to prevent accidental button clicks on scene changes.
