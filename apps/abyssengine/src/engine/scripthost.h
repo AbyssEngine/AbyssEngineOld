@@ -50,7 +50,7 @@ class ScriptHost {
     std::unique_ptr<Label> LuaCreateLabel(SpriteFont *spriteFont);
     std::unique_ptr<SoundEffect> LuaCreateSoundEffect(std::string_view fileName);
     void LuaSetCursor(Sprite &sprite, int offsetX, int offsetY);
-    void LuaPlayVideo(std::string_view videoPath, bool wait);
+    void LuaPlayVideo(std::string_view videoPath, const sol::safe_function& callback);
     Node &LuaGetRootNode();
     template <class T, typename X>
     sol::basic_usertype<T, sol::basic_reference<false>> CreateLuaObjectType(sol::table &module, std::string_view name, X &&constructor);

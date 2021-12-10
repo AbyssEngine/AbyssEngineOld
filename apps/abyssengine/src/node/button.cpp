@@ -161,7 +161,7 @@ void AbyssEngine::Button::RenderCallback(int offsetX, int offsetY) {
                                 _labelColor);
     }
 
-    Node::RenderCallback(X + offsetX, Y + offsetY);
+    //Node::RenderCallback(X + offsetX, Y + offsetY);
 }
 
 void AbyssEngine::Button::MouseEventCallback(const AbyssEngine::MouseEvent &event) { Node::MouseEventCallback(event); }

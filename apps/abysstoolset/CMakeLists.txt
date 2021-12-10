@@ -39,6 +39,7 @@ target_link_libraries(${APP_NAME}
         libabyss
         spdlog::spdlog_header_only
         argh
+        PNG::PNG
         )
 
 install(TARGETS ${APP_NAME})

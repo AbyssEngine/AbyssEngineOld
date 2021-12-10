@@ -301,11 +301,9 @@ void AbyssEngine::ScriptHost::LuaSetCursor(Sprite &sprite, int offsetX, int offs
 
 AbyssEngine::Node &AbyssEngine::ScriptHost::LuaGetRootNode() { return _engine->GetRootNode(); }
 
-void AbyssEngine::ScriptHost::LuaPlayVideo(std::string_view videoPath, bool wait) {
+void AbyssEngine::ScriptHost::LuaPlayVideo(std::string_view videoPath, const sol::safe_function& callback) {
     auto stream = _engine->GetLoader().Load(std::filesystem::path(videoPath));
-    _engine->PlayVideo(videoPath, std::move(stream), wait);
-    if (wait)
-        _engine->WaitForVideoToFinish();
+    _engine->PlayVideo(videoPath, std::move(stream), callback);
 }
 
 template <class T, typename X>
@@ -350,6 +348,11 @@ std::unique_ptr<AbyssEngine::Label> AbyssEngine::ScriptHost::LuaCreateLabel(Abys
 void AbyssEngine::ScriptHost::GC() { _lua.collect_garbage(); }
 
 void AbyssEngine::ScriptHost::LuaPlayBackgroundMusic(std::string_view fileName) {
+    if (fileName.empty()) {
+        _engine->GetSystemIO().SetBackgroundMusic(nullptr);
+        return;
+    }
+
     auto& loader = _engine->GetLoader();
 
     if (!loader.FileExists(fileName))
