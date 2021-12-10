@@ -117,6 +117,7 @@ class Engine {
     int _cursorOffsetY = 0;
     uint32_t _luaGcRateMsec = 1024;
     uint32_t _luaLastGc = 0;
+    sol::safe_function _onVideoEndCallback;
 };
 
 extern std::exception_ptr globalExceptionPtr;

@@ -145,7 +145,7 @@ void AbyssEngine::Engine::PlayVideo(std::string_view name, LibAbyss::InputStream
         return;
 
     _videoNode = std::make_unique<Video>(name, std::move(stream));
-    _videoNode->SetVideoDoneCallback(callback);
+    _onVideoEndCallback = callback;
 }
 
 LibAbyss::INIFile &AbyssEngine::Engine::GetIniFile() { return _iniFile; }
@@ -157,7 +157,15 @@ void AbyssEngine::Engine::UpdateVideo(uint32_t tickDiff) {
 
     if (!_videoNode->GetIsPlaying()) {
         _videoNode = nullptr;
-
+        if (_onVideoEndCallback.valid()) {
+            auto result = _onVideoEndCallback();
+            if (!result.valid()) {
+                sol::error err = result;
+                SPDLOG_ERROR(err.what());
+                AbyssEngine::HostNotify::Notify(eNotifyType::Fatal, "Script Error", err.what());
+                return;
+            }
+        }
         return;
     }
 }
