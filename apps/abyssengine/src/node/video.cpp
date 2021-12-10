@@ -169,16 +169,6 @@ void AbyssEngine::Video::MouseEventCallback(const AbyssEngine::MouseEvent &event
 
                             Engine::Get()->GetSystemIO().ResetMouseButtonState();
                             Engine::Get()->GetSystemIO().ResetAudio();
-
-                            if (_onVideoEndCallback.valid()) {
-                                auto result = _onVideoEndCallback();
-                                if (!result.valid()) {
-                                    sol::error err = result;
-                                    SPDLOG_ERROR(err.what());
-                                    AbyssEngine::HostNotify::Notify(eNotifyType::Fatal, "Script Error", err.what());
-                                    return;
-                                }
-                            }
                         }},
                event);
 
@@ -232,16 +222,6 @@ bool AbyssEngine::Video::ProcessFrame() {
     absl::Cleanup cleanup_packet([&] { av_packet_unref(&packet); });
     if (av_read_frame(_avFormatContext, &packet) < 0) {
         _isPlaying = false;
-
-        if (_onVideoEndCallback.valid()) {
-            auto result = _onVideoEndCallback();
-            if (!result.valid()) {
-                sol::error err = result;
-                SPDLOG_ERROR(err.what());
-                AbyssEngine::HostNotify::Notify(eNotifyType::Fatal, "Script Error", err.what());
-                return true;
-            }
-        }
         return true;
     }
 
@@ -308,4 +288,3 @@ std::string AbyssEngine::Video::AvErrorCodeToString(int avError) {
 
 bool AbyssEngine::Video::GetIsPlaying() const { return _isPlaying; }
 
-void AbyssEngine::Video::SetVideoDoneCallback(sol::function func) { _onVideoEndCallback = std::move(func); }

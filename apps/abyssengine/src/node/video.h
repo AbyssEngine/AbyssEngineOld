@@ -33,7 +33,6 @@ class Video : public Node {
     void MouseEventCallback(const MouseEvent &event) final;
     bool GetIsPlaying() const;
     void StopVideo();
-    void SetVideoDoneCallback(sol::safe_function func);
 
     [[nodiscard]] std::string_view NodeType() const final { return "Video Node"; };
 
@@ -76,7 +75,6 @@ class Video : public Node {
     bool _isPlaying = true;
     bool _framesReady = false;
     uint32_t _totalTicks = 0;
-    sol::safe_function _onVideoEndCallback;
 };
 } // namespace AbyssEngine
 
