@@ -65,7 +65,6 @@ target_link_libraries(${APP_NAME}
         absl::str_format
         fmt::fmt
         ${FFMPEG_LIBRARIES}
-        VLC::VLC
         )
 
 
