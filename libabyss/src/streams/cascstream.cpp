@@ -3,7 +3,7 @@
 #include <absl/strings/str_format.h>
 
 #define CASCLIB_NO_AUTO_LINK_LIBRARY 1
-#include "_deps/casclib-src/src/CascLib.h"
+#include <CascLib.h>
 
 namespace LibAbyss {
 
