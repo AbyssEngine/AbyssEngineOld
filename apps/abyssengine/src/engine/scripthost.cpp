@@ -54,6 +54,7 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _lua(), _engine(engine) {
     module.set_function("addLoaderProvider", &ScriptHost::LuaAddLoaderProvider, this);
     module.set_function("createButton", &ScriptHost::LuaCreateButton, this);
     module.set_function("createLabel", &ScriptHost::LuaCreateLabel, this);
+    module.set_function("createMapRenderer", &ScriptHost::LuaCreateMapRenderer, this);
     module.set_function("createPalette", &ScriptHost::LuaCreatePalette, this);
     module.set_function("createSoundEffect", &ScriptHost::LuaCreateSoundEffect, this);
     module.set_function("createSprite", &ScriptHost::LuaCreateSprite, this);
@@ -106,7 +107,7 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _lua(), _engine(engine) {
     spriteType["playMode"] = sol::property(&Sprite::LuaGetPlayMode, &Sprite::LuaSetPlayMode);
 
     // Sound Effect
-    auto soundEffect =  module.new_usertype<SoundEffect>("SoundEffect", sol::no_constructor);
+    auto soundEffect = module.new_usertype<SoundEffect>("SoundEffect", sol::no_constructor);
     soundEffect["play"] = &SoundEffect::Play;
     soundEffect["stop"] = &SoundEffect::Stop;
     soundEffect["pause"] = &SoundEffect::Pause;
@@ -114,6 +115,9 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _lua(), _engine(engine) {
     soundEffect["isPaused"] = &SoundEffect::GetIsPaused;
     soundEffect["volume"] = sol::property(&SoundEffect::GetVolume, &SoundEffect::SetVolume);
     soundEffect["loop"] = sol::property(&SoundEffect::GetLoop, &SoundEffect::SetLoop);
+
+    // Map Renderer
+    auto mapRenderer = CreateLuaObjectType<MapRenderer>(module, "MapRenderer", sol::no_constructor);
 
     _environment.add(module);
 }
@@ -301,7 +305,7 @@ void AbyssEngine::ScriptHost::LuaSetCursor(Sprite &sprite, int offsetX, int offs
 
 AbyssEngine::Node &AbyssEngine::ScriptHost::LuaGetRootNode() { return _engine->GetRootNode(); }
 
-void AbyssEngine::ScriptHost::LuaPlayVideo(std::string_view videoPath, const sol::safe_function& callback) {
+void AbyssEngine::ScriptHost::LuaPlayVideo(std::string_view videoPath, const sol::safe_function &callback) {
     auto stream = _engine->GetLoader().Load(std::filesystem::path(videoPath));
     _engine->PlayVideo(videoPath, std::move(stream), callback);
 }
@@ -353,7 +357,7 @@ void AbyssEngine::ScriptHost::LuaPlayBackgroundMusic(std::string_view fileName) 
         return;
     }
 
-    auto& loader = _engine->GetLoader();
+    auto &loader = _engine->GetLoader();
 
     if (!loader.FileExists(fileName))
         throw std::runtime_error(absl::StrCat("File not found: ", fileName));
@@ -366,7 +370,7 @@ void AbyssEngine::ScriptHost::LuaPlayBackgroundMusic(std::string_view fileName) 
 }
 
 std::unique_ptr<AbyssEngine::SoundEffect> AbyssEngine::ScriptHost::LuaCreateSoundEffect(std::string_view fileName) {
-    auto& loader = _engine->GetLoader();
+    auto &loader = _engine->GetLoader();
 
     if (!loader.FileExists(fileName))
         throw std::runtime_error(absl::StrCat("File not found: ", fileName));
@@ -376,3 +380,5 @@ std::unique_ptr<AbyssEngine::SoundEffect> AbyssEngine::ScriptHost::LuaCreateSoun
 
     return std::make_unique<SoundEffect>(std::move(audioStream));
 }
+
+std::unique_ptr<AbyssEngine::MapRenderer> AbyssEngine::ScriptHost::LuaCreateMapRenderer() { return std::make_unique<MapRenderer>(); }
