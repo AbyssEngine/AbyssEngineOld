@@ -11,8 +11,9 @@ namespace {
 const int DecodeBufferSize = 1024;
 } // namespace
 
-AbyssEngine::Video::Video(std::string_view name, LibAbyss::InputStream stream)
-    : Node(name), _stream(std::move(stream)), _avBuffer(), _videoStreamIdx(-1), _audioStreamIdx(-1), _videoCodecContext(), _audioCodecContext(),
+AbyssEngine::Video::Video(std::string_view name, LibAbyss::InputStream stream, std::optional<LibAbyss::InputStream>
+        separateAudio)
+    : Node(name), _stream(std::move(stream)), _ringBuffer(1024 * 1024), _avBuffer(), _videoStreamIdx(-1), _audioStreamIdx(-1), _videoCodecContext(), _audioCodecContext(),
       _yPlane(), _uPlane(), _vPlane(), _avFrame(), _videoTexture(), _sourceRect(), _targetRect() {
 
     _avBuffer = (unsigned char *)av_malloc(DecodeBufferSize); // AVIO is going to free this automagically... because why not?
@@ -115,9 +116,15 @@ AbyssEngine::Video::Video(std::string_view name, LibAbyss::InputStream stream)
 
     Engine::Get()->GetSystemIO().ResetAudio();
 
+    Engine::Get()->GetSystemIO().SetVideo(this);
+    if (separateAudio) {
+        _separateAudio = std::make_unique<LibAbyss::AudioStream>(*std::move(separateAudio));
+        _separateAudio->Play();
+    }
 }
 
 AbyssEngine::Video::~Video() {
+    Engine::Get()->GetSystemIO().SetVideo(nullptr);
     av_free(_avioContext->buffer);
     avio_context_free(&_avioContext);
     avcodec_free_context(&_videoCodecContext);
@@ -265,7 +272,8 @@ bool AbyssEngine::Video::ProcessFrame() {
             auto audioOutSize = av_samples_get_buffer_size(&_lineSize, 2, outSamples, AV_SAMPLE_FMT_S16, 0);
             uint8_t *ptr[1] = { _audioOutBuffer };
             auto result = swr_convert(_resampleContext, ptr, audioOutSize, (const uint8_t **)_avFrame->data, _avFrame->nb_samples);
-            systemIO.PushAudioData(eAudioIntent::Video, std::span(_audioOutBuffer, result * 4));
+            //systemIO.PushAudioData(eAudioIntent::Video, std::span(_audioOutBuffer, result * 4));
+            _ringBuffer.PushData(std::span(_audioOutBuffer, result * 4));
         }
 
         return false;
@@ -274,6 +282,15 @@ bool AbyssEngine::Video::ProcessFrame() {
     return false;
 }
 void AbyssEngine::Video::StopVideo() { _isPlaying = false; }
+int16_t AbyssEngine::Video::GetAudioSample() {
+    uint8_t data[2] = {};
+    _ringBuffer.ReadData(std::span(data, 2));
+    int16_t sample = (int16_t)((uint16_t)(data[0] & 0xFF) | ((uint16_t)data[1] << 8));
+    if (_separateAudio) {
+        sample += _separateAudio->GetSample();
+    }
+    return sample;
+}
 
 std::string AbyssEngine::Video::AvErrorCodeToString(int avError) {
     char str[2048] = {};

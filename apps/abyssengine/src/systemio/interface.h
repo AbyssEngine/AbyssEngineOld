@@ -33,6 +33,12 @@ class ITexture {
     virtual eBlendMode GetBlendMode() = 0;
 };
 
+class IAudio {
+    public:
+        virtual ~IAudio() = default;
+        virtual int16_t GetAudioSample() = 0;
+};
+
 /// Interface for the host subsystems.
 class SystemIO {
   public:
@@ -107,6 +113,8 @@ class SystemIO {
     /// \param soundEffect The sound effect to remove.
     virtual void RemoveSoundEffect(SoundEffect *soundEffect) = 0;
 
+    /// Sets pointer to the video to get the audio samples from.
+    virtual void SetVideo(IAudio* video) = 0;
 };
 
 } // namespace AbyssEngine

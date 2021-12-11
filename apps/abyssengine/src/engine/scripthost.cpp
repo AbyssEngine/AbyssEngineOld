@@ -70,6 +70,7 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _lua(), _engine(engine) {
     module.set_function("log", &ScriptHost::LuaLog, this);
     module.set_function("playBackgroundMusic", &ScriptHost::LuaPlayBackgroundMusic, this);
     module.set_function("playVideo", &ScriptHost::LuaPlayVideo, this);
+    module.set_function("playVideoAndAudio", &ScriptHost::LuaPlayVideoAndAudio, this);
     module.set_function("resetMouseState", &ScriptHost::LuaResetMouseState, this);
     module.set_function("setCursor", &ScriptHost::LuaSetCursor, this);
     module.set_function("showSystemCursor", &ScriptHost::LuaShowSystemCursor, this);
@@ -346,7 +347,13 @@ AbyssEngine::Node &AbyssEngine::ScriptHost::LuaGetRootNode() { return _engine->G
 
 void AbyssEngine::ScriptHost::LuaPlayVideo(std::string_view videoPath, const sol::safe_function &callback) {
     auto stream = _engine->GetLoader().Load(std::filesystem::path(videoPath));
-    _engine->PlayVideo(videoPath, std::move(stream), callback);
+    _engine->PlayVideo(videoPath, std::move(stream), std::nullopt, callback);
+}
+
+void AbyssEngine::ScriptHost::LuaPlayVideoAndAudio(std::string_view videoPath, std::string_view audioPath, const sol::safe_function &callback) {
+    auto stream = _engine->GetLoader().Load(std::filesystem::path(videoPath));
+    auto audio = _engine->GetLoader().Load(std::filesystem::path(audioPath));
+    _engine->PlayVideo(videoPath, std::move(stream), std::move(audio), callback);
 }
 
 template <class T, typename X>

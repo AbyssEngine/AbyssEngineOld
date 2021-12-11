@@ -54,6 +54,7 @@ class ScriptHost {
     std::unique_ptr<LibAbyss::Zone> LuaCreateZone();
     void LuaSetCursor(Sprite &sprite, int offsetX, int offsetY);
     void LuaPlayVideo(std::string_view videoPath, const sol::safe_function& callback);
+    void LuaPlayVideoAndAudio(std::string_view videoPath, std::string_view audioPath, const sol::safe_function& callback);
     Node &LuaGetRootNode();
     template <class T, typename X>
     sol::basic_usertype<T, sol::basic_reference<false>> CreateLuaObjectType(sol::table &module, std::string_view name, X &&constructor);

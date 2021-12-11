@@ -1,9 +1,11 @@
 #ifndef ABYSS_VIDEO_H
 #define ABYSS_VIDEO_H
 
+#include <memory>
 #include <sol/sol.hpp>
 #include "../systemio/interface.h"
 #include "libabyss/streams/inputstream.h"
+#include "libabyss/streams/audiostream.h"
 #include "node.h"
 
 extern "C" {
@@ -23,9 +25,9 @@ extern "C" {
 
 namespace AbyssEngine {
 
-class Video : public Node {
+class Video : public Node, public IAudio {
   public:
-    Video(std::string_view name, LibAbyss::InputStream stream);
+    Video(std::string_view name, LibAbyss::InputStream stream, std::optional<LibAbyss::InputStream> separateAudio);
     ~Video() override;
 
     void UpdateCallback(uint32_t ticks) final;
@@ -33,6 +35,7 @@ class Video : public Node {
     void MouseEventCallback(const MouseEvent &event) final;
     bool GetIsPlaying() const;
     void StopVideo();
+    int16_t GetAudioSample() final;
 
     [[nodiscard]] std::string_view NodeType() const final { return "Video Node"; };
 
@@ -45,6 +48,8 @@ class Video : public Node {
     static std::string AvErrorCodeToString(int avError);
 
     LibAbyss::InputStream _stream;
+    std::unique_ptr<LibAbyss::AudioStream> _separateAudio;
+    LibAbyss::RingBuffer _ringBuffer;
 
     std::unique_ptr<ITexture> _videoTexture;
 
