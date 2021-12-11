@@ -17,8 +17,9 @@ if (MSVC)
 endif (MSVC)
 
 if (APPLE)
+    set(APP_NAME "AbyssEngine")
     set_source_files_properties(abyssbadge.icns PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
-    set(OPTIONS MACOSX_BUNDLE abyssbadge.icns src/abyssengine.cpp)
+    #set(OPTIONS MACOSX_BUNDLE abyssbadge.icns src/abyssengine.cpp)
 endif (APPLE)
 
 add_executable(${APP_NAME} ${OPTIONS})
@@ -105,21 +106,22 @@ endif ()
 # MacOS Bundle Information
 # -------------------------------------------------------------------------------------------------
 
-if (APPLE)
-    set_target_properties(${APP_NAME} PROPERTIES
-            FOLDER "Applications/"
-            BUNDLE TRUE
-            MACOSX_BUNDLE_GUI_IDENTIFIER "Abyss Engine"
-            MACOSX_PRODUCT_BUNDLE_IDENTIFIER abyssengine
-            PRODUCT_BUNDLE_IDENTIFIER ABYSSENGINE
-            OUTPUT_NAME "Abyss Engine"
-            MACOSX_BUNDLE_BUNDLE_NAME "Abyss Engine"
-            CPACK_BUNDLE_APPLE_ENTITLEMENTS "macos.entitlements"
-            MACOSX_BUNDLE_BUNDLE_VERSION "${abyss_VERSION_MAJOR}.${abyss_VERSION_MINOR}"
-            MACOSX_BUNDLE_SHORT_VERSION_STRING "${abyss_VERSION_MAJOR}.${abyss_VERSION_MINOR}"
-            MACOSX_BUNDLE_ICON_FILE abyssbadge.icns
-            )
-endif()
+#if (APPLE)
+#    set_target_properties(${APP_NAME} PROPERTIES
+#            FOLDER "Applications/"
+#            BUNDLE TRUE
+#            MACOSX_BUNDLE_GUI_IDENTIFIER "Abyss Engine"
+#            MACOSX_PRODUCT_BUNDLE_IDENTIFIER abyssengine
+#            PRODUCT_BUNDLE_IDENTIFIER ABYSSENGINE
+#            OUTPUT_NAME "Abyss Engine"
+#            MACOSX_BUNDLE_BUNDLE_NAME "Abyss Engine"
+#            CPACK_BUNDLE_APPLE_ENTITLEMENTS "macos.entitlements"
+#            XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS "macos.entitlements"
+#            MACOSX_BUNDLE_BUNDLE_VERSION "${abyss_VERSION_MAJOR}.${abyss_VERSION_MINOR}"
+#            MACOSX_BUNDLE_SHORT_VERSION_STRING "${abyss_VERSION_MAJOR}.${abyss_VERSION_MINOR}"
+#            MACOSX_BUNDLE_ICON_FILE abyssbadge.icns
+#            )
+#endif()
 
 
 # -------------------------------------------------------------------------------------------------
@@ -155,6 +157,8 @@ if (UNIX)
 endif ()
 
 
+INSTALL(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../lua-lang DESTINATION ${INSTALL_PATH}/LuaLanguageServer)
+
 # -------------------------------------------------------------------------------------------------
 # Windows Installation
 # -------------------------------------------------------------------------------------------------
@@ -178,3 +182,7 @@ endif (WIN32)
 if (UNIX AND NOT APPLE)
     install(TARGETS ${APP_NAME})
 endif (UNIX AND NOT APPLE)
+
+if (APPLE)
+    install(TARGETS ${APP_NAME})
+endif(APPLE)

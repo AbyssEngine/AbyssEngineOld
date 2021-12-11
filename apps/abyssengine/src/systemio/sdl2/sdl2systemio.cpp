@@ -16,7 +16,7 @@
 #endif // __APPLE__
 
 namespace {
-const int AudioBufferSize = 1024 * 128;
+const int AudioBufferSize = 1024 * 1024;
 }
 
 AbyssEngine::SDL2::SDL2SystemIO::SDL2SystemIO()
@@ -166,7 +166,7 @@ void AbyssEngine::SDL2::SDL2SystemIO::InitializeAudio() {
         .freq = 44100,
         .format = AUDIO_S16LSB,
         .channels = 2,
-        .samples = 1024,
+        .samples = 16,
         .callback = SDL2SystemIO::HandleAudioCallback,
         .userdata = this,
     };

@@ -14,7 +14,8 @@ void LibAbyss::RingBuffer::PushData(std::span<const uint8_t> data) {
     const auto toWrite = data.size();
 
     // Determine the amount of overflow (if we are writing past the current read position)
-    const auto overflow = (toWrite > remainingSize) ? (toWrite - remainingSize) : 0;
+    if (toWrite > remainingSize)
+        throw std::runtime_error("RingBuffer overflow");
 
     // Start with the current write position
     auto writePos = _writePosition;
@@ -33,13 +34,10 @@ void LibAbyss::RingBuffer::PushData(std::span<const uint8_t> data) {
     }
 
     // Add data to the data we can now read
-    _remainingToRead += toWrite - overflow;
+    _remainingToRead += toWrite;
 
     // Update write position
     _writePosition = writePos;
-
-    // Bump the read position ahead if we have written past the current read position
-    _readPosition += overflow;
 
     // Wrap the read position
     while (_readPosition >= _bufferSize)
@@ -49,9 +47,8 @@ void LibAbyss::RingBuffer::ReadData(std::span<uint8_t> outBuffer) {
     std::lock_guard<std::mutex> guard(_mutex);
 
     const auto toRead = std::min(_remainingToRead, (uint32_t)outBuffer.size());
-
+    memset(outBuffer.data(), 0, outBuffer.size());
     if (outBuffer.empty() || toRead == 0) {
-        memset(outBuffer.data(), 0, outBuffer.size());
         return;
     }
 

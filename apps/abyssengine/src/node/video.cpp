@@ -13,7 +13,7 @@ const int DecodeBufferSize = 1024;
 
 AbyssEngine::Video::Video(std::string_view name, LibAbyss::InputStream stream)
     : Node(name), _stream(std::move(stream)), _avBuffer(), _videoStreamIdx(-1), _audioStreamIdx(-1), _videoCodecContext(), _audioCodecContext(),
-      _yPlane(), _uPlane(), _vPlane(), _avFrame(), _videoTexture(), _sourceRect(), _targetRect(), _destData(nullptr), _lineSize(0) {
+      _yPlane(), _uPlane(), _vPlane(), _avFrame(), _videoTexture(), _sourceRect(), _targetRect() {
 
     _avBuffer = (unsigned char *)av_malloc(DecodeBufferSize); // AVIO is going to free this automagically... because why not?
     memset(_avBuffer, 0, DecodeBufferSize);
@@ -116,15 +116,9 @@ AbyssEngine::Video::Video(std::string_view name, LibAbyss::InputStream stream)
 
     Engine::Get()->GetSystemIO().ResetAudio();
 
-    if ((avError = av_samples_alloc_array_and_samples(&_destData, &_lineSize, 2, 44100, AV_SAMPLE_FMT_S16, 0)) < 0)
-        throw std::runtime_error(absl::StrCat("Failed to allocate samples: ", AvErrorCodeToString(avError)));
 }
 
 AbyssEngine::Video::~Video() {
-    if (_destData)
-        av_freep(&_destData[0]);
-    av_freep(&_destData);
-
     av_free(_avioContext->buffer);
     avio_context_free(&_avioContext);
     avcodec_free_context(&_videoCodecContext);
@@ -266,9 +260,12 @@ bool AbyssEngine::Video::ProcessFrame() {
                 throw std::runtime_error(absl::StrCat("Error decoding audio packet: ", AvErrorCodeToString(avError)));
             }
 
-            const int outSize = av_samples_get_buffer_size(&_lineSize, _audioCodecContext->channels, _avFrame->nb_samples, AV_SAMPLE_FMT_S16, 0);
-            swr_convert(_resampleContext, _destData, _avFrame->nb_samples, (const uint8_t **)_avFrame->data, _avFrame->nb_samples);
-            systemIO.PushAudioData(eAudioIntent::Video, std::span(_destData[0], outSize));
+            int _lineSize;
+            auto outSamples = swr_get_out_samples(_resampleContext, _avFrame->nb_samples);
+            auto audioOutSize = av_samples_get_buffer_size(&_lineSize, 2, outSamples, AV_SAMPLE_FMT_S16, 0);
+            uint8_t *ptr[1] = { _audioOutBuffer };
+            auto result = swr_convert(_resampleContext, ptr, audioOutSize, (const uint8_t **)_avFrame->data, _avFrame->nb_samples);
+            systemIO.PushAudioData(eAudioIntent::Video, std::span(_audioOutBuffer, result * 4));
         }
 
         return false;

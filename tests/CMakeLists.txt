@@ -6,6 +6,7 @@ find_package(fmt CONFIG REQUIRED)
 add_executable(abyss_test
         bitstream_test.cpp
         mpq_test.cpp
+        ringbuffer_test.cpp
         )
 target_link_libraries(abyss_test
         libabyss
