@@ -26,7 +26,6 @@ AbyssEngine::Video::Video(std::string_view name, LibAbyss::InputStream stream)
     _avFormatContext->flags |= AVFMT_FLAG_CUSTOM_IO;
 
     int avError;
-
     if ((avError = avformat_open_input(&_avFormatContext, "", nullptr, nullptr)) < 0)
         throw std::runtime_error(absl::StrCat("Failed to open AV format context: ", AvErrorCodeToString(avError)));
 
@@ -128,6 +127,7 @@ AbyssEngine::Video::~Video() {
         swr_free(&_resampleContext);
     }
     av_frame_free(&_avFrame);
+    avformat_close_input(&_avFormatContext);
     avformat_free_context(_avFormatContext);
 }
 

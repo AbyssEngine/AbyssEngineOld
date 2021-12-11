@@ -86,6 +86,7 @@ LibAbyss::AudioStream::~AudioStream() {
         swr_free(&_resampleContext);
     }
     av_frame_free(&_avFrame);
+    avformat_close_input(&_avFormatContext);
     avformat_free_context(_avFormatContext);
 }
 
