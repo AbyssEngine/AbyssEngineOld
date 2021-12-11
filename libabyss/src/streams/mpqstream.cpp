@@ -3,7 +3,7 @@
 #include <ios>
 
 #define STORMLIB_NO_AUTO_LINK 1
-#include "_deps/stormlib-src/src/StormLib.h"
+#include <StormLib.h>
 #include <spdlog/spdlog.h>
 
 namespace LibAbyss {
