@@ -9,6 +9,9 @@
 #include <absl/strings/ascii.h>
 #include <absl/strings/str_cat.h>
 #include <filesystem>
+#include <libabyss/common/leveltype.h>
+#include <libabyss/common/levelpreset.h>
+#include <libabyss/formats/d2/dt1.h>
 #include <memory>
 #include <sol/sol.hpp>
 #include <spdlog/spdlog.h>
@@ -60,6 +63,7 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _lua(), _engine(engine) {
     module.set_function("createSprite", &ScriptHost::LuaCreateSprite, this);
     module.set_function("createSpriteFont", &ScriptHost::LuaCreateSpriteFont, this);
     module.set_function("createString", &ScriptHost::LuaCreateText, this);
+    module.set_function("createZone", &ScriptHost::LuaCreateZone, this);
     module.set_function("fileExists", &ScriptHost::LuaFileExists, this);
     module.set_function("getConfig", &ScriptHost::LuaGetConfig, this);
     module.set_function("getRootNode", &ScriptHost::LuaGetRootNode, this);
@@ -118,6 +122,41 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _lua(), _engine(engine) {
 
     // Map Renderer
     auto mapRenderer = CreateLuaObjectType<MapRenderer>(module, "MapRenderer", sol::no_constructor);
+
+    // Level Type
+    auto levelType = module.new_usertype<LibAbyss::LevelType>("LevelType");
+    levelType.set("files", sol::property(&LibAbyss::LevelType::Files, &LibAbyss::LevelType::Files));
+    levelType.set("name", sol::property(&LibAbyss::LevelType::Name, &LibAbyss::LevelType::Name));
+    levelType.set("id", sol::property(&LibAbyss::LevelType::ID, &LibAbyss::LevelType::ID));
+    levelType.set("act", sol::property(&LibAbyss::LevelType::Act, &LibAbyss::LevelType::Act));
+    levelType.set("beta", sol::property(&LibAbyss::LevelType::Beta, &LibAbyss::LevelType::Beta));
+    levelType.set("expansion", sol::property(&LibAbyss::LevelType::Expansion, &LibAbyss::LevelType::Expansion));
+
+    // Level Preset
+    auto levelPreset = module.new_usertype<LibAbyss::LevelPreset>("LevelPreset");
+    levelPreset.set("files", sol::property(&LibAbyss::LevelPreset::Files, &LibAbyss::LevelPreset::Files));
+    levelPreset.set("name", sol::property(&LibAbyss::LevelPreset::Name, &LibAbyss::LevelPreset::Name));
+    levelPreset.set("definitionId", sol::property(&LibAbyss::LevelPreset::DefinitionID, &LibAbyss::LevelPreset::DefinitionID));
+    levelPreset.set("levelId", sol::property(&LibAbyss::LevelPreset::LevelID, &LibAbyss::LevelPreset::LevelID));
+    levelPreset.set("sizeX", sol::property(&LibAbyss::LevelPreset::SizeX, &LibAbyss::LevelPreset::SizeX));
+    levelPreset.set("sizeY", sol::property(&LibAbyss::LevelPreset::SizeY, &LibAbyss::LevelPreset::SizeY));
+    levelPreset.set("pops", sol::property(&LibAbyss::LevelPreset::Pops, &LibAbyss::LevelPreset::Pops));
+    levelPreset.set("popPad", sol::property(&LibAbyss::LevelPreset::PopPad, &LibAbyss::LevelPreset::PopPad));
+    levelPreset.set("dt1Mask", sol::property(&LibAbyss::LevelPreset::DT1Mask, &LibAbyss::LevelPreset::DT1Mask));
+    levelPreset.set("populate", sol::property(&LibAbyss::LevelPreset::Populate, &LibAbyss::LevelPreset::Populate));
+    levelPreset.set("logicals", sol::property(&LibAbyss::LevelPreset::Logicals, &LibAbyss::LevelPreset::Logicals));
+    levelPreset.set("outdoors", sol::property(&LibAbyss::LevelPreset::Outdoors, &LibAbyss::LevelPreset::Outdoors));
+    levelPreset.set("animate", sol::property(&LibAbyss::LevelPreset::Animate, &LibAbyss::LevelPreset::Animate));
+    levelPreset.set("killEdge", sol::property(&LibAbyss::LevelPreset::KillEdge, &LibAbyss::LevelPreset::KillEdge));
+    levelPreset.set("fillBlanks", sol::property(&LibAbyss::LevelPreset::FillBlanks, &LibAbyss::LevelPreset::FillBlanks));
+    levelPreset.set("autoMap", sol::property(&LibAbyss::LevelPreset::AutoMap, &LibAbyss::LevelPreset::AutoMap));
+    levelPreset.set("scan", sol::property(&LibAbyss::LevelPreset::Scan, &LibAbyss::LevelPreset::Scan));
+    levelPreset.set("beta", sol::property(&LibAbyss::LevelPreset::Beta, &LibAbyss::LevelPreset::Beta));
+    levelPreset.set("expansion", sol::property(&LibAbyss::LevelPreset::Expansion, &LibAbyss::LevelPreset::Expansion));
+
+    // Zone
+    auto zoneType = module.new_usertype<LibAbyss::Zone>("Zone", sol::no_constructor);
+    zoneType["resetMap"] = &LibAbyss::Zone::ResetMap;
 
     _environment.add(module);
 }
@@ -382,3 +421,9 @@ std::unique_ptr<AbyssEngine::SoundEffect> AbyssEngine::ScriptHost::LuaCreateSoun
 }
 
 std::unique_ptr<AbyssEngine::MapRenderer> AbyssEngine::ScriptHost::LuaCreateMapRenderer() { return std::make_unique<MapRenderer>(); }
+std::unique_ptr<LibAbyss::Zone> AbyssEngine::ScriptHost::LuaCreateZone() {
+    return std::make_unique<LibAbyss::Zone>([this](std::string_view fileName) -> LibAbyss::DT1 {
+        auto stream = _engine->GetLoader().Load(fileName);
+        return LibAbyss::DT1(stream);
+    });
+}

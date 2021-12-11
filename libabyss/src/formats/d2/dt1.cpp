@@ -28,7 +28,7 @@ LibAbyss::DT1::DT1(LibAbyss::InputStream &stream) {
             stream.seekg(2, std::ios_base::cur);
             block.GridX = sr.ReadByte();
             block.GridY = sr.ReadByte();
-            block.Format = sr.ReadInt16();
+            block.Format = (Tile::Block::eBlockFormat)sr.ReadInt16();
             block.Length = sr.ReadInt32();
             stream.seekg(2, std::ios_base::cur);
             block._fileOffset = sr.ReadInt32();
@@ -36,11 +36,13 @@ LibAbyss::DT1::DT1(LibAbyss::InputStream &stream) {
 
         for (auto &block : tile.Blocks) {
             stream.seekg(tile._blockHeaderPointer + block._fileOffset, std::ios_base::beg);
-            block._encodedData.resize(block.Length);
-            sr.ReadBytes(block._encodedData);
+
+            block.EncodedBytes.resize(block.Length);
+            sr.ReadBytes(block.EncodedBytes);
         }
     }
 }
+
 
 LibAbyss::DT1::Tile::Tile(InputStream &stream) : unknown(), Material(), SubTileFlags() {
     StreamReader sr(stream);

@@ -51,6 +51,7 @@ class ScriptHost {
     std::unique_ptr<Label> LuaCreateLabel(SpriteFont *spriteFont);
     std::unique_ptr<SoundEffect> LuaCreateSoundEffect(std::string_view fileName);
     std::unique_ptr<MapRenderer> LuaCreateMapRenderer();
+    std::unique_ptr<LibAbyss::Zone> LuaCreateZone();
     void LuaSetCursor(Sprite &sprite, int offsetX, int offsetY);
     void LuaPlayVideo(std::string_view videoPath, const sol::safe_function& callback);
     Node &LuaGetRootNode();

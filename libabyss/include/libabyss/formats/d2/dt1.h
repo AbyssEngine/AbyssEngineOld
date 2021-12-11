@@ -1,9 +1,10 @@
 #ifndef ABYSS_DT1_H
 #define ABYSS_DT1_H
 
-#include <cstdint>
 #include "libabyss/streams/inputstream.h"
+#include <cstdint>
 #include <vector>
+#include <span>
 
 namespace LibAbyss {
 class DT1 {
@@ -60,12 +61,14 @@ class DT1 {
         };
 
         struct Block {
+            enum class eBlockFormat  { RLE = 0, Isometric = 1 };
+
             int16_t X;
             int16_t Y;
             uint8_t GridX;
             uint8_t GridY;
-            int16_t Format;
-            std::vector<uint8_t> _encodedData;
+            eBlockFormat Format;
+            std::vector<uint8_t> EncodedBytes;
             int32_t Length;
             int32_t _fileOffset;
         };

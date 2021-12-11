@@ -31,6 +31,10 @@ add_library(${APP_NAME}
 
         src/common/ringbuffer.cpp
 
+        src/zone/zone.cpp
+        src/zone/zonetile.cpp
+        src/zone/zonestamp.cpp
+
         # Strange CASClib inclusion
         # TODO: depend on it properly
         ${CASC_SOURCES}

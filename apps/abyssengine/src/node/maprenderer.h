@@ -2,6 +2,7 @@
 #define ABYSS_MAPRENDERER_H
 
 #include "node.h"
+#include <libabyss/zone/zone.h>
 
 namespace AbyssEngine {
 class MapRenderer : public Node  {
@@ -13,6 +14,7 @@ class MapRenderer : public Node  {
     void Initialize() final;
     [[nodiscard]] std::string_view NodeType() const final { return "Map Renderer"; }
     void MouseEventCallback(const MouseEvent &event) final;
+
 };
 } // namespace AbyssEngine
 
