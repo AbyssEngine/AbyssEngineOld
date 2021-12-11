@@ -11,10 +11,10 @@
 namespace LibAbyss {
 class ZoneStamp {
   public:
-    LevelType type;
-    LevelPreset preset;
+    LevelType Type;
+    LevelPreset Preset;
     std::vector<DT1::Tile> Tiles;
-    DS1 DS1;
+    DS1 DS1Info;
 };
 } // namespace LibAbyss
 
