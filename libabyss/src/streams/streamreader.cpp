@@ -10,3 +10,12 @@ void LibAbyss::StreamReader::ReadBytes(std::span<uint8_t> data) {
     }
     _inputStream.read(reinterpret_cast<char *>(&data[0]), (long)data.size());
 }
+std::string LibAbyss::StreamReader::ReadString() {
+    std::string result;
+    char c;
+
+    while ((c = (char)_inputStream.get()) != '\0')
+        result.push_back(c);
+
+    return result;
+}
