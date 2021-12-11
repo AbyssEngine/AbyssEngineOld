@@ -2,7 +2,7 @@
 #define ABYSS_CASCPROVIDER_H
 
 #include "provider.h"
-#include "libabyss/casc.h"
+#include "libabyss/formats/d2/casc.h"
 
 namespace AbyssEngine {
 

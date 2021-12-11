@@ -2,7 +2,7 @@
 #define ABYSS_SOUNDEFFECT_H
 
 #include <memory>
-#include <libabyss/audiostream.h>
+#include "libabyss/streams/audiostream.h"
 
 namespace AbyssEngine {
 

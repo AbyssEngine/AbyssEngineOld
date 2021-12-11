@@ -5,7 +5,7 @@
 #include "../common/events.h"
 #include "../common/rectangle.h"
 #include "../common/audiointent.h"
-#include "libabyss/audiostream.h"
+#include "libabyss/streams/audiostream.h"
 #include "../engine/soundeffect.h"
 #include <memory>
 #include <mutex>

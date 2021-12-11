@@ -4,8 +4,8 @@
 #include "../common/color.h"
 #include "../common/rectangle.h"
 #include "../systemio/interface.h"
-#include "libabyss/dc6.h"
-#include "libabyss/palette.h"
+#include "libabyss/formats/d2/dc6.h"
+#include "libabyss/formats/d2/palette.h"
 #include <spdlog/spdlog.h>
 #include <string>
 #include <type_traits>

@@ -1,9 +1,9 @@
 #ifndef ABYSS_DC6SPRITE_H
 #define ABYSS_DC6SPRITE_H
 
-#include "libabyss/dc6.h"
 #include "sprite.h"
-#include "libabyss/palette.h"
+#include "libabyss/formats/d2/dc6.h"
+#include "libabyss/formats/d2/palette.h"
 
 namespace AbyssEngine {
 

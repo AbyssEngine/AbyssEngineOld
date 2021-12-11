@@ -4,11 +4,11 @@
 #include "../../node/video.h"
 #include "../interface.h"
 #include <functional>
-#include <libabyss/ringbuffer.h>
+#include <libabyss/common/ringbuffer.h>
+#include <mutex>
 #include <SDL2/SDL.h>
 #include <string>
 #include <vector>
-#include <mutex>
 
 namespace AbyssEngine::SDL2 {
 
@@ -46,7 +46,7 @@ class SDL2SystemIO : public SystemIO {
     std::unique_ptr<SDL_Window, std::function<void(SDL_Window *)>> _sdlWindow;
     std::unique_ptr<SDL_Renderer, std::function<void(SDL_Renderer *)>> _sdlRenderer;
     std::unique_ptr<LibAbyss::AudioStream> _backgroundMusicStream;
-    std::vector<SoundEffect*> _soundEffects;
+    std::vector<SoundEffect *> _soundEffects;
     int _backgroundMusicSampleRate = 0;
     bool _hasAudio = false;
     SDL_AudioSpec _audioSpec;

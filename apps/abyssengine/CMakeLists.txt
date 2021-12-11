@@ -49,6 +49,7 @@ target_sources(${APP_NAME} PRIVATE
         src/node/video.cpp
         src/node/label.cpp
         src/node/button.cpp
+        src/node/maprenderer.cpp
 
         # Scripting ----------------------------------------------------
         src/engine/scripthost.cpp
