@@ -13,8 +13,6 @@ const int DecodeBufferSize = 1024;
 
 LibAbyss::AudioStream::AudioStream(InputStream stream)
     : _stream(std::move(stream)), _ringBuffer(1024 * 1024), _mutex() {
-    _avFormatContext = avformat_alloc_context();
-
     const auto streamSize = _stream.size();
     const int decodeBufferSize = streamSize < DecodeBufferSize ? streamSize : DecodeBufferSize;
 
