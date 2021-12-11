@@ -24,6 +24,7 @@ add_library(${APP_NAME}
         src/abysssprite.cpp
         src/audiostream.cpp
         src/ringbuffer.cpp
+        src/dt1.cpp
 
         # Strange CASClib inclusion
         # TODO: depend on it properly
