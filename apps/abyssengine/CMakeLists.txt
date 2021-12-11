@@ -157,7 +157,7 @@ if (UNIX)
 endif ()
 
 
-INSTALL(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../lua-lang DESTINATION ${INSTALL_PATH}/LuaLanguageServer)
+#INSTALL(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../lua-lang DESTINATION ${INSTALL_PATH}/LuaLanguageServer)
 
 # -------------------------------------------------------------------------------------------------
 # Windows Installation

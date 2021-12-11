@@ -135,12 +135,10 @@ void LibAbyss::AudioStream::Update() {
 
     if ((avError = av_read_frame(_avFormatContext, &packet)) < 0) {
         if (_loop) {
-            av_seek_frame(_avFormatContext, _audioStreamIdx, 0, AVSEEK_FLAG_BYTE);
-            avcodec_flush_buffers(_audioCodecContext);
+            av_seek_frame(_avFormatContext, _audioStreamIdx, 0, AVSEEK_FLAG_FRAME);
             return;
         } else {
-            av_seek_frame(_avFormatContext, _audioStreamIdx, 0, AVSEEK_FLAG_BYTE);
-            avcodec_flush_buffers(_audioCodecContext);
+            av_seek_frame(_avFormatContext, _audioStreamIdx, 0, AVSEEK_FLAG_FRAME);
             _isPlaying = false;
             return;
         }

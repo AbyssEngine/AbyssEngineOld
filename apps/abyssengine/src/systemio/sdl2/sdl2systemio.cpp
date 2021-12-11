@@ -166,7 +166,7 @@ void AbyssEngine::SDL2::SDL2SystemIO::InitializeAudio() {
         .freq = 44100,
         .format = AUDIO_S16LSB,
         .channels = 2,
-        .samples = 16,
+        .samples = 1024,
         .callback = SDL2SystemIO::HandleAudioCallback,
         .userdata = this,
     };
