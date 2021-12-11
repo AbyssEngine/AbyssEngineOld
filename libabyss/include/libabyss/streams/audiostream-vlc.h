@@ -7,6 +7,7 @@
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <optional>
 #include <vlcpp/vlc.hpp>
 
 namespace LibAbyss {
@@ -36,10 +37,10 @@ class AudioStream {
 #if LIBVLC_VERSION_INT >= LIBVLC_VERSION(4, 0, 0, 0)
     VLC::MediaList _list;
     VLC::MediaListPlayer _list_player;
+    bool _stopping = false;
 #else
-    std::thread _looper;
+    std::optional<std::thread> _looper;
     bool _loop_do = false;
-    bool _loop_exit = false;
     std::condition_variable _loop_cv;
 #endif
     VLC::MediaPlayer _player;

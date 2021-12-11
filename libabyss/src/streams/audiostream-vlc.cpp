@@ -5,26 +5,7 @@
 #include <ios>
 #include <mutex>
 
-LibAbyss::AudioStream::AudioStream(InputStream stream)
-    : _stream(std::move(stream))
-#if LIBVLC_VERSION_INT < LIBVLC_VERSION(4, 0, 0, 0)
-      ,
-      _looper([this]() {
-          // libvlc before version 4 doesn't provide a way to loop the playback, hence this hack
-          std::unique_lock<std::mutex> lk(_mutex);
-          while (true) {
-              _loop_cv.wait(lk, [this]() { return _loop_do || _loop_exit; });
-              if (_loop_exit)
-                  break;
-              if (_loop_do) {
-                  _loop_do = false;
-                  _player.stop();
-                  _player.play();
-              }
-          }
-      })
-#endif
-{
+LibAbyss::AudioStream::AudioStream(InputStream stream) : _stream(std::move(stream)) {
     const char *const vlc_args[] = {
         "--ignore-config", "--no-lua",
         //"--verbose=2",
@@ -88,14 +69,8 @@ LibAbyss::AudioStream::AudioStream(InputStream stream)
 }
 
 LibAbyss::AudioStream::~AudioStream() {
-#if LIBVLC_VERSION_INT < LIBVLC_VERSION(4, 0, 0, 0)
-    {
-        std::lock_guard lock(_mutex);
-        _loop_exit = true;
-        _loop_cv.notify_all();
-    }
-    _looper.join();
-#endif
+    SetLoop(false);
+    Stop();
 }
 
 int16_t LibAbyss::AudioStream::GetSample() {
@@ -105,11 +80,42 @@ int16_t LibAbyss::AudioStream::GetSample() {
 }
 
 void LibAbyss::AudioStream::SetLoop(bool loop) {
+#if LIBVLC_VERSION_INT >= LIBVLC_VERSION(4, 0, 0, 0)
     std::lock_guard<std::mutex> lock(_mutex);
 
-    _loop = loop;
-#if LIBVLC_VERSION_INT >= LIBVLC_VERSION(4, 0, 0, 0)
     _list_player.setPlaybackMode(loop ? libvlc_playback_mode_loop : libvlc_playback_mode_default);
+#else
+    if (loop) {
+        std::lock_guard<std::mutex> lock(_mutex);
+        _loop = true;
+        if (!_looper) {
+            _looper.emplace([this]() {
+                // libvlc before version 4 doesn't provide a way to loop the playback, hence this hack
+                std::unique_lock<std::mutex> lk(_mutex);
+                while (true) {
+                    _loop_cv.wait(lk, [this]() { return _loop_do || !_loop; });
+                    if (!_loop)
+                        break;
+                    if (_loop_do) {
+                        _loop_do = false;
+                        _player.stop();
+                        _player.play();
+                    }
+                }
+            });
+        }
+    } else {
+        {
+            std::lock_guard<std::mutex> lock(_mutex);
+            _loop = false;
+            _loop_do = false;
+            _loop_cv.notify_all();
+        }
+        if (_looper) {
+            _looper->join();
+            _looper.reset();
+        }
+    }
 #endif
 }
 
@@ -141,6 +147,7 @@ void LibAbyss::AudioStream::Pause() {
 void LibAbyss::AudioStream::Play() {
     std::lock_guard<std::mutex> lock(_mutex);
 #if LIBVLC_VERSION_INT >= LIBVLC_VERSION(4, 0, 0, 0)
+    _list_player.stopAsync();
     _list_player.play();
 #else
     _player.stop();
