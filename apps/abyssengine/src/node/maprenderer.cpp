@@ -1,6 +1,6 @@
 #include "maprenderer.h"
 #include "../engine/engine.h"
-#include <libabyss/dt1.h>
+#include "libabyss/formats/d2/dt1.h"
 
 AbyssEngine::MapRenderer::MapRenderer() {
     // auto stream = Engine::Get()->GetLoader().Load("/data/global/tiles/ACT1/BARRACKS/objects.dt1");

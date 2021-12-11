@@ -2,7 +2,7 @@ extern "C" {
 #include <libavutil/opt.h>
 };
 
-#include "libabyss/audiostream.h"
+#include "libabyss/streams/audiostream.h"
 #include <absl/cleanup/cleanup.h>
 #include <absl/strings/str_cat.h>
 

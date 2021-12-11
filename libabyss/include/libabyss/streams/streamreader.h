@@ -1,7 +1,7 @@
 #ifndef LIBABYSS_STREAMREADER_H
 #define LIBABYSS_STREAMREADER_H
 
-#include "inputstream.h"
+#include "libabyss/streams/inputstream.h"
 #include <cstdint>
 #include <concepts>
 #include <span>

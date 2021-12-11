@@ -1,9 +1,9 @@
-#include "libabyss/mpqstream.h"
+#include "libabyss/streams/mpqstream.h"
 #include <absl/strings/str_format.h>
 #include <ios>
 
 #define STORMLIB_NO_AUTO_LINK 1
-#include <StormLib.h>
+#include "_deps/stormlib-src/src/StormLib.h"
 #include <spdlog/spdlog.h>
 
 namespace LibAbyss {

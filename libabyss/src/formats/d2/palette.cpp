@@ -1,4 +1,4 @@
-#include "libabyss/palette.h"
+#include "libabyss/formats/d2/palette.h"
 #include <string>
 
 namespace {

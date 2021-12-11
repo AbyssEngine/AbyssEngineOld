@@ -1,4 +1,4 @@
-#include "libabyss/streamreader.h"
+#include "libabyss/streams/streamreader.h"
 
 LibAbyss::StreamReader::StreamReader(LibAbyss::InputStream &inputStream) : _inputStream(inputStream) {}
 

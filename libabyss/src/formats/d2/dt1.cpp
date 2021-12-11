@@ -1,5 +1,5 @@
-#include "../include/libabyss/dt1.h"
-#include "libabyss/streamreader.h"
+#include "libabyss/formats/d2/dt1.h"
+#include "libabyss/streams/streamreader.h"
 
 LibAbyss::DT1::DT1(LibAbyss::InputStream &stream) {
     StreamReader sr(stream);
@@ -22,7 +22,7 @@ LibAbyss::DT1::DT1(LibAbyss::InputStream &stream) {
 
     for (auto &tile : Tiles) {
         stream.seekg(tile._blockHeaderPointer, std::ios_base::beg);
-        for (auto& block : tile.Blocks) {
+        for (auto &block : tile.Blocks) {
             block.X = sr.ReadInt16();
             block.Y = sr.ReadInt16();
             stream.seekg(2, std::ios_base::cur);
@@ -34,17 +34,15 @@ LibAbyss::DT1::DT1(LibAbyss::InputStream &stream) {
             block._fileOffset = sr.ReadInt32();
         }
 
-        for (auto& block : tile.Blocks) {
+        for (auto &block : tile.Blocks) {
             stream.seekg(tile._blockHeaderPointer + block._fileOffset, std::ios_base::beg);
             block._encodedData.resize(block.Length);
             sr.ReadBytes(block._encodedData);
         }
     }
-
-
 }
 
-LibAbyss::DT1::Tile::Tile(InputStream& stream) : unknown(), Material(), SubTileFlags() {
+LibAbyss::DT1::Tile::Tile(InputStream &stream) : unknown(), Material(), SubTileFlags() {
     StreamReader sr(stream);
 
     Direction = sr.ReadInt32();
@@ -58,7 +56,7 @@ LibAbyss::DT1::Tile::Tile(InputStream& stream) : unknown(), Material(), SubTileF
     Sequence = sr.ReadInt32();
     RarityFrameIndex = sr.ReadInt32();
     stream.seekg(4, std::ios_base::cur);
-    for (auto& subTileFlag : SubTileFlags)
+    for (auto &subTileFlag : SubTileFlags)
         subTileFlag = sr.ReadByte();
     stream.seekg(7, std::ios_base::cur);
     _blockHeaderPointer = sr.ReadInt32();

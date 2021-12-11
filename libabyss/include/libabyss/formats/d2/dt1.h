@@ -2,8 +2,8 @@
 #define ABYSS_DT1_H
 
 #include <cstdint>
+#include "libabyss/streams/inputstream.h"
 #include <vector>
-#include "inputstream.h"
 
 namespace LibAbyss {
 class DT1 {
@@ -21,7 +21,7 @@ class DT1 {
             bool Lava;
             bool Snow;
 
-            inline MaterialFlags& operator=(const uint16_t &flags) {
+            inline MaterialFlags &operator=(const uint16_t &flags) {
                 Other = (flags & 0x01) != 0;
                 Water = (flags & 0x02) != 0;
                 WoodObject = (flags & 0x04) != 0;
@@ -46,7 +46,7 @@ class DT1 {
             bool Unknown2;
             bool Unknown3;
 
-            inline SubTileFlags& operator=(const uint16_t &flags) {
+            inline SubTileFlags &operator=(const uint16_t &flags) {
                 BlockWalk = (flags & 0x01) != 0;
                 BlockLOS = (flags & 0x02) != 0;
                 BlockJump = (flags & 0x04) != 0;
@@ -70,7 +70,7 @@ class DT1 {
             int32_t _fileOffset;
         };
 
-        explicit Tile(InputStream& stream);
+        explicit Tile(InputStream &stream);
         uint8_t unknown[4];
         int32_t Direction;
         int16_t RoofHeight;

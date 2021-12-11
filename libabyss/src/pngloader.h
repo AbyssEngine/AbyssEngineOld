@@ -1,7 +1,7 @@
 #ifndef ABYSS_PNGLOADER_H
 #define ABYSS_PNGLOADER_H
 
-#include "libabyss/inputstream.h"
+#include "libabyss/streams/inputstream.h"
 #include <vector>
 #include <span>
 #include <cinttypes>

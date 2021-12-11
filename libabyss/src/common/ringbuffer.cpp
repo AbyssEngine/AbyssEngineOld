@@ -1,5 +1,5 @@
-#include "libabyss/ringbuffer.h"
 #include <cstring>
+#include <libabyss/common/ringbuffer.h>
 
 LibAbyss::RingBuffer::RingBuffer(uint32_t bufferSize)
     : _bufferSize(bufferSize), _buffer(bufferSize), _readPosition(0), _writePosition(0), _remainingToRead(0), _mutex() {}
@@ -65,7 +65,6 @@ void LibAbyss::RingBuffer::ReadData(std::span<uint8_t> outBuffer) {
 
         while (readPos >= _bufferSize)
             readPos -= _bufferSize;
-
     }
 
     _readPosition = readPos;

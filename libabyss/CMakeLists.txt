@@ -12,19 +12,19 @@ SET(APP_NAME libabyss)
 # -------------------------------------------------------------------------------------------------
 
 add_library(${APP_NAME}
-        src/casc.cpp
-        src/cascstream.cpp
-        src/mpq.cpp
-        src/mpqstream.cpp
-        src/palette.cpp
-        src/dc6.cpp
-        src/streamreader.cpp
+        src/formats/d2/casc.cpp
+        src/streams/cascstream.cpp
+        src/formats/d2/mpq.cpp
+        src/streams/mpqstream.cpp
+        src/formats/d2/palette.cpp
+        src/formats/d2/dc6.cpp
+        src/streams/streamreader.cpp
         src/pngloader.cpp
-        src/inifile.cpp
-        src/abysssprite.cpp
-        src/audiostream.cpp
-        src/ringbuffer.cpp
-        src/dt1.cpp
+        src/formats/abyss/inifile.cpp
+        src/formats/abyss/abysssprite.cpp
+        src/streams/audiostream.cpp
+        src/common/ringbuffer.cpp
+        src/formats/d2/dt1.cpp
 
         # Strange CASClib inclusion
         # TODO: depend on it properly

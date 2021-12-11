@@ -2,7 +2,7 @@
 #define ABYSS_FILESYSTEMPROVIDER_H
 
 #include "provider.h"
-#include "libabyss/inputstream.h"
+#include "libabyss/streams/inputstream.h"
 
 namespace AbyssEngine {
 

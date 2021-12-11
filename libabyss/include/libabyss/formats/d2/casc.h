@@ -8,7 +8,7 @@
 #include <mutex>
 #include <istream>
 #include <filesystem>
-#include <libabyss/inputstream.h>
+#include "libabyss/streams/inputstream.h"
 
 namespace LibAbyss {
 

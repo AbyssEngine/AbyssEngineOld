@@ -3,10 +3,10 @@
 
 #include "provider.h"
 #include <vector>
-#include "libabyss/mpq.h"
+#include "libabyss/formats/d2/mpq.h"
 #include <filesystem>
 #include <istream>
-#include "libabyss/inputstream.h"
+#include "libabyss/streams/inputstream.h"
 
 namespace AbyssEngine {
 

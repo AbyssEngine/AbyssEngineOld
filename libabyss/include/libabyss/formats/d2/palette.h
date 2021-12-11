@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <vector>
 #include <istream>
-#include "inputstream.h"
+#include "libabyss/streams/inputstream.h"
 
 namespace LibAbyss {
 

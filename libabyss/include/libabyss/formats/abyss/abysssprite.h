@@ -1,7 +1,7 @@
 #ifndef ABYSS_ABYSSSPRITE_H
 #define ABYSS_ABYSSSPRITE_H
 
-#include "inputstream.h"
+#include "libabyss/streams/inputstream.h"
 #include "inifile.h"
 #include <vector>
 
