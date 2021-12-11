@@ -5,8 +5,8 @@
 #include "../node/video.h"
 #include "scripthost.h"
 #include "../systemio/interface.h"
-#include "libabyss/inifile.h"
-#include "libabyss/palette.h"
+#include "libabyss/formats/abyss/inifile.h"
+#include "libabyss/formats/d2/palette.h"
 #include "loader.h"
 #include <absl/container/node_hash_map.h>
 #include <exception>

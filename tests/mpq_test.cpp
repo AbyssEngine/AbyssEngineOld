@@ -1,7 +1,7 @@
 #include <gmock/gmock.h>
 #include <sstream>
-#include <libabyss/mpq.h>
-#include <libabyss/mpqstream.h>
+#include "libabyss/formats/d2/mpq.h"
+#include "libabyss/streams/mpqstream.h"
 #include <stdexcept>
 
 #define STORMLIB_NO_AUTO_LINK 1

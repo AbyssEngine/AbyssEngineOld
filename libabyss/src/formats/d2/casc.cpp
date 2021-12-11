@@ -1,5 +1,5 @@
-#include "../include/libabyss/casc.h"
-#include "../include/libabyss/cascstream.h"
+#include "libabyss/formats/d2/casc.h"
+#include "libabyss/streams/cascstream.h"
 #include <absl/strings/str_cat.h>
 #include <absl/strings/str_format.h>
 #include <absl/strings/strip.h>
@@ -8,7 +8,7 @@
 #include <string>
 
 #define CASCLIB_NO_AUTO_LINK_LIBRARY 1
-#include <CascLib.h>
+#include "_deps/casclib-src/src/CascLib.h"
 
 namespace LibAbyss {
 

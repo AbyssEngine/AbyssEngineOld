@@ -1,5 +1,5 @@
-#include <libabyss/dc6.h>
-#include <libabyss/streamreader.h>
+#include "libabyss/formats/d2/dc6.h"
+#include "libabyss/streams/streamreader.h"
 
 namespace {
 const uint8_t EndOfScanline = 0x80;

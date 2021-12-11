@@ -8,7 +8,7 @@ extern "C" {
 };
 
 #include "inputstream.h"
-#include "ringbuffer.h"
+#include "libabyss/common/ringbuffer.h"
 #include <memory>
 #include <mutex>
 

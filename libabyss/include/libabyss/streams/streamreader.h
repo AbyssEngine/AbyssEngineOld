@@ -1,7 +1,7 @@
 #ifndef LIBABYSS_STREAMREADER_H
 #define LIBABYSS_STREAMREADER_H
 
-#include "inputstream.h"
+#include "libabyss/streams/inputstream.h"
 #include <cstdint>
 #include <concepts>
 #include <span>
@@ -34,6 +34,8 @@ class StreamReader {
 
     uint64_t ReadUInt64() { return ReadUnsigned<uint64_t>(); }
     int64_t ReadInt64() { return (int64_t)ReadUInt64(); }
+
+    std::string ReadString();
 
   private:
     InputStream &_inputStream;

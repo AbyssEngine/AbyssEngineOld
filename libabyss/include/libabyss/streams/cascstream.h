@@ -4,8 +4,8 @@
 #include <ios>
 #include <streambuf>
 #include <vector>
-#include <libabyss/casc.h>
-#include <libabyss/inputstream.h>
+#include "libabyss/formats/d2/casc.h"
+#include "inputstream.h"
 
 namespace LibAbyss {
 

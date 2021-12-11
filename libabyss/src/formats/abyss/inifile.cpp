@@ -1,4 +1,4 @@
-#include "libabyss/inifile.h"
+#include "libabyss/formats/abyss/inifile.h"
 #include <algorithm>
 #include <spdlog/spdlog.h>
 #include <fstream>

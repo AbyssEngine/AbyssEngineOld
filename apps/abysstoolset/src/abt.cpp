@@ -1,6 +1,6 @@
 #include "config.h"
-#include "libabyss/dc6.h"
-#include "libabyss/mpqstream.h"
+#include "libabyss/formats/d2/dc6.h"
+#include "libabyss/streams/mpqstream.h"
 #include <argh.h>
 #include <cstdlib>
 #include <filesystem>

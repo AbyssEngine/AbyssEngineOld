@@ -3,7 +3,7 @@
 
 #include <sol/sol.hpp>
 #include "../systemio/interface.h"
-#include "libabyss/inputstream.h"
+#include "libabyss/streams/inputstream.h"
 #include "node.h"
 
 extern "C" {

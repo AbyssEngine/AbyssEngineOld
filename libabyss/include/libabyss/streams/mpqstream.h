@@ -4,8 +4,8 @@
 #include <ios>
 #include <streambuf>
 #include <vector>
-#include <libabyss/mpq.h>
-#include <libabyss/inputstream.h>
+#include "libabyss/formats/d2/mpq.h"
+#include "libabyss/streams/inputstream.h"
 
 namespace LibAbyss {
 
