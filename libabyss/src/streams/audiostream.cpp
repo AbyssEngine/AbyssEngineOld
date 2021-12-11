@@ -5,6 +5,7 @@ extern "C" {
 #include "libabyss/streams/audiostream.h"
 #include <absl/cleanup/cleanup.h>
 #include <absl/strings/str_cat.h>
+#include <spdlog/spdlog.h>
 
 namespace {
 const int DecodeBufferSize = 1024;
@@ -147,8 +148,20 @@ void LibAbyss::AudioStream::Update() {
     if (packet.stream_index != _audioStreamIdx)
         return;
 
-    if ((avError = avcodec_send_packet(_audioCodecContext, &packet)) < 0)
-        throw std::runtime_error(absl::StrCat("Error decoding audio packet: ", AvErrorCodeToString(avError)));
+    if ((avError = avcodec_send_packet(_audioCodecContext, &packet)) < 0) {
+        if (_loop) {
+            avcodec_flush_buffers(_audioCodecContext);
+            avformat_flush(_avFormatContext);
+            av_seek_frame(_avFormatContext, _audioStreamIdx, 0, AVSEEK_FLAG_FRAME);
+            return;
+        } else {
+            avcodec_flush_buffers(_audioCodecContext);
+            avformat_flush(_avFormatContext);
+            av_seek_frame(_avFormatContext, _audioStreamIdx, 0, AVSEEK_FLAG_FRAME);
+            _isPlaying = false;
+            return;
+        }
+    }
 
     while (true) {
         if ((avError = avcodec_receive_frame(_audioCodecContext, _avFrame)) < 0) {
@@ -164,8 +177,6 @@ void LibAbyss::AudioStream::Update() {
         uint8_t *ptr[1] = { _audioOutBuffer };
         auto result = swr_convert(_resampleContext, ptr, audioOutSize, (const uint8_t **)_avFrame->data, _avFrame->nb_samples);
         _ringBuffer.PushData(std::span(_audioOutBuffer, result * 4));
-
-
     }
 }
 int16_t LibAbyss::AudioStream::GetSample() {

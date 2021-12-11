@@ -53,7 +53,7 @@ int main(int, char *argv[]) {
     SPDLOG_INFO("   AVFilter Version    - " AV_STRINGIFY(LIBAVFILTER_VERSION));
     SPDLOG_INFO("   SwResample Version  - " AV_STRINGIFY(LIBSWRESAMPLE_VERSION));
 
-    av_log_set_level(AV_LOG_ERROR);
+    av_log_set_level(AV_LOG_QUIET);
 
     try {
         auto configPath = GetConfigPath(argv[0]);
