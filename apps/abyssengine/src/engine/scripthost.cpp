@@ -85,7 +85,9 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _lua(), _engine(engine) {
     auto buttonType = CreateLuaObjectType<Button>(module, "Button", sol::no_constructor);
     buttonType["setSegments"] = &Button::SetSegments;
     buttonType["setFixedSize"] = &Button::SetSize;
+    buttonType["checked"] = sol::property(&Button::GetChecked, &Button::SetChecked);
     buttonType["caption"] = sol::property(&Button::GetCaption, &Button::SetCaption);
+    buttonType["labelBlendMode"] = sol::property(&Button::LuaGetLabelBlendMode, &Button::LuaSetLabelBlendMode);
     buttonType["setTextOffset"] = &Button::SetTextOffset;
     buttonType["setFrameIndex"] = &Button::LuaSetFrameIndex;
     buttonType["onActivate"] = &Button::LuaSetActivateCallback;

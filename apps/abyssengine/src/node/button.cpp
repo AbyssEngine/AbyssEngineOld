@@ -129,15 +129,15 @@ void AbyssEngine::Button::RenderCallback(int offsetX, int offsetY) {
 
     switch (_buttonState) {
     case eState::Normal:
-        frame_index = _isCheckbox ? _frameIndexCheckedNormal : _frameIndexNormal;
+        frame_index = _checked ? _frameIndexCheckedNormal : _frameIndexNormal;
         break;
     case eState::Pressed:
-        frame_index = _isCheckbox ? _frameIndexCheckedPressed : _frameIndexPressed;
+        frame_index = _checked ? _frameIndexCheckedPressed : _frameIndexPressed;
         text_offset_x = -2;
         text_offset_y = 2;
         break;
     case eState::Hover:
-        frame_index = _isCheckbox ? _frameIndexCheckedHover : _frameIndexHover;
+        frame_index = _checked ? _frameIndexCheckedHover : _frameIndexHover;
         break;
     case eState::Disabled:
         frame_index = _frameIndexDisabled;
@@ -157,7 +157,7 @@ void AbyssEngine::Button::RenderCallback(int offsetX, int offsetY) {
 
     if (!_caption.empty()) {
         _spriteFont->RenderText(X + _textOffsetX + offsetX + (_fixedWidth / 2) - (_curCaptionWidth / 2) + text_offset_x,
-                                Y + _textOffsetY + offsetY + (_fixedHeight / 2) - (_curCaptionHeight / 2) + text_offset_y, _caption, eBlendMode::Mul,
+                                Y + _textOffsetY + offsetY + (_fixedHeight / 2) - (_curCaptionHeight / 2) + text_offset_y, _caption, _labelBlend,
                                 _labelColor);
     }
 
@@ -175,11 +175,27 @@ void AbyssEngine::Button::SetSize(int x, int y) {
     _fixedHeight = y;
 }
 
+bool AbyssEngine::Button::GetChecked() const {
+    return _checked;
+}
+void AbyssEngine::Button::SetChecked(bool b) {
+    _checked = b;
+}
+
 void AbyssEngine::Button::SetCaption(std::string_view caption) {
     _caption = caption;
     _spriteFont->GetMetrics(caption, _curCaptionWidth, _curCaptionHeight);
 }
-std::string_view AbyssEngine::Button::GetCaption() { return _caption; }
+std::string_view AbyssEngine::Button::GetCaption() const { return _caption; }
+void AbyssEngine::Button::SetLabelColor(uint8_t red, uint8_t green, uint8_t blue) {
+    _labelColor.Red = red;
+    _labelColor.Green = green;
+    _labelColor.Blue = blue;
+}
+std::string_view AbyssEngine::Button::LuaGetLabelBlendMode() const { return BlendModeToString(_labelBlend); }
+void AbyssEngine::Button::LuaSetLabelBlendMode(std::string_view val) {
+    _labelBlend = StringToBlendMode(val);
+}
 
 void AbyssEngine::Button::SetTextOffset(int x, int y) {
     _textOffsetX = x;
