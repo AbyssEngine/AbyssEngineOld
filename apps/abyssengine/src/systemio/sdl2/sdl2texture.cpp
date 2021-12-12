@@ -1,6 +1,9 @@
 #include "sdl2texture.h"
 #include <stdexcept>
 
+AbyssEngine::SDL2::SDL2Texture::SDL2Texture(SDL_Renderer *renderer, SDL_Texture* texture) : _renderer(renderer), _texture(texture), _width(0), _height(0),
+    _textureFormat(ITexture::Format::TTF) {}
+
 AbyssEngine::SDL2::SDL2Texture::SDL2Texture(SDL_Renderer *renderer, ITexture::Format textureFormat, uint32_t width, uint32_t height)
     : _texture(nullptr), _renderer(renderer), _width(width), _height(height), _textureFormat(textureFormat) {
 
