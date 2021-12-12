@@ -36,6 +36,7 @@ static bool casc_progress_callback(void *PtrUserParam, LPCSTR szWork, LPCSTR szO
 CASC::CASC(const std::filesystem::path &cascPath) {
     std::string path = std::filesystem::absolute(cascPath).string();
     CASC_OPEN_STORAGE_ARGS args = {};
+    args.Size = sizeof(CASC_OPEN_STORAGE_ARGS);
     args.PfnProgressCallback = casc_progress_callback;
     if (!CascOpenStorageEx(path.c_str(), &args, 0, &_storage)) {
         throw std::runtime_error(absl::StrFormat("Error occurred while opening CASC %s: %d", cascPath.string(), GetCascError()));
