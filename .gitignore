@@ -13,3 +13,9 @@ vcpkg_installed/
 .cache
 builds/
 *.bak
+compile_commands.json
+compile_flags.txt
+.vimspector.json
+.vimspector.session
+backends.txt
+lldb-vscode.json

@@ -1,5 +1,6 @@
 #include <libabyss/formats/d2/ds1.h>
 #include <libabyss/streams/streamreader.h>
+#include <absl/strings/ascii.h>
 #include <regex>
 
 LibAbyss::DS1::DS1(LibAbyss::InputStream &stream) {
@@ -19,9 +20,12 @@ LibAbyss::DS1::DS1(LibAbyss::InputStream &stream) {
     if (Version >= 3) {
         Files.resize(sr.ReadInt32());
         for (auto &file : Files) {
-            file = sr.ReadString();
+            file = absl::AsciiStrToLower(sr.ReadString());
+
             std::replace(file.begin(), file.end(), '\\', '/');
-            file = std::regex_replace(file, std::regex("^/d2/data/"), "/data/");
+            file = std::regex_replace(file, std::regex("/d2/data/"), "/data/");
+            file = std::regex_replace(file, std::regex("c:"), ""); // Yes they did
+            file = std::regex_replace(file, std::regex(".tg1$"), ".dt1"); // Yes they did
         }
     }
 
@@ -50,7 +54,7 @@ LibAbyss::DS1::DS1(LibAbyss::InputStream &stream) {
     if (Version >= 3)
         LoadObjects(stream);
 
-    if (Version >= 12)
+    if ((Version >= 12) && (SubstitutionType == 1) || (SubstitutionType == 2))
         LoadSubstitutions(stream);
 
     if (Version > 14)

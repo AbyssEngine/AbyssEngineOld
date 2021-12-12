@@ -73,6 +73,7 @@ class DT1 {
             int32_t _fileOffset;
         };
 
+        Tile() = default;
         explicit Tile(InputStream &stream);
         uint8_t unknown[4];
         int32_t Direction;
@@ -90,10 +91,11 @@ class DT1 {
         std::vector<Block> Blocks;
     };
 
+    DT1() = default;
     explicit DT1(InputStream &stream);
 
-    uint32_t VersionMajor;
-    uint32_t VersionMinor;
+    uint32_t VersionMajor = 0;
+    uint32_t VersionMinor = 0;
     std::vector<Tile> Tiles;
 };
 } // namespace LibAbyss
