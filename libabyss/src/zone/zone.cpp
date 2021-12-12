@@ -5,7 +5,7 @@
 LibAbyss::Zone::Zone(LibAbyss::ProvideDT1Handler provideDT1Handler) : _provideDT1Handler(std::move(provideDT1Handler)) {}
 
 void LibAbyss::Zone::ResetMap(LibAbyss::LevelType levelType, int width, int height, uint64_t seed) {
-    WidthInTiles = WIDTH;
+    WidthInTiles = width;
     HeightInTiles = height;
 
     DT1Files = levelType.Files;
