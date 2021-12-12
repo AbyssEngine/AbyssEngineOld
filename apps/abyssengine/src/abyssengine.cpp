@@ -1,17 +1,18 @@
-#include <filesystem>
+#include "config.h"
 #include "engine/engine.h"
 #include "hostnotify/hostnotify.h"
-#include "config.h"
-#include <memory>
 #include "systemio/sdl2/sdl2systemio.h"
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-#include <libavformat/version.h>
-#include <libavresample/version.h>
-#include <libavutil/version.h>
+#include <filesystem>
 #include <libavcodec/version.h>
 #include <libavfilter/version.h>
+#include <libavformat/version.h>
+#include <libavresample/version.h>
+#include <libavutil/log.h>
+#include <libavutil/version.h>
 #include <libswresample/version.h>
+#include <memory>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/spdlog.h>
 
 static std::filesystem::path GetConfigPath(std::string_view exePath) {
     auto testPath = std::filesystem::current_path() / "config.ini";
@@ -52,8 +53,11 @@ int main(int, char *argv[]) {
     SPDLOG_INFO("   AVFilter Version    - " AV_STRINGIFY(LIBAVFILTER_VERSION));
     SPDLOG_INFO("   SwResample Version  - " AV_STRINGIFY(LIBSWRESAMPLE_VERSION));
 
+    av_log_set_level(AV_LOG_QUIET);
+
     try {
         auto configPath = GetConfigPath(argv[0]);
+        std::filesystem::current_path(configPath);
 
         LibAbyss::INIFile iniFile(configPath / "config.ini");
         iniFile.SetValue("#Abyss", "BasePath", std::filesystem::absolute(configPath).string());

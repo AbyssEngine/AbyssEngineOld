@@ -16,7 +16,7 @@
 #endif // __APPLE__
 
 namespace {
-const int AudioBufferSize = 1024 * 128;
+const int AudioBufferSize = 1024 * 1024;
 }
 
 AbyssEngine::SDL2::SDL2SystemIO::SDL2SystemIO()

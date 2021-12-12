@@ -54,8 +54,6 @@ class Video : public Node {
     AVCodecContext *_videoCodecContext;
     AVCodecContext *_audioCodecContext;
     AVFrame *_avFrame;
-    uint8_t **_destData;
-    int _lineSize;
 
     unsigned char *_avBuffer;
     std::vector<uint8_t> _yPlane;
@@ -75,6 +73,7 @@ class Video : public Node {
     bool _isPlaying = true;
     bool _framesReady = false;
     uint32_t _totalTicks = 0;
+    uint8_t _audioOutBuffer[1024*16] = {};
 };
 } // namespace AbyssEngine
 

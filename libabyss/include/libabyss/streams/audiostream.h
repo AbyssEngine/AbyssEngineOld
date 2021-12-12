@@ -48,15 +48,14 @@ class AudioStream {
     SwrContext *_resampleContext;
     AVFrame *_avFrame;
     RingBuffer _ringBuffer;
-    uint8_t **_destData;
-    int _lineSize;
-
     std::mutex _mutex;
 
     bool _isPlaying = false;
     bool _isPaused = false;
     bool _loop = false;
+    bool _ready = false;
     int _audioStreamIdx = 0;
+    uint8_t _audioOutBuffer[1024*16] = {};
 };
 } // namespace LibAbyss
 

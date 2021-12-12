@@ -13,7 +13,7 @@ LibAbyss::INIFile::INIFile(const std::filesystem::path &iniFilePath) {
     std::ifstream input_file(iniFilePath);
 
     if (!input_file.is_open())
-        throw std::runtime_error("file not found");
+        throw std::runtime_error("File not found:" + iniFilePath.string());
 
 
     std::string fileString((std::istreambuf_iterator<char>(input_file)), std::istreambuf_iterator<char>());
