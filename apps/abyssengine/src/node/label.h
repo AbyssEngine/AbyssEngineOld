@@ -6,34 +6,60 @@
 #include "../common/color.h"
 #include "node.h"
 #include "../engine/spritefont.h"
+#include "../engine/ttffont.h"
 #include <memory>
 
 namespace AbyssEngine {
 
 class Label : public Node {
   public:
-    explicit Label(SpriteFont* spriteFont);
     ~Label() override;
 
-    void UpdateCallback(uint32_t ticks) override;
-    void RenderCallback(int offsetX, int offsetY) override;
-    void MouseEventCallback(const MouseEvent &event) override;
     void SetCaption(std::string_view value);
-    std::string_view GetCaption();
+    std::string_view GetCaption() const;
     void SetAlignment(eAlignment hAlign, eAlignment vAlign);
     void SetAlignmentStr(std::string_view hAlign, std::string_view vAlign);
     void SetColorMod(uint8_t red, uint8_t green, uint8_t blue);
     [[nodiscard]] std::string_view NodeType() const final { return "Label Node"; };
 
-  private:
+  protected:
+    void RenderCallback(int offsetX, int offsetY) override;
+    virtual void PrepareRender(int& width, int& height) = 0;
+    virtual void DoRender(int x, int y) = 0;
+    virtual void ClearCache() {}
+
     eAlignment _horizontalAlignment = eAlignment::Start;
     eAlignment _verticalAlignment = eAlignment::Start;
     eBlendMode _blendMode = eBlendMode::Blend;
     RGB _colorMod = {255, 255, 255};
-    SpriteFont* _spriteFont;
     std::string _caption;
     int _labelOffsetX = 0;
     int _labelOffsetY = 0;
+};
+
+class SpriteLabel : public Label {
+  public:
+    explicit SpriteLabel(SpriteFont& font);
+
+  private:
+    void PrepareRender(int& width, int& height) override;
+    void DoRender(int x, int y) override;
+
+    SpriteFont& _font;
+};
+
+class TtfLabel : public Label {
+  public:
+    explicit TtfLabel(TtfFont& font);
+
+  private:
+    void PrepareRender(int& width, int& height) override;
+    void DoRender(int x, int y) override;
+    void ClearCache() override;
+
+    std::unique_ptr<ITexture> _texture;
+    Rectangle _rect = {};
+    TtfFont& _font;
 };
 
 } // namespace AbyssEngine

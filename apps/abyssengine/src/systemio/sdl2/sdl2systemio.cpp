@@ -8,6 +8,7 @@
 #include <SDL_hints.h>
 #include <SDL_stdinc.h>
 #include <SDL_syswm.h>
+#include <SDL_ttf.h>
 #include <span>
 #include <spdlog/spdlog.h>
 #ifdef __APPLE__
@@ -19,6 +20,11 @@ namespace {
 const int AudioBufferSize = 1024 * 1024;
 }
 
+// /usr/include/X11/X.h:115:30 defines it...
+#ifdef None
+#undef None
+#endif
+
 AbyssEngine::SDL2::SDL2SystemIO::SDL2SystemIO()
     : AbyssEngine::SystemIO::SystemIO(), _audioBuffer(AudioBufferSize), _audioSpec(), _mouseButtonState((eMouseButton)0), _backgroundMusicStream(),
       _soundEffects(), _mutex() {
@@ -27,10 +33,15 @@ AbyssEngine::SDL2::SDL2SystemIO::SDL2SystemIO()
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER | SDL_INIT_TIMER | SDL_INIT_AUDIO) != 0)
         throw std::runtime_error(SDL_GetError());
 
+    if (TTF_Init() != 0) {
+        throw std::runtime_error(TTF_GetError());
+    }
+
     _sdlWindow = std::unique_ptr<SDL_Window, std::function<void(SDL_Window *)>>(
         SDL_CreateWindow(ABYSS_VERSION_STRING, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_RESIZABLE), [](SDL_Window *x) {
             SDL_DestroyWindow(x);
             SDL_Quit();
+            TTF_Quit();
         });
 
     if (_sdlWindow == nullptr)
@@ -54,6 +65,7 @@ AbyssEngine::SDL2::SDL2SystemIO::SDL2SystemIO()
         SDL_CreateRenderer(_sdlWindow.get(), -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC), [](SDL_Renderer *x) {
             SDL_DestroyRenderer(x);
             SDL_Quit();
+            TTF_Quit();
         });
 
     if (_sdlRenderer == nullptr)
@@ -160,6 +172,61 @@ bool AbyssEngine::SDL2::SDL2SystemIO::HandleSdlEvent(const SDL_Event &sdlEvent, 
 std::unique_ptr<AbyssEngine::ITexture> AbyssEngine::SDL2::SDL2SystemIO::CreateTexture(ITexture::Format textureFormat, uint32_t width,
                                                                                       uint32_t height) {
     return std::make_unique<SDL2Texture>(_sdlRenderer.get(), textureFormat, width, height);
+}
+
+namespace {
+    class AbyssSDL2TTF : public AbyssEngine::ITtf {
+        public:
+            explicit AbyssSDL2TTF(SDL_Renderer* renderer, LibAbyss::InputStream stream, int size,
+                    AbyssEngine::ITtf::Hinting hinting) :
+                _sdlRenderer(renderer) {
+                auto len = stream.size();
+                _data.resize(len);
+                stream.read(_data.data(), len);
+                _font = TTF_OpenFontRW(SDL_RWFromConstMem(_data.data(), len), 1, size);
+                int hint = 0;
+                switch (hinting) {
+                    case ITtf::Hinting::Light:
+                        hint = TTF_HINTING_LIGHT;
+                        break;
+                    case ITtf::Hinting::Mono:
+                        hint = TTF_HINTING_MONO;
+                        break;
+                    case ITtf::Hinting::None:
+                        hint = TTF_HINTING_NONE;
+                        break;
+                    case ITtf::Hinting::Normal:
+                        hint = TTF_HINTING_NORMAL;
+                        break;
+                }
+                TTF_SetFontHinting(_font, hint);
+            }
+
+        std::unique_ptr<AbyssEngine::ITexture> RenderText(std::string_view text, int &width, int &height) override {
+            std::string s(text);
+            SDL_Color color = {255, 255, 255, 0};
+            SDL_Surface* surf = TTF_RenderUTF8_Blended(_font, s.c_str(), color);
+            width = surf->w;
+            height = surf->h;
+            SDL_Texture* texture = SDL_CreateTextureFromSurface(_sdlRenderer, surf);
+            SDL_FreeSurface(surf);
+            return std::make_unique<AbyssEngine::SDL2::SDL2Texture>(_sdlRenderer, texture);
+        }
+
+        ~AbyssSDL2TTF() {
+            TTF_CloseFont(_font);
+        }
+
+        private:
+        std::string _data;
+        TTF_Font* _font = nullptr;
+        SDL_Renderer* _sdlRenderer;
+    };
+}
+
+std::unique_ptr<AbyssEngine::ITtf> AbyssEngine::SDL2::SDL2SystemIO::CreateTtf(LibAbyss::InputStream stream, int size,
+        AbyssEngine::ITtf::Hinting hinting) {
+    return std::make_unique<AbyssSDL2TTF>(_sdlRenderer.get(), std::move(stream), size, hinting);
 }
 void AbyssEngine::SDL2::SDL2SystemIO::InitializeAudio() {
     SDL_AudioSpec requestedAudioSpec{
