@@ -125,6 +125,7 @@ AbyssEngine::Video::Video(std::string_view name, LibAbyss::InputStream stream, s
 
 AbyssEngine::Video::~Video() {
     Engine::Get()->GetSystemIO().SetVideo(nullptr);
+
     av_free(_avioContext->buffer);
     avio_context_free(&_avioContext);
     avcodec_free_context(&_videoCodecContext);
