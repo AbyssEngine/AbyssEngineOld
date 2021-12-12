@@ -21,7 +21,7 @@ void AbyssEngine::Node::RenderCallback(int offsetX, int offsetY) {
         if (!item->Active || !item->Visible)
             continue;
 
-        item->RenderCallback(offsetX, offsetY);
+        item->RenderCallback(X + offsetX, Y + offsetY);
     }
 }
 
@@ -57,7 +57,7 @@ void AbyssEngine::Node::SetPosition(int x, int y) {
     Y = y;
 }
 
-std::tuple<int, int> AbyssEngine::Node::GetPosition() { return {X, Y}; }
+std::tuple<int, int> AbyssEngine::Node::GetPosition() const { return {X, Y}; }
 
 void AbyssEngine::Node::SetActive(bool active) { Active = active; }
 
@@ -65,7 +65,7 @@ bool AbyssEngine::Node::GetActive() const { return Active; }
 
 void AbyssEngine::Node::SetVisible(bool visible) { Visible = visible; }
 
-bool AbyssEngine::Node::GetVisible() { return Visible; }
+bool AbyssEngine::Node::GetVisible() const { return Visible; }
 
 void AbyssEngine::Node::MouseEventCallback(const AbyssEngine::MouseEvent &event) {
     for (auto &item : Children) {

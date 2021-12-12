@@ -63,7 +63,7 @@ void AbyssEngine::Sprite::RenderCallback(int offsetX, int offsetY) {
 
     Render(_currentFrame, offsetX, offsetY);
 
-    Node::RenderCallback(X + offsetX, Y + offsetY);
+    Node::RenderCallback(offsetX, offsetY);
 }
 
 void AbyssEngine::Sprite::MouseEventCallback(const AbyssEngine::MouseEvent &event) {
