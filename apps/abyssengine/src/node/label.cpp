@@ -90,5 +90,11 @@ void Label::SetColorMod(uint8_t red, uint8_t green, uint8_t blue) {
     _colorMod.Green = green;
     _colorMod.Blue = blue;
 }
+void Label::LuaSetBlendMode(std::string_view mode) {
+    _blendMode = StringToBlendMode(mode);
+}
+std::string_view Label::LuaGetBlendMode() const {
+    return BlendModeToString(_blendMode);
+}
 
 } // namespace AbyssEngine

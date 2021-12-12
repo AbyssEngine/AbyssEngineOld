@@ -46,7 +46,7 @@ class ScriptHost {
     void LuaPlayBackgroundMusic(std::string_view fileName);
     std::string LuaCreateText(std::string_view filePath);
     std::unique_ptr<Sprite> LuaCreateSprite(std::string_view spritePath, std::string_view paletteName);
-    std::unique_ptr<Button> LuaCreateButton(SpriteFont *spriteFont, Sprite *sprite);
+    std::unique_ptr<Button> LuaCreateButton(Sprite &sprite);
     std::unique_ptr<SpriteFont> LuaCreateSpriteFont(std::string_view fontPath, std::string_view paletteName);
     std::unique_ptr<TtfFont> LuaCreateTtfFont(std::string_view fontPath, int size, std::string_view hinting);
     std::unique_ptr<Label> LuaCreateLabel(IFont &font);
@@ -59,7 +59,6 @@ class ScriptHost {
     Node &LuaGetRootNode();
     template <class T, typename X>
     sol::basic_usertype<T, sol::basic_reference<false>> CreateLuaObjectType(sol::table &module, std::string_view name, X &&constructor);
-    template <class T> void BindNodeFunctions(sol::basic_usertype<T, sol::basic_reference<false>> &val);
 };
 
 } // namespace AbyssEngine

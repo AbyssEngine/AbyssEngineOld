@@ -20,6 +20,8 @@ class Label : public Node {
     void SetAlignment(eAlignment hAlign, eAlignment vAlign);
     void SetAlignmentStr(std::string_view hAlign, std::string_view vAlign);
     void SetColorMod(uint8_t red, uint8_t green, uint8_t blue);
+    void LuaSetBlendMode(std::string_view mode);
+    std::string_view LuaGetBlendMode() const;
     [[nodiscard]] std::string_view NodeType() const final { return "Label Node"; };
 
   protected:

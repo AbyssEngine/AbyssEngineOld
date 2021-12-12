@@ -39,7 +39,7 @@ static int my_exception_handler(lua_State *L, sol::optional<const std::exception
     return sol::stack::push(L, description);
 }
 
-AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _lua(), _engine(engine) {
+AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     _lua.stop_gc();
     _lua.set_exception_handler(&my_exception_handler);
     _lua.open_libraries();
@@ -85,27 +85,33 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _lua(), _engine(engine) {
     module.new_usertype<TtfFont>("TtfFont", sol::no_constructor, sol::base_classes, sol::bases<IFont>());
     module.new_usertype<SpriteFont>("SpriteFont", sol::no_constructor, sol::base_classes, sol::bases<IFont>());
 
+    // Node
+    auto nodeType = module.new_usertype<Node>("Node", sol::no_constructor);
+    nodeType["removeAllChildren"] = &Node::RemoveAllChildren;
+    nodeType["appendChild"] = &Node::AppendChild;
+    nodeType["removeChild"] = &Node::RemoveChild;
+    nodeType["getPosition"] = &Node::GetPosition;
+    nodeType["setPosition"] = &Node::SetPosition;
+    nodeType["visible"] = sol::property(&Node::GetVisible, &Node::SetVisible);
+    nodeType["active"] = sol::property(&Node::GetActive, &Node::SetActive);
+    nodeType["data"] = sol::property(&Node::GetLuaTable, &Node::SetLuaTable);
+
     // Button
     auto buttonType = CreateLuaObjectType<Button>(module, "Button", sol::no_constructor);
     buttonType["setSegments"] = &Button::SetSegments;
     buttonType["setFixedSize"] = &Button::SetSize;
     buttonType["checked"] = sol::property(&Button::GetChecked, &Button::SetChecked);
-    buttonType["caption"] = sol::property(&Button::GetCaption, &Button::SetCaption);
-    buttonType["labelBlendMode"] = sol::property(&Button::LuaGetLabelBlendMode, &Button::LuaSetLabelBlendMode);
-    buttonType["setTextOffset"] = &Button::SetTextOffset;
+    buttonType["setPressedOffset"] = &Button::SetPressedOffset;
     buttonType["setFrameIndex"] = &Button::LuaSetFrameIndex;
     buttonType["onActivate"] = &Button::LuaSetActivateCallback;
     buttonType["onPressed"] = &Button::LuaSetPressCallback;
-
-    // Node
-    auto nodeType = module.new_usertype<Node>("Node", sol::no_constructor);
-    BindNodeFunctions(nodeType);
 
     // Label
     auto labelType = CreateLuaObjectType<Label>(module, "Label", sol::no_constructor);
     labelType["caption"] = sol::property(&Label::GetCaption, &Label::SetCaption);
     labelType["setAlignment"] = &Label::SetAlignmentStr;
     labelType["setColorMod"] = &Label::SetColorMod;
+    labelType["blendMode"] = sol::property(&Label::LuaGetBlendMode, &Label::LuaSetBlendMode);
 
     // Sprite
     auto spriteType = CreateLuaObjectType<Sprite>(module, "Sprite", sol::no_constructor);
@@ -343,8 +349,8 @@ std::unique_ptr<AbyssEngine::Sprite> AbyssEngine::ScriptHost::LuaCreateSprite(st
         throw std::runtime_error(absl::StrCat("Unknowns sprite format for file: ", spritePath));
 }
 
-std::unique_ptr<AbyssEngine::Button> AbyssEngine::ScriptHost::LuaCreateButton(SpriteFont *spriteFont, Sprite *sprite) {
-    return std::make_unique<Button>(spriteFont, sprite);
+std::unique_ptr<AbyssEngine::Button> AbyssEngine::ScriptHost::LuaCreateButton(Sprite &sprite) {
+    return std::make_unique<Button>(sprite);
 }
 
 void AbyssEngine::ScriptHost::LuaSetCursor(Sprite &sprite, int offsetX, int offsetY) { _engine->SetCursorSprite(&sprite, offsetX, offsetY); }
@@ -366,18 +372,7 @@ template <class T, typename X>
 sol::basic_usertype<T, sol::basic_reference<false>> AbyssEngine::ScriptHost::CreateLuaObjectType(sol::table &module, std::string_view name,
                                                                                                  X &&constructor) {
     auto val = module.new_usertype<T>(name, "new", std::forward<X>(constructor), sol::base_classes, sol::bases<Node>());
-    BindNodeFunctions(val);
     return val;
-}
-
-template <class T> void AbyssEngine::ScriptHost::BindNodeFunctions(sol::basic_usertype<T, sol::basic_reference<false>> &val) {
-    val["removeAllChildren"] = &T::RemoveAllChildren;
-    val["appendChild"] = &T::AppendChild;
-    val["removeChild"] = &T::RemoveChild;
-    val["getPosition"] = &T::GetPosition;
-    val["setPosition"] = &T::SetPosition;
-    val["visible"] = sol::property(&T::GetVisible, &T::SetVisible);
-    val["active"] = sol::property(&T::GetActive, &T::SetActive);
 }
 
 void AbyssEngine::ScriptHost::LuaResetMouseState() { _engine->ResetMouseButtonState(); }

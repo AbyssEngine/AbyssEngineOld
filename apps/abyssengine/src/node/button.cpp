@@ -7,14 +7,8 @@
 #include <spdlog/spdlog.h>
 #include <utility>
 
-AbyssEngine::Button::Button(AbyssEngine::SpriteFont *spriteFont, Sprite *sprite)
-    : _spriteFont(spriteFont), _sprite(sprite), _luaPressedCallback(), _luaActivateCallback() {
-
-    if (spriteFont == nullptr)
-        throw std::runtime_error("Attempted to create a button with no sprite font.");
-
-    if (sprite == nullptr)
-        throw std::runtime_error("Attempted to create a button with no sprite.");
+AbyssEngine::Button::Button(Sprite &sprite)
+    : _sprite(sprite), _luaPressedCallback(), _luaActivateCallback() {
 }
 
 AbyssEngine::Button::~Button() = default;
@@ -133,8 +127,8 @@ void AbyssEngine::Button::RenderCallback(int offsetX, int offsetY) {
         break;
     case eState::Pressed:
         frame_index = _checked ? _frameIndexCheckedPressed : _frameIndexPressed;
-        text_offset_x = -2;
-        text_offset_y = 2;
+        text_offset_x = _pressedOffsetX;
+        text_offset_y = _pressedOffsetY;
         break;
     case eState::Hover:
         frame_index = _checked ? _frameIndexCheckedHover : _frameIndexHover;
@@ -150,18 +144,10 @@ void AbyssEngine::Button::RenderCallback(int offsetX, int offsetY) {
     if (frame_index < 0)
         frame_index = _frameIndexNormal;
 
-    if (_sprite != nullptr) {
-        _sprite->SetCellSize(_xSegments, _ySegments);
-        _sprite->Render(frame_index, X + offsetX, Y + offsetY);
-    }
+    _sprite.SetCellSize(_xSegments, _ySegments);
+    _sprite.Render(frame_index, X + offsetX, Y + offsetY);
 
-    if (!_caption.empty()) {
-        _spriteFont->RenderText(X + _textOffsetX + offsetX + (_fixedWidth / 2) - (_curCaptionWidth / 2) + text_offset_x,
-                                Y + _textOffsetY + offsetY + (_fixedHeight / 2) - (_curCaptionHeight / 2) + text_offset_y, _caption, _labelBlend,
-                                _labelColor);
-    }
-
-    //Node::RenderCallback(X + offsetX, Y + offsetY);
+    Node::RenderCallback(offsetX + text_offset_x, offsetY + text_offset_y);
 }
 
 void AbyssEngine::Button::MouseEventCallback(const AbyssEngine::MouseEvent &event) { Node::MouseEventCallback(event); }
@@ -182,24 +168,9 @@ void AbyssEngine::Button::SetChecked(bool b) {
     _checked = b;
 }
 
-void AbyssEngine::Button::SetCaption(std::string_view caption) {
-    _caption = caption;
-    _spriteFont->GetMetrics(caption, _curCaptionWidth, _curCaptionHeight);
-}
-std::string_view AbyssEngine::Button::GetCaption() const { return _caption; }
-void AbyssEngine::Button::SetLabelColor(uint8_t red, uint8_t green, uint8_t blue) {
-    _labelColor.Red = red;
-    _labelColor.Green = green;
-    _labelColor.Blue = blue;
-}
-std::string_view AbyssEngine::Button::LuaGetLabelBlendMode() const { return BlendModeToString(_labelBlend); }
-void AbyssEngine::Button::LuaSetLabelBlendMode(std::string_view val) {
-    _labelBlend = StringToBlendMode(val);
-}
-
-void AbyssEngine::Button::SetTextOffset(int x, int y) {
-    _textOffsetX = x;
-    _textOffsetY = y;
+void AbyssEngine::Button::SetPressedOffset(int x, int y) {
+    _pressedOffsetX = x;
+    _pressedOffsetY = y;
 }
 
 void AbyssEngine::Button::LuaSetFrameIndex(std::string_view frameType, int index) {
@@ -226,6 +197,6 @@ void AbyssEngine::Button::LuaSetFrameIndex(std::string_view frameType, int index
 
 void AbyssEngine::Button::LuaSetActivateCallback(sol::safe_function luaActivateCallback) { _luaActivateCallback = std::move(luaActivateCallback); }
 
-void AbyssEngine::Button::Initialize() { _sprite->Initialize(); }
+void AbyssEngine::Button::Initialize() { _sprite.Initialize(); }
 
 void AbyssEngine::Button::LuaSetPressCallback(sol::safe_function luaPressCallback) { _luaPressedCallback = std::move(luaPressCallback); }

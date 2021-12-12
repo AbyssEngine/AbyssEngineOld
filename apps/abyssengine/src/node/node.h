@@ -7,6 +7,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <sol/sol.hpp>
 
 namespace AbyssEngine {
 
@@ -32,8 +33,10 @@ class Node {
     void SetActive(bool active);
     [[nodiscard]] bool GetActive() const;
     void SetVisible(bool visible);
-    [[nodiscard]] bool GetVisible();
-    std::tuple<int, int> GetPosition();
+    [[nodiscard]] bool GetVisible() const;
+    std::tuple<int, int> GetPosition() const;
+    void SetLuaTable(sol::table table) { _table = table; }
+    sol::table GetLuaTable() const { return _table; }
 
     int X = 0;
     int Y = 0;
@@ -50,6 +53,7 @@ class Node {
     bool _removeAllChildren = false;
     std::string Name;
     bool _initialized = false;
+    sol::table _table;
 };
 
 } // namespace AbyssEngine
