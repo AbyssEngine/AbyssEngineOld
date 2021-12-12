@@ -9,8 +9,8 @@
 #include <absl/strings/ascii.h>
 #include <absl/strings/str_cat.h>
 #include <filesystem>
-#include <libabyss/common/leveltype.h>
 #include <libabyss/common/levelpreset.h>
+#include <libabyss/common/leveltype.h>
 #include <libabyss/formats/d2/dt1.h>
 #include <memory>
 #include <sol/sol.hpp>

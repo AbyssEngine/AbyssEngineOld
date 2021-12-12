@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
-
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # -------------------------------------------------------------------------------------------------
 # Project
@@ -187,3 +188,6 @@ endif (UNIX AND NOT APPLE)
 if (APPLE)
     install(TARGETS ${APP_NAME})
 endif(APPLE)
+
+target_compile_features(${APP_NAME} PRIVATE cxx_std_20)
+

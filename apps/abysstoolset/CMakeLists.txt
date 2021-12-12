@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 set(APP_NAME abysstoolset)
 
 find_package(spdlog CONFIG REQUIRED)
@@ -43,3 +47,6 @@ target_link_libraries(${APP_NAME}
         )
 
 install(TARGETS ${APP_NAME})
+
+target_compile_features(${APP_NAME} PRIVATE cxx_std_20)
+

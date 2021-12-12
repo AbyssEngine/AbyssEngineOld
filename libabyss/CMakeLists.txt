@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # -------------------------------------------------------------------------------------------------
 # Project
 # -------------------------------------------------------------------------------------------------
@@ -33,7 +36,6 @@ add_library(${APP_NAME}
 
         src/zone/zone.cpp
         src/zone/zonetile.cpp
-        src/zone/zonestamp.cpp
 
         # Strange CASClib inclusion
         # TODO: depend on it properly
@@ -91,3 +93,6 @@ install(TARGETS ${APP_NAME}
 if (WIN32)
     target_link_libraries(${APP_NAME} PRIVATE ws2_32) # for CASC
 endif ()
+
+target_compile_features(${APP_NAME} PRIVATE cxx_std_20)
+

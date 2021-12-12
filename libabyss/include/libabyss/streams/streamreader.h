@@ -3,7 +3,6 @@
 
 #include "libabyss/streams/inputstream.h"
 #include <cstdint>
-#include <concepts>
 #include <span>
 
 namespace LibAbyss {
@@ -14,7 +13,7 @@ class StreamReader {
     uint8_t ReadByte();
     void ReadBytes(std::span<uint8_t> data);
 
-    template <std::unsigned_integral T> T ReadUnsigned() {
+    template <class T> T ReadUnsigned() {
         T result = 0;
 
         for (auto i = 0; i < sizeof(T); i++)
