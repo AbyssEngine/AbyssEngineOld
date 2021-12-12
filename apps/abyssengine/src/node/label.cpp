@@ -1,15 +1,14 @@
 #include "label.h"
 #include <spdlog/spdlog.h>
-AbyssEngine::Label::Label(SpriteFont *spriteFont) : _spriteFont(spriteFont), _caption() {
-    if (spriteFont == nullptr)
-        throw std::runtime_error("SpriteFont is null");
-}
 
-AbyssEngine::Label::~Label() = default;
+namespace AbyssEngine {
 
-void AbyssEngine::Label::UpdateCallback(uint32_t ticks) { Node::UpdateCallback(ticks); }
+SpriteLabel::SpriteLabel(SpriteFont &font) : _font(font) {}
+TtfLabel::TtfLabel(TtfFont &font) : _font(font) {}
 
-void AbyssEngine::Label::RenderCallback(int offsetX, int offsetY) {
+Label::~Label() = default;
+
+void Label::RenderCallback(int offsetX, int offsetY) {
     if (!Visible || !Active)
         return;
 
@@ -18,7 +17,7 @@ void AbyssEngine::Label::RenderCallback(int offsetX, int offsetY) {
 
     int finalWidth;
     int finalHeight;
-    _spriteFont->GetMetrics(_caption, finalWidth, finalHeight);
+    PrepareRender(finalWidth, finalHeight);
 
     switch (_horizontalAlignment) {
     case eAlignment::Middle:
@@ -42,22 +41,54 @@ void AbyssEngine::Label::RenderCallback(int offsetX, int offsetY) {
         break;
     }
 
-    _spriteFont->RenderText(posX, posY, _caption, _blendMode, _colorMod);
+    DoRender(posX, posY);
 
-    Node::RenderCallback(X + offsetX, Y + offsetY);
+    Node::RenderCallback(offsetX, offsetY);
 }
-void AbyssEngine::Label::MouseEventCallback(const AbyssEngine::MouseEvent &event) { Node::MouseEventCallback(event); }
-void AbyssEngine::Label::SetCaption(std::string_view value) { _caption = value; }
-std::string_view AbyssEngine::Label::GetCaption() { return _caption; }
-void AbyssEngine::Label::SetAlignment(AbyssEngine::eAlignment hAlign, AbyssEngine::eAlignment vAlign) {
+
+void SpriteLabel::PrepareRender(int& width, int& height) {
+    _font.GetMetrics(_caption, width, height);
+}
+void TtfLabel::PrepareRender(int& width, int& height) {
+    if (!_texture) {
+        _texture = _font.RenderText(_caption, _rect.Width, _rect.Height);
+    }
+    width = _rect.Width;
+    height = _rect.Height;
+}
+
+void SpriteLabel::DoRender(int x, int y) {
+    _font.RenderText(x, y, _caption, _blendMode, _colorMod);
+}
+void TtfLabel::DoRender(int x, int y) {
+    _texture->SetBlendMode(_blendMode);
+    _texture->SetColorMod(_colorMod.Red, _colorMod.Green, _colorMod.Blue);
+    AbyssEngine::Rectangle dst;
+    dst.X = x;
+    dst.Y = y;
+    dst.Width = _rect.Width;
+    dst.Height = _rect.Height;
+    _texture->Render(_rect, dst);
+}
+void TtfLabel::ClearCache() {
+    _texture = nullptr;
+}
+
+void Label::SetCaption(std::string_view value) {
+    _caption = value; ClearCache();
+}
+std::string_view Label::GetCaption() const { return _caption; }
+void Label::SetAlignment(eAlignment hAlign, eAlignment vAlign) {
     _horizontalAlignment = hAlign;
     _verticalAlignment = vAlign;
 }
-void AbyssEngine::Label::SetAlignmentStr(std::string_view hAlign, std::string_view vAlign) {
+void Label::SetAlignmentStr(std::string_view hAlign, std::string_view vAlign) {
     SetAlignment(StringToAlignment(hAlign), StringToAlignment(vAlign));
 }
-void AbyssEngine::Label::SetColorMod(uint8_t red, uint8_t green, uint8_t blue) {
+void Label::SetColorMod(uint8_t red, uint8_t green, uint8_t blue) {
     _colorMod.Red = red;
     _colorMod.Green = green;
     _colorMod.Blue = blue;
 }
+
+} // namespace AbyssEngine

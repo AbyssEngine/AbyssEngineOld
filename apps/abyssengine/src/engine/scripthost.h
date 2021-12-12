@@ -48,7 +48,8 @@ class ScriptHost {
     std::unique_ptr<Sprite> LuaCreateSprite(std::string_view spritePath, std::string_view paletteName);
     std::unique_ptr<Button> LuaCreateButton(SpriteFont *spriteFont, Sprite *sprite);
     std::unique_ptr<SpriteFont> LuaCreateSpriteFont(std::string_view fontPath, std::string_view paletteName);
-    std::unique_ptr<Label> LuaCreateLabel(SpriteFont *spriteFont);
+    std::unique_ptr<TtfFont> LuaCreateTtfFont(std::string_view fontPath, int size, std::string_view hinting);
+    std::unique_ptr<Label> LuaCreateLabel(IFont &font);
     std::unique_ptr<SoundEffect> LuaCreateSoundEffect(std::string_view fileName);
     std::unique_ptr<MapRenderer> LuaCreateMapRenderer();
     std::unique_ptr<LibAbyss::Zone> LuaCreateZone();

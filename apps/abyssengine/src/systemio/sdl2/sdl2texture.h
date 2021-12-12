@@ -8,6 +8,7 @@ namespace AbyssEngine::SDL2 {
 
 class SDL2Texture : public ITexture {
   public:
+    SDL2Texture(SDL_Renderer *renderer, SDL_Texture* tertuxe);
     SDL2Texture(SDL_Renderer *renderer, ITexture::Format textureFormat, uint32_t width, uint32_t height);
     ~SDL2Texture() override;
     void SetPixels(std::span<const uint32_t> pixels) final;

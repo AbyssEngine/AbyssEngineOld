@@ -15,6 +15,7 @@
 #include <memory>
 #include <sol/sol.hpp>
 #include <spdlog/spdlog.h>
+#include <stdexcept>
 
 static int my_exception_handler(lua_State *L, sol::optional<const std::exception &> maybe_exception, sol::string_view description) {
     // L is the lua state, which you can wrap in a state_view if necessary
@@ -62,6 +63,7 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _lua(), _engine(engine) {
     module.set_function("createSoundEffect", &ScriptHost::LuaCreateSoundEffect, this);
     module.set_function("createSprite", &ScriptHost::LuaCreateSprite, this);
     module.set_function("createSpriteFont", &ScriptHost::LuaCreateSpriteFont, this);
+    module.set_function("createTtfFont", &ScriptHost::LuaCreateTtfFont, this);
     module.set_function("createString", &ScriptHost::LuaCreateText, this);
     module.set_function("createZone", &ScriptHost::LuaCreateZone, this);
     module.set_function("fileExists", &ScriptHost::LuaFileExists, this);
@@ -78,8 +80,10 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _lua(), _engine(engine) {
 
     // User Types -------------------------------------------------------------------------------------------------------------------------
 
-    // SpriteFont (Not node based)
-    module.new_usertype<SpriteFont>("SpriteFont", sol::no_constructor);
+    // Fonts (Not node based)
+    module.new_usertype<IFont>("IFont", sol::no_constructor);
+    module.new_usertype<TtfFont>("TtfFont", sol::no_constructor, sol::base_classes, sol::bases<IFont>());
+    module.new_usertype<SpriteFont>("SpriteFont", sol::no_constructor, sol::base_classes, sol::bases<IFont>());
 
     // Button
     auto buttonType = CreateLuaObjectType<Button>(module, "Button", sol::no_constructor);
@@ -393,8 +397,30 @@ std::unique_ptr<AbyssEngine::SpriteFont> AbyssEngine::ScriptHost::LuaCreateSprit
     return std::make_unique<SpriteFont>(fontPath, paletteName);
 }
 
-std::unique_ptr<AbyssEngine::Label> AbyssEngine::ScriptHost::LuaCreateLabel(AbyssEngine::SpriteFont *spriteFont) {
-    return std::make_unique<AbyssEngine::Label>(spriteFont);
+std::unique_ptr<AbyssEngine::TtfFont> AbyssEngine::ScriptHost::LuaCreateTtfFont(std::string_view fontPath, int size, std::string_view hinting) {
+    ITtf::Hinting hint;
+    if (hinting == "light") {
+        hint = ITtf::Hinting::Light;
+    } else if (hinting == "mono") {
+        hint = ITtf::Hinting::Mono;
+    } else if (hinting == "normal") {
+        hint = ITtf::Hinting::Normal;
+    } else if (hinting == "none") {
+        hint = ITtf::Hinting::None;
+    } else {
+        throw std::runtime_error("Unknown hinting type");
+    }
+    return std::make_unique<TtfFont>(fontPath, size, hint);
+}
+
+std::unique_ptr<AbyssEngine::Label> AbyssEngine::ScriptHost::LuaCreateLabel(AbyssEngine::IFont &font) {
+    if (auto* spriteFont = dynamic_cast<SpriteFont*>(&font)) {
+        return std::make_unique<SpriteLabel>(*spriteFont);
+    }
+    if (auto* ttfFont = dynamic_cast<TtfFont*>(&font)) {
+        return std::make_unique<TtfLabel>(*ttfFont);
+    }
+    throw std::runtime_error("Unknown font type for the label");
 }
 
 void AbyssEngine::ScriptHost::GC() { _lua.collect_garbage(); }

@@ -9,10 +9,11 @@
 #include <spdlog/spdlog.h>
 #include <string>
 #include <type_traits>
+#include "font.h"
 
 namespace AbyssEngine {
 
-class SpriteFont {
+class SpriteFont : public IFont {
   public:
     struct Glyph {
         uint16_t FrameIndex;
