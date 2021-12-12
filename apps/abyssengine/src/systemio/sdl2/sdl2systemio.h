@@ -35,6 +35,7 @@ class SDL2SystemIO : public SystemIO {
     void SetBackgroundMusic(std::unique_ptr<LibAbyss::AudioStream> stream) final;
     void AddSoundEffect(SoundEffect *soundEffect) final;
     void RemoveSoundEffect(SoundEffect *soundEffect) final;
+    void SetVideo(IAudio* video) final;
 
   private:
     void InitializeAudio();
@@ -63,6 +64,7 @@ class SDL2SystemIO : public SystemIO {
     float _backgroundMusicAudioLevelActual = 1.0f;
     float _soundEffectsAudioLevel = 1.0f;
     float _soundEffectsAudioLevelActual = 1.0f;
+    IAudio* _video = nullptr;
 
     std::mutex _mutex;
 };

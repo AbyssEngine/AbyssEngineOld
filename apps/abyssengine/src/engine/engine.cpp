@@ -140,11 +140,11 @@ void AbyssEngine::Engine::ResetMouseButtonState() {
     _systemIO->ResetMouseButtonState();
 }
 
-void AbyssEngine::Engine::PlayVideo(std::string_view name, LibAbyss::InputStream stream, const sol::safe_function& callback) {
+void AbyssEngine::Engine::PlayVideo(std::string_view name, LibAbyss::InputStream stream, std::optional<LibAbyss::InputStream> audio, const sol::safe_function& callback) {
     if (!_running)
         return;
 
-    _videoNode = std::make_unique<Video>(name, std::move(stream));
+    _videoNode = std::make_unique<Video>(name, std::move(stream), std::move(audio));
     _onVideoEndCallback = callback;
 }
 

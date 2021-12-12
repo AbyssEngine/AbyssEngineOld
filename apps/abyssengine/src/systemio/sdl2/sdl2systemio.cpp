@@ -207,6 +207,10 @@ void AbyssEngine::SDL2::SDL2SystemIO::HandleAudio(uint8_t *stream, int length) {
             sample += (int32_t)((float)_backgroundMusicStream->GetSample() * _backgroundMusicAudioLevelActual);
         }
 
+        if (_video) {
+            sample += _video->GetAudioSample() * _videoAudioLevelActual;
+        }
+
         // Add in the sound effects
         for (auto &effect : _soundEffects) {
             if (!effect->GetIsPlaying())
@@ -362,4 +366,9 @@ void AbyssEngine::SDL2::SDL2SystemIO::AddSoundEffect(AbyssEngine::SoundEffect *s
 void AbyssEngine::SDL2::SDL2SystemIO::RemoveSoundEffect(AbyssEngine::SoundEffect *soundEffect) {
     std::lock_guard<std::mutex> lock(_mutex);
     _soundEffects.erase(std::remove(_soundEffects.begin(), _soundEffects.end(), soundEffect), _soundEffects.end());
+}
+
+void AbyssEngine::SDL2::SDL2SystemIO::SetVideo(IAudio* video) {
+    std::lock_guard<std::mutex> lock(_mutex);
+    _video = video;
 }

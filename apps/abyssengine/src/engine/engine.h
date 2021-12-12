@@ -64,9 +64,11 @@ class Engine {
     void ResetMouseButtonState();
 
     /// Plays a video
+    /// \param name Internal name, will be assigned to the node
     /// \param stream The stream to play
+    /// \param audio The audiostream to play, if it's separate from video
     /// \param wait If true, the engine will wait for the video to finish before returning
-    void PlayVideo(std::string_view name, LibAbyss::InputStream stream, const sol::safe_function& callback);
+    void PlayVideo(std::string_view name, LibAbyss::InputStream stream, std::optional<LibAbyss::InputStream> audio, const sol::safe_function& callback);
 
     /// Returns the resource loader
     /// \return s The resource loader
