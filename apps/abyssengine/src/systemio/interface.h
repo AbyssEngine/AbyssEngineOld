@@ -76,13 +76,6 @@ class SystemIO {
     /// This is in SystemIO because SDL_ttf is not supposed to be used outside of systemio/sdl2/
     virtual std::unique_ptr<ITtf> CreateTtf(LibAbyss::InputStream stream, int size, ITtf::Hinting hinting) = 0;
 
-    /// Writes data to the audio buffer.
-    /// \param data The data to write to the audio buffer.
-    virtual void PushAudioData(eAudioIntent intent, std::span<uint8_t> data) = 0;
-
-    /// Resets all audio buffers.
-    virtual void ResetAudio() = 0;
-
     /// Handles input events from the host system.
     /// \returns True if the engine should continue, false if it should halt.
     virtual bool HandleInputEvents(Node &rootNode) = 0;

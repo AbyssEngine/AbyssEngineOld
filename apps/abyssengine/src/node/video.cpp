@@ -13,8 +13,8 @@ const int DecodeBufferSize = 1024;
 
 AbyssEngine::Video::Video(std::string_view name, LibAbyss::InputStream stream, std::optional<LibAbyss::InputStream>
         separateAudio)
-    : Node(name), _stream(std::move(stream)), _ringBuffer(1024 * 1024), _avBuffer(), _videoStreamIdx(-1), _audioStreamIdx(-1), _videoCodecContext(), _audioCodecContext(),
-      _yPlane(), _uPlane(), _vPlane(), _avFrame(), _videoTexture(), _sourceRect(), _targetRect() {
+    : Node(name), _stream(std::move(stream)), _ringBuffer(1024 * 1024), _videoCodecContext(), _audioCodecContext(), _avFrame(), _avBuffer(),
+      _yPlane(), _uPlane(), _vPlane(), _sourceRect(), _targetRect() {
 
     _avBuffer = (unsigned char *)av_malloc(DecodeBufferSize); // AVIO is going to free this automagically... because why not?
     memset(_avBuffer, 0, DecodeBufferSize);
@@ -104,17 +104,15 @@ AbyssEngine::Video::Video(std::string_view name, LibAbyss::InputStream stream, s
     _swsContext = sws_getContext(_videoCodecContext->width, _videoCodecContext->height, _videoCodecContext->pix_fmt, _videoCodecContext->width,
                                  _videoCodecContext->height, AV_PIX_FMT_YUV420P, SWS_BILINEAR, nullptr, nullptr, nullptr);
 
-    _yPlaneSize = _videoCodecContext->width * _videoCodecContext->height;
-    _uvPlaneSize = _videoCodecContext->width * _videoCodecContext->height / 4;
-    _yPlane.resize(_yPlaneSize);
-    _uPlane.resize(_uvPlaneSize);
-    _vPlane.resize(_uvPlaneSize);
+    size_t yPlaneSize = _videoCodecContext->width * _videoCodecContext->height;
+    size_t uvPlaneSize = _videoCodecContext->width * _videoCodecContext->height / 4;
+    _yPlane.resize(yPlaneSize);
+    _uPlane.resize(uvPlaneSize);
+    _vPlane.resize(uvPlaneSize);
     _uvPitch = _videoCodecContext->width / 2;
 
     _avFrame = av_frame_alloc();
     _videoTimestamp = av_gettime();
-
-    Engine::Get()->GetSystemIO().ResetAudio();
 
     Engine::Get()->GetSystemIO().SetVideo(this);
     if (separateAudio) {
@@ -158,7 +156,7 @@ void AbyssEngine::Video::RenderCallback(int offsetX, int offsetY) {
     if (_framesReady)
         _videoTexture->Render(_sourceRect, _targetRect);
 
-    Node::RenderCallback(X + offsetX, Y + offsetY);
+    Node::RenderCallback(offsetX, offsetY);
 }
 
 void AbyssEngine::Video::MouseEventCallback(const AbyssEngine::MouseEvent &event) {
@@ -170,7 +168,6 @@ void AbyssEngine::Video::MouseEventCallback(const AbyssEngine::MouseEvent &event
                             _isPlaying = false;
 
                             Engine::Get()->GetSystemIO().ResetMouseButtonState();
-                            Engine::Get()->GetSystemIO().ResetAudio();
                         }},
                event);
 
@@ -217,8 +214,6 @@ int64_t AbyssEngine::Video::VideoStreamSeek(int64_t offset, int whence) {
 bool AbyssEngine::Video::ProcessFrame() {
     if (_avFormatContext == nullptr || !_isPlaying)
         return false;
-
-    auto &systemIO = Engine::Get()->GetSystemIO();
 
     AVPacket packet;
     absl::Cleanup cleanup_packet([&] { av_packet_unref(&packet); });
@@ -273,7 +268,6 @@ bool AbyssEngine::Video::ProcessFrame() {
             auto audioOutSize = av_samples_get_buffer_size(&_lineSize, 2, outSamples, AV_SAMPLE_FMT_S16, 0);
             uint8_t *ptr[1] = { _audioOutBuffer };
             auto result = swr_convert(_resampleContext, ptr, audioOutSize, (const uint8_t **)_avFrame->data, _avFrame->nb_samples);
-            //systemIO.PushAudioData(eAudioIntent::Video, std::span(_audioOutBuffer, result * 4));
             _ringBuffer.PushData(std::span(_audioOutBuffer, result * 4));
         }
 
