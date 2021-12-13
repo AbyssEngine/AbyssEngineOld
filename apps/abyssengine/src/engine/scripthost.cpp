@@ -64,7 +64,7 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     module.set_function("createSprite", &ScriptHost::LuaCreateSprite, this);
     module.set_function("createSpriteFont", &ScriptHost::LuaCreateSpriteFont, this);
     module.set_function("createTtfFont", &ScriptHost::LuaCreateTtfFont, this);
-    module.set_function("createString", &ScriptHost::LuaCreateText, this);
+    module.set_function("loadString", &ScriptHost::LuaLoadText, this);
     module.set_function("createZone", &ScriptHost::LuaCreateZone, this);
     module.set_function("fileExists", &ScriptHost::LuaFileExists, this);
     module.set_function("getConfig", &ScriptHost::LuaGetConfig, this);
@@ -377,12 +377,12 @@ sol::basic_usertype<T, sol::basic_reference<false>> AbyssEngine::ScriptHost::Cre
 
 void AbyssEngine::ScriptHost::LuaResetMouseState() { _engine->ResetMouseButtonState(); }
 
-std::string AbyssEngine::ScriptHost::LuaCreateText(std::string_view filePath) {
+std::string AbyssEngine::ScriptHost::LuaLoadText(std::string_view filePath) {
     if (!_engine->GetLoader().FileExists(filePath))
         throw std::runtime_error(absl::StrCat("Path does not exist: ", filePath));
 
     auto stream = _engine->GetLoader().Load(filePath);
-    auto result = std::string();
+    std::string result;
     result.resize(stream.size());
     stream.read(result.data(), stream.size());
     return result;
