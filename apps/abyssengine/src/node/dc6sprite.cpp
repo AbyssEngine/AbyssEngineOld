@@ -2,7 +2,7 @@
 #include "../engine/engine.h"
 
 AbyssEngine::DC6Sprite::DC6Sprite(std::string_view name, LibAbyss::InputStream &stream, const LibAbyss::Palette &palette)
-    : Sprite(name), _palette(palette), _dc6(stream) {
+    : Sprite(name), _dc6(stream), _palette(palette)  {
     if (_dc6.FramesPerDirection == 0 || _dc6.NumberOfDirections == 0)
         throw std::runtime_error("DC6 has no frames!");
 }

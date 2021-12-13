@@ -26,8 +26,7 @@ const int AudioBufferSize = 1024 * 1024;
 #endif
 
 AbyssEngine::SDL2::SDL2SystemIO::SDL2SystemIO()
-    : AbyssEngine::SystemIO::SystemIO(), _audioBuffer(AudioBufferSize), _audioSpec(), _mouseButtonState((eMouseButton)0), _backgroundMusicStream(),
-      _soundEffects(), _mutex() {
+    : AbyssEngine::SystemIO::SystemIO(), _audioSpec(), _audioBuffer(AudioBufferSize), _mouseButtonState((eMouseButton)0) {
     SPDLOG_TRACE("Creating SDL2 System IO");
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER | SDL_INIT_TIMER | SDL_INIT_AUDIO) != 0)

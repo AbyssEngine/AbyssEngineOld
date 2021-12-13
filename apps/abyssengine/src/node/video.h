@@ -66,10 +66,8 @@ class Video : public Node, public IAudio {
     std::vector<uint8_t> _vPlane;
     SwsContext *_swsContext;
 
-    int _videoStreamIdx;
-    int _audioStreamIdx;
-    size_t _yPlaneSize;
-    size_t _uvPlaneSize;
+    int _videoStreamIdx = -1;
+    int _audioStreamIdx = -1;
     int _uvPitch;
     uint64_t _microsPerFrame;
     uint64_t _videoTimestamp;

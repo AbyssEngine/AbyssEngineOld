@@ -8,7 +8,7 @@
 #include <utility>
 
 AbyssEngine::Button::Button(Sprite &sprite)
-    : _sprite(sprite), _luaPressedCallback(), _luaActivateCallback() {
+    : _sprite(sprite), _luaActivateCallback(), _luaPressedCallback() {
 }
 
 AbyssEngine::Button::~Button() = default;
@@ -174,8 +174,7 @@ void AbyssEngine::Button::SetPressedOffset(int x, int y) {
 }
 
 void AbyssEngine::Button::LuaSetFrameIndex(std::string_view frameType, int index) {
-    auto str = absl::AsciiStrToLower(frameType);
-    auto state = eState::Normal;
+    std::string str = absl::AsciiStrToLower(frameType);
 
     if (str == "normal")
         _frameIndexNormal = index;
