@@ -13,6 +13,7 @@ class TtfFont : public IFont {
   public:
     explicit TtfFont(std::string_view filePath, int size, ITtf::Hinting hinting);
     std::unique_ptr<ITexture> RenderText(std::string_view text, int &width, int &height);
+    void SetStyle(ITtf::Style style) { _ttf->SetStyle(style); }
 
   private:
     std::unique_ptr<ITtf> _ttf;

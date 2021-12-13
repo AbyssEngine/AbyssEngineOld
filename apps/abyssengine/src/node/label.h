@@ -22,6 +22,19 @@ class Label : public Node {
     void SetColorMod(uint8_t red, uint8_t green, uint8_t blue);
     void LuaSetBlendMode(std::string_view mode);
     std::string_view LuaGetBlendMode() const;
+
+    void SetBold(bool value);
+    bool GetBold() const;
+
+    void SetItalic(bool value);
+    bool GetItalic() const;
+
+    void SetUnderline(bool value);
+    bool GetUnderline() const;
+
+    void SetStrikethrough(bool value);
+    bool GetStrikethrough() const;
+
     [[nodiscard]] std::string_view NodeType() const final { return "Label Node"; };
 
   protected:
@@ -37,6 +50,7 @@ class Label : public Node {
     std::string _caption;
     int _labelOffsetX = 0;
     int _labelOffsetY = 0;
+    ITtf::Style _style = (ITtf::Style)0;
 };
 
 class SpriteLabel : public Label {

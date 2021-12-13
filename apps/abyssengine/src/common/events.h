@@ -4,43 +4,12 @@
 #include <cinttypes>
 #include <type_traits>
 #include <variant>
+#include "enum.h"
 
 namespace AbyssEngine {
 
 enum class eMouseButton : uint8_t { Left = 1, Right = 2, Middle = 4 };
-
-inline eMouseButton operator|(eMouseButton lhs, eMouseButton rhs) {
-    return static_cast<eMouseButton>(static_cast<std::underlying_type_t<eMouseButton>>(lhs) | static_cast<std::underlying_type_t<eMouseButton>>(rhs));
-}
-
-inline eMouseButton operator&(eMouseButton lhs, eMouseButton rhs) {
-    return static_cast<eMouseButton>(static_cast<std::underlying_type_t<eMouseButton>>(lhs) & static_cast<std::underlying_type_t<eMouseButton>>(rhs));
-}
-
-inline eMouseButton operator-(eMouseButton lhs, eMouseButton rhs) {
-    return static_cast<eMouseButton>(static_cast<std::underlying_type_t<eMouseButton>>(lhs) &
-                                     ~static_cast<std::underlying_type_t<eMouseButton>>(rhs));
-}
-
-inline bool operator==(eMouseButton lhs, eMouseButton rhs) {
-    return (static_cast<std::underlying_type_t<eMouseButton>>(lhs) | static_cast<std::underlying_type_t<eMouseButton>>(rhs)) > 0;
-}
-
-inline bool operator!=(eMouseButton lhs, eMouseButton rhs) {
-    return (static_cast<std::underlying_type_t<eMouseButton>>(lhs) | static_cast<std::underlying_type_t<eMouseButton>>(rhs)) == 0;
-}
-
-inline void operator-=(eMouseButton &lhs, eMouseButton rhs) {
-    lhs = static_cast<eMouseButton>(static_cast<std::underlying_type_t<eMouseButton>>(lhs) & ~static_cast<std::underlying_type_t<eMouseButton>>(rhs));
-}
-
-inline eMouseButton operator+(eMouseButton lhs, eMouseButton rhs) {
-    return static_cast<eMouseButton>(static_cast<std::underlying_type_t<eMouseButton>>(lhs) | static_cast<std::underlying_type_t<eMouseButton>>(rhs));
-}
-
-inline void operator+=(eMouseButton &lhs, eMouseButton rhs) {
-    lhs = static_cast<eMouseButton>(static_cast<std::underlying_type_t<eMouseButton>>(lhs) | static_cast<std::underlying_type_t<eMouseButton>>(rhs));
-}
+ABYSS_ENUM_BITSET(eMouseButton);
 
 struct MouseMoveEvent {
     int X;

@@ -112,6 +112,10 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     labelType["setAlignment"] = &Label::SetAlignmentStr;
     labelType["setColorMod"] = &Label::SetColorMod;
     labelType["blendMode"] = sol::property(&Label::LuaGetBlendMode, &Label::LuaSetBlendMode);
+    labelType["bold"] = sol::property(&Label::GetBold, &Label::SetBold);
+    labelType["italic"] = sol::property(&Label::GetItalic, &Label::SetItalic);
+    labelType["underline"] = sol::property(&Label::GetUnderline, &Label::SetUnderline);
+    labelType["strikethrough"] = sol::property(&Label::GetStrikethrough, &Label::SetStrikethrough);
 
     // Sprite
     auto spriteType = CreateLuaObjectType<Sprite>(module, "Sprite", sol::no_constructor);
