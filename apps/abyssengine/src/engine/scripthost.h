@@ -44,7 +44,7 @@ class ScriptHost {
     bool LuaFileExists(std::string_view fileName);
     void LuaResetMouseState();
     void LuaPlayBackgroundMusic(std::string_view fileName);
-    std::string LuaCreateText(std::string_view filePath);
+    std::string LuaLoadText(std::string_view filePath);
     std::unique_ptr<Sprite> LuaCreateSprite(std::string_view spritePath, std::string_view paletteName);
     std::unique_ptr<Button> LuaCreateButton(Sprite &sprite);
     std::unique_ptr<SpriteFont> LuaCreateSpriteFont(std::string_view fontPath, std::string_view paletteName);
