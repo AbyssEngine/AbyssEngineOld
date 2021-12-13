@@ -114,8 +114,6 @@ AbyssEngine::Video::Video(std::string_view name, LibAbyss::InputStream stream, s
     _avFrame = av_frame_alloc();
     _videoTimestamp = av_gettime();
 
-    Engine::Get()->GetSystemIO().ResetAudio();
-
     Engine::Get()->GetSystemIO().SetVideo(this);
     if (separateAudio) {
         _separateAudio = std::make_unique<LibAbyss::AudioStream>(*std::move(separateAudio));
@@ -170,7 +168,6 @@ void AbyssEngine::Video::MouseEventCallback(const AbyssEngine::MouseEvent &event
                             _isPlaying = false;
 
                             Engine::Get()->GetSystemIO().ResetMouseButtonState();
-                            Engine::Get()->GetSystemIO().ResetAudio();
                         }},
                event);
 

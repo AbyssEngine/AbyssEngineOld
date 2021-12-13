@@ -16,17 +16,13 @@
 #include "../../hostnotify/hostnotify_mac_shim.h"
 #endif // __APPLE__
 
-namespace {
-const int AudioBufferSize = 1024 * 1024;
-}
-
 // /usr/include/X11/X.h:115:30 defines it...
 #ifdef None
 #undef None
 #endif
 
 AbyssEngine::SDL2::SDL2SystemIO::SDL2SystemIO()
-    : AbyssEngine::SystemIO::SystemIO(), _audioSpec(), _audioBuffer(AudioBufferSize), _mouseButtonState((eMouseButton)0) {
+    : AbyssEngine::SystemIO::SystemIO(), _audioSpec(), _mouseButtonState((eMouseButton)0) {
     SPDLOG_TRACE("Creating SDL2 System IO");
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER | SDL_INIT_TIMER | SDL_INIT_AUDIO) != 0)
@@ -278,18 +274,16 @@ void AbyssEngine::SDL2::SDL2SystemIO::HandleAudio(uint8_t *stream, int length) {
         return;
     }
 
-
     std::lock_guard<std::mutex> lock(_mutex);
-    _audioBuffer.ReadData(std::span(stream, length));
 
     // Apply the master volume level
     for (auto i = 0; i < length; i += 2) {
-        int32_t sample = (int16_t)(((uint16_t)stream[i]) | (((uint16_t)stream[i + 1]) << 8));
+        int32_t sample = 0;
 
         // Add in the background music
         // Note the background music plays at half the native sample rate
         if (_backgroundMusicStream) {
-            sample += (int32_t)((float)_backgroundMusicStream->GetSample() * _backgroundMusicAudioLevelActual);
+            sample += _backgroundMusicStream->GetSample() * _backgroundMusicAudioLevelActual;
         }
 
         if (_video) {
@@ -301,14 +295,11 @@ void AbyssEngine::SDL2::SDL2SystemIO::HandleAudio(uint8_t *stream, int length) {
             if (!effect->GetIsPlaying())
                 continue;
 
-            auto sfxSample = (int32_t)effect->GetSample();
-            sfxSample = (int32_t)((float)sfxSample * _soundEffectsAudioLevelActual);
-
-            sample += sfxSample;
+            sample += effect->GetSample() * _soundEffectsAudioLevelActual;
         }
 
         // Apply the master audio volume level
-        sample = (int32_t)((float)sample * _masterAudioLevelActual);
+        sample *= _masterAudioLevelActual;
 
         // Clamp the output
         if (sample > 32767)
@@ -328,44 +319,6 @@ void AbyssEngine::SDL2::SDL2SystemIO::FinalizeAudio() {
     SDL_PauseAudioDevice(_audioDeviceId, SDL_TRUE);
     SDL_CloseAudioDevice(_audioDeviceId);
 }
-
-void AbyssEngine::SDL2::SDL2SystemIO::PushAudioData(eAudioIntent intent, std::span<uint8_t> data) {
-    std::lock_guard<std::mutex> lock(_mutex);
-
-    const auto length = data.size();
-
-    if (length & 1) {
-        SPDLOG_WARN("Audio data size is not even, dropping samples");
-        return;
-    }
-
-    float adjust = 1.0;
-    switch (intent) {
-    case eAudioIntent::BackgroundMusic:
-        adjust = _backgroundMusicAudioLevelActual;
-        break;
-    case eAudioIntent::SoundEffect:
-        adjust = _soundEffectsAudioLevelActual;
-        break;
-    case eAudioIntent::Video:
-        adjust = _videoAudioLevelActual;
-        break;
-    case eAudioIntent::Master:
-        throw std::runtime_error("Attempted to push audio data to master audio stream");
-    }
-
-    // Apply the master volume level
-    for (auto i = 0; i < length-1; i += 2) {
-        auto sample = (int16_t)(((int16_t)data[i]) | (((int16_t)data[i + 1]) << 8));
-        sample = (int16_t)((float)sample * adjust);
-        data[i] = (uint8_t)(sample & 0xFF);
-        data[i + 1] = (uint8_t)((sample >> 8) & 0xFF);
-    }
-
-    _audioBuffer.PushData(data);
-}
-
-void AbyssEngine::SDL2::SDL2SystemIO::ResetAudio() { _audioBuffer.Reset(); }
 
 bool AbyssEngine::SDL2::SDL2SystemIO::HandleInputEvents(Node &rootNode) {
     SDL_Event sdlEvent;
