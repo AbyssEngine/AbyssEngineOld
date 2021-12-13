@@ -51,6 +51,7 @@ void SpriteLabel::PrepareRender(int& width, int& height) {
 }
 void TtfLabel::PrepareRender(int& width, int& height) {
     if (!_texture) {
+        _font.SetStyle(_style);
         _texture = _font.RenderText(_caption, _rect.Width, _rect.Height);
     }
     width = _rect.Width;
@@ -75,7 +76,8 @@ void TtfLabel::ClearCache() {
 }
 
 void Label::SetCaption(std::string_view value) {
-    _caption = value; ClearCache();
+    _caption = value;
+    ClearCache();
 }
 std::string_view Label::GetCaption() const { return _caption; }
 void Label::SetAlignment(eAlignment hAlign, eAlignment vAlign) {
@@ -96,5 +98,41 @@ void Label::LuaSetBlendMode(std::string_view mode) {
 std::string_view Label::LuaGetBlendMode() const {
     return BlendModeToString(_blendMode);
 }
+void Label::SetBold(bool value) {
+    if (value) {
+        _style += ITtf::Style::Bold;
+    } else {
+        _style -= ITtf::Style::Bold;
+    }
+    ClearCache();
+}
+bool Label::GetBold() const { return _style & ITtf::Style::Bold; }
+void Label::SetItalic(bool value) {
+    if (value) {
+        _style += ITtf::Style::Italic;
+    } else {
+        _style -= ITtf::Style::Italic;
+    }
+    ClearCache();
+}
+bool Label::GetItalic() const { return _style & ITtf::Style::Italic; }
+void Label::SetUnderline(bool value) {
+    if (value) {
+        _style += ITtf::Style::Underline;
+    } else {
+        _style -= ITtf::Style::Underline;
+    }
+    ClearCache();
+}
+bool Label::GetUnderline() const { return _style & ITtf::Style::Underline; }
+void Label::SetStrikethrough(bool value) {
+    if (value) {
+        _style += ITtf::Style::Strikethrough;
+    } else {
+        _style -= ITtf::Style::Strikethrough;
+    }
+    ClearCache();
+}
+bool Label::GetStrikethrough() const { return _style & ITtf::Style::Strikethrough; }
 
 } // namespace AbyssEngine
