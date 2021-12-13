@@ -177,29 +177,48 @@ std::unique_ptr<AbyssEngine::ITexture> AbyssEngine::SDL2::SDL2SystemIO::CreateTe
 namespace {
     class AbyssSDL2TTF : public AbyssEngine::ITtf {
         public:
-            explicit AbyssSDL2TTF(SDL_Renderer* renderer, LibAbyss::InputStream stream, int size,
-                    AbyssEngine::ITtf::Hinting hinting) :
+            explicit AbyssSDL2TTF(SDL_Renderer* renderer, LibAbyss::InputStream stream, int size, Hinting hinting) :
                 _sdlRenderer(renderer) {
                 auto len = stream.size();
                 _data.resize(len);
                 stream.read(_data.data(), len);
                 _font = TTF_OpenFontRW(SDL_RWFromConstMem(_data.data(), len), 1, size);
+                if (!_font) {
+                    throw std::runtime_error(absl::StrCat("TTF open error: ", TTF_GetError()));
+                }
                 int hint = 0;
                 switch (hinting) {
-                    case ITtf::Hinting::Light:
+                    case Hinting::Light:
                         hint = TTF_HINTING_LIGHT;
                         break;
-                    case ITtf::Hinting::Mono:
+                    case Hinting::Mono:
                         hint = TTF_HINTING_MONO;
                         break;
-                    case ITtf::Hinting::None:
+                    case Hinting::None:
                         hint = TTF_HINTING_NONE;
                         break;
-                    case ITtf::Hinting::Normal:
+                    case Hinting::Normal:
                         hint = TTF_HINTING_NORMAL;
                         break;
                 }
                 TTF_SetFontHinting(_font, hint);
+            }
+
+            void SetStyle(Style style) override {
+                int x = 0;
+                if (style & Style::Bold) {
+                    x |= TTF_STYLE_BOLD;
+                }
+                if (style & Style::Italic) {
+                    x |= TTF_STYLE_ITALIC;
+                }
+                if (style & Style::Underline) {
+                    x |= TTF_STYLE_UNDERLINE;
+                }
+                if (style & Style::Strikethrough) {
+                    x |= TTF_STYLE_STRIKETHROUGH;
+                }
+                TTF_SetFontStyle(_font, x);
             }
 
         std::unique_ptr<AbyssEngine::ITexture> RenderText(std::string_view text, int &width, int &height) override {

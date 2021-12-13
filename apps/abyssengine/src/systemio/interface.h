@@ -2,6 +2,7 @@
 #define ABYSS_SYSTEMIO_INTERFACE_H
 
 #include "../common/blendmode.h"
+#include "../common/enum.h"
 #include "../common/events.h"
 #include "../common/rectangle.h"
 #include "../common/audiointent.h"
@@ -42,10 +43,13 @@ class IAudio {
 class ITtf {
     public:
     enum class Hinting { Normal, Light, Mono, None };
+    enum class Style : uint8_t { Bold = 0x1, Italic = 0x2, Underline = 0x4, Strikethrough = 0x8 };
 
         virtual ~ITtf() = default;
         virtual std::unique_ptr<ITexture> RenderText(std::string_view text, int &width, int &height) = 0;
+        virtual void SetStyle(Style style) = 0;
 };
+ABYSS_ENUM_BITSET(ITtf::Style);
 
 /// Interface for the host subsystems.
 class SystemIO {
