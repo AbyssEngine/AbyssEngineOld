@@ -61,8 +61,8 @@ LibAbyss::DS1::DS1(LibAbyss::InputStream &stream) {
         LoadNPCs(stream);
 }
 void LibAbyss::DS1::Resize(int width, int height) {
-    _width = width;
-    _height = height;
+    Width = width;
+    Height = height;
 
     for (auto &floor : Floors)
         floor.Resize(width, height);
@@ -84,8 +84,8 @@ void LibAbyss::DS1::LoadLayerStreams(LibAbyss::InputStream &stream) {
 
     auto layerStreamTypes = GetLayerStreamTypes();
     for (const auto &layerStreamType : layerStreamTypes) {
-        for (auto y = 0; y < _height; y++) {
-            for (auto x = 0; x < _width; x++) {
+        for (auto y = 0; y < Height; y++) {
+            for (auto x = 0; x < Width; x++) {
                 auto dw = sr.ReadUInt32();
 
                 switch (layerStreamType) {

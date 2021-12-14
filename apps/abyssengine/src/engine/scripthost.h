@@ -51,8 +51,9 @@ class ScriptHost {
     std::unique_ptr<TtfFont> LuaCreateTtfFont(std::string_view fontPath, int size, std::string_view hinting);
     std::unique_ptr<Label> LuaCreateLabel(IFont &font);
     std::unique_ptr<SoundEffect> LuaCreateSoundEffect(std::string_view fileName);
-    std::unique_ptr<MapRenderer> LuaCreateMapRenderer();
+    std::unique_ptr<MapRenderer> LuaCreateMapRenderer(LibAbyss::Zone *zone);
     std::unique_ptr<LibAbyss::Zone> LuaCreateZone();
+    std::unique_ptr<LibAbyss::DS1> LuaLoadDS1(std::string_view fileName);
     void LuaSetCursor(Sprite &sprite, int offsetX, int offsetY);
     void LuaPlayVideo(std::string_view videoPath, const sol::safe_function& callback);
     void LuaPlayVideoAndAudio(std::string_view videoPath, std::string_view audioPath, const sol::safe_function& callback);

@@ -1,6 +1,5 @@
 #include "button.h"
 #include "../engine/engine.h"
-#include "../hostnotify/hostnotify.h"
 #include <absl/strings/ascii.h>
 #include <absl/strings/str_cat.h>
 
@@ -56,8 +55,7 @@ void AbyssEngine::Button::UpdateCallback(uint32_t ticks) {
                 auto result = _luaActivateCallback();
                 if (!result.valid()) {
                     sol::error err = result;
-                    SPDLOG_ERROR(err.what());
-                    AbyssEngine::HostNotify::Notify(eNotifyType::Fatal, "Script Error", err.what());
+                    Engine::Get()->Panic(err.what());
                     return;
                 }
             }
@@ -99,8 +97,7 @@ void AbyssEngine::Button::UpdateCallback(uint32_t ticks) {
             auto result = _luaPressedCallback();
             if (!result.valid()) {
                 sol::error err = result;
-                SPDLOG_ERROR(err.what());
-                AbyssEngine::HostNotify::Notify(eNotifyType::Fatal, "Script Error", err.what());
+                engine->Panic(err.what());
                 return;
             }
         }

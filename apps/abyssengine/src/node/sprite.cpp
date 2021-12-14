@@ -18,13 +18,13 @@ void AbyssEngine::Sprite::UpdateCallback(uint32_t ticks) {
 
 void AbyssEngine::Sprite::Render(uint32_t startFrameIdx, int offsetX, int offsetY) {
     const auto totalFrames = GetFramesPerAnimation();
-    // const auto totalAnimations = GetNumberOfAnimations();
 
     if (_framePositions.empty())
         return;
 
     uint32_t frameWidth;
     uint32_t frameHeight;
+
     GetFrameSize(_currentFrame, frameWidth, frameHeight);
 
     auto posX = X + offsetX;
@@ -42,7 +42,7 @@ void AbyssEngine::Sprite::Render(uint32_t startFrameIdx, int offsetX, int offset
             const auto cellIndex = startFrameIdx + (cellOffsetX + (cellOffsetY * _cellSizeX));
             const auto framePos = _framePositions[(_currentAnimation * totalFrames) + cellIndex];
 
-            Rectangle destRect = framePos.Rect;
+            auto destRect = framePos.Rect;
             destRect.X = framePos.OffsetX + posX;
             destRect.Y = framePos.OffsetY + posY;
 
@@ -68,52 +68,58 @@ void AbyssEngine::Sprite::RenderCallback(int offsetX, int offsetY) {
 
 void AbyssEngine::Sprite::MouseEventCallback(const AbyssEngine::MouseEvent &event) {
     std::visit(Overload{[this](const MouseMoveEvent &evt) {
-                            const int mx = evt.X;
-                            const int my = evt.Y;
+                            const int mx = evt.X, my = evt.Y;
+                            const int sx = X, sy = Y;
+                            int sx2 = sx, sy2 = sy;
+                            uint32_t fx, fy;
 
-                            const int sx = X;
-                            const int sy = Y;
-                            int sx2 = sx;
-                            int sy2 = sy;
-                            uint32_t fx;
-                            uint32_t fy;
                             GetFrameSize(_currentFrame, fx, fy);
+
                             sx2 += (int)fx;
                             sy2 += (int)fy;
 
                             if ((mx < sx) || (mx >= sx2) || (my < sy) || (my >= sy2)) {
-                                if (_mouseInSprite) {
-                                    _mouseInSprite = false;
-                                    if (_mouseLeaveHandler.valid()) {
-                                        auto result = _mouseLeaveHandler();
-                                        if (!result.valid()) {
-                                            sol::error err = result;
-                                            throw std::runtime_error(err.what());
-                                        }
-                                    }
-                                }
-                                return;
+                                if (!_mouseInSprite)
+                                    return;
+
+                                _mouseInSprite = false;
+
+                                if (!_mouseLeaveHandler.valid())
+                                    return;
+
+                                auto result1 = _mouseLeaveHandler();
+
+                                if (result1.valid())
+                                    return;
+
+                                sol::error err1 = result1;
+                                throw std::runtime_error(err1.what());
                             }
 
                             if (!_mouseInSprite) {
                                 _mouseInSprite = true;
-                                if (_mouseEnterHandler.valid()) {
-                                    auto result = _mouseEnterHandler();
-                                    if (!result.valid()) {
-                                        sol::error err = result;
-                                        throw std::runtime_error(err.what());
-                                    }
-                                }
-                                return;
+                                if (!_mouseEnterHandler.valid())
+                                    return;
+
+                                auto result1 = _mouseEnterHandler();
+
+                                if (result1.valid())
+                                    return;
+
+                                sol::error err11 = result1;
+                                throw std::runtime_error(err11.what());
                             }
 
-                            if (_mouseMoveHandler.valid()) {
-                                auto result = _mouseMoveHandler();
-                                if (!result.valid()) {
-                                    sol::error err = result;
-                                    throw std::runtime_error(err.what());
-                                }
-                            }
+                            if (!_mouseMoveHandler.valid())
+                                return;
+
+                            auto result = _mouseMoveHandler();
+
+                            if (result.valid())
+                                return;
+
+                            sol::error err = result;
+                            throw std::runtime_error(err.what());
                         },
                         [this](const MouseButtonEvent &evt) {
                             if (!_mouseInSprite)
@@ -121,17 +127,21 @@ void AbyssEngine::Sprite::MouseEventCallback(const AbyssEngine::MouseEvent &even
 
                             if (evt.IsPressed && _mouseButtonDownHandler.valid()) {
                                 auto result = _mouseButtonDownHandler();
-                                if (!result.valid()) {
-                                    sol::error err = result;
-                                    throw std::runtime_error(err.what());
-                                }
+
+                                if (result.valid())
+                                    return;
+
+                                sol::error err1 = result;
+                                throw std::runtime_error(err1.what());
 
                             } else if (!evt.IsPressed && _mouseButtonUpHandler.valid()) {
                                 auto result = _mouseButtonUpHandler();
-                                if (!result.valid()) {
-                                    sol::error err = result;
-                                    throw std::runtime_error(err.what());
-                                }
+
+                                if (result.valid())
+                                    return;
+
+                                sol::error err = result;
+                                throw std::runtime_error(err.what());
                             }
                         }},
                event);

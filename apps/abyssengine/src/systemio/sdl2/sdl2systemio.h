@@ -34,10 +34,11 @@ class SDL2SystemIO : public SystemIO {
     void AddSoundEffect(SoundEffect *soundEffect) final;
     void RemoveSoundEffect(SoundEffect *soundEffect) final;
     void SetVideo(IAudio* video) final;
+    void DrawLine(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, uint8_t b) final;
 
   private:
     void InitializeAudio();
-    void FinalizeAudio();
+    void FinalizeAudio() const;
     static void HandleAudioCallback(void *userData, Uint8 *stream, int length);
     void HandleAudio(uint8_t *stream, int length);
     bool HandleSdlEvent(const SDL_Event &sdlEvent, Node &rootNode);

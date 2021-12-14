@@ -1,5 +1,4 @@
 #include "scripthost.h"
-#include "../hostnotify/hostnotify.h"
 #include "../node/d2rsprite.h"
 #include "../node/dc6sprite.h"
 #include "cascprovider.h"
@@ -64,6 +63,7 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     module.set_function("createSprite", &ScriptHost::LuaCreateSprite, this);
     module.set_function("createSpriteFont", &ScriptHost::LuaCreateSpriteFont, this);
     module.set_function("createTtfFont", &ScriptHost::LuaCreateTtfFont, this);
+    module.set_function("loadDS1", &ScriptHost::LuaLoadDS1, this);
     module.set_function("loadString", &ScriptHost::LuaLoadText, this);
     module.set_function("createZone", &ScriptHost::LuaCreateZone, this);
     module.set_function("fileExists", &ScriptHost::LuaFileExists, this);
@@ -139,6 +139,7 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
 
     // Map Renderer
     auto mapRenderer = CreateLuaObjectType<MapRenderer>(module, "MapRenderer", sol::no_constructor);
+    mapRenderer.set("showOuterBorder", sol::property(&MapRenderer::ShowOuterBorder, &MapRenderer::ShowOuterBorder));
 
     // Level Type
     auto levelType = module.new_usertype<LibAbyss::LevelType>("LevelType");
@@ -171,9 +172,15 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     levelPreset.set("beta", sol::property(&LibAbyss::LevelPreset::Beta, &LibAbyss::LevelPreset::Beta));
     levelPreset.set("expansion", sol::property(&LibAbyss::LevelPreset::Expansion, &LibAbyss::LevelPreset::Expansion));
 
+    // DS1
+    auto ds1 = module.new_usertype<LibAbyss::DS1>("DS1", sol::no_constructor);
+    ds1.set("width", sol::property(&LibAbyss::DS1::Width, &LibAbyss::DS1::Width));
+    ds1.set("height", sol::property(&LibAbyss::DS1::Height, &LibAbyss::DS1::Height));
+
     // Zone
     auto zoneType = module.new_usertype<LibAbyss::Zone>("Zone", sol::no_constructor);
     zoneType["resetMap"] = &LibAbyss::Zone::ResetMap;
+    zoneType["stamp"] = &LibAbyss::Zone::Stamp;
 
     _environment.add(module);
 }
@@ -223,9 +230,8 @@ std::tuple<sol::object, sol::object> AbyssEngine::ScriptHost::LuaLoadFile(std::s
             throw sol::error(std::get<1>(ret).as<std::string>());
         }
     } catch (std::runtime_error &e) {
-        SPDLOG_ERROR("Error loading file {0}: {1}", path.string(), e.what());
-        HostNotify::Notify(eNotifyType::Fatal, "Script Error", e.what());
-        _engine->Stop();
+        auto err = fmt::format("Error loading file {0}: {1}", path.string(), e.what());
+        Engine::Get()->Panic(err);
         return std::tuple<sol::nil_t, sol::nil_t>();
     }
 
@@ -237,9 +243,8 @@ void AbyssEngine::ScriptHost::ExecuteString(std::string_view code) {
     auto result = _lua.script(code, _environment);
     if (!result.valid()) {
         const sol::error e = result;
-        SPDLOG_ERROR("Script Error: {0}", e.what());
-        HostNotify::Notify(eNotifyType::Fatal, "Script Error", e.what());
-        _engine->Stop();
+        auto err = fmt::format("Script Error: {0}", e.what());
+        Engine::Get()->Panic(err);
         return;
     }
 }
@@ -248,9 +253,8 @@ sol::object AbyssEngine::ScriptHost::LuaDoFile(std::string_view path) {
     std::tuple<sol::object, sol::object> ret = LuaLoadFile(path);
     if (std::get<0>(ret) == sol::nil) {
         auto e = sol::error(std::get<1>(ret).as<std::string>());
-        SPDLOG_ERROR("Script Error: {0}", e.what());
-        HostNotify::Notify(eNotifyType::Fatal, "Script Error", e.what());
-        _engine->Stop();
+        auto err = fmt::format("Script Error: {0}", e.what());
+        Engine::Get()->Panic(err);
         return sol::nil;
     }
 
@@ -454,10 +458,18 @@ std::unique_ptr<AbyssEngine::SoundEffect> AbyssEngine::ScriptHost::LuaCreateSoun
     return std::make_unique<SoundEffect>(std::move(audioStream));
 }
 
-std::unique_ptr<AbyssEngine::MapRenderer> AbyssEngine::ScriptHost::LuaCreateMapRenderer() { return std::make_unique<MapRenderer>(); }
+std::unique_ptr<AbyssEngine::MapRenderer> AbyssEngine::ScriptHost::LuaCreateMapRenderer(LibAbyss::Zone *zone) { return std::make_unique<MapRenderer>(zone); }
+
 std::unique_ptr<LibAbyss::Zone> AbyssEngine::ScriptHost::LuaCreateZone() {
     return std::make_unique<LibAbyss::Zone>([this](std::string_view fileName) -> LibAbyss::DT1 {
         auto stream = _engine->GetLoader().Load(fileName);
         return LibAbyss::DT1(stream);
     });
+}
+std::unique_ptr<LibAbyss::DS1> AbyssEngine::ScriptHost::LuaLoadDS1(std::string_view fileName) {
+    if (!_engine->GetLoader().FileExists(fileName))
+        throw std::runtime_error(absl::StrCat("File not found: ", fileName));
+
+    auto stream = _engine->GetLoader().Load(fileName);
+    return std::make_unique<LibAbyss::DS1>(stream);
 }
