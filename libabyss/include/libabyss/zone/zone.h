@@ -7,6 +7,7 @@
 #include <libabyss/formats/d2/dt1.h>
 #include <string>
 #include <vector>
+#include "libabyss/common/tiletype.h"
 
 namespace LibAbyss {
 class Zone {
@@ -19,20 +20,21 @@ class Zone {
 
     std::vector<DS1::Object> Objects = {};
     std::vector<DS1::SubstitutionGroup> SubstitutionGroups = {};
-    std::vector<DS1::Layer> Floors = {};
-    std::vector<DS1::Layer> Walls = {};
-    std::vector<DS1::Layer> Shadows = {};
-    std::vector<DS1::Layer> Substitutions = {};
-    int StartSubTileX = 0;
-    int StartSubTileY = 0;
-    int WidthInTiles;
-    int HeightInTiles;
+    std::vector<std::vector<DT1::Tile*>> Floors = {};
+    std::vector<std::vector<DT1::Tile*>> Walls = {};
+    std::vector<std::vector<DT1::Tile*>> Shadows = {};
+    std::vector<std::vector<DT1::Tile*>> Substitutions = {};
+    int StartTileX = 0;
+    int StartTileY = 0;
+    int WidthInTiles = 0;
+    int HeightInTiles = 0;
     std::vector<std::string> DT1Files;
 
   private:
     void AddDT1File(std::string_view fileName);
+    DT1::Tile *GetTile(int style, int sequence, TileType type);
     ProvideDT1Handler _provideDT1Handler;
-    uint64_t _seed;
+    uint64_t _seed = 0;
 };
 } // namespace LibAbyss
 
