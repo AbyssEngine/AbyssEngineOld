@@ -54,6 +54,7 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     _environment.set_function("require", &ScriptHost::LuaLoadFile, this);
 
     // Engine Functions -------------------------------------------------------------------------------------------------------------------
+
     module.set_function("addLoaderProvider", &ScriptHost::LuaAddLoaderProvider, this);
     module.set_function("createButton", &ScriptHost::LuaCreateButton, this);
     module.set_function("createLabel", &ScriptHost::LuaCreateLabel, this);
@@ -140,6 +141,7 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     // Map Renderer
     auto mapRenderer = CreateLuaObjectType<MapRenderer>(module, "MapRenderer", sol::no_constructor);
     mapRenderer.set("showOuterBorder", sol::property(&MapRenderer::ShowOuterBorder, &MapRenderer::ShowOuterBorder));
+    mapRenderer["compile"] = &MapRenderer::Compile;
 
     // Level Type
     auto levelType = module.new_usertype<LibAbyss::LevelType>("LevelType");
@@ -357,9 +359,7 @@ std::unique_ptr<AbyssEngine::Sprite> AbyssEngine::ScriptHost::LuaCreateSprite(st
         throw std::runtime_error(absl::StrCat("Unknowns sprite format for file: ", spritePath));
 }
 
-std::unique_ptr<AbyssEngine::Button> AbyssEngine::ScriptHost::LuaCreateButton(Sprite &sprite) {
-    return std::make_unique<Button>(sprite);
-}
+std::unique_ptr<AbyssEngine::Button> AbyssEngine::ScriptHost::LuaCreateButton(Sprite &sprite) { return std::make_unique<Button>(sprite); }
 
 void AbyssEngine::ScriptHost::LuaSetCursor(Sprite &sprite, int offsetX, int offsetY) { _engine->SetCursorSprite(&sprite, offsetX, offsetY); }
 
@@ -417,10 +417,10 @@ std::unique_ptr<AbyssEngine::TtfFont> AbyssEngine::ScriptHost::LuaCreateTtfFont(
 }
 
 std::unique_ptr<AbyssEngine::Label> AbyssEngine::ScriptHost::LuaCreateLabel(AbyssEngine::IFont &font) {
-    if (auto* spriteFont = dynamic_cast<SpriteFont*>(&font)) {
+    if (auto *spriteFont = dynamic_cast<SpriteFont *>(&font)) {
         return std::make_unique<SpriteLabel>(*spriteFont);
     }
-    if (auto* ttfFont = dynamic_cast<TtfFont*>(&font)) {
+    if (auto *ttfFont = dynamic_cast<TtfFont *>(&font)) {
         return std::make_unique<TtfLabel>(*ttfFont);
     }
     throw std::runtime_error("Unknown font type for the label");
@@ -458,7 +458,9 @@ std::unique_ptr<AbyssEngine::SoundEffect> AbyssEngine::ScriptHost::LuaCreateSoun
     return std::make_unique<SoundEffect>(std::move(audioStream));
 }
 
-std::unique_ptr<AbyssEngine::MapRenderer> AbyssEngine::ScriptHost::LuaCreateMapRenderer(LibAbyss::Zone *zone) { return std::make_unique<MapRenderer>(zone); }
+std::unique_ptr<AbyssEngine::MapRenderer> AbyssEngine::ScriptHost::LuaCreateMapRenderer(LibAbyss::Zone *zone) {
+    return std::make_unique<MapRenderer>(zone);
+}
 
 std::unique_ptr<LibAbyss::Zone> AbyssEngine::ScriptHost::LuaCreateZone() {
     return std::make_unique<LibAbyss::Zone>([this](std::string_view fileName) -> LibAbyss::DT1 {

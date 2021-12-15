@@ -40,6 +40,16 @@ void LibAbyss::Zone::Stamp(const LibAbyss::DS1 &ds1, int x, int y) {
 
                 auto &tile = ds1.Floors[i](tx, ty);
 
+                if (tile.Common.Style == 30) {
+                    Floors[i][(x + tx + ((y + ty) * WidthInTiles))] = -1;
+                    continue;
+                }
+
+                if (tile.Common.Invisible == 0) {
+                    Floors[i][(x + tx + ((y + ty) * WidthInTiles))] = -1;
+                    continue;
+                }
+
                 Floors[i][(x + tx + ((y + ty) * WidthInTiles))] = GetTile(tile.Common.Style, tile.Common.Sequence, TileType::Floor);
             }
 
@@ -58,6 +68,12 @@ void LibAbyss::Zone::Stamp(const LibAbyss::DS1 &ds1, int x, int y) {
                         StartTileY = ty;
                     }
 
+                    Walls[i][(x + tx + ((y + ty) * WidthInTiles))] = -1;
+                    continue;
+                }
+
+                if (tile.Common.Invisible == 0) {
+                    Walls[i][(x + tx + ((y + ty) * WidthInTiles))] = -1;
                     continue;
                 }
 
@@ -72,6 +88,17 @@ void LibAbyss::Zone::Stamp(const LibAbyss::DS1 &ds1, int x, int y) {
                 }
 
                 auto &tile = ds1.Shadows[i](tx, ty);
+
+                if (tile.Common.Style == 30) {
+                    Shadows[i][(x + tx + ((y + ty) * WidthInTiles))] = -1;
+                    continue;
+                }
+
+
+                if (tile.Common.Invisible == 0) {
+                    Shadows[i][(x + tx + ((y + ty) * WidthInTiles))] = -1;
+                    continue;
+                }
 
                 Shadows[i][(x + tx + ((y + ty) * WidthInTiles))] = GetTile(tile.Common.Style, tile.Common.Sequence, TileType::Shadow);
             }
@@ -99,14 +126,16 @@ void LibAbyss::Zone::AddDT1File(std::string_view fileName) {
     Tiles.insert(Tiles.end(), dt1.Tiles.begin(), dt1.Tiles.end());
 }
 
-LibAbyss::DT1::Tile *LibAbyss::Zone::GetTile(int style, int sequence, TileType type) {
-    for (auto &tile : Tiles) {
+int LibAbyss::Zone::GetTile(int style, int sequence, TileType type) {
+    for (int i = 0; i < Tiles.size(); i++) {
+        auto &tile = Tiles[i];
+
         if (tile.Style != style || tile.Sequence != sequence || tile.Type != (int32_t)type)
             continue;
 
-        return &tile;
+        return i;
     }
 
     SPDLOG_WARN("Could not find tile with style {}, sequence {}, and type {}", style, sequence, (int32_t)type);
-    return nullptr;
+    return -1;
 }

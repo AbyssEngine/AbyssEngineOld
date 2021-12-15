@@ -26,7 +26,7 @@ class DS1 {
 
     struct Tile {
         struct {
-            uint8_t Prop1;
+            uint8_t Invisible;
             uint8_t Sequence;
             uint8_t _unknown1;
             uint8_t Style;

@@ -20,10 +20,10 @@ class Zone {
 
     std::vector<DS1::Object> Objects = {};
     std::vector<DS1::SubstitutionGroup> SubstitutionGroups = {};
-    std::vector<std::vector<DT1::Tile*>> Floors = {};
-    std::vector<std::vector<DT1::Tile*>> Walls = {};
-    std::vector<std::vector<DT1::Tile*>> Shadows = {};
-    std::vector<std::vector<DT1::Tile*>> Substitutions = {};
+    std::vector<std::vector<int>> Floors = {};
+    std::vector<std::vector<int>> Walls = {};
+    std::vector<std::vector<int>> Shadows = {};
+    std::vector<std::vector<int>> Substitutions = {};
     int StartTileX = 0;
     int StartTileY = 0;
     int WidthInTiles = 0;
@@ -32,7 +32,7 @@ class Zone {
 
   private:
     void AddDT1File(std::string_view fileName);
-    DT1::Tile *GetTile(int style, int sequence, TileType type);
+    int GetTile(int style, int sequence, TileType type);
     ProvideDT1Handler _provideDT1Handler;
     uint64_t _seed = 0;
 };
