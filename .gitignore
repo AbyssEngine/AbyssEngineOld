@@ -13,6 +13,7 @@ vcpkg_installed/
 .cache
 builds/
 *.bak
+*.swp
 compile_commands.json
 compile_flags.txt
 .vimspector.json
