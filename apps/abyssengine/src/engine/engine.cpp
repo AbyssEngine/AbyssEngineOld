@@ -4,7 +4,6 @@
 #include <cmath>
 #include <spdlog/spdlog.h>
 
-std::exception_ptr AbyssEngine::globalExceptionPtr = nullptr;
 AbyssEngine::Engine *engineGlobalInstance = nullptr;
 
 AbyssEngine::Engine::Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO> systemIo)
@@ -65,59 +64,54 @@ AbyssEngine::Node *AbyssEngine::Engine::GetFocusedNode() { return _focusedNode; 
 void AbyssEngine::Engine::SetFocusedNode(AbyssEngine::Node *node) { _focusedNode = node; }
 
 void AbyssEngine::Engine::RunMainLoop() {
+    // Initialize the running flag so that the loop happens
     _running = true;
+
+    // Set the initial time so that we can calculate the delta time for lua garbage collection
     _luaLastGc = _systemIO->GetTicks();
 
-    while (true) {
-        if (!_running)
-            break;
+    // Run the main loop
+    while (_running) {
+        ScriptGarbageCollect();
 
-        if (_systemIO->GetTicks() - _luaLastGc > _luaGcRateMsec) {
-            _luaLastGc = _systemIO->GetTicks();
-            _scriptHost->GC();
-        }
-
-        if (!_systemIO->HandleInputEvents(GetRootNodeOrVideo())) {
+        if (!_systemIO->HandleInputEvents(GetRootNodeOrVideo()))
             Stop();
-            break;
-        }
 
-        if (globalExceptionPtr) {
-            std::rethrow_exception(globalExceptionPtr);
-        }
-
-        if (!_running)
-            break;
-
-        const auto newTicks = _systemIO->GetTicks();
-        const auto tickDiff = newTicks - _lastTicks;
-
-        if (tickDiff == 0)
+        if (!UpdateTicks())
             continue;
 
-        _lastTicks = newTicks;
+        // Process updates for video or root node
+        (_videoNode != nullptr) ? UpdateVideo(_tickDiff) : UpdateRootNode(_tickDiff);
 
-        bool doVideoNode;
-        doVideoNode = _videoNode != nullptr;
-        doVideoNode ? UpdateVideo(tickDiff) : UpdateRootNode(tickDiff);
-
+        // Run node initializations
         _rootNode.DoInitialize();
-
         if (_cursorSprite != nullptr)
             _cursorSprite->DoInitialize();
 
+        // Update the cursor position
         _systemIO->GetCursorState(_cursorX, _cursorY, _mouseButtonState);
 
+        // Render the video or root node
         _systemIO->RenderStart();
         _videoNode != nullptr ? RenderVideo() : RenderRootNode();
         _systemIO->RenderEnd();
     }
 }
 
+void AbyssEngine::Engine::ScriptGarbageCollect() {
+    if ((_systemIO->GetTicks() - _luaLastGc) <= _luaGcRateMsec)
+        return;
+
+    _luaLastGc = _systemIO->GetTicks();
+    _scriptHost->GC();
+}
+
 void AbyssEngine::Engine::SetCursorSprite(Sprite *cursorSprite, int offsetX, int offsetY) {
     _cursorSprite = cursorSprite;
+
     _cursorOffsetX = offsetX;
     _cursorOffsetY = offsetY;
+
     _cursorSprite->X = _cursorX;
     _cursorSprite->Y = _cursorY;
 }
@@ -126,12 +120,14 @@ void AbyssEngine::Engine::ShowSystemCursor(bool show) { _showSystemCursor = show
 
 void AbyssEngine::Engine::GetCursorPosition(int &x, int &y) {
     _systemIO->GetCursorState(_cursorX, _cursorY, _mouseButtonState);
+
     x = _cursorX;
     y = _cursorY;
 }
 
 AbyssEngine::eMouseButton AbyssEngine::Engine::GetMouseButtonState() {
     _systemIO->GetCursorState(_cursorX, _cursorY, _mouseButtonState);
+
     return _mouseButtonState;
 }
 
@@ -140,7 +136,8 @@ void AbyssEngine::Engine::ResetMouseButtonState() {
     _systemIO->ResetMouseButtonState();
 }
 
-void AbyssEngine::Engine::PlayVideo(std::string_view name, LibAbyss::InputStream stream, std::optional<LibAbyss::InputStream> audio, const sol::safe_function& callback) {
+void AbyssEngine::Engine::PlayVideo(std::string_view name, LibAbyss::InputStream stream, std::optional<LibAbyss::InputStream> audio,
+                                    const sol::safe_function &callback) {
     if (!_running)
         return;
 
@@ -155,19 +152,21 @@ AbyssEngine::Loader &AbyssEngine::Engine::GetLoader() { return _loader; }
 void AbyssEngine::Engine::UpdateVideo(uint32_t tickDiff) {
     _videoNode->UpdateCallback(tickDiff);
 
-    if (!_videoNode->GetIsPlaying()) {
-        _videoNode = nullptr;
-        if (_onVideoEndCallback.valid()) {
-            auto result = _onVideoEndCallback();
-            if (!result.valid()) {
-                sol::error err = result;
-                SPDLOG_ERROR(err.what());
-                AbyssEngine::HostNotify::Notify(eNotifyType::Fatal, "Script Error", err.what());
-                return;
-            }
-        }
+    if (_videoNode->GetIsPlaying())
         return;
-    }
+
+    _videoNode = nullptr;
+
+    if (!_onVideoEndCallback.valid())
+        return;
+
+    auto result = _onVideoEndCallback();
+
+    if (result.valid())
+        return;
+
+    sol::error err = result;
+    Engine::Get()->Panic(err.what());
 }
 
 void AbyssEngine::Engine::UpdateRootNode(uint32_t tickDiff) { _rootNode.UpdateCallback(tickDiff); }
@@ -190,3 +189,22 @@ AbyssEngine::SystemIO &AbyssEngine::Engine::GetSystemIO() { return *_systemIO; }
 bool AbyssEngine::Engine::IsRunning() const { return _running; }
 
 AbyssEngine::Node &AbyssEngine::Engine::GetRootNodeOrVideo() { return _videoNode != nullptr ? *_videoNode : _rootNode; }
+
+void AbyssEngine::Engine::Panic(std::string_view message) {
+    spdlog::critical(message);
+    HostNotify::Notify(eNotifyType::Fatal, "Engine Panic", (std::string)message);
+    Stop();
+}
+
+bool AbyssEngine::Engine::UpdateTicks() {
+    const auto newTicks = _systemIO->GetTicks();
+    const auto tickDiff = newTicks - _lastTicks;
+
+    if (tickDiff == 0)
+        return false;
+
+    _lastTicks = newTicks;
+    _tickDiff = tickDiff;
+
+    return true;
+}

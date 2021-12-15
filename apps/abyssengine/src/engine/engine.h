@@ -3,11 +3,11 @@
 
 #include "../node/sprite.h"
 #include "../node/video.h"
-#include "scripthost.h"
 #include "../systemio/interface.h"
 #include "libabyss/formats/abyss/inifile.h"
 #include "libabyss/formats/d2/palette.h"
 #include "loader.h"
+#include "scripthost.h"
 #include <absl/container/node_hash_map.h>
 #include <exception>
 #include <filesystem>
@@ -20,16 +20,23 @@ namespace AbyssEngine {
 ///          loading all the resources and initializing the engine.
 class Engine {
   public:
+    /// @brief Constructor
+    /// @details Constructs the engine.
+    /// \param iniFile The ini file to use.
+    /// \param systemIo The system io to use.
     Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO> systemIo);
+
     ~Engine();
 
-    /// Starts the engine
+    /// @brief Runs the engine
     void Run();
 
-    /// Stops the engine
+    /// @brief Stops the engine
     void Stop();
 
-    /// Adds a new palette to the engine
+    /// @breif Adds the palette to the engine
+    /// \param paletteName The name of the palette.
+    /// \param palette The palette to add.
     void AddPalette(std::string_view paletteName, const LibAbyss::Palette &palette);
 
     /// Returns the root node
@@ -68,7 +75,8 @@ class Engine {
     /// \param stream The stream to play
     /// \param audio The audiostream to play, if it's separate from video
     /// \param wait If true, the engine will wait for the video to finish before returning
-    void PlayVideo(std::string_view name, LibAbyss::InputStream stream, std::optional<LibAbyss::InputStream> audio, const sol::safe_function& callback);
+    void PlayVideo(std::string_view name, LibAbyss::InputStream stream, std::optional<LibAbyss::InputStream> audio,
+                   const sol::safe_function &callback);
 
     /// Returns the resource loader
     /// \return s The resource loader
@@ -90,7 +98,13 @@ class Engine {
     ///  \return The palette
     [[nodiscard]] const LibAbyss::Palette &GetPalette(std::string_view paletteName);
 
-    bool IsRunning() const;
+    /// Returns whether or not the engine is running
+    /// \return True if the engine is running, false otherwise
+    [[nodiscard]] bool IsRunning() const;
+
+    /// Stops the engine with a panic message
+    /// \param message The message to display
+    void Panic(std::string_view message);
 
   private:
     void RunMainLoop();
@@ -99,6 +113,7 @@ class Engine {
     void RenderVideo();
     void RenderRootNode();
     Node &GetRootNodeOrVideo();
+    void ScriptGarbageCollect();
 
     LibAbyss::INIFile _iniFile;
     Loader _loader;
@@ -114,15 +129,15 @@ class Engine {
     bool _showSystemCursor = false;
     int _cursorX = 0;
     int _cursorY = 0;
+    uint32_t _tickDiff = 0;
     eMouseButton _mouseButtonState;
     int _cursorOffsetX = 0;
     int _cursorOffsetY = 0;
     uint32_t _luaGcRateMsec = 1024;
     uint32_t _luaLastGc = 0;
     sol::safe_function _onVideoEndCallback;
+    bool UpdateTicks();
 };
-
-extern std::exception_ptr globalExceptionPtr;
 
 } // namespace AbyssEngine
 

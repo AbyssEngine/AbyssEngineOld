@@ -28,7 +28,7 @@ LibAbyss::DT1::DT1(LibAbyss::InputStream &stream) {
             stream.seekg(2, std::ios_base::cur);
             block.GridX = sr.ReadByte();
             block.GridY = sr.ReadByte();
-            block.Format = (Tile::Block::eBlockFormat)sr.ReadInt16();
+            block.Format = sr.ReadInt16() == 1 ? Tile::Block::eBlockFormat::Isometric : Tile::Block::eBlockFormat::RLE;
             block.Length = sr.ReadInt32();
             stream.seekg(2, std::ios_base::cur);
             block._fileOffset = sr.ReadInt32();

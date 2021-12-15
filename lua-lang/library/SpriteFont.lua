@@ -1,4 +1,6 @@
 ---@meta
 
 ---@class SpriteFont
-SpriteFont = {}
+SpriteFont = {
+}
+

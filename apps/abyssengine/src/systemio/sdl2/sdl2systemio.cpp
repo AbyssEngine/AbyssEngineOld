@@ -1,6 +1,5 @@
 #include "sdl2systemio.h"
 #include "../../engine/engine.h"
-#include "../../hostnotify/hostnotify.h"
 #include "config.h"
 #include "sdl2texture.h"
 #include <cstdint>
@@ -11,8 +10,8 @@
 #include <SDL_ttf.h>
 #include <span>
 #include <spdlog/spdlog.h>
+#include "../../hostnotify/hostnotify.h"
 #ifdef __APPLE__
-#include "../../engine/engine.h"
 #include "../../hostnotify/hostnotify_mac_shim.h"
 #endif // __APPLE__
 
@@ -227,7 +226,7 @@ namespace {
             return std::make_unique<AbyssEngine::SDL2::SDL2Texture>(_sdlRenderer, texture);
         }
 
-        ~AbyssSDL2TTF() {
+        ~AbyssSDL2TTF() override {
             TTF_CloseFont(_font);
         }
 
@@ -312,7 +311,7 @@ void AbyssEngine::SDL2::SDL2SystemIO::HandleAudio(uint8_t *stream, int length) {
     }
 }
 
-void AbyssEngine::SDL2::SDL2SystemIO::FinalizeAudio() {
+void AbyssEngine::SDL2::SDL2SystemIO::FinalizeAudio() const {
     if (!_hasAudio)
         return;
 
@@ -333,7 +332,10 @@ bool AbyssEngine::SDL2::SDL2SystemIO::HandleInputEvents(Node &rootNode) {
 
 uint32_t AbyssEngine::SDL2::SDL2SystemIO::GetTicks() { return SDL_GetTicks(); }
 
-void AbyssEngine::SDL2::SDL2SystemIO::RenderStart() { SDL_RenderClear(_sdlRenderer.get()); }
+void AbyssEngine::SDL2::SDL2SystemIO::RenderStart() {
+    SDL_SetRenderDrawColor(_sdlRenderer.get(), 0, 0, 0, 255);
+    SDL_RenderClear(_sdlRenderer.get());
+}
 
 void AbyssEngine::SDL2::SDL2SystemIO::RenderEnd() { SDL_RenderPresent(_sdlRenderer.get()); }
 
@@ -409,4 +411,8 @@ void AbyssEngine::SDL2::SDL2SystemIO::RemoveSoundEffect(AbyssEngine::SoundEffect
 void AbyssEngine::SDL2::SDL2SystemIO::SetVideo(IAudio* video) {
     std::lock_guard<std::mutex> lock(_mutex);
     _video = video;
+}
+void AbyssEngine::SDL2::SDL2SystemIO::DrawLine(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, uint8_t b) {
+    SDL_SetRenderDrawColor(_sdlRenderer.get(), r, g, b, 255);
+    SDL_RenderDrawLine(_sdlRenderer.get(), x1, y1, x2, y2);
 }

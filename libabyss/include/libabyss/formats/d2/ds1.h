@@ -26,7 +26,7 @@ class DS1 {
 
     struct Tile {
         struct {
-            uint8_t Prop1;
+            uint8_t Invisible;
             uint8_t Sequence;
             uint8_t _unknown1;
             uint8_t Style;
@@ -76,10 +76,12 @@ class DS1 {
         int _width;
         int _height;
         Tile &operator()(int x, int y) { return Tiles[x + (y * _width)]; }
+        const Tile &operator()(int x, int y) const { return Tiles[x + (y * _width)]; }
     };
 
     explicit DS1(InputStream &stream);
     void Resize(int width, int height);
+    [[nodiscard]] std::vector<eLayerStreamType> GetLayerStreamTypes() const;
 
     std::vector<std::string> Files;
     std::vector<Object> Objects;
@@ -94,13 +96,12 @@ class DS1 {
     int32_t SubstitutionType; // Aka layer type. 0 if no layer, otherwise type 1 or 2.
     uint8_t _unknown1[8];
     uint32_t _unknown2;
+    int Width;
+    int Height;
 
   private:
-    int _width;
-    int _height;
-
     void LoadLayerStreams(InputStream &stream);
-    [[nodiscard]] std::vector<eLayerStreamType> GetLayerStreamTypes() const;
+
     void LoadObjects(InputStream &stream);
     void LoadSubstitutions(InputStream &stream);
     void LoadNPCs(InputStream &stream);

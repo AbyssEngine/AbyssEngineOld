@@ -1,7 +1,6 @@
 #include "video.h"
 #include "../common/overload.h"
 #include "../engine/engine.h"
-#include "../hostnotify/hostnotify.h"
 #include <absl/cleanup/cleanup.h>
 #include <absl/strings/ascii.h>
 #include <ios>

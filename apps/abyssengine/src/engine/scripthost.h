@@ -5,12 +5,16 @@
 #include <sol/sol.hpp>
 // -------------------------------------
 
+#include "../engine/soundeffect.h"
+#include "../engine/spritefont.h"
 #include "../node/button.h"
 #include "../node/label.h"
+#include "../node/maprenderer.h"
 #include "../node/sprite.h"
 #include "provider.h"
-#include "../node/maprenderer.h"
 #include <filesystem>
+#include <libabyss/formats/d2/ds1.h>
+#include <libabyss/zone/zone.h>
 
 namespace AbyssEngine {
 
@@ -32,33 +36,121 @@ class ScriptHost {
     std::tuple<sol::object, sol::object> LuaLoadString(std::string_view str, std::string_view chunkName);
     std::tuple<sol::object, sol::object> LuaLoadFile(std::string_view pathStr);
     sol::object LuaDoFile(std::string_view path);
-
-    // Script Functions -------------------
-
-    void LuaFuncShutdown();
-    std::string_view LuaGetConfig(std::string_view category, std::string_view value);
-    void LuaShowSystemCursor(bool show);
-    void LuaLog(std::string_view level, std::string_view message);
-    void LuaAddLoaderProvider(std::string_view providerType, std::string_view providerPath);
-    void LuaCreatePalette(std::string_view paletteName, std::string_view path);
-    bool LuaFileExists(std::string_view fileName);
-    void LuaResetMouseState();
-    void LuaPlayBackgroundMusic(std::string_view fileName);
-    std::string LuaLoadText(std::string_view filePath);
-    std::unique_ptr<Sprite> LuaCreateSprite(std::string_view spritePath, std::string_view paletteName);
-    std::unique_ptr<Button> LuaCreateButton(Sprite &sprite);
-    std::unique_ptr<SpriteFont> LuaCreateSpriteFont(std::string_view fontPath, std::string_view paletteName);
-    std::unique_ptr<TtfFont> LuaCreateTtfFont(std::string_view fontPath, int size, std::string_view hinting);
-    std::unique_ptr<Label> LuaCreateLabel(IFont &font);
-    std::unique_ptr<SoundEffect> LuaCreateSoundEffect(std::string_view fileName);
-    std::unique_ptr<MapRenderer> LuaCreateMapRenderer();
-    std::unique_ptr<LibAbyss::Zone> LuaCreateZone();
-    void LuaSetCursor(Sprite &sprite, int offsetX, int offsetY);
-    void LuaPlayVideo(std::string_view videoPath, const sol::safe_function& callback);
-    void LuaPlayVideoAndAudio(std::string_view videoPath, std::string_view audioPath, const sol::safe_function& callback);
     Node &LuaGetRootNode();
     template <class T, typename X>
     sol::basic_usertype<T, sol::basic_reference<false>> CreateLuaObjectType(sol::table &module, std::string_view name, X &&constructor);
+
+    // -----------------------------------------------------------------------------------------------
+    // Script Functions
+    // -----------------------------------------------------------------------------------------------
+
+    /// \brief Shuts down the engine
+    void LuaFuncShutdown();
+
+    /// \brief Gets a configuration value
+    /// \param category The category that the variable is defined under.
+    /// \param value The name of the variable who's value you want to get.
+    /// \return The value of the specified category and variable.
+    std::string_view LuaGetConfig(std::string_view category, std::string_view value);
+
+    /// \brief Sets the visibility of the system cursor
+    /// \param show The visibility of the system cursor.
+    void LuaShowSystemCursor(bool show);
+
+    /// \brief Logs a message
+    /// \param level The log level ('debug', 'info', 'warn', 'error', 'fatal')
+    /// \param message The message to log.
+    void LuaLog(std::string_view level, std::string_view message);
+
+    /// \brief Adds a loader provider
+    /// \param providerType The type of provider to add ('mpq', 'casc', 'filesystem')
+    void LuaAddLoaderProvider(std::string_view providerType, std::string_view providerPath);
+
+    /// \brief Creates a palette
+    /// \param paletteName The name of the palette to create.
+    /// \param path The path to the palette file.
+    void LuaCreatePalette(std::string_view paletteName, std::string_view path);
+
+    /// \brief Determines if a file exists
+    /// \param fileName The name of the file to check.
+    /// \return True if the file exists, false otherwise.
+    bool LuaFileExists(std::string_view fileName);
+
+    /// \brief Resets the mouse button state
+    void LuaResetMouseState();
+
+    /// \brief Plays looping background music
+    /// \param fileName The name of the file to play.
+    void LuaPlayBackgroundMusic(std::string_view fileName);
+
+    /// \brief Loads a text file
+    /// \param filePath The path to the file to load.
+    /// \return The text of the file.
+    std::string LuaLoadText(std::string_view filePath);
+
+    /// \brief Creates a sprite
+    /// \param spritePath The path to the sprite file.
+    /// \param paletteName The name of the palette to use for the sprite.
+    /// \return The created sprite.
+    std::unique_ptr<Sprite> LuaCreateSprite(std::string_view spritePath, std::string_view paletteName);
+
+    /// \brief Creates a button
+    /// \param sprite The sprite to use for the button.
+    /// \return The created button.
+    std::unique_ptr<Button> LuaCreateButton(Sprite &sprite);
+
+    /// \brief Creates a sprite font
+    /// \param fontPath The path to the font file.
+    /// \param paletteName The name of the palette to use for the font.
+    /// \return The created sprite font.
+    std::unique_ptr<SpriteFont> LuaCreateSpriteFont(std::string_view fontPath, std::string_view paletteName);
+
+    /// \brief Creates a TTF font
+    /// \param fontPath The path to the font file.
+    /// \param size The size of the font.
+    /// \param hinting The hinting to use for the font ('light', 'mono', 'normal', 'none').
+    std::unique_ptr<TtfFont> LuaCreateTtfFont(std::string_view fontPath, int size, std::string_view hinting);
+
+    /// \brief Creates a label
+    /// \param font The font to use for the label.
+    /// \return The created label.
+    std::unique_ptr<Label> LuaCreateLabel(IFont &font);
+
+    /// \brief Creates a sound effect
+    /// \param fileName The name of the file to load.
+    /// \return The created sound effect.
+    std::unique_ptr<SoundEffect> LuaCreateSoundEffect(std::string_view fileName);
+
+    /// \brief Creates a map renderer
+    /// \param zone The zone to render.
+    /// \return The created map renderer.
+    std::unique_ptr<MapRenderer> LuaCreateMapRenderer(LibAbyss::Zone *zone);
+
+    /// \brief Creates a zone (map/game area)
+    /// \return The created zone.
+    std::unique_ptr<LibAbyss::Zone> LuaCreateZone();
+
+    /// \brief Loads a DS1 stamp
+    /// \param fileName The name of the file to load.
+    /// \return The created DS1 stamp.
+    std::unique_ptr<LibAbyss::DS1> LuaLoadDS1(std::string_view fileName);
+
+    /// \brief Sets the cursor sprite and offsets
+    /// \param sprite The sprite to use for the cursor.
+    /// \param offsetX The X offset of the cursor.
+    /// \param offsetY The Y offset of the cursor.
+    void LuaSetCursor(Sprite &sprite, int offsetX, int offsetY);
+
+    /// \brief Plays a video
+    /// \param videoPath The path to the video file.
+    /// \param callback The callback to call when the video is finished.
+    void LuaPlayVideo(std::string_view videoPath, const sol::safe_function &callback);
+
+    /// \brief Plays video and audio (for videos with seperate audio tracks)
+    /// \param videoPath The path to the video file.
+    /// \param audioPath The path to the audio file.
+    /// \param callback The callback to call when the video is finished.
+    void LuaPlayVideoAndAudio(std::string_view videoPath, std::string_view audioPath, const sol::safe_function &callback);
 };
 
 } // namespace AbyssEngine
