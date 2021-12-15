@@ -10,6 +10,7 @@
 #include <SDL_ttf.h>
 #include <span>
 #include <spdlog/spdlog.h>
+#include "../../hostnotify/hostnotify.h"
 #ifdef __APPLE__
 #include "../../hostnotify/hostnotify_mac_shim.h"
 #endif // __APPLE__

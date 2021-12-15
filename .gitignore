@@ -20,3 +20,4 @@ compile_flags.txt
 .vimspector.session
 backends.txt
 lldb-vscode.json
+run.sh
