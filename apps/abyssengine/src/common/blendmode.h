@@ -1,7 +1,7 @@
 #ifndef ABYSS_BLENDMODE_H
 #define ABYSS_BLENDMODE_H
 
-#include <string>
+#include <string_view>
 
 namespace AbyssEngine {
 

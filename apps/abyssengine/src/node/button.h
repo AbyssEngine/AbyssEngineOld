@@ -2,7 +2,7 @@
 #define ABYSS_BUTTON_H
 
 #include "node.h"
-#include "sprite.h"
+#include "../engine/image.h"
 
 namespace AbyssEngine {
 
@@ -10,7 +10,7 @@ class Button : public Node {
   public:
     enum class eState { Normal, Pressed, Hover, Disabled, Unknown };
 
-    explicit Button(Sprite &sprite);
+    explicit Button(Image &image);
     ~Button();
 
     void UpdateCallback(uint32_t ticks) override;
@@ -26,10 +26,9 @@ class Button : public Node {
     void LuaSetPressCallback(sol::safe_function luaPressCallback);
 
     [[nodiscard]] std::string_view NodeType() const final { return "Button Node"; }
-    void Initialize() override;
 
   private:
-    Sprite &_sprite;
+    Image &_image;
     eState _buttonState = eState::Normal;
     bool _checked = false;
     uint8_t _xSegments = 0;

@@ -6,8 +6,8 @@
 #include <spdlog/spdlog.h>
 #include <utility>
 
-AbyssEngine::Button::Button(Sprite &sprite)
-    : _sprite(sprite), _luaActivateCallback(), _luaPressedCallback() {
+AbyssEngine::Button::Button(Image &image)
+    : _image(image), _luaActivateCallback(), _luaPressedCallback() {
 }
 
 AbyssEngine::Button::~Button() = default;
@@ -141,8 +141,7 @@ void AbyssEngine::Button::RenderCallback(int offsetX, int offsetY) {
     if (frame_index < 0)
         frame_index = _frameIndexNormal;
 
-    _sprite.SetCellSize(_xSegments, _ySegments);
-    _sprite.Render(frame_index, X + offsetX, Y + offsetY);
+    _image.Render(frame_index, _xSegments, _ySegments, X + offsetX, Y + offsetY);
 
     Node::RenderCallback(offsetX + text_offset_x, offsetY + text_offset_y);
 }
@@ -192,7 +191,5 @@ void AbyssEngine::Button::LuaSetFrameIndex(std::string_view frameType, int index
 }
 
 void AbyssEngine::Button::LuaSetActivateCallback(sol::safe_function luaActivateCallback) { _luaActivateCallback = std::move(luaActivateCallback); }
-
-void AbyssEngine::Button::Initialize() { _sprite.Initialize(); }
 
 void AbyssEngine::Button::LuaSetPressCallback(sol::safe_function luaPressCallback) { _luaPressedCallback = std::move(luaPressCallback); }

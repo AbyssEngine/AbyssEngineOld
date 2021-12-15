@@ -3,6 +3,7 @@
 
 #include "../common/rectangle.h"
 #include "node.h"
+#include "../engine/image.h"
 #include "../systemio/interface.h"
 #include "../common/blendmode.h"
 #include <tuple>
@@ -12,26 +13,13 @@ namespace AbyssEngine {
 
 class Sprite : public Node {
   public:
-    Sprite() = default;
-    explicit Sprite(std::string_view name) : Node(name) {}
+    explicit Sprite(Image& image) : _image(image) {}
 
     enum class ePlayMode { Unknown, Paused, Forwards, Backwards };
-    struct FramePosition {
-        Rectangle Rect;
-        int OffsetX;
-        int OffsetY;
-    };
-
     void UpdateCallback(uint32_t ticks) final;
     void RenderCallback(int offsetX, int offsetY) final;
     void MouseEventCallback(const MouseEvent& event) final;
     void Render(uint32_t startFrameIdx, int offsetX, int offsetY);
-    void Initialize() override;
-
-    virtual void GetFrameOffset(uint32_t frame, int &offsetX, int &offsetY) = 0;
-    virtual void GetFrameSize(uint32_t frame, uint32_t &width, uint32_t &height) = 0;
-    virtual uint32_t GetNumberOfAnimations() = 0;
-    virtual uint32_t GetFramesPerAnimation() = 0;
 
     std::tuple<uint32_t, uint32_t> GetCellSize();
     void SetCellSize(int x, int y);
@@ -44,18 +32,16 @@ class Sprite : public Node {
     void LuaSetPlayMode(std::string_view mode);
     std::string_view LuaGetPlayMode();
 
+    void SetCurrentFrameIndex(uint32_t frame) { _currentFrame = frame; }
+    uint32_t GetCurrentFrameIndex() const { return _currentFrame; }
+
     [[nodiscard]] std::string_view NodeType() const final { return "Sprite Node"; }
 
-    ;
-
   protected:
-    virtual void RegenerateAtlas() = 0;
-
     void Animate(float time_elapsed);
     void AdvanceFrame();
 
-    std::unique_ptr<ITexture> _atlas;
-    std::vector<FramePosition> _framePositions;
+    Image& _image;
     bool _bottomOrigin = false;
     uint32_t _cellSizeX = 1;
     uint32_t _cellSizeY = 1;
@@ -64,13 +50,13 @@ class Sprite : public Node {
     float _lastFrameTime = 0;
     float _playLength = 1.f;
     uint32_t _currentFrame = 0;
-    uint32_t _currentAnimation = 0;
+    // TODO: unconst and wire
+    const uint32_t _currentAnimation = 0;
     sol::protected_function _mouseButtonDownHandler;
     sol::protected_function _mouseButtonUpHandler;
     sol::protected_function _mouseEnterHandler;
     sol::protected_function _mouseLeaveHandler;
     sol::protected_function _mouseMoveHandler;
-    eBlendMode _blendMode = eBlendMode::Blend;
     bool _mouseInSprite = false;
 };
 

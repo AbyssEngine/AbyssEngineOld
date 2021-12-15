@@ -16,52 +16,22 @@ void AbyssEngine::Sprite::UpdateCallback(uint32_t ticks) {
     Node::UpdateCallback(ticks);
 }
 
-void AbyssEngine::Sprite::Render(uint32_t startFrameIdx, int offsetX, int offsetY) {
-    const auto totalFrames = GetFramesPerAnimation();
-
-    if (_framePositions.empty())
-        return;
-
-    uint32_t frameWidth;
-    uint32_t frameHeight;
-
-    GetFrameSize(_currentFrame, frameWidth, frameHeight);
-
-    auto posX = X + offsetX;
-    auto posY = Y + offsetY;
-
-    if (_bottomOrigin)
-        posY -= (int)frameHeight;
-
-    const auto startX = posX;
-
-    for (auto cellOffsetY = 0; cellOffsetY < _cellSizeY; cellOffsetY++) {
-        auto lastHeight = 0;
-
-        for (auto cellOffsetX = 0; cellOffsetX < _cellSizeX; cellOffsetX++) {
-            const auto cellIndex = startFrameIdx + (cellOffsetX + (cellOffsetY * _cellSizeX));
-            const auto framePos = _framePositions[(_currentAnimation * totalFrames) + cellIndex];
-
-            auto destRect = framePos.Rect;
-            destRect.X = framePos.OffsetX + posX;
-            destRect.Y = framePos.OffsetY + posY;
-
-            _atlas->Render(framePos.Rect, destRect);
-
-            posX += destRect.Width;
-            lastHeight = destRect.Height;
-        }
-
-        posX = startX;
-        posY += lastHeight;
-    }
-}
-
 void AbyssEngine::Sprite::RenderCallback(int offsetX, int offsetY) {
     if (!Visible || !Active)
         return;
 
-    Render(_currentFrame, offsetX, offsetY);
+    int imgX = X + offsetX;
+    int imgY = Y + offsetY;
+
+    if (_bottomOrigin) {
+        uint32_t frameWidth;
+        uint32_t frameHeight;
+
+        _image.GetFrameSize(_currentFrame, _cellSizeX, frameWidth, frameHeight);
+        imgY -= (int)frameHeight;
+    }
+
+    _image.Render(_currentFrame, _cellSizeX, _cellSizeY, imgX, imgY);
 
     Node::RenderCallback(offsetX, offsetY);
 }
@@ -73,7 +43,7 @@ void AbyssEngine::Sprite::MouseEventCallback(const AbyssEngine::MouseEvent &even
                             int sx2 = sx, sy2 = sy;
                             uint32_t fx, fy;
 
-                            GetFrameSize(_currentFrame, fx, fy);
+                            _image.GetFrameSize(_currentFrame, _cellSizeX, fx, fy);
 
                             sx2 += (int)fx;
                             sy2 += (int)fy;
@@ -153,7 +123,7 @@ void AbyssEngine::Sprite::Animate(float elapsed) {
     if (_playMode == ePlayMode::Unknown || _playMode == ePlayMode::Paused)
         return;
 
-    const auto frameCount = GetFramesPerAnimation();
+    const auto frameCount = _image.GetFramesPerAnimation();
     const auto frameLength = _playLength / (float)frameCount;
     _lastFrameTime += elapsed;
     const auto framesAdvanced = (int)(_lastFrameTime / frameLength);
@@ -168,7 +138,7 @@ void AbyssEngine::Sprite::AdvanceFrame() {
         return;
 
     const auto startIndex = 0;
-    const auto endIndex = GetFramesPerAnimation();
+    const auto endIndex = _image.GetFramesPerAnimation();
 
     switch (_playMode) {
     case ePlayMode::Forwards: {
@@ -205,12 +175,10 @@ void AbyssEngine::Sprite::SetLuaMouseButtonUpHandler(sol::protected_function mou
     _mouseButtonUpHandler = std::move(mouseButtonUpHandler);
 }
 
-std::string_view AbyssEngine::Sprite::LuaGetBlendMode() { return BlendModeToString(_blendMode); }
+std::string_view AbyssEngine::Sprite::LuaGetBlendMode() { return BlendModeToString(_image.GetBlendMode()); }
 
 void AbyssEngine::Sprite::LuaSetBlendMode(std::string_view val) {
-    _blendMode = StringToBlendMode(val);
-    if (_atlas != nullptr)
-        _atlas->SetBlendMode(_blendMode);
+    _image.SetBlendMode(StringToBlendMode(val));
 }
 
 void AbyssEngine::Sprite::SetIsBottomOrigin(bool val) { _bottomOrigin = val; }
@@ -244,9 +212,4 @@ std::string_view AbyssEngine::Sprite::LuaGetPlayMode() {
         return "backwards";
     }
     return "";
-}
-
-void AbyssEngine::Sprite::Initialize() {
-    RegenerateAtlas();
-    _atlas->SetBlendMode(_blendMode);
 }

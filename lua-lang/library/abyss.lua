@@ -13,9 +13,9 @@ abyss = {}
 function abyss.addLoaderProvider(providerType, providerPath) end
 
 ---Creates a button
----@param sprite Sprite @ The sprite to use for the button.
+---@param image Image& @ The image to use for the button. Needs to be alive at least as long as the button is.
 ---@return Button @ The created button.
-function abyss.createButton(sprite) end
+function abyss.createButton(image) end
 
 ---Creates a label
 ---@param font IFont @ The font to use for the label.
@@ -37,11 +37,10 @@ function abyss.createPalette(paletteName, path) end
 ---@return SoundEffect @ The created sound effect.
 function abyss.createSoundEffect(fileName) end
 
----Creates a sprite
----@param spritePath string @ The path to the sprite file.
----@param paletteName string @ The name of the palette to use for the sprite.
+---Creates a sprite from the image
+---@param image Image& @ The image to be used for the sprite. Needs to be alive at least as long as the sprite is.
 ---@return Sprite @ The created sprite.
-function abyss.createSprite(spritePath, paletteName) end
+function abyss.createSprite(image) end
 
 ---Creates a sprite font
 ---@param fontPath string @ The path to the font file.
@@ -59,6 +58,12 @@ function abyss.createTtfFont(fontPath, size, hinting) end
 ---@param fileName string @ The name of the file to load.
 ---@return DS1 @ The created DS1 stamp.
 function abyss.loadDS1(fileName) end
+
+---Loads an image from file
+---@param spritePath string @ The path to the sprite file.
+---@param paletteName string @ The name of the palette to use for the sprite.
+---@return Image @ The loaded image.
+function abyss.loadImage(spritePath, paletteName) end
 
 ---Loads a text file
 ---@param filePath string @ The path to the file to load.
