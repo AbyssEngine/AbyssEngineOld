@@ -50,7 +50,7 @@ void AbyssEngine::Button::UpdateCallback(uint32_t ticks) {
 
         if (!mouse_clicked && mouse_hovered) {
             engine->SetFocusedNode(nullptr);
-            _buttonState = eState::Normal;
+            _buttonState = eState::Hover;
 
             if (_luaActivateCallback.valid()) {
                 auto result = _luaActivateCallback();
