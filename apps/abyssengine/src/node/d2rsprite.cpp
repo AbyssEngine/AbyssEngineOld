@@ -20,10 +20,12 @@ D2RSprite::D2RSprite(LibAbyss::InputStream &stream) {
     stream.ignore(16);
     _data.resize(_width_total * _height * 4);
     sr.ReadBytes(_data);
+
+    RegenerateAtlas();
 }
 
 void D2RSprite::GetFrameOffset(uint32_t frame, int &offsetX, int &offsetY) {}
-void D2RSprite::GetFrameSize(uint32_t frame, uint32_t &width, uint32_t &height) {
+void D2RSprite::GetFrameSize(uint32_t startFrameIdx, int cellSizeX, uint32_t &width, uint32_t &height) {
     width = _width_total / _frames;
     height = _height;
 }

@@ -4,6 +4,7 @@
 #include "cascprovider.h"
 #include "engine.h"
 #include "filesystemprovider.h"
+#include "image.h"
 #include "mpqprovider.h"
 #include <absl/strings/ascii.h>
 #include <absl/strings/str_cat.h>
@@ -65,6 +66,7 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     module.set_function("createSpriteFont", &ScriptHost::LuaCreateSpriteFont, this);
     module.set_function("createTtfFont", &ScriptHost::LuaCreateTtfFont, this);
     module.set_function("loadDS1", &ScriptHost::LuaLoadDS1, this);
+    module.set_function("loadImage", &ScriptHost::LuaLoadImage, this);
     module.set_function("loadString", &ScriptHost::LuaLoadText, this);
     module.set_function("createZone", &ScriptHost::LuaCreateZone, this);
     module.set_function("fileExists", &ScriptHost::LuaFileExists, this);
@@ -85,6 +87,9 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     module.new_usertype<IFont>("IFont", sol::no_constructor);
     module.new_usertype<TtfFont>("TtfFont", sol::no_constructor, sol::base_classes, sol::bases<IFont>());
     module.new_usertype<SpriteFont>("SpriteFont", sol::no_constructor, sol::base_classes, sol::bases<IFont>());
+
+    // Image (Not node based)
+    module.new_usertype<Image>("Image", sol::no_constructor);
 
     // Node
     auto nodeType = module.new_usertype<Node>("Node", sol::no_constructor);
@@ -127,6 +132,7 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     spriteType["blendMode"] = sol::property(&Sprite::LuaGetBlendMode, &Sprite::LuaSetBlendMode);
     spriteType["bottomOrigin"] = sol::property(&Sprite::GetIsBottomOrigin, &Sprite::SetIsBottomOrigin);
     spriteType["playMode"] = sol::property(&Sprite::LuaGetPlayMode, &Sprite::LuaSetPlayMode);
+    spriteType["currentFrameIndex"] = sol::property(&Sprite::GetCurrentFrameIndex, &Sprite::SetCurrentFrameIndex);
 
     // Sound Effect
     auto soundEffect = module.new_usertype<SoundEffect>("SoundEffect", sol::no_constructor);
@@ -340,7 +346,7 @@ bool AbyssEngine::ScriptHost::LuaFileExists(std::string_view fileName) {
     return _engine->GetLoader().FileExists(path);
 }
 
-std::unique_ptr<AbyssEngine::Sprite> AbyssEngine::ScriptHost::LuaCreateSprite(std::string_view spritePath, std::string_view paletteName = "") {
+std::unique_ptr<AbyssEngine::Image> AbyssEngine::ScriptHost::LuaLoadImage(std::string_view spritePath, std::string_view paletteName) {
     const auto &engine = _engine;
     const std::filesystem::path path(spritePath);
 
@@ -352,14 +358,18 @@ std::unique_ptr<AbyssEngine::Sprite> AbyssEngine::ScriptHost::LuaCreateSprite(st
     std::string lower = absl::AsciiStrToLower(spritePath);
     if (lower.ends_with(".dc6")) {
         const auto &palette = engine->GetPalette(paletteName);
-        return std::make_unique<DC6Sprite>(spritePath, stream, palette);
+        return std::make_unique<DC6Sprite>(stream, palette);
     } else if (lower.ends_with(".sprite")) {
         return std::make_unique<D2RSprite>(stream);
     } else
         throw std::runtime_error(absl::StrCat("Unknowns sprite format for file: ", spritePath));
 }
 
-std::unique_ptr<AbyssEngine::Button> AbyssEngine::ScriptHost::LuaCreateButton(Sprite &sprite) { return std::make_unique<Button>(sprite); }
+std::unique_ptr<AbyssEngine::Sprite> AbyssEngine::ScriptHost::LuaCreateSprite(AbyssEngine::Image& image) {
+    return std::make_unique<Sprite>(image);
+}
+
+std::unique_ptr<AbyssEngine::Button> AbyssEngine::ScriptHost::LuaCreateButton(Image &image) { return std::make_unique<Button>(image); }
 
 void AbyssEngine::ScriptHost::LuaSetCursor(Sprite &sprite, int offsetX, int offsetY) { _engine->SetCursorSprite(&sprite, offsetX, offsetY); }
 

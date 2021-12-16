@@ -3,17 +3,21 @@
 ---@class Sprite
 Sprite = {
 
-    ---Description missing for LuaGetBlendMode in sprite.h:40
+    ---Description missing for LuaGetBlendMode in sprite.h:28
     ---@type string
     blendMode,
 
-    ---Description missing for GetIsBottomOrigin in sprite.h:43
+    ---Description missing for GetIsBottomOrigin in sprite.h:31
     ---@type boolean
     bottomOrigin,
 
-    ---Description missing for LuaGetPlayMode in sprite.h:45
+    ---Description missing for LuaGetPlayMode in sprite.h:33
     ---@type string
     playMode,
+
+    ---Description missing for GetCurrentFrameIndex in sprite.h:36
+    ---@type unumber32_t
+    currentFrameIndex,
 }
 
 function Sprite:setCellSize() end

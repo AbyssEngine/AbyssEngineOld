@@ -33,6 +33,7 @@ target_sources(${APP_NAME} PRIVATE
         # Engine Core --------------------------------------------------
         src/abyssengine.cpp
         src/engine/engine.cpp
+        src/engine/image.cpp
         src/engine/loader.cpp
         src/engine/filesystemprovider.cpp
         src/engine/cascprovider.cpp

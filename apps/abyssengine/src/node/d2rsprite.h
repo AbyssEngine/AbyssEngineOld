@@ -1,24 +1,23 @@
 #ifndef ABYSS_D2RSPRITE_H
 #define ABYSS_D2RSPRITE_H
 
-#include "sprite.h"
+#include "../engine/image.h"
 #include <vector>
 
 namespace AbyssEngine {
 
-class D2RSprite : public Sprite {
+class D2RSprite : public Image {
   public:
     explicit D2RSprite(LibAbyss::InputStream &stream);
 
     void GetFrameOffset(uint32_t frame, int &offsetX, int &offsetY) final;
-    void GetFrameSize(uint32_t frame, uint32_t &width, uint32_t &height) final;
+    void GetFrameSize(uint32_t startFrameIdx, int cellSizeX, uint32_t &width, uint32_t &height) final;
     uint32_t GetNumberOfAnimations() final;
     uint32_t GetFramesPerAnimation() final;
 
-  protected:
-    void RegenerateAtlas() final;
-
   private:
+    void RegenerateAtlas();
+
     uint32_t _frames;
     uint32_t _width_total;
     uint32_t _height;

@@ -1,24 +1,25 @@
 #include "dc6sprite.h"
 #include "../engine/engine.h"
 
-AbyssEngine::DC6Sprite::DC6Sprite(std::string_view name, LibAbyss::InputStream &stream, const LibAbyss::Palette &palette)
-    : Sprite(name), _dc6(stream), _palette(palette)  {
+AbyssEngine::DC6Sprite::DC6Sprite(LibAbyss::InputStream &stream, const LibAbyss::Palette &palette)
+    : _dc6(stream), _palette(palette)  {
     if (_dc6.FramesPerDirection == 0 || _dc6.NumberOfDirections == 0)
         throw std::runtime_error("DC6 has no frames!");
+    RegenerateAtlas();
 }
 
 void AbyssEngine::DC6Sprite::GetFrameOffset(uint32_t frame, int &offsetX, int &offsetY) {
-    const auto &item = _dc6.Directions[_currentAnimation].Frames[frame];
+    const auto &item = _dc6.Directions[/*currentAnimation*/ 0].Frames[frame];
     offsetX = item.OffsetX;
     offsetY = item.OffsetY;
 }
 
-void AbyssEngine::DC6Sprite::GetFrameSize(uint32_t frame, uint32_t &width, uint32_t &height) {
+void AbyssEngine::DC6Sprite::GetFrameSize(uint32_t startFrameIdx, int cellSizeX, uint32_t &width, uint32_t &height) {
     width = 0;
     height = 0;
 
-    for (auto i = 0; i < _cellSizeX; i++) {
-        const auto &item = _dc6.Directions[_currentAnimation].Frames[frame + i];
+    for (auto i = 0; i < cellSizeX; i++) {
+        const auto &item = _dc6.Directions[/*currentAnimation*/ 0].Frames[startFrameIdx + i];
         width += item.Width;
         height += item.Height;
     }

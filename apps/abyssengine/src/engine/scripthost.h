@@ -7,6 +7,7 @@
 
 #include "../engine/soundeffect.h"
 #include "../engine/spritefont.h"
+#include "../engine/image.h"
 #include "../node/button.h"
 #include "../node/label.h"
 #include "../node/maprenderer.h"
@@ -88,16 +89,21 @@ class ScriptHost {
     /// \return The text of the file.
     std::string LuaLoadText(std::string_view filePath);
 
-    /// \brief Creates a sprite
+    /// \brief Loads an image from file
     /// \param spritePath The path to the sprite file.
     /// \param paletteName The name of the palette to use for the sprite.
+    /// \return The loaded image.
+    std::unique_ptr<Image> LuaLoadImage(std::string_view spritePath, std::string_view paletteName);
+
+    /// \brief Creates a sprite from the image
+    /// \param image The image to be used for the sprite. Needs to be alive at least as long as the sprite is.
     /// \return The created sprite.
-    std::unique_ptr<Sprite> LuaCreateSprite(std::string_view spritePath, std::string_view paletteName);
+    std::unique_ptr<Sprite> LuaCreateSprite(Image& image);
 
     /// \brief Creates a button
-    /// \param sprite The sprite to use for the button.
+    /// \param image The image to use for the button. Needs to be alive at least as long as the button is.
     /// \return The created button.
-    std::unique_ptr<Button> LuaCreateButton(Sprite &sprite);
+    std::unique_ptr<Button> LuaCreateButton(Image& image);
 
     /// \brief Creates a sprite font
     /// \param fontPath The path to the font file.
