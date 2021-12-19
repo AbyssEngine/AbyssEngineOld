@@ -11,7 +11,7 @@ AbyssEngine::Button::Button(Image &image) : _image(image), _luaActivateCallback(
 AbyssEngine::Button::~Button() = default;
 
 void AbyssEngine::Button::UpdateCallback(uint32_t ticks) {
-    if (!Active)
+    if (!Active || _buttonState == eState::Disabled)
         return;
 
     if (!Visible) {
@@ -147,7 +147,15 @@ void AbyssEngine::Button::RenderCallback(int offsetX, int offsetY) {
     if (frame_index < 0)
         frame_index = _frameIndexNormal;
 
+    if ((frame_index == _frameIndexNormal) && (_buttonState == eState::Disabled)) {
+        _image.SetColorMod(128, 128, 128);
+    }
+
     _image.Render(frame_index, _xSegments, _ySegments, X + offsetX, Y + offsetY);
+
+    if ((frame_index == _frameIndexNormal) && (_buttonState == eState::Disabled)) {
+        _image.SetColorMod(255, 255, 255);
+    }
 
     Node::RenderCallback(offsetX + text_offset_x, offsetY + text_offset_y);
 }
@@ -195,3 +203,7 @@ void AbyssEngine::Button::LuaSetFrameIndex(std::string_view frameType, int index
 void AbyssEngine::Button::LuaSetActivateCallback(sol::safe_function luaActivateCallback) { _luaActivateCallback = std::move(luaActivateCallback); }
 
 void AbyssEngine::Button::LuaSetPressCallback(sol::safe_function luaPressCallback) { _luaPressedCallback = std::move(luaPressCallback); }
+
+void AbyssEngine::Button::SetDisabled(bool disabled) { _buttonState = disabled ? eState::Disabled : eState::Normal; }
+
+bool AbyssEngine::Button::GetDisabled() const { return _buttonState == eState::Disabled; }

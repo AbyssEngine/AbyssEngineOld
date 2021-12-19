@@ -54,7 +54,7 @@ LibAbyss::DS1::DS1(LibAbyss::InputStream &stream) {
     if (Version >= 3)
         LoadObjects(stream);
 
-    if ((Version >= 12) && (SubstitutionType == 1) || (SubstitutionType == 2))
+    if ((Version >= 12) && ((SubstitutionType == 1) || (SubstitutionType == 2)))
         LoadSubstitutions(stream);
 
     if (Version > 14)

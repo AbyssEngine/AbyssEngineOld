@@ -20,7 +20,9 @@ class Button : public Node {
     void SetSize(int x, int y);
     void SetPressedOffset(int x, int y);
     void SetChecked(bool b);
-    bool GetChecked() const;
+    [[nodiscard]] bool GetChecked() const;
+    void SetDisabled(bool disabled);
+    bool GetDisabled() const;
     void LuaSetFrameIndex(std::string_view frameType, int index);
     void LuaSetActivateCallback(sol::safe_function luaActivateCallback);
     void LuaSetPressCallback(sol::safe_function luaPressCallback);

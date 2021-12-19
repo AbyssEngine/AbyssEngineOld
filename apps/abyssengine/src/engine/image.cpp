@@ -36,5 +36,11 @@ void Image::Render(uint32_t frameIdx, int cellSizeX, int cellSizeY, int posX, in
 void Image::SetBlendMode(eBlendMode mode) {
     _blendMode = mode;
 }
+void Image::SetColorMod(uint8_t r, uint8_t g, uint8_t b) {
+    _modR = r;
+    _modG = g;
+    _modB = b;
+    _atlas->SetColorMod(r, g, b);
+}
 
 } // namespace AbyssEngine
