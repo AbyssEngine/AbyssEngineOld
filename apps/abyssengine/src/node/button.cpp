@@ -11,15 +11,43 @@ AbyssEngine::Button::Button(Image &image) : _image(image), _luaActivateCallback(
 AbyssEngine::Button::~Button() = default;
 
 void AbyssEngine::Button::UpdateCallback(uint32_t ticks) {
-    if (!Active || _buttonState == eState::Disabled)
+    auto engine = Engine::Get();
+
+    if (!Active) {
+        if (_mouseHovered) {
+            _mouseHovered = false;
+            if (_luaMouseLeaveCallback.valid()) {
+                auto result = _luaMouseLeaveCallback();
+                if (!result.valid()) {
+                    sol::error err = result;
+                    Engine::Get()->Panic(err.what());
+                    return;
+                }
+            }
+        }
         return;
+    }
 
     if (!Visible) {
+        if (_mouseHovered) {
+            _mouseHovered = false;
+            if (_luaMouseLeaveCallback.valid()) {
+                auto result = _luaMouseLeaveCallback();
+                if (!result.valid()) {
+                    sol::error err = result;
+                    Engine::Get()->Panic(err.what());
+                    return;
+                }
+            }
+        }
         Node::UpdateCallback(ticks);
         return;
     }
 
-    auto engine = Engine::Get();
+    if (_buttonState == eState::Disabled) {
+        Node::UpdateCallback(ticks);
+        return;
+    }
 
     auto mouse_state = engine->GetMouseButtonState();
     int mx;
@@ -33,27 +61,52 @@ void AbyssEngine::Button::UpdateCallback(uint32_t ticks) {
     const auto nx2 = nx1 + _fixedWidth;
     const auto ny2 = ny1 + _fixedHeight;
 
-    const auto mouse_hovered = (mx >= nx1) && (mx < nx2) && (my >= ny1) && (my < ny2);
-    const auto mouse_clicked = (int)(mouse_state & eMouseButton::Left) > 0;
-    const auto focused_node = engine->GetFocusedNode();
-    const bool this_is_focused = this == focused_node;
-    const bool any_is_focused = focused_node != nullptr;
+    const auto mouseHovered = (mx >= nx1) && (mx < nx2) && (my >= ny1) && (my < ny2);
+    const auto mouseClicked = (int)(mouse_state & eMouseButton::Left) > 0;
+    const auto focusedNode = engine->GetFocusedNode();
+    const bool thisIsFocused = this == focusedNode;
+    const bool anyIsFocused = focusedNode != nullptr;
 
-    if (this_is_focused) {
-        if (!mouse_clicked && !mouse_hovered) {
+    if (Visible) {
+        if (mouseHovered && !_mouseHovered) {
+            _mouseHovered = true;
+
+            if (_luaMouseEnterCallback.valid()) {
+                auto result = _luaMouseEnterCallback();
+                if (!result.valid()) {
+                    sol::error err = result;
+                    Engine::Get()->Panic(err.what());
+                    return;
+                }
+            }
+        } else if (!mouseHovered && _mouseHovered) {
+            _mouseHovered = false;
+            if (_luaMouseLeaveCallback.valid()) {
+                auto result = _luaMouseLeaveCallback();
+                if (!result.valid()) {
+                    sol::error err = result;
+                    Engine::Get()->Panic(err.what());
+                    return;
+                }
+            }
+        }
+    }
+
+    if (thisIsFocused) {
+        if (!mouseClicked && !mouseHovered) {
             engine->SetFocusedNode(nullptr);
             _buttonState = eState::Normal;
             Node::UpdateCallback(ticks);
             return;
         }
 
-        if (mouse_clicked && mouse_hovered) {
+        if (mouseClicked && mouseHovered) {
             _buttonState = eState::Pressed;
             Node::UpdateCallback(ticks);
             return;
         }
 
-        if (!mouse_clicked && mouse_hovered) {
+        if (!mouseClicked && mouseHovered) {
             engine->SetFocusedNode(nullptr);
             _buttonState = eState::Hover;
 
@@ -76,25 +129,25 @@ void AbyssEngine::Button::UpdateCallback(uint32_t ticks) {
         return;
     }
 
-    if (!mouse_hovered && mouse_clicked) {
+    if (!mouseHovered && mouseClicked) {
         _ignoreMouseActivation = true;
         Node::UpdateCallback(ticks);
         return;
     }
 
-    if (_ignoreMouseActivation && !mouse_clicked) {
+    if (_ignoreMouseActivation && !mouseClicked) {
         _ignoreMouseActivation = false;
         Node::UpdateCallback(ticks);
         return;
     }
 
-    if (!_ignoreMouseActivation && mouse_hovered && !mouse_clicked && !any_is_focused) {
+    if (!_ignoreMouseActivation && mouseHovered && !mouseClicked && !anyIsFocused) {
         _buttonState = eState::Hover;
         Node::UpdateCallback(ticks);
         return;
     }
 
-    if (!_ignoreMouseActivation && mouse_hovered && mouse_clicked && (!any_is_focused)) {
+    if (!_ignoreMouseActivation && mouseHovered && mouseClicked && (!anyIsFocused)) {
         _buttonState = eState::Pressed;
         engine->SetFocusedNode(this);
         Node::UpdateCallback(ticks);
@@ -207,3 +260,11 @@ void AbyssEngine::Button::LuaSetPressCallback(sol::safe_function luaPressCallbac
 void AbyssEngine::Button::SetDisabled(bool disabled) { _buttonState = disabled ? eState::Disabled : eState::Normal; }
 
 bool AbyssEngine::Button::GetDisabled() const { return _buttonState == eState::Disabled; }
+
+void AbyssEngine::Button::LuaSetMouseEnterCallback(sol::safe_function luaMouseEnterCallback) {
+    _luaMouseEnterCallback = std::move(luaMouseEnterCallback);
+}
+
+void AbyssEngine::Button::LuaSetMouseLeaveCallback(sol::safe_function luaMouseLeaveCallback) {
+    _luaMouseLeaveCallback = std::move(luaMouseLeaveCallback);
+}
