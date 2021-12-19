@@ -17,6 +17,9 @@ function abyss.addLoaderProvider(providerType, providerPath) end
 ---@return Button @ The created button.
 function abyss.createButton(image) end
 
+---No comment defined for this function in scripthost.h:147
+function abyss.createInputListener() end
+
 ---Creates a label
 ---@param font IFont @ The font to use for the label.
 ---@return Label @ The created label.
@@ -99,7 +102,7 @@ function abyss.playBackgroundMusic(fileName) end
 ---@param callback function @ The callback to call when the video is finished.
 function abyss.playVideo(videoPath, callback) end
 
----Plays video and audio (for videos with seperate audio tracks)
+---Plays video and audio (for videos with separate audio tracks)
 ---@param videoPath string @ The path to the video file.
 ---@param audioPath string @ The path to the audio file.
 ---@param callback function @ The callback to call when the video is finished.
@@ -121,3 +124,14 @@ function abyss.showSystemCursor(show) end
 ---Shuts down the engine
 function abyss.shutdown() end
 
+---Converts world coordinates to orthographic coordinates
+---@param x number @ The world X coordinate.
+---@param y number @ The world Y coordinate.
+---@return number, number @ The X/Y ortho coordinates.
+function abyss.worldToOrtho(x, y) end
+
+---Converts orthographic coordinates to world coordinates
+---@param x number @ The ortho X coordinate.
+---@param y number @ The ortho Y coordinate.
+---@return number, number @ The X/Y world coordinates.
+function abyss.orthoToWorld(x, y) end

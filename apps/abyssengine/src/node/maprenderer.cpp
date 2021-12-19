@@ -197,7 +197,7 @@ void AbyssEngine::MapRenderer::Compile(std::string_view paletteName) {
     const auto &palette = Engine::Get()->GetPalette(paletteName);
     _mapTileRects.clear();
 
-    const auto maxTextureWidth = 8128;
+    const auto maxTextureWidth = 8192;
     int nextRowY = 0;
     int curX = 0;
     int curY = 0;

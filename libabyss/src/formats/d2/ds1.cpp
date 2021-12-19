@@ -220,9 +220,10 @@ void LibAbyss::DS1::LoadNPCs(LibAbyss::InputStream &stream) {
             break;
         }
 
-        if (objectIdx >= 0)
-            LoadNPCPaths(stream, objectIdx, numPaths);
-        else
+        // TODO: This crashes for some reason right now
+//        if (objectIdx >= 0)
+//            LoadNPCPaths(stream, objectIdx, numPaths);
+//        else
             stream.seekg(numPaths * (Version > 15 ? 3 : 2), std::ios::cur);
     }
 }
