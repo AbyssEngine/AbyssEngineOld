@@ -6,7 +6,7 @@
 
 LibAbyss::Zone::Zone(LibAbyss::ProvideDT1Handler provideDT1Handler) : _provideDT1Handler(std::move(provideDT1Handler)) {}
 
-void LibAbyss::Zone::ResetMap(const LibAbyss::LevelType &levelType, int width, int height, uint64_t seed) {
+void LibAbyss::Zone::ResetMap(const LibAbyss::LevelType &levelType, uint32_t dt1Mask, int width, int height, uint64_t seed) {
     WidthInTiles = width;
     HeightInTiles = height;
 
@@ -20,14 +20,18 @@ void LibAbyss::Zone::ResetMap(const LibAbyss::LevelType &levelType, int width, i
     DT1Files.clear();
 
     // Go through each DT1 file and load the tiles
-    for (const auto &file : levelType.Files)
-        AddDT1File(file);
+    for (const auto &file : levelType.Files) {
+        if (((dt1Mask & 1) != 0) && !file.ends_with("/0"))
+            AddDT1File(file);
+        dt1Mask >>= 1;
+    }
 }
-void LibAbyss::Zone::Stamp(const LibAbyss::DS1 &ds1, int x, int y) {
+void LibAbyss::Zone::Stamp(const LibAbyss::DS1 &ds1, int x, int y)   {
 
     // Load all of the DS1 files
     for (auto &file : ds1.Files)
-        AddDT1File(file);
+        if (!file.ends_with("/0"))
+            AddDT1File(file);
 
     for (int ty = 0; ty < ds1.Height; ty++) {
         for (int tx = 0; tx < ds1.Width; tx++) {
