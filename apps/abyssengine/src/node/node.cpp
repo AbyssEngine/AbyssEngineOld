@@ -1,5 +1,8 @@
 #include "node.h"
+#include "../engine/engine.h"
 #include <spdlog/spdlog.h>
+
+#include <utility>
 
 AbyssEngine::Node::Node() : _addChildQueue(), _removeChildQueue() {}
 
@@ -7,6 +10,15 @@ AbyssEngine::Node::Node(std::string_view name) : Name(name) {}
 
 void AbyssEngine::Node::UpdateCallback(uint32_t ticks) {
     ProcessQueuedActions();
+
+    if (_onUpdateHandler.valid()) {
+        auto result = _onUpdateHandler((float)ticks / 1000.f);
+
+        if (!result.valid()) {
+            sol::error err = result;
+            Engine::Get()->Panic(err.what());
+        }
+    }
 
     for (auto &item : Children) {
         if (!item->Active)
@@ -104,4 +116,9 @@ void AbyssEngine::Node::DoInitialize() {
         item->DoInitialize();
     }
 }
+
 void AbyssEngine::Node::Initialize() {}
+
+void AbyssEngine::Node::SetLuaOnUpdateHandler(sol::protected_function onUpdateHandler) {
+    _onUpdateHandler = std::move(onUpdateHandler);
+}

@@ -64,7 +64,7 @@ void SpriteLabel::DoRender(int x, int y) {
 void TtfLabel::DoRender(int x, int y) {
     _texture->SetBlendMode(_blendMode);
     _texture->SetColorMod(_colorMod.Red, _colorMod.Green, _colorMod.Blue);
-    AbyssEngine::Rectangle dst;
+    AbyssEngine::Rectangle dst {};
     dst.X = x;
     dst.Y = y;
     dst.Width = _rect.Width;

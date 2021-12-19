@@ -102,6 +102,7 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     nodeType["removeChild"] = &Node::RemoveChild;
     nodeType["getPosition"] = &Node::GetPosition;
     nodeType["setPosition"] = &Node::SetPosition;
+    nodeType["onUpdate"] = &Node::SetLuaOnUpdateHandler;
     nodeType["visible"] = sol::property(&Node::GetVisible, &Node::SetVisible);
     nodeType["active"] = sol::property(&Node::GetActive, &Node::SetActive);
     nodeType["data"] = sol::property(&Node::GetLuaTable, &Node::SetLuaTable);
