@@ -52,7 +52,7 @@ AbyssEngine::SDL2::SDL2SystemIO::SDL2SystemIO()
 
 #endif // __APPLE__
 
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
     SDL_SetHint(SDL_HINT_AUDIO_DEVICE_APP_NAME, "Abyss Engine");
 
     _sdlRenderer = std::unique_ptr<SDL_Renderer, std::function<void(SDL_Renderer *)>>(
