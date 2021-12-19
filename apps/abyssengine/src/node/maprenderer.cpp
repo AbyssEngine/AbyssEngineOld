@@ -146,21 +146,21 @@ void AbyssEngine::MapRenderer::RenderMapBorderLines(AbyssEngine::SystemIO &io) c
     // TL->TR
     x1 = 0;
     y1 = 0;
-    x2 = _zone->WidthInTiles + 1;
+    x2 = _zone->WidthInTiles;
     y2 = 0;
     WorldToOrtho(x1, y1);
     WorldToOrtho(x2, y2);
     io.DrawLine(X + x1, Y + y1, X + x2, Y + y2, 0x00, 0xFF, 0x00);
 
     // TR->BR
-    x1 = _zone->WidthInTiles + 1;
-    y1 = _zone->HeightInTiles + 1;
+    x1 = _zone->WidthInTiles;
+    y1 = _zone->HeightInTiles;
     WorldToOrtho(x1, y1);
     io.DrawLine(X + x1, Y + y1, X + x2, Y + y2, 0x00, 0xFF, 0x00);
 
     // BR->BL
     x2 = 0;
-    y2 = _zone->HeightInTiles + 1;
+    y2 = _zone->HeightInTiles;
     WorldToOrtho(x2, y2);
     io.DrawLine(X + x1, Y + y1, X + x2, Y + y2, 0x00, 0xFF, 0x00);
 

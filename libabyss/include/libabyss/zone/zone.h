@@ -13,7 +13,7 @@ namespace LibAbyss {
 class Zone {
   public:
     explicit Zone(ProvideDT1Handler provideDt1Handler);
-    void ResetMap(const LevelType& levelType, int width, int height, uint64_t seed);
+    void ResetMap(const LevelType& levelType, uint32_t dt1Mask, int width, int height, uint64_t seed);
     void Stamp(const DS1& ds1, int x, int y);
     std::vector<DT1::Tile> GetTileInfo(int x, int y);
 
