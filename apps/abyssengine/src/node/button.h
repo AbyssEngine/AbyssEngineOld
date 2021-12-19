@@ -22,10 +22,12 @@ class Button : public Node {
     void SetChecked(bool b);
     [[nodiscard]] bool GetChecked() const;
     void SetDisabled(bool disabled);
-    bool GetDisabled() const;
+    [[nodiscard]] bool GetDisabled() const;
     void LuaSetFrameIndex(std::string_view frameType, int index);
     void LuaSetActivateCallback(sol::safe_function luaActivateCallback);
     void LuaSetPressCallback(sol::safe_function luaPressCallback);
+    void LuaSetMouseEnterCallback(sol::safe_function _luaMouseEnterCallback);
+    void LuaSetMouseLeaveCallback(sol::safe_function _luaMouseLeaveCallback);
 
     [[nodiscard]] std::string_view NodeType() const final { return "Button Node"; }
 
@@ -33,6 +35,7 @@ class Button : public Node {
     Image &_image;
     eState _buttonState = eState::Normal;
     bool _checked = false;
+    bool _mouseHovered = false;
     uint8_t _xSegments = 0;
     uint8_t _ySegments = 0;
     int _pressedOffsetX = 0;
@@ -49,6 +52,8 @@ class Button : public Node {
     bool _ignoreMouseActivation = false;
     sol::safe_function _luaActivateCallback;
     sol::safe_function _luaPressedCallback;
+    sol::protected_function _luaMouseEnterCallback;
+    sol::protected_function _luaMouseLeaveCallback;
 };
 } // namespace AbyssEngine
 

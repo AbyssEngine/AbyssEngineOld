@@ -9,10 +9,12 @@
 #include "mpqprovider.h"
 #include <absl/strings/ascii.h>
 #include <absl/strings/str_cat.h>
+#include <codecvt>
 #include <filesystem>
 #include <libabyss/common/levelpreset.h>
 #include <libabyss/common/leveltype.h>
 #include <libabyss/formats/d2/dt1.h>
+#include <locale>
 #include <memory>
 #include <sol/sol.hpp>
 #include <spdlog/spdlog.h>
@@ -75,6 +77,7 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     module.set_function("getConfig", &ScriptHost::LuaGetConfig, this);
     module.set_function("getRootNode", &ScriptHost::LuaGetRootNode, this);
     module.set_function("log", &ScriptHost::LuaLog, this);
+    module.set_function("orthoToWorld", &ScriptHost::LuaOrthoToWorld, this);
     module.set_function("playBackgroundMusic", &ScriptHost::LuaPlayBackgroundMusic, this);
     module.set_function("playVideo", &ScriptHost::LuaPlayVideo, this);
     module.set_function("playVideoAndAudio", &ScriptHost::LuaPlayVideoAndAudio, this);
@@ -82,8 +85,8 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     module.set_function("setCursor", &ScriptHost::LuaSetCursor, this);
     module.set_function("showSystemCursor", &ScriptHost::LuaShowSystemCursor, this);
     module.set_function("shutdown", &ScriptHost::LuaFuncShutdown, this);
+    module.set_function("utf16To8", &ScriptHost::LuaUtf16To8, this);
     module.set_function("worldToOrtho", &ScriptHost::LuaWorldToOrtho, this);
-    module.set_function("orthoToWorld", &ScriptHost::LuaOrthoToWorld, this);
 
     // User Types -------------------------------------------------------------------------------------------------------------------------
 
@@ -117,6 +120,8 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     buttonType["onActivate"] = &Button::LuaSetActivateCallback;
     buttonType["onPressed"] = &Button::LuaSetPressCallback;
     buttonType["disabled"] = sol::property(&Button::GetDisabled, &Button::SetDisabled);
+    buttonType["onMouseEnter"] = &Button::LuaSetMouseEnterCallback;
+    buttonType["onMouseLeave"] = &Button::LuaSetMouseLeaveCallback;
 
     // Label
     auto labelType = CreateLuaObjectType<Label>(module, "Label", sol::no_constructor);
@@ -514,4 +519,7 @@ std::tuple<int, int> AbyssEngine::ScriptHost::LuaWorldToOrtho(int x, int y) {
 std::tuple<int, int> AbyssEngine::ScriptHost::LuaOrthoToWorld(int x, int y) {
     MapRenderer::OrthoToWorld(x, y);
     return {x, y};
+}
+std::string AbyssEngine::ScriptHost::LuaUtf16To8(const std::u16string& str) {
+    return std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(str);
 }

@@ -174,6 +174,11 @@ class ScriptHost {
     /// \param y The ortho Y coordinate.
     /// \return The X/Y world coordinates.
     std::tuple<int, int> LuaOrthoToWorld(int x, int y);
+
+    /// \brief Converts UTF16 to UTF8
+    /// \param str The source string.
+    /// \return The string in UTF8 format.
+    std::string LuaUtf16To8(const std::u16string& str);
 };
 
 } // namespace AbyssEngine
