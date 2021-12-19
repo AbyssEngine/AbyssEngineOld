@@ -12,7 +12,7 @@ const int DecodeBufferSize = 1024;
 
 AbyssEngine::Video::Video(std::string_view name, LibAbyss::InputStream stream, std::optional<LibAbyss::InputStream>
         separateAudio)
-    : Node(name), _stream(std::move(stream)), _ringBuffer(1024 * 1024), _videoCodecContext(), _audioCodecContext(), _avFrame(), _avBuffer(),
+    : Node(name), _stream(std::move(stream)), _ringBuffer(1024 * 4096), _videoCodecContext(), _audioCodecContext(), _avFrame(), _avBuffer(),
       _yPlane(), _uPlane(), _vPlane(), _sourceRect(), _targetRect() {
 
     _avBuffer = (unsigned char *)av_malloc(DecodeBufferSize); // AVIO is going to free this automagically... because why not?
@@ -295,4 +295,3 @@ std::string AbyssEngine::Video::AvErrorCodeToString(int avError) {
 }
 
 bool AbyssEngine::Video::GetIsPlaying() const { return _isPlaying; }
-
