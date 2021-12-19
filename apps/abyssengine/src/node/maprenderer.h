@@ -33,6 +33,7 @@ class MapRenderer : public Node {
     std::vector<Rectangle> _mapTileRects;
     std::unique_ptr<ITexture> _mapTileset;
     static void DecodeTileGraphics(LibAbyss::DT1::Tile &tile, Rectangle &tileRect, uint32_t *pixelBuffer, int textureWidth, const LibAbyss::Palette &palette);
+    void GetTileSize(const LibAbyss::DT1::Tile &tile, int &width, int &height);
 };
 } // namespace AbyssEngine
 

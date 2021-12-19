@@ -15,6 +15,7 @@ class Zone {
     explicit Zone(ProvideDT1Handler provideDt1Handler);
     void ResetMap(const LevelType& levelType, int width, int height, uint64_t seed);
     void Stamp(const DS1& ds1, int x, int y);
+    std::vector<DT1::Tile> GetTileInfo(int x, int y);
 
     std::vector<DT1::Tile> Tiles;
 
@@ -30,9 +31,10 @@ class Zone {
     int HeightInTiles = 0;
     std::vector<std::string> DT1Files;
 
+
   private:
     void AddDT1File(std::string_view fileName);
-    int GetTile(int style, int sequence, TileType type);
+    int GetTile(int style, int sequence, uint32_t type);
     ProvideDT1Handler _provideDT1Handler;
     uint64_t _seed = 0;
 };

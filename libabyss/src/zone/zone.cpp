@@ -1,7 +1,8 @@
 #include <absl/strings/ascii.h>
 #include <libabyss/zone/zone.h>
-#include <utility>
+#include <random>
 #include <spdlog/spdlog.h>
+#include <utility>
 
 LibAbyss::Zone::Zone(LibAbyss::ProvideDT1Handler provideDT1Handler) : _provideDT1Handler(std::move(provideDT1Handler)) {}
 
@@ -30,6 +31,7 @@ void LibAbyss::Zone::Stamp(const LibAbyss::DS1 &ds1, int x, int y) {
 
     for (int ty = 0; ty < ds1.Height; ty++) {
         for (int tx = 0; tx < ds1.Width; tx++) {
+            const int idx = x + tx + ((y + ty) * WidthInTiles);
 
             // Load the floors
             for (int i = 0; i < ds1.Floors.size(); i++) {
@@ -38,19 +40,19 @@ void LibAbyss::Zone::Stamp(const LibAbyss::DS1 &ds1, int x, int y) {
                     Floors[i].resize(WidthInTiles * HeightInTiles);
                 }
 
-                auto &tile = ds1.Floors[i](tx, ty);
+                const auto &tile = ds1.Floors[i](tx, ty);
 
                 if (tile.Common.Style == 30) {
-                    Floors[i][(x + tx + ((y + ty) * WidthInTiles))] = -1;
+                    Floors[i][idx] = -1;
                     continue;
                 }
 
-                if (tile.Common.Invisible == 0) {
-                    Floors[i][(x + tx + ((y + ty) * WidthInTiles))] = -1;
+                if (tile.Common.Visible == 0) {
+                    Floors[i][idx] = -1;
                     continue;
                 }
 
-                Floors[i][(x + tx + ((y + ty) * WidthInTiles))] = GetTile(tile.Common.Style, tile.Common.Sequence, TileType::Floor);
+                Floors[i][idx] = GetTile(tile.Common.Style, tile.Common.Sequence, 0);
             }
 
             // Load the walls
@@ -60,7 +62,7 @@ void LibAbyss::Zone::Stamp(const LibAbyss::DS1 &ds1, int x, int y) {
                     Walls[i].resize(WidthInTiles * HeightInTiles);
                 }
 
-                auto &tile = ds1.Walls[i](tx, ty);
+                const auto &tile = ds1.Walls[i](tx, ty);
 
                 if ((TileType)tile.Wall.Type == TileType::SpecialTile1 || (TileType)tile.Wall.Type == TileType::SpecialTile2) {
                     if (tile.Common.Style == 30) {
@@ -68,16 +70,16 @@ void LibAbyss::Zone::Stamp(const LibAbyss::DS1 &ds1, int x, int y) {
                         StartTileY = ty;
                     }
 
-                    Walls[i][(x + tx + ((y + ty) * WidthInTiles))] = -1;
+                    Walls[i][idx] = -1;
                     continue;
                 }
 
-                if (tile.Common.Invisible == 0) {
-                    Walls[i][(x + tx + ((y + ty) * WidthInTiles))] = -1;
+                if (tile.Common.Visible == 0) {
+                    Walls[i][idx] = -1;
                     continue;
                 }
 
-                Walls[i][(x + tx + ((y + ty) * WidthInTiles))] = GetTile(tile.Common.Style, tile.Common.Sequence, (TileType)tile.Wall.Type);
+                Walls[i][idx] = GetTile(tile.Common.Style, tile.Common.Sequence, tile.Wall.Type);
             }
 
             // Load the shadows
@@ -87,20 +89,19 @@ void LibAbyss::Zone::Stamp(const LibAbyss::DS1 &ds1, int x, int y) {
                     Shadows[i].resize(WidthInTiles * HeightInTiles);
                 }
 
-                auto &tile = ds1.Shadows[i](tx, ty);
+                const auto &tile = ds1.Shadows[i](tx, ty);
 
                 if (tile.Common.Style == 30) {
-                    Shadows[i][(x + tx + ((y + ty) * WidthInTiles))] = -1;
+                    Shadows[i][idx] = -1;
                     continue;
                 }
 
-
-                if (tile.Common.Invisible == 0) {
-                    Shadows[i][(x + tx + ((y + ty) * WidthInTiles))] = -1;
+                if (tile.Common.Visible == 0) {
+                    Shadows[i][idx] = -1;
                     continue;
                 }
 
-                Shadows[i][(x + tx + ((y + ty) * WidthInTiles))] = GetTile(tile.Common.Style, tile.Common.Sequence, TileType::Shadow);
+                Shadows[i][idx] = GetTile(tile.Common.Style, tile.Common.Sequence, 13);
             }
 
             // Load the substitution groups
@@ -126,16 +127,65 @@ void LibAbyss::Zone::AddDT1File(std::string_view fileName) {
     Tiles.insert(Tiles.end(), dt1.Tiles.begin(), dt1.Tiles.end());
 }
 
-int LibAbyss::Zone::GetTile(int style, int sequence, TileType type) {
-    for (int i = 0; i < Tiles.size(); i++) {
-        auto &tile = Tiles[i];
+static std::random_device randomDevice;
+static std::mt19937 randomGenerator(randomDevice());
 
-        if (tile.Style != style || tile.Sequence != sequence || tile.Type != (int32_t)type)
+int LibAbyss::Zone::GetTile(int style, int sequence, uint32_t type) {
+    int firstTileIdx = -1;
+    std::vector<int> tileIds;
+
+    for (int i = 0; i < Tiles.size(); i++) {
+        const auto &tile = Tiles[i];
+
+        if ((tile.MainIndex != style) || (tile.SubIndex != sequence) || (tile.Type != type))
             continue;
 
-        return i;
+        if (tile.Width == 0 || tile.Height == 0)
+            continue;
+
+        if (firstTileIdx == -1)
+            firstTileIdx = i;
+
+        for (int ri = 0; ri < tile.RarityFrameIndex; ri++)
+            tileIds.push_back(i);
     }
 
-    SPDLOG_WARN("Could not find tile with style {}, sequence {}, and type {}", style, sequence, (int32_t)type);
-    return -1;
+    if (tileIds.empty()) {
+        if (firstTileIdx >= 0) {
+            if ((TileType)Tiles[firstTileIdx].Type == TileType::RightPartOfNorthCornerWall) {
+                Tiles[firstTileIdx].AltTile = GetTile(style, sequence, (uint32_t)TileType::LeftPartOfNorthCornerWall);
+            }
+            Tiles[firstTileIdx].InUse = true;
+            return firstTileIdx;
+        }
+
+        SPDLOG_WARN("Could not find tile with style {}, sequence {}, and type {}", style, sequence, type);
+        return -1;
+    }
+
+    auto start = tileIds.begin();
+    std::uniform_int_distribution<> dis(0, std::distance(start, tileIds.end()) - 1);
+    std::advance(start, dis(randomGenerator));
+
+    auto tileIdx = *start;
+    if ((TileType)Tiles[tileIdx].Type == TileType::RightPartOfNorthCornerWall) {
+        Tiles[tileIdx].AltTile = GetTile(style, sequence, (uint32_t)TileType::LeftPartOfNorthCornerWall);
+    }
+
+    Tiles[tileIdx].InUse = true;
+    return tileIdx;
+}
+std::vector<LibAbyss::DT1::Tile> LibAbyss::Zone::GetTileInfo(int x, int y) {
+    std::vector<DT1::Tile> result;
+    const uint32_t idx = x + (y * WidthInTiles);
+
+    for (const auto &floor : Floors)
+        if (floor[idx] >= 0)
+            result.push_back(Tiles[floor[idx]]);
+
+    for (const auto &wall : Walls)
+        if (wall[idx] >= 0)
+            result.push_back(Tiles[wall[idx]]);
+
+    return result;
 }

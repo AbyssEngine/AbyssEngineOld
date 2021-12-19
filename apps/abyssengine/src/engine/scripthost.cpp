@@ -1,6 +1,7 @@
 #include "scripthost.h"
 #include "../node/d2rsprite.h"
 #include "../node/dc6sprite.h"
+#include "../node/inputlistener.h"
 #include "cascprovider.h"
 #include "engine.h"
 #include "filesystemprovider.h"
@@ -58,6 +59,7 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
 
     module.set_function("addLoaderProvider", &ScriptHost::LuaAddLoaderProvider, this);
     module.set_function("createButton", &ScriptHost::LuaCreateButton, this);
+    module.set_function("createInputListener", &ScriptHost::LuaCreateInputListener, this);
     module.set_function("createLabel", &ScriptHost::LuaCreateLabel, this);
     module.set_function("createMapRenderer", &ScriptHost::LuaCreateMapRenderer, this);
     module.set_function("createPalette", &ScriptHost::LuaCreatePalette, this);
@@ -80,6 +82,8 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     module.set_function("setCursor", &ScriptHost::LuaSetCursor, this);
     module.set_function("showSystemCursor", &ScriptHost::LuaShowSystemCursor, this);
     module.set_function("shutdown", &ScriptHost::LuaFuncShutdown, this);
+    module.set_function("worldToOrtho", &ScriptHost::LuaWorldToOrtho, this);
+    module.set_function("orthoToWorld", &ScriptHost::LuaOrthoToWorld, this);
 
     // User Types -------------------------------------------------------------------------------------------------------------------------
 
@@ -134,6 +138,11 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     spriteType["playMode"] = sol::property(&Sprite::LuaGetPlayMode, &Sprite::LuaSetPlayMode);
     spriteType["currentFrameIndex"] = sol::property(&Sprite::GetCurrentFrameIndex, &Sprite::SetCurrentFrameIndex);
 
+    // InputListener
+    auto inputListenerType = CreateLuaObjectType<InputListener>(module, "InputListener", sol::no_constructor);
+    inputListenerType["onMouseButton"] = &InputListener::LuaSetMouseButtonCallback;
+    inputListenerType["onMouseMove"] = &InputListener::LuaSetMouseMoveCallback;
+
     // Sound Effect
     auto soundEffect = module.new_usertype<SoundEffect>("SoundEffect", sol::no_constructor);
     soundEffect["play"] = &SoundEffect::Play;
@@ -185,10 +194,19 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     ds1.set("width", sol::property(&LibAbyss::DS1::Width, &LibAbyss::DS1::Width));
     ds1.set("height", sol::property(&LibAbyss::DS1::Height, &LibAbyss::DS1::Height));
 
+    // DT1 Tile
+    auto dt1TileType = module.new_usertype<LibAbyss::DT1::Tile>("DT1Tile", sol::no_constructor);
+    dt1TileType["type"] = sol::readonly_property(&LibAbyss::DT1::Tile::Type);
+    dt1TileType["mainIndex"] = sol::readonly_property(&LibAbyss::DT1::Tile::MainIndex);
+    dt1TileType["subIndex"] = sol::readonly_property(&LibAbyss::DT1::Tile::SubIndex);
+
     // Zone
     auto zoneType = module.new_usertype<LibAbyss::Zone>("Zone", sol::no_constructor);
     zoneType["resetMap"] = &LibAbyss::Zone::ResetMap;
     zoneType["stamp"] = &LibAbyss::Zone::Stamp;
+    zoneType["getTileInfo"] = &LibAbyss::Zone::GetTileInfo;
+    zoneType["width"] = sol::readonly_property(&LibAbyss::Zone::WidthInTiles);
+    zoneType["height"] = sol::readonly_property(&LibAbyss::Zone::HeightInTiles);
 
     _environment.add(module);
 }
@@ -365,9 +383,7 @@ std::unique_ptr<AbyssEngine::Image> AbyssEngine::ScriptHost::LuaLoadImage(std::s
         throw std::runtime_error(absl::StrCat("Unknowns sprite format for file: ", spritePath));
 }
 
-std::unique_ptr<AbyssEngine::Sprite> AbyssEngine::ScriptHost::LuaCreateSprite(AbyssEngine::Image& image) {
-    return std::make_unique<Sprite>(image);
-}
+std::unique_ptr<AbyssEngine::Sprite> AbyssEngine::ScriptHost::LuaCreateSprite(AbyssEngine::Image &image) { return std::make_unique<Sprite>(image); }
 
 std::unique_ptr<AbyssEngine::Button> AbyssEngine::ScriptHost::LuaCreateButton(Image &image) { return std::make_unique<Button>(image); }
 
@@ -484,4 +500,16 @@ std::unique_ptr<LibAbyss::DS1> AbyssEngine::ScriptHost::LuaLoadDS1(std::string_v
 
     auto stream = _engine->GetLoader().Load(fileName);
     return std::make_unique<LibAbyss::DS1>(stream);
+}
+
+std::unique_ptr<AbyssEngine::InputListener> AbyssEngine::ScriptHost::LuaCreateInputListener() { return std::make_unique<InputListener>(); }
+
+std::tuple<int, int> AbyssEngine::ScriptHost::LuaWorldToOrtho(int x, int y) {
+    MapRenderer::WorldToOrtho(x, y);
+    return {x, y};
+}
+
+std::tuple<int, int> AbyssEngine::ScriptHost::LuaOrthoToWorld(int x, int y) {
+    MapRenderer::OrthoToWorld(x, y);
+    return {x, y};
 }

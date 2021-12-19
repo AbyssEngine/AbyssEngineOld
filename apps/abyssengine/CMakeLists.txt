@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(APP_NAME abyssengine)
 
 if (MSVC)
-    set(OPTIONS WIN32)
+    set(OPTIONS WIN32 src/node/inputlistener.cpp src/node/inputlistener.h)
     set(SOURCE_EXTRA resource.rc)
     set(APP_NAME "AbyssEngine")
     add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_HAS_DEPRECATED_RESULT_OF=1)
@@ -54,6 +54,7 @@ target_sources(${APP_NAME} PRIVATE
         src/node/label.cpp
         src/node/button.cpp
         src/node/maprenderer.cpp
+        src/node/inputlistener.cpp
 
         # Scripting ----------------------------------------------------
         src/engine/scripthost.cpp
@@ -191,4 +192,3 @@ if (APPLE)
 endif(APPLE)
 
 target_compile_features(${APP_NAME} PRIVATE cxx_std_20)
-

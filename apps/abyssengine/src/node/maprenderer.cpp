@@ -12,9 +12,7 @@ void AbyssEngine::MapRenderer::UpdateCallback(uint32_t ticks) { Node::UpdateCall
 void AbyssEngine::MapRenderer::RenderCallback(int offsetX, int offsetY) {
     auto &io = Engine::Get()->GetSystemIO();
 
-    // ---------------------------------------------------------------------------------------------------------------------------
-    // Pass 1
-    // ---------------------------------------------------------------------------------------------------------------------------
+    //    // Lower Walls (below the floor
     for (int y = 0; y < _zone->HeightInTiles; y++) {
         for (int x = 0; x < _zone->WidthInTiles; x++) {
             int dx = x;
@@ -26,18 +24,17 @@ void AbyssEngine::MapRenderer::RenderCallback(int offsetX, int offsetY) {
                     continue;
                 const auto &tile = _zone->Tiles[tileIndex];
 
-                const auto ett = (TileType)tile.Type;
-                if (!(ett == TileType::LowerWallsEquivalentToLeftWall || ett == TileType::LowerWallsEquivalentToRightWall ||
-                    ett == TileType::LowerWallsEquivalentToRightLeftNorthCornerWall || ett == TileType::LowerWallsEquivalentToSouthCornerWall))
+                if (tile.GetTileType() != LibAbyss::DT1::GeneralTileType::LowerWall)
                     continue;
 
                 const auto &tileRect = _mapTileRects[tileIndex];
-                Rectangle destRect = {.X = dx - 80 + X, .Y = dy + Y, .Width = tileRect.Width, .Height = tileRect.Height};
+                Rectangle destRect = {.X = dx - 80 + X, .Y = dy + Y + tile.YAdjust, .Width = tileRect.Width, .Height = tileRect.Height};
                 _mapTileset->Render(tileRect, destRect);
             }
         }
     }
 
+    // Floors
     for (int y = 0; y < _zone->HeightInTiles; y++) {
         for (int x = 0; x < _zone->WidthInTiles; x++) {
             int dx = x;
@@ -48,13 +45,15 @@ void AbyssEngine::MapRenderer::RenderCallback(int offsetX, int offsetY) {
                 if (tileIndex < 0)
                     continue;
                 const auto &tile = _zone->Tiles[tileIndex];
+
                 const auto &tileRect = _mapTileRects[tileIndex];
-                Rectangle destRect = {.X = dx - 80 + X, .Y = dy + Y, .Width = tileRect.Width, .Height = tileRect.Height};
+                Rectangle destRect = {.X = dx - 80 + X, .Y = dy + Y + tile.YAdjust, .Width = tileRect.Width, .Height = tileRect.Height};
                 _mapTileset->Render(tileRect, destRect);
             }
         }
     }
-
+    //
+    //    // Shadows
     for (int y = 0; y < _zone->HeightInTiles; y++) {
         for (int x = 0; x < _zone->WidthInTiles; x++) {
             int dx = x;
@@ -66,12 +65,11 @@ void AbyssEngine::MapRenderer::RenderCallback(int offsetX, int offsetY) {
                     continue;
                 const auto &tile = _zone->Tiles[tileIndex];
                 const auto &tileRect = _mapTileRects[tileIndex];
-                Rectangle destRect = {.X = dx - 80 + X, .Y = dy + Y - 80, .Width = tileRect.Width, .Height = tileRect.Height};
+                Rectangle destRect = {.X = dx - 80 + X, .Y = dy + Y + tile.YAdjust, .Width = tileRect.Width, .Height = tileRect.Height};
                 _mapTileset->Render(tileRect, destRect);
             }
         }
     }
-
 
     // ---------------------------------------------------------------------------------------------------------------------------
     // Debug Stuff
@@ -79,11 +77,9 @@ void AbyssEngine::MapRenderer::RenderCallback(int offsetX, int offsetY) {
 
     if (ShowOuterBorder)
         RenderMapBorderLines(io);
-
-
     // ---------------------------------------------------------------------------------------------------------------------------
-    // Pass 2
-    // ---------------------------------------------------------------------------------------------------------------------------
+
+    // Walls
     for (int y = 0; y < _zone->HeightInTiles; y++) {
         for (int x = 0; x < _zone->WidthInTiles; x++) {
             int dx = x;
@@ -95,16 +91,19 @@ void AbyssEngine::MapRenderer::RenderCallback(int offsetX, int offsetY) {
                     continue;
                 const auto &tile = _zone->Tiles[tileIndex];
 
-                if ((tile.Type < (int)TileType::LeftWall) || (tile.Type > (int)TileType::Tree))
-                    continue;
-
-                if ((tile.Type == (int)TileType::Shadow) || (tile.Type == (int)TileType::SpecialTile1) || (tile.Type == (int)TileType::SpecialTile2))
+                if (tile.GetTileType() != LibAbyss::DT1::GeneralTileType::NormalWall)
                     continue;
 
                 const auto &tileRect = _mapTileRects[tileIndex];
-                Rectangle destRect = {.X = dx - 80 + X, .Y = dy + Y - tileRect.Height + 80, .Width = tileRect.Width, .Height = tileRect.Height};
+                Rectangle destRect = {.X = dx - 80 + X, .Y = (dy + Y) + tile.YAdjust, .Width = tileRect.Width, .Height = tileRect.Height};
 
                 _mapTileset->Render(tileRect, destRect);
+
+                if (tile.AltTile >= 0) {
+                    const auto &tr = _mapTileRects[tile.AltTile];
+                    Rectangle dr = {.X = dx - 80 + X, .Y = (dy + Y) + _zone->Tiles[tile.AltTile].YAdjust, .Width = tr.Width, .Height = tr.Height};
+                    _mapTileset->Render(tr, dr);
+                }
             }
         }
     }
@@ -127,13 +126,11 @@ void AbyssEngine::MapRenderer::RenderCallback(int offsetX, int offsetY) {
                     continue;
 
                 const auto &tileRect = _mapTileRects[tileIndex];
-                Rectangle destRect = {.X = dx - 80 + X, .Y = dy + Y - tileRect.Height + 80, .Width = tileRect.Width, .Height = tileRect.Height};
+                Rectangle destRect = {.X = dx - 80 + X, .Y = dy + Y + tile.YAdjust, .Width = tileRect.Width, .Height = tileRect.Height};
                 _mapTileset->Render(tileRect, destRect);
             }
         }
     }
-
-
 
     Node::RenderCallback(offsetX, offsetY);
 }
@@ -190,8 +187,8 @@ void AbyssEngine::MapRenderer::OrthoToWorld(int &x, int &y) {
 void AbyssEngine::MapRenderer::WorldToOrtho(int &x, int &y) {
     auto x2 = (float)x;
     auto y2 = (float)y;
-    auto orthoX = (x2 - y2) * 40.f;
-    auto orthoY = (x2 + y2) * 20.f;
+    auto orthoX = (x2 - y2) * 80.f;
+    auto orthoY = (x2 + y2) * 40.f;
 
     x = (int)orthoX;
     y = (int)orthoY;
@@ -207,34 +204,20 @@ void AbyssEngine::MapRenderer::Compile(std::string_view paletteName) {
     int textureWidth = 0;
     int textureHeight = 0;
 
-    for (const auto &tile : _zone->Tiles) {
-        int tileMinX = 999999;
-        int tileMinY = 999999;
-        int tileMaxX = -999999;
-        int tileMaxY = -999999;
+    for (int i = 0; i < _zone->Tiles.size(); i++) {
+        const auto &tile = _zone->Tiles[i];
 
-        int tileWidth = tile.Width;
-        int tileHeight = tile.Height;
-
-        if (!tile.Blocks.empty()) {
-            for (const auto &block : tile.Blocks) {
-                if (block.X < tileMinX)
-                    tileMinX = block.X;
-                if (block.Y < tileMinY)
-                    tileMinY = block.Y;
-                if (block.X + 32 > tileMaxX)
-                    tileMaxX = block.X + 32;
-                if (block.Y + 32 > tileMaxY)
-                    tileMaxY = block.Y + 32;
-            }
-
-
-            tileWidth = tileMaxX - tileMinX;
-            tileHeight = tileMaxY - tileMinY;
+        if (!tile.InUse) {
+            _mapTileRects.push_back({});
+            continue;
         }
 
-        if (tileWidth < 0) {
-            tileWidth = 0;
+        int tileWidth, tileHeight;
+        GetTileSize(tile, tileWidth, tileHeight);
+
+        if (tileWidth == 0 || tileHeight == 0) {
+            _mapTileRects.push_back({});
+            continue;
         }
 
         if (curX + tileWidth >= maxTextureWidth) {
@@ -265,31 +248,55 @@ void AbyssEngine::MapRenderer::Compile(std::string_view paletteName) {
     for (auto i = 0; i < _zone->Tiles.size(); i++) {
         auto &tileRect = _mapTileRects[i];
         auto &tile = _zone->Tiles[i];
+        if (tileRect.Width == 0 || tileRect.Height == 0) {
+            continue;
+        }
+
+        //        const uint32_t color = 0xFF000000 | (0xFF << (( i & 1) * 8));
+        //
+        //        for (int y = 0; y < tileRect.Height; y++) {
+        //            for (int x = 0; x < tileRect.Width; x++) {
+        //
+        //                auto offset = (x + tileRect.X + ((y + tileRect.Y) * textureWidth));
+        //                pixels[offset] = color;
+        //            }
+        //        }
+
         DecodeTileGraphics(tile, tileRect, pixels.data(), textureWidth, palette);
     }
 
     _mapTileset = Engine::Get()->GetSystemIO().CreateTexture(ITexture::Format::Static, textureWidth, textureHeight);
     _mapTileset->SetPixels(pixels);
     _mapTileset->SetBlendMode(eBlendMode::Blend);
+    //    _mapTileset->SaveAsBMP("/Users/essial/MapTileSet.bmp");
 }
 void AbyssEngine::MapRenderer::DecodeTileGraphics(LibAbyss::DT1::Tile &tile, AbyssEngine::Rectangle &tileRect, uint32_t *pixelBuffer,
                                                   int textureWidth, const LibAbyss::Palette &palette) {
-    int minY = 0;
-    for (const auto& block : tile.Blocks) {
-        if (block.Y >= minY)
-            continue;
-        minY = block.Y;
+    int32_t offsetY;
+
+    switch (tile.GetTileType()) {
+    case LibAbyss::DT1::GeneralTileType::Floor:
+    case LibAbyss::DT1::GeneralTileType::Roof:
+        // Zero point is 0
+        offsetY = 0;
+        break;
+    case LibAbyss::DT1::GeneralTileType::LowerWall:
+        // Zero point is -96
+        offsetY = 96;
+        break;
+    default:
+        // Zero point is the bottom
+        offsetY = -tile.Height;
+        break;
     }
 
-    auto adjust = (minY < 0) ? -minY : 0;
+    //    offsetY = (tile.Height < 0) ? -tile.Height : 0;
 
-
-    //
     for (const auto &block : tile.Blocks) {
         switch (block.Format) {
         case LibAbyss::DT1::Tile::Block::eBlockFormat::RLE: {
             int32_t blockX = block.X + tileRect.X;
-            int32_t blockY = block.Y + tileRect.Y + adjust;
+            int32_t blockY = block.Y + tileRect.Y + offsetY;
             int32_t x = 0;
             int32_t y = 0;
             int32_t idx = 0;
@@ -313,6 +320,7 @@ void AbyssEngine::MapRenderer::DecodeTileGraphics(LibAbyss::DT1::Tile &tile, Aby
 
                 while (b2 > 0) {
                     int offset = ((blockY + y) * textureWidth) + (blockX + x);
+
                     pixelBuffer[offset] = (uint32_t)palette.BasePalette[block.EncodedBytes[idx]];
                     idx++;
                     x++;
@@ -325,7 +333,7 @@ void AbyssEngine::MapRenderer::DecodeTileGraphics(LibAbyss::DT1::Tile &tile, Aby
             int32_t xJump[] = {14, 12, 10, 8, 6, 4, 2, 0, 2, 4, 6, 8, 10, 12, 14};
             int32_t nbPix[] = {4, 8, 12, 16, 20, 24, 28, 32, 28, 24, 20, 16, 12, 8, 4};
             int32_t blockX = block.X + tileRect.X;
-            int32_t blockY = block.Y + tileRect.Y + adjust;
+            int32_t blockY = block.Y + tileRect.Y + offsetY;
             int32_t length = block.Length;
             int32_t x = 0;
             int32_t y = 0;
@@ -349,4 +357,47 @@ void AbyssEngine::MapRenderer::DecodeTileGraphics(LibAbyss::DT1::Tile &tile, Aby
         }
         }
     }
+}
+void AbyssEngine::MapRenderer::GetTileSize(const LibAbyss::DT1::Tile &tile, int &width, int &height) {
+    width = tile.Width;
+    height = tile.Height < 0 ? -tile.Height : tile.Height;
+
+    if (tile.Blocks.empty() || tile.Width == 0 || tile.Height == 0)
+        return;
+
+    const int32_t offset_y = (tile.Height < 0) ? -tile.Height : 0;
+
+    //    int32_t minY = INT32_MAX;
+    int32_t maxY = INT32_MIN;
+    //    int32_t minX = INT32_MAX;
+    int32_t maxX = INT32_MIN;
+
+    for (const auto &block : tile.Blocks) {
+        //        if (block.X < minX)
+        //            minX = block.X;
+
+        //        if (block.Y + offset_y < minY)
+        //            minY = block.Y + offset_y;
+
+        if (block.X + 32 > maxX)
+            maxX = block.X + 32;
+
+        if (block.Y + 32 + offset_y > maxY)
+            maxY = block.Y + 32 + offset_y;
+    }
+
+    width = maxX;
+    height = maxY;
+
+    auto actualTileWidth = tile.Width;
+    auto actualTileHeight = tile.Height;
+
+    if (actualTileHeight < 0)
+        actualTileHeight = -actualTileHeight;
+
+    if (width < actualTileWidth)
+        width = actualTileWidth;
+
+    if (height < actualTileHeight)
+        height = actualTileHeight;
 }
