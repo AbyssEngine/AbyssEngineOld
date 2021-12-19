@@ -40,6 +40,9 @@ void AbyssEngine::SDL2::SDL2Texture::SetPixels(std::span<const uint8_t> pixels) 
 }
 
 void AbyssEngine::SDL2::SDL2Texture::Render(const AbyssEngine::Rectangle &sourceRect, const AbyssEngine::Rectangle &destRect) {
+    if (sourceRect.Width <= 0 || sourceRect.Height <= 0)
+        return;
+
     SDL_Rect sr{.x = sourceRect.X, .y = sourceRect.Y, .w = sourceRect.Width, .h = sourceRect.Height};
     SDL_Rect dr{.x = destRect.X, .y = destRect.Y, .w = destRect.Width, .h = destRect.Height};
 
@@ -84,3 +87,87 @@ void AbyssEngine::SDL2::SDL2Texture::SetBlendMode(AbyssEngine::eBlendMode blendM
 AbyssEngine::eBlendMode AbyssEngine::SDL2::SDL2Texture::GetBlendMode() { return _blendMode; }
 
 void AbyssEngine::SDL2::SDL2Texture::SetColorMod(uint8_t red, uint8_t green, uint8_t blue) { SDL_SetTextureColorMod(_texture, red, green, blue); }
+
+void AbyssEngine::SDL2::SDL2Texture::SaveAsBMP(const std::string& filePath) {
+    SaveTexture(_renderer, _texture, filePath.c_str());
+}
+void AbyssEngine::SDL2::SDL2Texture::SaveTexture(SDL_Renderer *ren, SDL_Texture *tex, const char *filename) {
+    SDL_Texture *ren_tex;
+    SDL_Surface *surf;
+    int st;
+    int w;
+    int h;
+    int format;
+    void *pixels;
+
+    pixels  = NULL;
+    surf    = NULL;
+    ren_tex = NULL;
+    format  = SDL_PIXELFORMAT_RGBA32;
+
+    /* Get information about texture we want to save */
+    st = SDL_QueryTexture(tex, NULL, NULL, &w, &h);
+    if (st != 0) {
+        SDL_Log("Failed querying texture: %s\n", SDL_GetError());
+        goto cleanup;
+    }
+
+    ren_tex = SDL_CreateTexture(ren, format, SDL_TEXTUREACCESS_TARGET, w, h);
+    if (!ren_tex) {
+        SDL_Log("Failed creating render texture: %s\n", SDL_GetError());
+        goto cleanup;
+    }
+
+    /*
+     * Initialize our canvas, then copy texture to a target whose pixel data we
+     * can access
+     */
+    st = SDL_SetRenderTarget(ren, ren_tex);
+    if (st != 0) {
+        SDL_Log("Failed setting render target: %s\n", SDL_GetError());
+        goto cleanup;
+    }
+
+    SDL_SetRenderDrawColor(ren, 0x00, 0x00, 0x00, 0x00);
+    SDL_RenderClear(ren);
+
+    st = SDL_RenderCopy(ren, tex, NULL, NULL);
+    if (st != 0) {
+        SDL_Log("Failed copying texture data: %s\n", SDL_GetError());
+        goto cleanup;
+    }
+
+    /* Create buffer to hold texture data and load it */
+    pixels = malloc(w * h * SDL_BYTESPERPIXEL(format));
+    if (!pixels) {
+        SDL_Log("Failed allocating memory\n");
+        goto cleanup;
+    }
+
+    st = SDL_RenderReadPixels(ren, NULL, format, pixels, w * SDL_BYTESPERPIXEL(format));
+    if (st != 0) {
+        SDL_Log("Failed reading pixel data: %s\n", SDL_GetError());
+        goto cleanup;
+    }
+
+    /* Copy pixel data over to surface */
+    surf = SDL_CreateRGBSurfaceWithFormatFrom(pixels, w, h, SDL_BITSPERPIXEL(format), w * SDL_BYTESPERPIXEL(format), format);
+    if (!surf) {
+        SDL_Log("Failed creating new surface: %s\n", SDL_GetError());
+        goto cleanup;
+    }
+
+    /* Save result to an image */
+    st = SDL_SaveBMP(surf, filename);
+    if (st != 0) {
+        SDL_Log("Failed saving image: %s\n", SDL_GetError());
+        goto cleanup;
+    }
+
+    SDL_Log("Saved texture as BMP to \"%s\"\n", filename);
+
+cleanup:
+    SDL_FreeSurface(surf);
+    free(pixels);
+    SDL_DestroyTexture(ren_tex);
+}

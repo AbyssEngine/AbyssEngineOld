@@ -3,24 +3,25 @@
 
 #include "libabyss/streams/inputstream.h"
 #include <cstdint>
-#include <vector>
 #include <span>
+#include <vector>
 
 namespace LibAbyss {
 class DT1 {
   public:
+    enum class GeneralTileType { Floor, Special, Shadow, Roof, LowerWall, NormalWall };
     struct Tile {
         struct MaterialFlags {
-            bool Other;
-            bool Water;
-            bool WoodObject;
-            bool InsideStone;
-            bool OutsideStone;
-            bool Dirt;
-            bool Sand;
-            bool Wood;
-            bool Lava;
-            bool Snow;
+            bool Other = false;
+            bool Water = false;
+            bool WoodObject = false;
+            bool InsideStone = false;
+            bool OutsideStone = false;
+            bool Dirt = false;
+            bool Sand = false;
+            bool Wood = false;
+            bool Lava = false;
+            bool Snow = false;
 
             inline MaterialFlags &operator=(const uint16_t &flags) {
                 Other = (flags & 0x01) != 0;
@@ -38,14 +39,14 @@ class DT1 {
         };
 
         struct SubTileFlags {
-            bool BlockWalk;
-            bool BlockLOS;
-            bool BlockJump;
-            bool BlockPlayerWalk;
-            bool Unknown1;
-            bool BlockLight;
-            bool Unknown2;
-            bool Unknown3;
+            bool BlockWalk = false;
+            bool BlockLOS = false;
+            bool BlockJump = false;
+            bool BlockPlayerWalk = false;
+            bool Unknown1 = false;
+            bool BlockLight = false;
+            bool Unknown2 = false;
+            bool Unknown3 = false;
 
             inline SubTileFlags &operator=(const uint16_t &flags) {
                 BlockWalk = (flags & 0x01) != 0;
@@ -61,12 +62,12 @@ class DT1 {
         };
 
         struct Block {
-            enum class eBlockFormat  { RLE = 0, Isometric = 1 };
+            enum class eBlockFormat { RLE = 0, Isometric = 1 };
 
-            int16_t X;
-            int16_t Y;
-            uint8_t GridX;
-            uint8_t GridY;
+            int16_t X = 0;
+            int16_t Y = 0;
+            uint8_t GridX = 0;
+            uint8_t GridY = 0;
             eBlockFormat Format;
             std::vector<uint8_t> EncodedBytes;
             int32_t Length;
@@ -78,17 +79,25 @@ class DT1 {
         uint8_t unknown[4];
         int32_t Direction;
         int16_t RoofHeight;
+        bool Animated;
         MaterialFlags Material;
         int32_t Height;
         int32_t Width;
-        int32_t Type;
-        int32_t Style;
-        int32_t Sequence;
+        uint32_t Type;
+        uint32_t MainIndex;
+        uint32_t SubIndex;
         int32_t RarityFrameIndex;
         SubTileFlags SubTileFlags[25];
         int32_t _blockHeaderPointer;
         int32_t _blockHeaderSize;
         std::vector<Block> Blocks;
+        int32_t YAdjust = 0;
+        int AltTile = -1; // Used for the 'other half' tile thing
+        bool InUse = false; // Used for tile caching
+
+        [[nodiscard]] GeneralTileType GetTileType() const;
+
+        void CalculateOffsets();
     };
 
     DT1() = default;

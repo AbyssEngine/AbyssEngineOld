@@ -26,14 +26,13 @@ class DS1 {
 
     struct Tile {
         struct {
-            uint8_t Invisible;
+            uint8_t Visible;
             uint8_t Sequence;
             uint8_t _unknown1;
             uint8_t Style;
             uint8_t _unknown2;
             uint8_t HiddenBytes;
             uint8_t RandomIndex;
-            int YAdjust;
         } Common;
         struct {
             uint32_t Substitution;

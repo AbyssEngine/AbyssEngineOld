@@ -95,7 +95,7 @@ void LibAbyss::DS1::LoadLayerStreams(LibAbyss::InputStream &stream) {
                 case eLayerStreamType::Wall4: {
                     auto idx = (int)layerStreamType - (int)eLayerStreamType::Wall1;
                     auto &tile = Walls[idx](x, y);
-                    tile.Common.Invisible = (dw & 0xFF);
+                    tile.Common.Visible = (dw & 0xFF);
                     tile.Common.Sequence = (dw & 0x3F00) >> 8;
                     tile.Common._unknown1 = (dw & 0xFC000) >> 14;
                     tile.Common.Style = (dw & 0x3F00000) >> 20;
@@ -120,7 +120,7 @@ void LibAbyss::DS1::LoadLayerStreams(LibAbyss::InputStream &stream) {
                 case eLayerStreamType::Floor2: {
                     auto idx = (int)layerStreamType - (int)eLayerStreamType::Floor1;
                     auto &tile = Floors[idx](x, y);
-                    tile.Common.Invisible = (dw & 0xFF);
+                    tile.Common.Visible = (dw & 0xFF);
                     tile.Common.Sequence = (dw & 0x3F00) >> 8;
                     tile.Common._unknown1 = (dw & 0xFC000) >> 14;
                     tile.Common.Style = (dw & 0x3F00000) >> 20;
@@ -130,7 +130,7 @@ void LibAbyss::DS1::LoadLayerStreams(LibAbyss::InputStream &stream) {
                 }
                 case eLayerStreamType::Shadow: {
                     auto &tile = Shadows[0](x, y);
-                    tile.Common.Invisible = (dw & 0xFF);
+                    tile.Common.Visible = (dw & 0xFF);
                     tile.Common.Sequence = (dw & 0x3F00) >> 8;
                     tile.Common._unknown1 = (dw & 0xFC000) >> 14;
                     tile.Common.Style = (dw & 0x3F00000) >> 20;

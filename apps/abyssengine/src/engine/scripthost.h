@@ -13,6 +13,7 @@
 #include "../node/maprenderer.h"
 #include "../node/sprite.h"
 #include "provider.h"
+#include "../node/inputlistener.h"
 #include <filesystem>
 #include <libabyss/formats/d2/ds1.h>
 #include <libabyss/zone/zone.h>
@@ -141,6 +142,10 @@ class ScriptHost {
     /// \return The created DS1 stamp.
     std::unique_ptr<LibAbyss::DS1> LuaLoadDS1(std::string_view fileName);
 
+    /// Creates a new input listener
+    /// \return The input listener
+    std::unique_ptr<InputListener> LuaCreateInputListener();
+
     /// \brief Sets the cursor sprite and offsets
     /// \param sprite The sprite to use for the cursor.
     /// \param offsetX The X offset of the cursor.
@@ -152,11 +157,23 @@ class ScriptHost {
     /// \param callback The callback to call when the video is finished.
     void LuaPlayVideo(std::string_view videoPath, const sol::safe_function &callback);
 
-    /// \brief Plays video and audio (for videos with seperate audio tracks)
+    /// \brief Plays video and audio (for videos with separate audio tracks)
     /// \param videoPath The path to the video file.
     /// \param audioPath The path to the audio file.
     /// \param callback The callback to call when the video is finished.
     void LuaPlayVideoAndAudio(std::string_view videoPath, std::string_view audioPath, const sol::safe_function &callback);
+
+    /// Converts world coordinates to orthographic coordinates
+    /// \param x The world X coordinate.
+    /// \param y The world Y coordinate.
+    /// \return The X/Y ortho coordinates.
+    std::tuple<int, int> LuaWorldToOrtho(int x, int y);
+
+    /// Converts orthographic coordinates to world coordinates
+    /// \param x The ortho X coordinate.
+    /// \param y The ortho Y coordinate.
+    /// \return The X/Y world coordinates.
+    std::tuple<int, int> LuaOrthoToWorld(int x, int y);
 };
 
 } // namespace AbyssEngine

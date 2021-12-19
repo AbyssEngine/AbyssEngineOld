@@ -21,3 +21,4 @@ compile_flags.txt
 backends.txt
 lldb-vscode.json
 run.sh
+build.sh

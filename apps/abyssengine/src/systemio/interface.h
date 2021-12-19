@@ -31,6 +31,7 @@ class ITexture {
     virtual void Render(const AbyssEngine::Rectangle &sourceRect, const AbyssEngine::Rectangle &destRect) = 0;
     virtual void SetBlendMode(eBlendMode blendMode) = 0;
     virtual void SetColorMod(uint8_t red, uint8_t green, uint8_t blue) = 0;
+    virtual void SaveAsBMP(const std::string& filePath) = 0;
     virtual eBlendMode GetBlendMode() = 0;
 };
 
