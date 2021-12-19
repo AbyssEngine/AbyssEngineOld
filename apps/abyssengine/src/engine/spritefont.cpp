@@ -179,7 +179,7 @@ void AbyssEngine::SpriteFont::RenderText(int x, int y, std::string_view text, Ab
 
         if (ch == '\n') {
             targetRect.X = startX;
-            targetRect.Y += maxHeight;
+            targetRect.Y += maxHeight + 4;
             maxHeight = 0;
 
             continue;

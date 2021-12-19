@@ -116,6 +116,7 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     buttonType["setFrameIndex"] = &Button::LuaSetFrameIndex;
     buttonType["onActivate"] = &Button::LuaSetActivateCallback;
     buttonType["onPressed"] = &Button::LuaSetPressCallback;
+    buttonType["disabled"] = sol::property(&Button::GetDisabled, &Button::SetDisabled);
 
     // Label
     auto labelType = CreateLuaObjectType<Label>(module, "Label", sol::no_constructor);

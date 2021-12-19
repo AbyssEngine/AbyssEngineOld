@@ -21,6 +21,7 @@ class Image {
     virtual void GetFrameSize(uint32_t startFrameIdx, int cellSizeX, uint32_t &width, uint32_t &height) = 0;
 
     void SetBlendMode(eBlendMode mode);
+    void SetColorMod(uint8_t r, uint8_t g, uint8_t b);
     eBlendMode GetBlendMode() const { return _blendMode; }
 
   protected:
@@ -29,6 +30,9 @@ class Image {
     std::unique_ptr<ITexture> _atlas;
     std::vector<FramePosition> _framePositions;
     eBlendMode _blendMode = eBlendMode::Blend;
+    uint8_t _modR = 255;
+    uint8_t _modG = 255;
+    uint8_t _modB = 255;
 };
 
 } // namespace AbyssEngine
