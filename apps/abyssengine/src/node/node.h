@@ -6,6 +6,7 @@
 #include <queue>
 #include <string>
 #include <tuple>
+#include <utility>
 #include <vector>
 #include <sol/sol.hpp>
 
@@ -34,9 +35,10 @@ class Node {
     [[nodiscard]] bool GetActive() const;
     void SetVisible(bool visible);
     [[nodiscard]] bool GetVisible() const;
-    std::tuple<int, int> GetPosition() const;
-    void SetLuaTable(sol::table table) { _table = table; }
-    sol::table GetLuaTable() const { return _table; }
+    [[nodiscard]] std::tuple<int, int> GetPosition() const;
+    void SetLuaTable(sol::table table) { _table = std::move(table); }
+    [[nodiscard]] sol::table GetLuaTable() const { return _table; }
+    void SetLuaOnUpdateHandler(sol::protected_function onUpdateHandler);
 
     int X = 0;
     int Y = 0;
@@ -54,6 +56,8 @@ class Node {
     std::string Name;
     bool _initialized = false;
     sol::table _table;
+
+    sol::protected_function _onUpdateHandler;
 };
 
 } // namespace AbyssEngine
