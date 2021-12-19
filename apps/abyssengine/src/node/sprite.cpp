@@ -6,7 +6,10 @@
 #include <utility>
 
 void AbyssEngine::Sprite::UpdateCallback(uint32_t ticks) {
-    if (!Active || !(_playMode == ePlayMode::Backwards || _playMode == ePlayMode::Forwards)) {
+    if (!Active)
+        return;
+
+    if (_playMode == ePlayMode::Backwards || _playMode == ePlayMode::Forwards) {
         Node::UpdateCallback(ticks);
         return;
     }
@@ -17,7 +20,7 @@ void AbyssEngine::Sprite::UpdateCallback(uint32_t ticks) {
 }
 
 void AbyssEngine::Sprite::RenderCallback(int offsetX, int offsetY) {
-    if (!Visible || !Active)
+    if (!Visible)
         return;
 
     int imgX = X + offsetX;
@@ -37,6 +40,9 @@ void AbyssEngine::Sprite::RenderCallback(int offsetX, int offsetY) {
 }
 
 void AbyssEngine::Sprite::MouseEventCallback(const AbyssEngine::MouseEvent &event) {
+    if (!Active)
+        return;
+
     std::visit(Overload{[this](const MouseMoveEvent &evt) {
                             const int mx = evt.X, my = evt.Y;
                             const int sx = X, sy = Y;

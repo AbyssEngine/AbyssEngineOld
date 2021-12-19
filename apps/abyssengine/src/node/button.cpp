@@ -6,13 +6,19 @@
 #include <spdlog/spdlog.h>
 #include <utility>
 
-AbyssEngine::Button::Button(Image &image)
-    : _image(image), _luaActivateCallback(), _luaPressedCallback() {
-}
+AbyssEngine::Button::Button(Image &image) : _image(image), _luaActivateCallback(), _luaPressedCallback() {}
 
 AbyssEngine::Button::~Button() = default;
 
 void AbyssEngine::Button::UpdateCallback(uint32_t ticks) {
+    if (!Active)
+        return;
+
+    if (!Visible) {
+        Node::UpdateCallback(ticks);
+        return;
+    }
+
     auto engine = Engine::Get();
 
     auto mouse_state = engine->GetMouseButtonState();
@@ -111,7 +117,7 @@ void AbyssEngine::Button::UpdateCallback(uint32_t ticks) {
 }
 
 void AbyssEngine::Button::RenderCallback(int offsetX, int offsetY) {
-    if (!Visible || !Active)
+    if (!Visible)
         return;
 
     int frame_index = -1;
@@ -157,12 +163,8 @@ void AbyssEngine::Button::SetSize(int x, int y) {
     _fixedHeight = y;
 }
 
-bool AbyssEngine::Button::GetChecked() const {
-    return _checked;
-}
-void AbyssEngine::Button::SetChecked(bool b) {
-    _checked = b;
-}
+bool AbyssEngine::Button::GetChecked() const { return _checked; }
+void AbyssEngine::Button::SetChecked(bool b) { _checked = b; }
 
 void AbyssEngine::Button::SetPressedOffset(int x, int y) {
     _pressedOffsetX = x;

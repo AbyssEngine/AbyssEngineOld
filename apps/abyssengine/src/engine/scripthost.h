@@ -163,13 +163,13 @@ class ScriptHost {
     /// \param callback The callback to call when the video is finished.
     void LuaPlayVideoAndAudio(std::string_view videoPath, std::string_view audioPath, const sol::safe_function &callback);
 
-    /// Converts world coordinates to orthographic coordinates
+    /// \brief Converts world coordinates to orthographic coordinates
     /// \param x The world X coordinate.
     /// \param y The world Y coordinate.
     /// \return The X/Y ortho coordinates.
     std::tuple<int, int> LuaWorldToOrtho(int x, int y);
 
-    /// Converts orthographic coordinates to world coordinates
+    /// \brief Converts orthographic coordinates to world coordinates
     /// \param x The ortho X coordinate.
     /// \param y The ortho Y coordinate.
     /// \return The X/Y world coordinates.
