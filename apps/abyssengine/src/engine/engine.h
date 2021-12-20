@@ -135,6 +135,7 @@ class Engine {
     int _cursorOffsetY = 0;
     uint32_t _luaGcRateMsec = 1024;
     uint32_t _luaLastGc = 0;
+    bool _inputBlocked = false;
     sol::safe_function _onVideoEndCallback;
     bool UpdateTicks();
 };
