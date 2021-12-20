@@ -182,6 +182,11 @@ class ScriptHost {
     /// \param str The source string.
     /// \return The string in UTF8 format.
     std::string LuaUtf16To8(const std::string& str);
+
+    /// \brief Determines if a key was pressed
+    /// \param scancode The scancode to test.
+    /// \return True if the key is pressed, false otherwise.
+    bool LuaIsKeyPressed(uint16_t scancode);
 };
 
 } // namespace AbyssEngine

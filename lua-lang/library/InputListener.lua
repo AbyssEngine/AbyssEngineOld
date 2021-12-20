@@ -7,10 +7,14 @@
 ---@class InputListener
 InputListener = {}
 
----No description set in inputlistener.h:11.
----@param func function @ No description set in inputlistener.h:11.
-function InputListener:onMouseButton(func) end
-
 ---No description set in inputlistener.h:12.
 ---@param func function @ No description set in inputlistener.h:12.
+function InputListener:onMouseButton(func) end
+
+---No description set in inputlistener.h:13.
+---@param func function @ No description set in inputlistener.h:13.
 function InputListener:onMouseMove(func) end
+
+---No description set in inputlistener.h:14.
+---@param func function @ No description set in inputlistener.h:14.
+function InputListener:onKey(func) end

@@ -23,6 +23,11 @@ struct MouseButtonEvent {
 
 using MouseEvent = std::variant<MouseMoveEvent, MouseButtonEvent>;
 
+struct KeyboardEvent {
+    uint16_t Scancode;
+    bool Pressed;
+};
+
 } // namespace AbyssEngine
 
 #endif // ABYSS_EVENTS_H

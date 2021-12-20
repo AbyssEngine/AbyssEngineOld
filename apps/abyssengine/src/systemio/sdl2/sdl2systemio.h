@@ -35,6 +35,8 @@ class SDL2SystemIO : public SystemIO {
     void RemoveSoundEffect(SoundEffect *soundEffect) final;
     void SetVideo(IAudio* video) final;
     void DrawLine(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, uint8_t b) final;
+    void DrawRect(int x, int y, int w, int h, uint8_t r, uint8_t g, uint8_t b) final;
+    bool IsKeyPressed(uint16_t scancode) final;
 
   private:
     void InitializeAudio();
@@ -62,6 +64,7 @@ class SDL2SystemIO : public SystemIO {
     float _backgroundMusicAudioLevelActual = 1.0f;
     float _soundEffectsAudioLevel = 1.0f;
     float _soundEffectsAudioLevelActual = 1.0f;
+    bool _pressedKeys[0xFFFF] = {};
     IAudio* _video = nullptr;
 
     std::mutex _mutex;
