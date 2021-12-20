@@ -187,6 +187,10 @@ class ScriptHost {
     /// \param scancode The scancode to test.
     /// \return True if the key is pressed, false otherwise.
     bool LuaIsKeyPressed(uint16_t scancode);
+
+    /// \brief Creates a new empty node
+    /// \return The new node
+    std::unique_ptr<Node> LuaCreateNode();
 };
 
 } // namespace AbyssEngine

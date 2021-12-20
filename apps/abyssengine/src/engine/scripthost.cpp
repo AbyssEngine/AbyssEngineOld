@@ -65,6 +65,7 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     module.set_function("createInputListener", &ScriptHost::LuaCreateInputListener, this);
     module.set_function("createLabel", &ScriptHost::LuaCreateLabel, this);
     module.set_function("createMapRenderer", &ScriptHost::LuaCreateMapRenderer, this);
+    module.set_function("createNode", &ScriptHost::LuaCreateNode, this);
     module.set_function("createPalette", &ScriptHost::LuaCreatePalette, this);
     module.set_function("createSoundEffect", &ScriptHost::LuaCreateSoundEffect, this);
     module.set_function("createSprite", &ScriptHost::LuaCreateSprite, this);
@@ -791,3 +792,6 @@ std::string AbyssEngine::ScriptHost::LuaUtf16To8(const std::string &str) {
     return result;
 }
 bool AbyssEngine::ScriptHost::LuaIsKeyPressed(uint16_t scancode) { return _engine->GetSystemIO().IsKeyPressed(scancode); }
+std::unique_ptr<AbyssEngine::Node> AbyssEngine::ScriptHost::LuaCreateNode() {
+    return std::make_unique<Node>();
+}

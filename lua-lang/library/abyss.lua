@@ -277,6 +277,10 @@ function abyss.createLabel(font) end
 ---@return MapRenderer @ The created map renderer.
 function abyss.createMapRenderer(zone) end
 
+---Creates a new empty node
+---@return Node @ The new node
+function abyss.createNode() end
+
 ---Creates a palette
 ---@param paletteName string @ The name of the palette to create.
 ---@param path string @ The path to the palette file.
