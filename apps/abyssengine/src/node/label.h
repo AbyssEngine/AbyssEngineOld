@@ -15,28 +15,28 @@ class Label : public Node {
   public:
     ~Label() override;
 
-    void SetCaption(std::string_view value);
-    std::string_view GetCaption() const;
+    void SetCaption(std::string value);
+    [[nodiscard]] std::string_view GetCaption() const;
     void SetAlignment(eAlignment hAlign, eAlignment vAlign);
     void SetAlignmentStr(std::string_view hAlign, std::string_view vAlign);
     void SetColorMod(uint8_t red, uint8_t green, uint8_t blue);
     void LuaSetBlendMode(std::string_view mode);
-    std::string_view LuaGetBlendMode() const;
+    [[nodiscard]] std::string_view LuaGetBlendMode() const;
 
     void SetBold(bool value);
-    bool GetBold() const;
+    [[nodiscard]] bool GetBold() const;
 
     void SetItalic(bool value);
-    bool GetItalic() const;
+    [[nodiscard]] bool GetItalic() const;
 
     void SetUnderline(bool value);
-    bool GetUnderline() const;
+    [[nodiscard]] bool GetUnderline() const;
 
     void SetStrikethrough(bool value);
-    bool GetStrikethrough() const;
+    [[nodiscard]] bool GetStrikethrough() const;
 
     void SetVerticalSpacing(int value);
-    int GetVerticalSpacing() const;
+    [[nodiscard]] int GetVerticalSpacing() const;
 
     [[nodiscard]] std::string_view NodeType() const final { return "Label Node"; };
 

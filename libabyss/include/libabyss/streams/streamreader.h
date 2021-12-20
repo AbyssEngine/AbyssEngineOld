@@ -17,7 +17,7 @@ class StreamReader {
     template <std::unsigned_integral T> T ReadUnsigned() {
         T result = 0;
 
-        for (auto i = 0; i < sizeof(T); i++)
+        for (auto i = 0; i < (int)sizeof(T); i++)
             result |= ((T)ReadByte()) << (8 * i);
 
         return result;
