@@ -1,5 +1,6 @@
 #include "label.h"
 #include <spdlog/spdlog.h>
+#include <absl/strings/str_split.h>
 
 namespace AbyssEngine {
 
@@ -47,32 +48,70 @@ void Label::RenderCallback(int offsetX, int offsetY) {
 }
 
 void SpriteLabel::PrepareRender(int& width, int& height) {
-    _font.GetMetrics(_caption, width, height);
+    _font.GetMetrics(_caption, width, height, _vertSpacing);
 }
 void TtfLabel::PrepareRender(int& width, int& height) {
-    if (!_texture) {
+    if (_textures.empty()) {
+        int total_width = 0;
+        int total_height = 0;
         _font.SetStyle(_style);
-        _texture = _font.RenderText(_caption, _rect.Width, _rect.Height);
+        for (std::string_view s : absl::StrSplit(_caption, '\n')) {
+            Rectangle rect = {};
+            if (s.empty()) {
+                auto texture = _font.RenderText("x", rect.Width, rect.Height);
+                _textures.push_back(nullptr);
+            } else {
+                auto texture = _font.RenderText(s, rect.Width, rect.Height);
+                _textures.push_back(std::move(texture));
+            }
+            total_width = std::max(total_width, rect.Width);
+            total_height += rect.Height + _vertSpacing;
+            _rects.push_back(std::move(rect));
+        }
+        _total_height = total_height - _vertSpacing;
+        _total_width = total_width;
     }
-    width = _rect.Width;
-    height = _rect.Height;
+    width = _total_width;
+    height = _total_height;
 }
 
 void SpriteLabel::DoRender(int x, int y) {
-    _font.RenderText(x, y, _caption, _blendMode, _colorMod);
+    _font.RenderText(x, y, _caption, _blendMode, _colorMod, _horizontalAlignment, _vertSpacing);
 }
 void TtfLabel::DoRender(int x, int y) {
-    _texture->SetBlendMode(_blendMode);
-    _texture->SetColorMod(_colorMod.Red, _colorMod.Green, _colorMod.Blue);
-    AbyssEngine::Rectangle dst {};
-    dst.X = x;
-    dst.Y = y;
-    dst.Width = _rect.Width;
-    dst.Height = _rect.Height;
-    _texture->Render(_rect, dst);
+    for (int i = 0; i < _textures.size(); ++i) {
+        const Rectangle& rect = _rects[i];
+        if (_textures[i] == nullptr) {
+            y += rect.Height + _vertSpacing;
+            continue;
+        }
+        const auto& texture = _textures[i];
+        texture->SetBlendMode(_blendMode);
+        texture->SetColorMod(_colorMod.Red, _colorMod.Green, _colorMod.Blue);
+        AbyssEngine::Rectangle dst = {};
+        dst.Y = y;
+        switch (_horizontalAlignment) {
+            case eAlignment::Start:
+                dst.X = x;
+                break;
+            case eAlignment::Middle:
+                dst.X = x + (_total_width - rect.Width) / 2;
+                break;
+            case eAlignment::End:
+                dst.X = x + _total_width - rect.Width;
+                break;
+            default:
+                break;
+        }
+        dst.Width = rect.Width;
+        dst.Height = rect.Height;
+        texture->Render(rect, dst);
+        y += rect.Height + _vertSpacing;
+    }
 }
 void TtfLabel::ClearCache() {
-    _texture = nullptr;
+    _textures.clear();
+    _rects.clear();
 }
 
 void Label::SetCaption(std::string_view value) {
@@ -134,5 +173,10 @@ void Label::SetStrikethrough(bool value) {
     ClearCache();
 }
 bool Label::GetStrikethrough() const { return _style & ITtf::Style::Strikethrough; }
+void Label::SetVerticalSpacing(int value) {
+    _vertSpacing = value;
+    ClearCache();
+}
+int Label::GetVerticalSpacing() const { return _vertSpacing; }
 
 } // namespace AbyssEngine
