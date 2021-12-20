@@ -40,6 +40,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
 #add_link_options(-fsanitize=address -fno-omit-frame-pointer)
+if (NOT MSVC)
+    add_compile_options(-Wall -Wextra)
+endif()
 
 
 # -------------------------------------------------------------------------------------------------

@@ -26,7 +26,6 @@ class MPQ {
 
   private:
     void *_stormMpq;
-    std::string _mpqPath;
 
     static std::string FixPath(std::string_view str);
 };
