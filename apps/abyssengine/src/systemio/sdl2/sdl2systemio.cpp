@@ -1,5 +1,6 @@
 #include "sdl2systemio.h"
 #include "../../engine/engine.h"
+#include "../../hostnotify/hostnotify.h"
 #include "config.h"
 #include "sdl2texture.h"
 #include <cstdint>
@@ -10,7 +11,6 @@
 #include <SDL_ttf.h>
 #include <span>
 #include <spdlog/spdlog.h>
-#include "../../hostnotify/hostnotify.h"
 #ifdef __APPLE__
 #include "../../hostnotify/hostnotify_mac_shim.h"
 #endif // __APPLE__
@@ -20,8 +20,7 @@
 #undef None
 #endif
 
-AbyssEngine::SDL2::SDL2SystemIO::SDL2SystemIO()
-    : AbyssEngine::SystemIO::SystemIO(), _audioSpec(), _mouseButtonState((eMouseButton)0) {
+AbyssEngine::SDL2::SDL2SystemIO::SDL2SystemIO() : AbyssEngine::SystemIO::SystemIO(), _audioSpec(), _mouseButtonState((eMouseButton)0) {
     SPDLOG_TRACE("Creating SDL2 System IO");
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER | SDL_INIT_TIMER | SDL_INIT_AUDIO) != 0)
@@ -155,6 +154,16 @@ bool AbyssEngine::SDL2::SDL2SystemIO::HandleSdlEvent(const SDL_Event &sdlEvent, 
         rootNode.MouseEventCallback(MouseButtonEvent{.Button = button, .IsPressed = false});
         return true;
     }
+    case SDL_KEYDOWN: {
+        _pressedKeys[sdlEvent.key.keysym.scancode] = true;
+        rootNode.KeyboardEventCallback(KeyboardEvent{.Scancode = (uint16_t)sdlEvent.key.keysym.scancode, .Pressed = true});
+        return true;
+    }
+    case SDL_KEYUP: {
+        _pressedKeys[sdlEvent.key.keysym.scancode] = false;
+        rootNode.KeyboardEventCallback(KeyboardEvent{.Scancode = (uint16_t)sdlEvent.key.keysym.scancode, .Pressed = false});
+        return true;
+    }
     case SDL_QUIT:
         Engine::Get()->Stop();
         return false;
@@ -169,76 +178,73 @@ std::unique_ptr<AbyssEngine::ITexture> AbyssEngine::SDL2::SDL2SystemIO::CreateTe
 }
 
 namespace {
-    class AbyssSDL2TTF : public AbyssEngine::ITtf {
-        public:
-            explicit AbyssSDL2TTF(SDL_Renderer* renderer, LibAbyss::InputStream stream, int size, Hinting hinting) :
-                _sdlRenderer(renderer) {
-                auto len = stream.size();
-                _data.resize(len);
-                stream.read(_data.data(), len);
-                _font = TTF_OpenFontRW(SDL_RWFromConstMem(_data.data(), len), 1, size);
-                if (!_font) {
-                    throw std::runtime_error(absl::StrCat("TTF open error: ", TTF_GetError()));
-                }
-                int hint = 0;
-                switch (hinting) {
-                    case Hinting::Light:
-                        hint = TTF_HINTING_LIGHT;
-                        break;
-                    case Hinting::Mono:
-                        hint = TTF_HINTING_MONO;
-                        break;
-                    case Hinting::None:
-                        hint = TTF_HINTING_NONE;
-                        break;
-                    case Hinting::Normal:
-                        hint = TTF_HINTING_NORMAL;
-                        break;
-                }
-                TTF_SetFontHinting(_font, hint);
-            }
-
-            void SetStyle(Style style) override {
-                int x = 0;
-                if (style & Style::Bold) {
-                    x |= TTF_STYLE_BOLD;
-                }
-                if (style & Style::Italic) {
-                    x |= TTF_STYLE_ITALIC;
-                }
-                if (style & Style::Underline) {
-                    x |= TTF_STYLE_UNDERLINE;
-                }
-                if (style & Style::Strikethrough) {
-                    x |= TTF_STYLE_STRIKETHROUGH;
-                }
-                TTF_SetFontStyle(_font, x);
-            }
-
-        std::unique_ptr<AbyssEngine::ITexture> RenderText(std::string_view text, int &width, int &height) override {
-            std::string s(text);
-            SDL_Color color = {255, 255, 255, 0};
-            SDL_Surface* surf = TTF_RenderUTF8_Blended(_font, s.c_str(), color);
-            width = surf->w;
-            height = surf->h;
-            SDL_Texture* texture = SDL_CreateTextureFromSurface(_sdlRenderer, surf);
-            SDL_FreeSurface(surf);
-            return std::make_unique<AbyssEngine::SDL2::SDL2Texture>(_sdlRenderer, texture);
+class AbyssSDL2TTF : public AbyssEngine::ITtf {
+  public:
+    explicit AbyssSDL2TTF(SDL_Renderer *renderer, LibAbyss::InputStream stream, int size, Hinting hinting) : _sdlRenderer(renderer) {
+        auto len = stream.size();
+        _data.resize(len);
+        stream.read(_data.data(), len);
+        _font = TTF_OpenFontRW(SDL_RWFromConstMem(_data.data(), len), 1, size);
+        if (!_font) {
+            throw std::runtime_error(absl::StrCat("TTF open error: ", TTF_GetError()));
         }
-
-        ~AbyssSDL2TTF() override {
-            TTF_CloseFont(_font);
+        int hint = 0;
+        switch (hinting) {
+        case Hinting::Light:
+            hint = TTF_HINTING_LIGHT;
+            break;
+        case Hinting::Mono:
+            hint = TTF_HINTING_MONO;
+            break;
+        case Hinting::None:
+            hint = TTF_HINTING_NONE;
+            break;
+        case Hinting::Normal:
+            hint = TTF_HINTING_NORMAL;
+            break;
         }
+        TTF_SetFontHinting(_font, hint);
+    }
 
-        private:
-        std::string _data;
-        TTF_Font* _font = nullptr;
-        SDL_Renderer* _sdlRenderer;
-    };
-}
+    void SetStyle(Style style) override {
+        int x = 0;
+        if (style & Style::Bold) {
+            x |= TTF_STYLE_BOLD;
+        }
+        if (style & Style::Italic) {
+            x |= TTF_STYLE_ITALIC;
+        }
+        if (style & Style::Underline) {
+            x |= TTF_STYLE_UNDERLINE;
+        }
+        if (style & Style::Strikethrough) {
+            x |= TTF_STYLE_STRIKETHROUGH;
+        }
+        TTF_SetFontStyle(_font, x);
+    }
+
+    std::unique_ptr<AbyssEngine::ITexture> RenderText(std::string_view text, int &width, int &height) override {
+        std::string s(text);
+        SDL_Color color = {255, 255, 255, 0};
+        SDL_Surface *surf = TTF_RenderUTF8_Blended(_font, s.c_str(), color);
+        width = surf->w;
+        height = surf->h;
+        SDL_Texture *texture = SDL_CreateTextureFromSurface(_sdlRenderer, surf);
+        SDL_FreeSurface(surf);
+        return std::make_unique<AbyssEngine::SDL2::SDL2Texture>(_sdlRenderer, texture);
+    }
+
+    ~AbyssSDL2TTF() override { TTF_CloseFont(_font); }
+
+  private:
+    std::string _data;
+    TTF_Font *_font = nullptr;
+    SDL_Renderer *_sdlRenderer;
+};
+} // namespace
 
 std::unique_ptr<AbyssEngine::ITtf> AbyssEngine::SDL2::SDL2SystemIO::CreateTtf(LibAbyss::InputStream stream, int size,
-        AbyssEngine::ITtf::Hinting hinting) {
+                                                                              AbyssEngine::ITtf::Hinting hinting) {
     return std::make_unique<AbyssSDL2TTF>(_sdlRenderer.get(), std::move(stream), size, hinting);
 }
 void AbyssEngine::SDL2::SDL2SystemIO::InitializeAudio() {
@@ -390,9 +396,7 @@ void AbyssEngine::SDL2::SDL2SystemIO::SetAudioLevel(eAudioIntent intent, float l
     }
 }
 
-void AbyssEngine::SDL2::SDL2SystemIO::ResetMouseButtonState() {
-    _mouseButtonState = (eMouseButton)0;
-}
+void AbyssEngine::SDL2::SDL2SystemIO::ResetMouseButtonState() { _mouseButtonState = (eMouseButton)0; }
 
 void AbyssEngine::SDL2::SDL2SystemIO::SetBackgroundMusic(std::unique_ptr<LibAbyss::AudioStream> stream) {
     std::lock_guard<std::mutex> lock(_mutex);
@@ -408,11 +412,20 @@ void AbyssEngine::SDL2::SDL2SystemIO::RemoveSoundEffect(AbyssEngine::SoundEffect
     _soundEffects.erase(std::remove(_soundEffects.begin(), _soundEffects.end(), soundEffect), _soundEffects.end());
 }
 
-void AbyssEngine::SDL2::SDL2SystemIO::SetVideo(IAudio* video) {
+void AbyssEngine::SDL2::SDL2SystemIO::SetVideo(IAudio *video) {
     std::lock_guard<std::mutex> lock(_mutex);
     _video = video;
 }
 void AbyssEngine::SDL2::SDL2SystemIO::DrawLine(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, uint8_t b) {
     SDL_SetRenderDrawColor(_sdlRenderer.get(), r, g, b, 255);
     SDL_RenderDrawLine(_sdlRenderer.get(), x1, y1, x2, y2);
+}
+
+void AbyssEngine::SDL2::SDL2SystemIO::DrawRect(int x, int y, int w, int h, uint8_t r, uint8_t g, uint8_t b) {
+    SDL_SetRenderDrawColor(_sdlRenderer.get(), r, g, b, 255);
+    SDL_Rect destRect{x, y, w, h};
+    SDL_RenderFillRect(_sdlRenderer.get(), &destRect);
+}
+bool AbyssEngine::SDL2::SDL2SystemIO::IsKeyPressed(uint16_t scancode) {
+    return _pressedKeys[scancode];
 }

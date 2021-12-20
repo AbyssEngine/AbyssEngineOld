@@ -90,6 +90,7 @@ class Generator:
             .replace(">", "") \
             .replace("LibAbyss::", "") \
             .replace("int", "number")\
+            .replace("uint16_t", "number")\
             .replace("bool", "boolean")\
             .replace("float", "number")\
             .replace("double", "number")\
@@ -168,7 +169,11 @@ class Generator:
             result.append("---@param " + param.name + " " + param.type + " @ " + param.comment)
         if len(func_def.return_type) > 0 and func_def.return_type != 'nil':
             result.append("---@return " + func_def.return_type + " @ " + func_def.return_comment)
-        result.append("function " + class_name + ":" + function_name + "(" + ", ".join(param_names) + ") end")
+
+        sep = ":"
+        if class_name == "abyss":
+            sep = "."
+        result.append("function " + class_name + sep + function_name + "(" + ", ".join(param_names) + ") end")
 
         return result
 

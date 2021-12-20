@@ -127,6 +127,10 @@ class SystemIO {
     virtual void SetVideo(IAudio* video) = 0;
 
     virtual void DrawLine(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, uint8_t b) = 0;
+
+    virtual void DrawRect(int x, int y, int w, int h, uint8_t r, uint8_t g, uint8_t b) = 0;
+
+    virtual bool IsKeyPressed(uint16_t scancode) = 0;
 };
 
 } // namespace AbyssEngine

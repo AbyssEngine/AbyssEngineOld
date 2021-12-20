@@ -37,3 +37,17 @@ void AbyssEngine::InputListener::MouseEventCallback(const AbyssEngine::MouseEven
 void AbyssEngine::InputListener::LuaSetMouseButtonCallback(sol::safe_function func) { this->_luaMouseButtonCallback = std::move(func); }
 
 void AbyssEngine::InputListener::LuaSetMouseMoveCallback(sol::safe_function func) { this->_luaMouseMoveCallback = std::move(func); }
+
+void AbyssEngine::InputListener::LuaSetKeyCallback(sol::safe_function func) { this->_luaKeyCallback = std::move(func); }
+void AbyssEngine::InputListener::KeyboardEventCallback(const AbyssEngine::KeyboardEvent &event) {
+    if (!this->_luaKeyCallback.valid())
+        return;
+
+    auto result = this->_luaKeyCallback(event.Scancode, event.Pressed);
+
+    if (result.valid())
+        return;
+
+    sol::error err = result;
+    Engine::Get()->Panic(err.what());
+}

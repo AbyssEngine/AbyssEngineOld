@@ -122,3 +122,13 @@ void AbyssEngine::Node::Initialize() {}
 void AbyssEngine::Node::SetLuaOnUpdateHandler(sol::protected_function onUpdateHandler) {
     _onUpdateHandler = std::move(onUpdateHandler);
 }
+
+void AbyssEngine::Node::KeyboardEventCallback(const AbyssEngine::KeyboardEvent &event) {
+    for (auto &item : Children) {
+        if (!item->Active)
+            continue;
+
+        if (item != this)
+            item->KeyboardEventCallback(event);
+    }
+}

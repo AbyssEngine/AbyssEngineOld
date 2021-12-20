@@ -21,6 +21,7 @@ class Node {
     virtual void UpdateCallback(uint32_t ticks);
     virtual void RenderCallback(int offsetX, int offsetY);
     virtual void MouseEventCallback(const MouseEvent &event);
+    virtual void KeyboardEventCallback(const KeyboardEvent &event);
     virtual void Initialize();
     [[nodiscard]] virtual std::string_view NodeType() const { return "Node"; };
 
