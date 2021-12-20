@@ -6,10 +6,7 @@
 #include <utility>
 
 void AbyssEngine::Sprite::UpdateCallback(uint32_t ticks) {
-    if (!Active)
-        return;
-
-    if (_playMode == ePlayMode::Backwards || _playMode == ePlayMode::Forwards) {
+    if (!Active || !(_playMode == ePlayMode::Backwards || _playMode == ePlayMode::Forwards)) {
         Node::UpdateCallback(ticks);
         return;
     }

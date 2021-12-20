@@ -4,6 +4,6 @@
 ---@meta
 ---version: 0.1
 
----@class DS1
-DS1 = {
+---@class LevelType
+LevelType = {
 }

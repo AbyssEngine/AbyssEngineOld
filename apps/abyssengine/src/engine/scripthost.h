@@ -14,6 +14,9 @@
 #include "../node/sprite.h"
 #include "provider.h"
 #include "../node/inputlistener.h"
+#include "ttffont.h"
+#include "../node/node.h"
+
 #include <filesystem>
 #include <libabyss/formats/d2/ds1.h>
 #include <libabyss/zone/zone.h>
@@ -142,7 +145,7 @@ class ScriptHost {
     /// \return The created DS1 stamp.
     std::unique_ptr<LibAbyss::DS1> LuaLoadDS1(std::string_view fileName);
 
-    /// Creates a new input listener
+    /// \brief Creates a new input listener
     /// \return The input listener
     std::unique_ptr<InputListener> LuaCreateInputListener();
 
