@@ -133,6 +133,7 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     labelType["italic"] = sol::property(&Label::GetItalic, &Label::SetItalic);
     labelType["underline"] = sol::property(&Label::GetUnderline, &Label::SetUnderline);
     labelType["strikethrough"] = sol::property(&Label::GetStrikethrough, &Label::SetStrikethrough);
+    labelType["verticalSpacing"] = sol::property(&Label::GetVerticalSpacing, &Label::SetVerticalSpacing);
 
     // Sprite
     auto spriteType = CreateLuaObjectType<Sprite>(module, "Sprite", sol::no_constructor);

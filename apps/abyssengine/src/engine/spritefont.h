@@ -1,6 +1,7 @@
 #ifndef ABYSS_SPRITEFONT_H
 #define ABYSS_SPRITEFONT_H
 
+#include "../common/alignment.h"
 #include "../common/color.h"
 #include "../common/rectangle.h"
 #include "../systemio/interface.h"
@@ -29,8 +30,8 @@ class SpriteFont : public IFont {
 
     SpriteFont(std::string_view filePath, std::string_view paletteName);
     ~SpriteFont() = default;
-    void GetMetrics(std::string_view text, int &width, int &height);
-    void RenderText(int x, int y, std::string_view text, eBlendMode blendMode, RGB colorMod);
+    void GetMetrics(std::string_view text, int &width, int &height, int vertSpacing) const;
+    void RenderText(int x, int y, std::string_view text, eBlendMode blendMode, RGB colorMod, eAlignment horizontalAlignment, int vertSpacing);
 
   private:
     void RegenerateAtlas();

@@ -8,8 +8,9 @@
 #define STORMLIB_NO_AUTO_LINK 1
 #include <StormLib.h>
 
-LibAbyss::MPQ::MPQ(const std::filesystem::path &mpqPath) : _mpqPath(std::filesystem::absolute(mpqPath).string()), _stormMpq() {
-    if (!SFileOpenArchive(_mpqPath.c_str(), 0, STREAM_PROVIDER_FLAT | BASE_PROVIDER_FILE | STREAM_FLAG_READ_ONLY, &_stormMpq)) {
+LibAbyss::MPQ::MPQ(const std::filesystem::path &mpqPath) : _stormMpq(nullptr) {
+    std::string path = std::filesystem::absolute(mpqPath).string();
+    if (!SFileOpenArchive(path.c_str(), 0, STREAM_PROVIDER_FLAT | BASE_PROVIDER_FILE | STREAM_FLAG_READ_ONLY, &_stormMpq)) {
         throw std::runtime_error(absl::StrFormat("Error occurred while opening MPQ %s", mpqPath.string()));
     }
 }
