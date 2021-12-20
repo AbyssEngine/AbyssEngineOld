@@ -2,6 +2,7 @@
 #include "engine.h"
 #include <filesystem>
 #include <spdlog/spdlog.h>
+#include <absl/strings/str_split.h>
 
 namespace {
 const uint32_t MaxSpriteFontAtlasWidth = 1024;
@@ -138,32 +139,32 @@ void AbyssEngine::SpriteFont::RegenerateAtlas() {
         _atlas->SetPixels(buffer);
     }
 }
-void AbyssEngine::SpriteFont::GetMetrics(std::string_view text, int &width, int &height) {
-    auto x = 0;
-    auto rowHeight = 0;
+void AbyssEngine::SpriteFont::GetMetrics(std::string_view text, int &width, int &height, int vertSpacing) const {
+    int x = 0;
+    int rowHeight = 0;
     width = 0;
     height = 0;
 
-    for (auto ch : text) {
-        const auto &glyph = &_glyphs[(int)ch];
+    for (char ch : text) {
+        const auto &glyph = _glyphs[(int)ch];
 
         if (ch == '\n') {
             x = 0;
-            height += rowHeight;
+            height += rowHeight + vertSpacing;
             rowHeight = 0;
 
             continue;
         }
 
-        rowHeight = (rowHeight < glyph->Height) ? glyph->Height : rowHeight;
-        x += glyph->Width;
+        rowHeight = (rowHeight < glyph.Height) ? glyph.Height : rowHeight;
+        x += glyph.Width;
         width = (x > width) ? x : width;
     }
 
     height += rowHeight;
 }
 
-void AbyssEngine::SpriteFont::RenderText(int x, int y, std::string_view text, AbyssEngine::eBlendMode blendMode, AbyssEngine::RGB colorMod) {
+void AbyssEngine::SpriteFont::RenderText(int x, int y, std::string_view text, AbyssEngine::eBlendMode blendMode, AbyssEngine::RGB colorMod, eAlignment horizontalAlignment, int vertSpacing) {
     if (_atlas == nullptr)
         RegenerateAtlas();
 
@@ -171,28 +172,53 @@ void AbyssEngine::SpriteFont::RenderText(int x, int y, std::string_view text, Ab
     _atlas->SetColorMod(colorMod.Red, colorMod.Green, colorMod.Blue);
 
     Rectangle targetRect{.X = x, .Y = y, .Width = 0, .Height = 0};
-    const auto startX = x;
-    auto maxHeight = 0;
+    int rowHeight = 0;
+    int totalWidth = 0;
+    switch (horizontalAlignment) {
+        case eAlignment::Middle:
+        case eAlignment::End: {
+            int h;
+            GetMetrics(text, totalWidth, h, vertSpacing);
+            break;
+        }
+        default:
+            break;
+    }
 
-    for (const auto &ch : text) {
-        const auto &glyph = _glyphs[(int)ch];
+    for (std::string_view line : absl::StrSplit(text, '\n')) {
+        int startX = x;
+        switch (horizontalAlignment) {
+            case eAlignment::Middle: {
+                int w, h;
+                GetMetrics(line, w, h, vertSpacing);
+                startX += (totalWidth - w) / 2;
+                break;
+            }
+            case eAlignment::End: {
+                int w, h;
+                GetMetrics(line, w, h, vertSpacing);
+                startX += totalWidth - w;
+                break;
+            }
+            default:
+                break;
+        }
+        targetRect.X = startX;
 
-        if (ch == '\n') {
-            targetRect.X = startX;
-            targetRect.Y += maxHeight + 4;
-            maxHeight = 0;
+        for (char ch : line) {
+            const auto &glyph = _glyphs[(int)ch];
+            if (ch != ' ') {
+                const auto &frame = _frameRects[glyph.FrameIndex];
+                targetRect.Width = frame.Rect.Width;
+                targetRect.Height = frame.Rect.Height;
+                rowHeight = (rowHeight < glyph.Height) ? glyph.Height : rowHeight;
+                _atlas->Render(frame.Rect, targetRect);
+            }
 
-            continue;
+            targetRect.X += glyph.Width;
         }
 
-        if (ch != ' ') {
-            const auto &frame = _frameRects[glyph.FrameIndex];
-            targetRect.Width = frame.Rect.Width;
-            targetRect.Height = frame.Rect.Height;
-            maxHeight = (maxHeight < glyph.Height) ? glyph.Height : maxHeight;
-            _atlas->Render(frame.Rect, targetRect);
-        }
-
-        targetRect.X += glyph.Width;
+        targetRect.Y += rowHeight + vertSpacing;
+        rowHeight = 0;
     }
 }
