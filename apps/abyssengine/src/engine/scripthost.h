@@ -142,7 +142,7 @@ class ScriptHost {
     /// \return The created DS1 stamp.
     std::unique_ptr<LibAbyss::DS1> LuaLoadDS1(std::string_view fileName);
 
-    /// Creates a new input listener
+    /// \brief Creates a new input listener
     /// \return The input listener
     std::unique_ptr<InputListener> LuaCreateInputListener();
 

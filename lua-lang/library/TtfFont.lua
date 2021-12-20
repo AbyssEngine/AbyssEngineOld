@@ -4,5 +4,5 @@
 ---@meta
 ---version: 0.1
 
----@class Image
-Image = {}
+---@class TtfFont
+TtfFont = {}

@@ -162,44 +162,44 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
 
     // Map Renderer
     auto mapRenderer = CreateLuaObjectType<MapRenderer>(module, "MapRenderer", sol::no_constructor);
-    mapRenderer.set("showOuterBorder", sol::property(&MapRenderer::ShowOuterBorder, &MapRenderer::ShowOuterBorder));
+    mapRenderer["showOuterBorder"] = sol::property(&MapRenderer::ShowOuterBorder, &MapRenderer::ShowOuterBorder);
     mapRenderer["compile"] = &MapRenderer::Compile;
 
     // Level Type
     auto levelType = module.new_usertype<LibAbyss::LevelType>("LevelType");
-    levelType.set("files", sol::property(&LibAbyss::LevelType::Files, &LibAbyss::LevelType::Files));
-    levelType.set("name", sol::property(&LibAbyss::LevelType::Name, &LibAbyss::LevelType::Name));
-    levelType.set("id", sol::property(&LibAbyss::LevelType::ID, &LibAbyss::LevelType::ID));
-    levelType.set("act", sol::property(&LibAbyss::LevelType::Act, &LibAbyss::LevelType::Act));
-    levelType.set("beta", sol::property(&LibAbyss::LevelType::Beta, &LibAbyss::LevelType::Beta));
-    levelType.set("expansion", sol::property(&LibAbyss::LevelType::Expansion, &LibAbyss::LevelType::Expansion));
+    levelType["files"] = sol::property(&LibAbyss::LevelType::Files, &LibAbyss::LevelType::Files);
+    levelType["name"] = sol::property(&LibAbyss::LevelType::Name, &LibAbyss::LevelType::Name);
+    levelType["id"] = sol::property(&LibAbyss::LevelType::ID, &LibAbyss::LevelType::ID);
+    levelType["act"] = sol::property(&LibAbyss::LevelType::Act, &LibAbyss::LevelType::Act);
+    levelType["beta"] = sol::property(&LibAbyss::LevelType::Beta, &LibAbyss::LevelType::Beta);
+    levelType["expansion"] = sol::property(&LibAbyss::LevelType::Expansion, &LibAbyss::LevelType::Expansion);
 
     // Level Preset
     auto levelPreset = module.new_usertype<LibAbyss::LevelPreset>("LevelPreset");
-    levelPreset.set("files", sol::property(&LibAbyss::LevelPreset::Files, &LibAbyss::LevelPreset::Files));
-    levelPreset.set("name", sol::property(&LibAbyss::LevelPreset::Name, &LibAbyss::LevelPreset::Name));
-    levelPreset.set("definitionId", sol::property(&LibAbyss::LevelPreset::DefinitionID, &LibAbyss::LevelPreset::DefinitionID));
-    levelPreset.set("levelId", sol::property(&LibAbyss::LevelPreset::LevelID, &LibAbyss::LevelPreset::LevelID));
-    levelPreset.set("sizeX", sol::property(&LibAbyss::LevelPreset::SizeX, &LibAbyss::LevelPreset::SizeX));
-    levelPreset.set("sizeY", sol::property(&LibAbyss::LevelPreset::SizeY, &LibAbyss::LevelPreset::SizeY));
-    levelPreset.set("pops", sol::property(&LibAbyss::LevelPreset::Pops, &LibAbyss::LevelPreset::Pops));
-    levelPreset.set("popPad", sol::property(&LibAbyss::LevelPreset::PopPad, &LibAbyss::LevelPreset::PopPad));
-    levelPreset.set("dt1Mask", sol::property(&LibAbyss::LevelPreset::DT1Mask, &LibAbyss::LevelPreset::DT1Mask));
-    levelPreset.set("populate", sol::property(&LibAbyss::LevelPreset::Populate, &LibAbyss::LevelPreset::Populate));
-    levelPreset.set("logicals", sol::property(&LibAbyss::LevelPreset::Logicals, &LibAbyss::LevelPreset::Logicals));
-    levelPreset.set("outdoors", sol::property(&LibAbyss::LevelPreset::Outdoors, &LibAbyss::LevelPreset::Outdoors));
-    levelPreset.set("animate", sol::property(&LibAbyss::LevelPreset::Animate, &LibAbyss::LevelPreset::Animate));
-    levelPreset.set("killEdge", sol::property(&LibAbyss::LevelPreset::KillEdge, &LibAbyss::LevelPreset::KillEdge));
-    levelPreset.set("fillBlanks", sol::property(&LibAbyss::LevelPreset::FillBlanks, &LibAbyss::LevelPreset::FillBlanks));
-    levelPreset.set("autoMap", sol::property(&LibAbyss::LevelPreset::AutoMap, &LibAbyss::LevelPreset::AutoMap));
-    levelPreset.set("scan", sol::property(&LibAbyss::LevelPreset::Scan, &LibAbyss::LevelPreset::Scan));
-    levelPreset.set("beta", sol::property(&LibAbyss::LevelPreset::Beta, &LibAbyss::LevelPreset::Beta));
-    levelPreset.set("expansion", sol::property(&LibAbyss::LevelPreset::Expansion, &LibAbyss::LevelPreset::Expansion));
+    levelPreset["files"] = sol::property(&LibAbyss::LevelPreset::Files, &LibAbyss::LevelPreset::Files);
+    levelPreset["name"] = sol::property(&LibAbyss::LevelPreset::Name, &LibAbyss::LevelPreset::Name);
+    levelPreset["definitionId"] = sol::property(&LibAbyss::LevelPreset::DefinitionID, &LibAbyss::LevelPreset::DefinitionID);
+    levelPreset["levelId"] = sol::property(&LibAbyss::LevelPreset::LevelID, &LibAbyss::LevelPreset::LevelID);
+    levelPreset["sizeX"] = sol::property(&LibAbyss::LevelPreset::SizeX, &LibAbyss::LevelPreset::SizeX);
+    levelPreset["sizeY"] = sol::property(&LibAbyss::LevelPreset::SizeY, &LibAbyss::LevelPreset::SizeY);
+    levelPreset["pops"] = sol::property(&LibAbyss::LevelPreset::Pops, &LibAbyss::LevelPreset::Pops);
+    levelPreset["popPad"] = sol::property(&LibAbyss::LevelPreset::PopPad, &LibAbyss::LevelPreset::PopPad);
+    levelPreset["dt1Mask"] = sol::property(&LibAbyss::LevelPreset::DT1Mask, &LibAbyss::LevelPreset::DT1Mask);
+    levelPreset["populate"] = sol::property(&LibAbyss::LevelPreset::Populate, &LibAbyss::LevelPreset::Populate);
+    levelPreset["logicals"] = sol::property(&LibAbyss::LevelPreset::Logicals, &LibAbyss::LevelPreset::Logicals);
+    levelPreset["outdoors"] = sol::property(&LibAbyss::LevelPreset::Outdoors, &LibAbyss::LevelPreset::Outdoors);
+    levelPreset["animate"] = sol::property(&LibAbyss::LevelPreset::Animate, &LibAbyss::LevelPreset::Animate);
+    levelPreset["killEdge"] = sol::property(&LibAbyss::LevelPreset::KillEdge, &LibAbyss::LevelPreset::KillEdge);
+    levelPreset["fillBlanks"] = sol::property(&LibAbyss::LevelPreset::FillBlanks, &LibAbyss::LevelPreset::FillBlanks);
+    levelPreset["autoMap"] = sol::property(&LibAbyss::LevelPreset::AutoMap, &LibAbyss::LevelPreset::AutoMap);
+    levelPreset["scan"] = sol::property(&LibAbyss::LevelPreset::Scan, &LibAbyss::LevelPreset::Scan);
+    levelPreset["beta"] = sol::property(&LibAbyss::LevelPreset::Beta, &LibAbyss::LevelPreset::Beta);
+    levelPreset["expansion"] = sol::property(&LibAbyss::LevelPreset::Expansion, &LibAbyss::LevelPreset::Expansion);
 
     // DS1
     auto ds1 = module.new_usertype<LibAbyss::DS1>("DS1", sol::no_constructor);
-    ds1.set("width", sol::property(&LibAbyss::DS1::Width, &LibAbyss::DS1::Width));
-    ds1.set("height", sol::property(&LibAbyss::DS1::Height, &LibAbyss::DS1::Height));
+    ds1["width"] = sol::property(&LibAbyss::DS1::Width, &LibAbyss::DS1::Width);
+    ds1["height"] = sol::property(&LibAbyss::DS1::Height, &LibAbyss::DS1::Height);
 
     // DT1 Tile
     auto dt1TileType = module.new_usertype<LibAbyss::DT1::Tile>("DT1Tile", sol::no_constructor);
