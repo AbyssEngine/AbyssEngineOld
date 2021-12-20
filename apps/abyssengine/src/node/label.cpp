@@ -79,7 +79,7 @@ void SpriteLabel::DoRender(int x, int y) {
     _font.RenderText(x, y, _caption, _blendMode, _colorMod, _horizontalAlignment, _vertSpacing);
 }
 void TtfLabel::DoRender(int x, int y) {
-    for (int i = 0; i < _textures.size(); ++i) {
+    for (int i = 0; i < (int)_textures.size(); ++i) {
         const Rectangle& rect = _rects[i];
         if (_textures[i] == nullptr) {
             y += rect.Height + _vertSpacing;
@@ -114,7 +114,8 @@ void TtfLabel::ClearCache() {
     _rects.clear();
 }
 
-void Label::SetCaption(std::string_view value) {
+void Label::SetCaption(std::string value) {
+    value.erase( std::remove(value.begin(), value.end(), '\r'), value.end() );
     _caption = value;
     ClearCache();
 }
