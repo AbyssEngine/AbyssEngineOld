@@ -30,6 +30,10 @@ underline = false,
 ---@type boolean
 strikethrough = false,
 
+---No description set in label.h:39.
+---@type number
+verticalSpacing = 0,
+
 }
 
 ---No description set in label.h:21.

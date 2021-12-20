@@ -32,7 +32,7 @@ class FunctionDefinition:
 
 class Generator:
     def __init__(self, base_path, out_path):
-        self.custom_types: List[str] = []
+        self.include_paths: List[str] = []
         self.base_path = base_path
         self.out_path = out_path
         self.generated_banner = [
@@ -99,23 +99,6 @@ class Generator:
         return result
 
 
-    def AddCustomTypes(self, typeStr):
-        if "," in typeStr:
-            for str in typeStr.split(","):
-                self.AddCustomTypes(str.strip())
-            return
-
-        if typeStr.startswith("sol::"):
-            return
-
-        if typeStr in ["number", "boolean", "void", "explicit", "string", "function", "X"]:
-            return
-
-        if typeStr in self.custom_types:
-            return
-
-        self.custom_types.append(typeStr)
-
     def GetFunctionsForHeader(self, header_path) -> Dict[str, FunctionDefinition]:
         result = {}
         current_class = ""
@@ -128,7 +111,7 @@ class Generator:
             if line.strip().startswith("[[nodiscard]]"):
                 line = line.replace("[[nodiscard]]", "").strip()
 
-            if line.startswith("class ") and line.endswith("{"):
+            if (line.startswith("class ") or line.startswith("struct ")) and line.endswith("{"):
                 current_class = line.split(" ")[1].strip()
                 continue
 
@@ -207,7 +190,6 @@ class Generator:
 
             script_host_function = script_host_functions[abyss_func.owned_function]
             file_lines.append("")
-            self.AddCustomTypes(script_host_function.return_type)
             def_lines = self.GenerateFunctionDefLine("abyss", abyss_func.function_name, script_host_function)
             file_lines.extend(def_lines)
 
@@ -223,10 +205,11 @@ class Generator:
             line = line.strip()
             if not line.startswith("auto "):
                 continue
-            if not "<" + class_name + ">" in line:
+            if (not "<" + class_name + ">" in line) and (not "::" + class_name + ">" in line):
                 continue
 
             class_var = line.split(" ")[1]
+            break
 
         if len(class_var) == 0:
             return []
@@ -326,7 +309,6 @@ class Generator:
 
                 script_host_function = class_header_functions[class_func.owned_function]
                 file_lines.append("")
-                self.AddCustomTypes(script_host_function.return_type)
                 def_lines = self.GenerateFunctionDefLine(custom_type, class_func.function_name, script_host_function)
                 file_lines.extend(def_lines)
 
@@ -334,19 +316,78 @@ class Generator:
         self.WriteFileLines(os.path.join(self.out_path, custom_type + ".lua"), file_lines)
 
 
+    def LoadHeaderFiles(self, source_path):
+        host_file_lines = self.ReadFileLines(source_path)
+
+        for line in host_file_lines:
+            line = line.strip()
+            if not line.startswith("#include "):
+                continue
+
+            line = line[9:]
+
+            line_path = ""
+
+            if line.startswith("<libabyss"):
+                line = line.replace("<", "").replace(">", "")
+                line_path = os.path.normpath(os.path.join(\
+                    self.base_path, "..", "..", "..", "..", "libabyss", "include", line))
+
+            elif (line.startswith('"') or line.startswith("'")):
+                line = line.strip().replace('"', "").replace("'", "")
+                line_path = os.path.normpath(os.path.join(self.base_path, line))
+
+            else:
+                continue
+
+            if line_path not in self.include_paths:
+                self.include_paths.append(line_path)
+
+        return
+
+    def GetHeaderFileForClass(self, class_name: str) -> str:
+        for header_path in self.include_paths:
+            header_lines = self.ReadFileLines(header_path)
+
+            for line in header_lines:
+                if (class_name + " : " not in line) and (class_name + " {" not in line):
+                    continue
+                return header_path
+
+        return ""
+
+    def CreateCustomTypesFiles(self):
+        host_lines = self.ReadFileLines(os.path.join(self.base_path, "scripthost.cpp"))
+        for line in host_lines:
+            if ("module.new_usertype<" not in line) and ("CreateLuaObjectType<" not in line):
+                continue
+
+            if "<T>" in line:
+                continue
+
+            custom_type = line[line.find("<")+1:line.find(">")]
+            parts = custom_type.split("::")
+            custom_type = parts[len(parts)-1].strip()
+            custom_type_header = self.GetHeaderFileForClass(custom_type)
+            if custom_type_header == "":
+                print("*WARNING* Couldn't find header for type", custom_type)
+                continue
+
+            print("   -> " + custom_type + " (" + custom_type_header + ")")
+            self.CreateAbyssClassFile(custom_type, custom_type_header)
+
+        return
+
     def Generate(self):
+        print("Loading header files...")
+        self.LoadHeaderFiles(os.path.join(self.base_path, "scripthost.h"))
+        self.LoadHeaderFiles(os.path.join(self.base_path, "scripthost.cpp"))
+
         print("Writing abyss module file...")
         self.CreateAbyssModuleFile()
 
         print("Writing class definitions:")
-        for custom_type in self.custom_types:
-            header_path = os.path.normpath(os.path.join(self.base_path, custom_type.lower() + ".h"))
-            if not os.path.exists(header_path):
-                header_path = os.path.normpath(os.path.join(self.base_path, "..", "node", custom_type.lower() + ".h"))
-                if not os.path.exists(header_path):
-                    continue
-            print("   -> " + custom_type + " (" + header_path + ")")
-            self.CreateAbyssClassFile(custom_type, header_path)
+        self.CreateCustomTypesFiles()
 
 
 

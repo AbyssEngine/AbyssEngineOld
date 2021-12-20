@@ -14,6 +14,9 @@
 #include "../node/sprite.h"
 #include "provider.h"
 #include "../node/inputlistener.h"
+#include "ttffont.h"
+#include "../node/node.h"
+
 #include <filesystem>
 #include <libabyss/formats/d2/ds1.h>
 #include <libabyss/zone/zone.h>

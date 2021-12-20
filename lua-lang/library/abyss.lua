@@ -9,7 +9,7 @@ abyss = {}
 
 ---Adds a loader provider
 ---@param providerType string @ The type of provider to add ('mpq', 'casc', 'filesystem')
----@param providerPath string @ No description set in scripthost.h:69.
+---@param providerPath string @ No description set in scripthost.h:72.
 function abyss:addLoaderProvider(providerType, providerPath) end
 
 ---Creates a button
@@ -56,7 +56,7 @@ function abyss:createSpriteFont(fontPath, paletteName) end
 ---@param fontPath string @ The path to the font file.
 ---@param size number @ The size of the font.
 ---@param hinting string @ The hinting to use for the font ('light', 'mono', 'normal', 'none').
----@return TtfFont @ No description set in scripthost.h:119.
+---@return TtfFont @ No description set in scripthost.h:122.
 function abyss:createTtfFont(fontPath, size, hinting) end
 
 ---Loads a DS1 stamp

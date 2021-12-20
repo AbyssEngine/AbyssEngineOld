@@ -5,6 +5,7 @@
 #include "cascprovider.h"
 #include "engine.h"
 #include "filesystemprovider.h"
+#include "font.h"
 #include "image.h"
 #include "mpqprovider.h"
 #include <absl/strings/ascii.h>
@@ -521,6 +522,6 @@ std::tuple<int, int> AbyssEngine::ScriptHost::LuaOrthoToWorld(int x, int y) {
     MapRenderer::OrthoToWorld(x, y);
     return {x, y};
 }
-std::string AbyssEngine::ScriptHost::LuaUtf16To8(const std::u16string& str) {
+std::string AbyssEngine::ScriptHost::LuaUtf16To8(const std::u16string &str) {
     return std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(str);
 }
