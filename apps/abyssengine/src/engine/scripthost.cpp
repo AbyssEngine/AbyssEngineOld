@@ -21,7 +21,23 @@
 #include <spdlog/spdlog.h>
 #include <stdexcept>
 
-static int my_exception_handler(lua_State *L, sol::optional<const std::exception &> maybe_exception, sol::string_view description) {
+namespace {
+template <typename T, typename N>
+void AddNodeFunctionProperties(N& module) {
+    // Functions work via sol::base_classes, but are slow; properties don't work at all.
+    // So create both explicitly
+    module["removeAllChildren"] = &T::RemoveAllChildren;
+    module["appendChild"] = &T::AppendChild;
+    module["removeChild"] = &T::RemoveChild;
+    module["getPosition"] = &T::GetPosition;
+    module["setPosition"] = &T::SetPosition;
+    module["onUpdate"] = &T::SetLuaOnUpdateHandler;
+    module["visible"] = sol::property(&T::GetVisible, &T::SetVisible);
+    module["active"] = sol::property(&T::GetActive, &T::SetActive);
+    module["data"] = sol::property(&T::GetLuaTable, &T::SetLuaTable);
+}
+
+int my_exception_handler(lua_State *L, sol::optional<const std::exception &> maybe_exception, sol::string_view description) {
     // L is the lua state, which you can wrap in a state_view if necessary
     // maybe_exception will contain exception, if it exists
     // description will either be the what() of the exception or a description saying that we hit the general-case catch(...)
@@ -42,6 +58,7 @@ static int my_exception_handler(lua_State *L, sol::optional<const std::exception
     // so we push a single string (in our case, the description of the error)
     return sol::stack::push(L, description);
 }
+} // namespace
 
 AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     _lua.stop_gc();
@@ -344,19 +361,12 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     module.new_usertype<SpriteFont>("SpriteFont", sol::no_constructor, sol::base_classes, sol::bases<IFont>());
 
     // Image (Not node based)
-    module.new_usertype<Image>("Image", sol::no_constructor);
+    auto imageType = module.new_usertype<Image>("Image", sol::no_constructor);
+    imageType["getFrameSize"] = &Image::LuaGetFrameSize;
 
     // Node
     auto nodeType = module.new_usertype<Node>("Node", sol::no_constructor);
-    nodeType["removeAllChildren"] = &Node::RemoveAllChildren;
-    nodeType["appendChild"] = &Node::AppendChild;
-    nodeType["removeChild"] = &Node::RemoveChild;
-    nodeType["getPosition"] = &Node::GetPosition;
-    nodeType["setPosition"] = &Node::SetPosition;
-    nodeType["onUpdate"] = &Node::SetLuaOnUpdateHandler;
-    nodeType["visible"] = sol::property(&Node::GetVisible, &Node::SetVisible);
-    nodeType["active"] = sol::property(&Node::GetActive, &Node::SetActive);
-    nodeType["data"] = sol::property(&Node::GetLuaTable, &Node::SetLuaTable);
+    AddNodeFunctionProperties<Node>(nodeType);
 
     // Button
     auto buttonType = CreateLuaObjectType<Button>(module, "Button", sol::no_constructor);
@@ -659,10 +669,11 @@ void AbyssEngine::ScriptHost::LuaPlayVideoAndAudio(std::string_view videoPath, s
     _engine->PlayVideo(videoPath, std::move(stream), std::move(audio), callback);
 }
 
-template <class T, typename X>
+template <typename T, typename X>
 sol::basic_usertype<T, sol::basic_reference<false>> AbyssEngine::ScriptHost::CreateLuaObjectType(sol::table &module, std::string_view name,
                                                                                                  X &&constructor) {
     auto val = module.new_usertype<T>(name, "new", std::forward<X>(constructor), sol::base_classes, sol::bases<Node>());
+    AddNodeFunctionProperties<T>(val);
     return val;
 }
 

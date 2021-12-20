@@ -3,6 +3,7 @@
 
 #include "../systemio/interface.h"
 #include <stdint.h>
+#include <tuple>
 
 namespace AbyssEngine {
 
@@ -19,6 +20,7 @@ class Image {
     virtual uint32_t GetNumberOfAnimations() = 0;
     virtual uint32_t GetFramesPerAnimation() = 0;
     virtual void GetFrameSize(uint32_t startFrameIdx, int cellSizeX, uint32_t &width, uint32_t &height) = 0;
+    std::tuple<uint32_t, uint32_t> LuaGetFrameSize(uint32_t startFrameIdx, int cellSizeX);
 
     void SetBlendMode(eBlendMode mode);
     void SetColorMod(uint8_t r, uint8_t g, uint8_t b);
