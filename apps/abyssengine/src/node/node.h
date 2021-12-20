@@ -16,7 +16,7 @@ class Node {
   public:
     Node();
     explicit Node(std::string_view name);
-    virtual ~Node(){};
+    virtual ~Node() {}
 
     virtual void UpdateCallback(uint32_t ticks);
     virtual void RenderCallback(int offsetX, int offsetY);

@@ -42,5 +42,10 @@ void Image::SetColorMod(uint8_t r, uint8_t g, uint8_t b) {
     _modB = b;
     _atlas->SetColorMod(r, g, b);
 }
+std::tuple<uint32_t, uint32_t> Image::LuaGetFrameSize(uint32_t startFrameIdx, int cellSizeX) {
+    uint32_t width, height;
+    GetFrameSize(startFrameIdx, cellSizeX, width, height);
+    return {width, height};
+}
 
 } // namespace AbyssEngine
