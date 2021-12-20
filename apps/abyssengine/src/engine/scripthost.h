@@ -181,7 +181,7 @@ class ScriptHost {
     /// \brief Converts UTF16 to UTF8
     /// \param str The source string.
     /// \return The string in UTF8 format.
-    std::string LuaUtf16To8(const std::u16string& str);
+    std::string LuaUtf16To8(const std::string& str);
 };
 
 } // namespace AbyssEngine
