@@ -90,34 +90,250 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     module.set_function("utf16To8", &ScriptHost::LuaUtf16To8, this);
     module.set_function("worldToOrtho", &ScriptHost::LuaWorldToOrtho, this);
 
-    module["scanCodes"] = _lua.create_table_with(
-        "UNKNOWN", 0, "A", 4, "B", 5, "C", 6, "D", 7, "E", 8, "F", 9, "G", 10, "H", 11, "I", 12, "J", 13, "K", 14, "L", 15, "M", 16, "N", 17, "O", 18,
-        "P", 19, "Q", 20, "R", 21, "S", 22, "T", 23, "U", 24, "V", 25, "W", 26, "X", 27, "Y", 28, "Z", 29, "NUM_1", 30, "NUM_2", 31, "NUM_3", 32,
-        "NUM_4", 33, "NUM_5", 34, "NUM_6", 35, "NUM_7", 36, "NUM_8", 37, "NUM_9", 38, "NUM_0", 39, "RETURN", 40, "ESCAPE", 41, "BACKSPACE", 42, "TAB",
-        43, "SPACE", 44, "MINUS", 45, "EQUALS", 46, "LEFTBRACKET", 47, "RIGHTBRACKET", 48, "BACKSLASH", 49, "NONUSHASH", 50, "SEMICOLON", 51,
-        "APOSTROPHE", 52, "GRAVE", 53, "COMMA", 54, "PERIOD", 55, "SLASH", 56, "CAPSLOCK", 57, "F1", 58, "F2", 59, "F3", 60, "F4", 61, "F5", 62, "F6",
-        63, "F7", 64, "F8", 65, "F9", 66, "F10", 67, "F11", 68, "F12", 69, "PRINTSCREEN", 70, "SCROLLLOCK", 71, "PAUSE", 72, "INSERT", 73, "HOME", 74,
-        "PAGEUP", 75, "DELETE", 76, "END", 77, "PAGEDOWN", 78, "RIGHT", 79, "LEFT", 80, "DOWN", 81, "UP", 82, "NUMLOCKCLEAR", 83, "KP_DIVIDE", 84,
-        "KP_MULTIPLY", 85, "KP_MINUS", 86, "KP_PLUS", 87, "KP_ENTER", 88, "KP_1", 89, "KP_2", 90, "KP_3", 91, "KP_4", 92, "KP_5", 93, "KP_6", 94,
-        "KP_7", 95, "KP_8", 96, "KP_9", 97, "KP_0", 98, "KP_PERIOD", 99, "NONUSBACKSLASH", 100, "APPLICATION", 101, "POWER", 102, "KP_EQUALS", 103,
-        "F13", 104, "F14", 105, "F15", 106, "F16", 107, "F17", 108, "F18", 109, "F19", 110, "F20", 111, "F21", 112, "F22", 113, "F23", 114, "F24",
-        115, "EXECUTE", 116, "HELP", 117, "MENU", 118, "SELECT", 119, "STOP", 120, "AGAIN", 121, "UNDO", 122, "CUT", 123, "COPY", 124, "PASTE", 125,
-        "FIND", 126, "MUTE", 127, "VOLUMEUP", 128, "VOLUMEDOWN", 129, "KP_COMMA", 133, "KP_EQUALSAS400", 134, "INTERNATIONAL1", 135, "INTERNATIONAL2",
-        136, "INTERNATIONAL3", 137, "INTERNATIONAL4", 138, "INTERNATIONAL5", 139, "INTERNATIONAL6", 140, "INTERNATIONAL7", 141, "INTERNATIONAL8", 142,
-        "INTERNATIONAL9", 143, "LANG1", 144, "LANG2", 145, "LANG3", 146, "LANG4", 147, "LANG5", 148, "LANG6", 149, "LANG7", 150, "LANG8", 151,
-        "LANG9", 152, "ALTERASE", 153, "SYSREQ", 154, "CANCEL", 155, "CLEAR", 156, "PRIOR", 157, "RETURN2", 158, "SEPARATOR", 159, "OUT", 160, "OPER",
-        161, "CLEARAGAIN", 162, "CRSEL", 163, "EXSEL", 164, "KP_00", 176, "KP_000", 177, "THOUSANDSSEPARATOR", 178, "DECIMALSEPARATOR", 179,
-        "CURRENCYUNIT", 180, "CURRENCYSUBUNIT", 181, "KP_LEFTPAREN", 182, "KP_RIGHTPAREN", 183, "KP_LEFTBRACE", 184, "KP_RIGHTBRACE", 185, "KP_TAB",
-        186, "KP_BACKSPACE", 187, "KP_A", 188, "KP_B", 189, "KP_C", 190, "KP_D", 191, "KP_E", 192, "KP_F", 193, "KP_XOR", 194, "KP_POWER", 195,
-        "KP_PERCENT", 196, "KP_LESS", 197, "KP_GREATER", 198, "KP_AMPERSAND", 199, "KP_DBLAMPERSAND", 200, "KP_VERTICALBAR", 201, "KP_DBLVERTICALBAR",
-        202, "KP_COLON", 203, "KP_HASH", 204, "KP_SPACE", 205, "KP_AT", 206, "KP_EXCLAM", 207, "KP_MEMSTORE", 208, "KP_MEMRECALL", 209, "KP_MEMCLEAR",
-        210, "KP_MEMADD", 211, "KP_MEMSUBTRACT", 212, "KP_MEMMULTIPLY", 213, "KP_MEMDIVIDE", 214, "KP_PLUSMINUS", 215, "KP_CLEAR", 216,
-        "KP_CLEARENTRY", 217, "KP_BINARY", 218, "KP_OCTAL", 219, "KP_DECIMAL", 220, "KP_HEXADECIMAL", 221, "LCTRL", 224, "LSHIFT", 225, "LALT", 226,
-        "LGUI", 227, "RCTRL", 228, "RSHIFT", 229, "RALT", 230, "RGUI", 231, "MODE", 257, "AUDIONEXT", 258, "AUDIOPREV", 259, "AUDIOSTOP", 260,
-        "AUDIOPLAY", 261, "AUDIOMUTE", 262, "MEDIASELECT", 263, "WWW", 264, "MAIL", 265, "CALCULATOR", 266, "COMPUTER", 267, "AC_SEARCH", 268,
-        "AC_HOME", 269, "AC_BACK", 270, "AC_FORWARD", 271, "AC_STOP", 272, "AC_REFRESH", 273, "AC_BOOKMARKS", 274, "BRIGHTNESSDOWN", 275,
-        "BRIGHTNESSUP", 276, "DISPLAYSWITCH", 277, "KBDILLUMTOGGLE", 278, "KBDILLUMDOWN", 279, "KBDILLUMUP", 280, "EJECT", 281, "SLEEP", 282, "APP1",
-        283, "APP2", 284, "AUDIOREWIND", 285, "AUDIOFASTFORWARD", 286, "NUM_SCANCODES", 512);
+    module["scanCodes"] = _lua.create_table();
+    module["scanCodes"]["UNKNOWN"] = 0;
+    module["scanCodes"]["A"] = 4;
+    module["scanCodes"]["B"] = 5;
+    module["scanCodes"]["C"] = 6;
+    module["scanCodes"]["D"] = 7;
+    module["scanCodes"]["E"] = 8;
+    module["scanCodes"]["F"] = 9;
+    module["scanCodes"]["G"] = 10;
+    module["scanCodes"]["H"] = 11;
+    module["scanCodes"]["I"] = 12;
+    module["scanCodes"]["J"] = 13;
+    module["scanCodes"]["K"] = 14;
+    module["scanCodes"]["L"] = 15;
+    module["scanCodes"]["M"] = 16;
+    module["scanCodes"]["N"] = 17;
+    module["scanCodes"]["O"] = 18;
+    module["scanCodes"]["P"] = 19;
+    module["scanCodes"]["Q"] = 20;
+    module["scanCodes"]["R"] = 21;
+    module["scanCodes"]["S"] = 22;
+    module["scanCodes"]["T"] = 23;
+    module["scanCodes"]["U"] = 24;
+    module["scanCodes"]["V"] = 25;
+    module["scanCodes"]["W"] = 26;
+    module["scanCodes"]["X"] = 27;
+    module["scanCodes"]["Y"] = 28;
+    module["scanCodes"]["Z"] = 29;
+    module["scanCodes"]["NUM_1"] = 30;
+    module["scanCodes"]["NUM_2"] = 31;
+    module["scanCodes"]["NUM_3"] = 32;
+    module["scanCodes"]["NUM_4"] = 33;
+    module["scanCodes"]["NUM_5"] = 34;
+    module["scanCodes"]["NUM_6"] = 35;
+    module["scanCodes"]["NUM_7"] = 36;
+    module["scanCodes"]["NUM_8"] = 37;
+    module["scanCodes"]["NUM_9"] = 38;
+    module["scanCodes"]["NUM_0"] = 39;
+    module["scanCodes"]["RETURN"] = 40;
+    module["scanCodes"]["ESCAPE"] = 41;
+    module["scanCodes"]["BACKSPACE"] = 42;
+    module["scanCodes"]["TAB"] = 43;
+    module["scanCodes"]["SPACE"] = 44;
+    module["scanCodes"]["MINUS"] = 45;
+    module["scanCodes"]["EQUALS"] = 46;
+    module["scanCodes"]["LEFTBRACKET"] = 47;
+    module["scanCodes"]["RIGHTBRACKET"] = 48;
+    module["scanCodes"]["BACKSLASH"] = 49;
+    module["scanCodes"]["NONUSHASH"] = 50;
+    module["scanCodes"]["SEMICOLON"] = 51;
+    module["scanCodes"]["APOSTROPHE"] = 52;
+    module["scanCodes"]["GRAVE"] = 53;
+    module["scanCodes"]["COMMA"] = 54;
+    module["scanCodes"]["PERIOD"] = 55;
+    module["scanCodes"]["SLASH"] = 56;
+    module["scanCodes"]["CAPSLOCK"] = 57;
+    module["scanCodes"]["F1"] = 58;
+    module["scanCodes"]["F2"] = 59;
+    module["scanCodes"]["F3"] = 60;
+    module["scanCodes"]["F4"] = 61;
+    module["scanCodes"]["F5"] = 62;
+    module["scanCodes"]["F6"] = 63;
+    module["scanCodes"]["F7"] = 64;
+    module["scanCodes"]["F8"] = 65;
+    module["scanCodes"]["F9"] = 66;
+    module["scanCodes"]["F10"] = 67;
+    module["scanCodes"]["F11"] = 68;
+    module["scanCodes"]["F12"] = 69;
+    module["scanCodes"]["PRINTSCREEN"] = 70;
+    module["scanCodes"]["SCROLLLOCK"] = 71;
+    module["scanCodes"]["PAUSE"] = 72;
+    module["scanCodes"]["INSERT"] = 73;
+    module["scanCodes"]["HOME"] = 74;
+    module["scanCodes"]["PAGEUP"] = 75;
+    module["scanCodes"]["DELETE"] = 76;
+    module["scanCodes"]["END"] = 77;
+    module["scanCodes"]["PAGEDOWN"] = 78;
+    module["scanCodes"]["RIGHT"] = 79;
+    module["scanCodes"]["LEFT"] = 80;
+    module["scanCodes"]["DOWN"] = 81;
+    module["scanCodes"]["UP"] = 82;
+    module["scanCodes"]["NUMLOCKCLEAR"] = 83;
+    module["scanCodes"]["KP_DIVIDE"] = 84;
+    module["scanCodes"]["KP_MULTIPLY"] = 85;
+    module["scanCodes"]["KP_MINUS"] = 86;
+    module["scanCodes"]["KP_PLUS"] = 87;
+    module["scanCodes"]["KP_ENTER"] = 88;
+    module["scanCodes"]["KP_1"] = 89;
+    module["scanCodes"]["KP_2"] = 90;
+    module["scanCodes"]["KP_3"] = 91;
+    module["scanCodes"]["KP_4"] = 92;
+    module["scanCodes"]["KP_5"] = 93;
+    module["scanCodes"]["KP_6"] = 94;
+    module["scanCodes"]["KP_7"] = 95;
+    module["scanCodes"]["KP_8"] = 96;
+    module["scanCodes"]["KP_9"] = 97;
+    module["scanCodes"]["KP_0"] = 98;
+    module["scanCodes"]["KP_PERIOD"] = 99;
+    module["scanCodes"]["NONUSBACKSLASH"] = 100;
+    module["scanCodes"]["APPLICATION"] = 101;
+    module["scanCodes"]["POWER"] = 102;
+    module["scanCodes"]["KP_EQUALS"] = 103;
+    module["scanCodes"]["F13"] = 104;
+    module["scanCodes"]["F14"] = 105;
+    module["scanCodes"]["F15"] = 106;
+    module["scanCodes"]["F16"] = 107;
+    module["scanCodes"]["F17"] = 108;
+    module["scanCodes"]["F18"] = 109;
+    module["scanCodes"]["F19"] = 110;
+    module["scanCodes"]["F20"] = 111;
+    module["scanCodes"]["F21"] = 112;
+    module["scanCodes"]["F22"] = 113;
+    module["scanCodes"]["F23"] = 114;
+    module["scanCodes"]["F24"] = 115;
+    module["scanCodes"]["EXECUTE"] = 116;
+    module["scanCodes"]["HELP"] = 117;
+    module["scanCodes"]["MENU"] = 118;
+    module["scanCodes"]["SELECT"] = 119;
+    module["scanCodes"]["STOP"] = 120;
+    module["scanCodes"]["AGAIN"] = 121;
+    module["scanCodes"]["UNDO"] = 122;
+    module["scanCodes"]["CUT"] = 123;
+    module["scanCodes"]["COPY"] = 124;
+    module["scanCodes"]["PASTE"] = 125;
+    module["scanCodes"]["FIND"] = 126;
+    module["scanCodes"]["MUTE"] = 127;
+    module["scanCodes"]["VOLUMEUP"] = 128;
+    module["scanCodes"]["VOLUMEDOWN"] = 129;
+    module["scanCodes"]["KP_COMMA"] = 133;
+    module["scanCodes"]["KP_EQUALSAS400"] = 134;
+    module["scanCodes"]["INTERNATIONAL1"] = 135;
+    module["scanCodes"]["INTERNATIONAL2"] = 136;
+    module["scanCodes"]["INTERNATIONAL3"] = 137;
+    module["scanCodes"]["INTERNATIONAL4"] = 138;
+    module["scanCodes"]["INTERNATIONAL5"] = 139;
+    module["scanCodes"]["INTERNATIONAL6"] = 140;
+    module["scanCodes"]["INTERNATIONAL7"] = 141;
+    module["scanCodes"]["INTERNATIONAL8"] = 142;
+    module["scanCodes"]["INTERNATIONAL9"] = 143;
+    module["scanCodes"]["LANG1"] = 144;
+    module["scanCodes"]["LANG2"] = 145;
+    module["scanCodes"]["LANG3"] = 146;
+    module["scanCodes"]["LANG4"] = 147;
+    module["scanCodes"]["LANG5"] = 148;
+    module["scanCodes"]["LANG6"] = 149;
+    module["scanCodes"]["LANG7"] = 150;
+    module["scanCodes"]["LANG8"] = 151;
+    module["scanCodes"]["LANG9"] = 152;
+    module["scanCodes"]["ALTERASE"] = 153;
+    module["scanCodes"]["SYSREQ"] = 154;
+    module["scanCodes"]["CANCEL"] = 155;
+    module["scanCodes"]["CLEAR"] = 156;
+    module["scanCodes"]["PRIOR"] = 157;
+    module["scanCodes"]["RETURN2"] = 158;
+    module["scanCodes"]["SEPARATOR"] = 159;
+    module["scanCodes"]["OUT"] = 160;
+    module["scanCodes"]["OPER"] = 161;
+    module["scanCodes"]["CLEARAGAIN"] = 162;
+    module["scanCodes"]["CRSEL"] = 163;
+    module["scanCodes"]["EXSEL"] = 164;
+    module["scanCodes"]["KP_00"] = 176;
+    module["scanCodes"]["KP_000"] = 177;
+    module["scanCodes"]["THOUSANDSSEPARATOR"] = 178;
+    module["scanCodes"]["DECIMALSEPARATOR"] = 179;
+    module["scanCodes"]["CURRENCYUNIT"] = 180;
+    module["scanCodes"]["CURRENCYSUBUNIT"] = 181;
+    module["scanCodes"]["KP_LEFTPAREN"] = 182;
+    module["scanCodes"]["KP_RIGHTPAREN"] = 183;
+    module["scanCodes"]["KP_LEFTBRACE"] = 184;
+    module["scanCodes"]["KP_RIGHTBRACE"] = 185;
+    module["scanCodes"]["KP_TAB"] = 186;
+    module["scanCodes"]["KP_BACKSPACE"] = 187;
+    module["scanCodes"]["KP_A"] = 188;
+    module["scanCodes"]["KP_B"] = 189;
+    module["scanCodes"]["KP_C"] = 190;
+    module["scanCodes"]["KP_D"] = 191;
+    module["scanCodes"]["KP_E"] = 192;
+    module["scanCodes"]["KP_F"] = 193;
+    module["scanCodes"]["KP_XOR"] = 194;
+    module["scanCodes"]["KP_POWER"] = 195;
+    module["scanCodes"]["KP_PERCENT"] = 196;
+    module["scanCodes"]["KP_LESS"] = 197;
+    module["scanCodes"]["KP_GREATER"] = 198;
+    module["scanCodes"]["KP_AMPERSAND"] = 199;
+    module["scanCodes"]["KP_DBLAMPERSAND"] = 200;
+    module["scanCodes"]["KP_VERTICALBAR"] = 201;
+    module["scanCodes"]["KP_DBLVERTICALBAR"] = 202;
+    module["scanCodes"]["KP_COLON"] = 203;
+    module["scanCodes"]["KP_HASH"] = 204;
+    module["scanCodes"]["KP_SPACE"] = 205;
+    module["scanCodes"]["KP_AT"] = 206;
+    module["scanCodes"]["KP_EXCLAM"] = 207;
+    module["scanCodes"]["KP_MEMSTORE"] = 208;
+    module["scanCodes"]["KP_MEMRECALL"] = 209;
+    module["scanCodes"]["KP_MEMCLEAR"] = 210;
+    module["scanCodes"]["KP_MEMADD"] = 211;
+    module["scanCodes"]["KP_MEMSUBTRACT"] = 212;
+    module["scanCodes"]["KP_MEMMULTIPLY"] = 213;
+    module["scanCodes"]["KP_MEMDIVIDE"] = 214;
+    module["scanCodes"]["KP_PLUSMINUS"] = 215;
+    module["scanCodes"]["KP_CLEAR"] = 216;
+    module["scanCodes"]["KP_CLEARENTRY"] = 217;
+    module["scanCodes"]["KP_BINARY"] = 218;
+    module["scanCodes"]["KP_OCTAL"] = 219;
+    module["scanCodes"]["KP_DECIMAL"] = 220;
+    module["scanCodes"]["KP_HEXADECIMAL"] = 221;
+    module["scanCodes"]["LCTRL"] = 224;
+    module["scanCodes"]["LSHIFT"] = 225;
+    module["scanCodes"]["LALT"] = 226;
+    module["scanCodes"]["LGUI"] = 227;
+    module["scanCodes"]["RCTRL"] = 228;
+    module["scanCodes"]["RSHIFT"] = 229;
+    module["scanCodes"]["RALT"] = 230;
+    module["scanCodes"]["RGUI"] = 231;
+    module["scanCodes"]["MODE"] = 257;
+    module["scanCodes"]["AUDIONEXT"] = 258;
+    module["scanCodes"]["AUDIOPREV"] = 259;
+    module["scanCodes"]["AUDIOSTOP"] = 260;
+    module["scanCodes"]["AUDIOPLAY"] = 261;
+    module["scanCodes"]["AUDIOMUTE"] = 262;
+    module["scanCodes"]["MEDIASELECT"] = 263;
+    module["scanCodes"]["WWW"] = 264;
+    module["scanCodes"]["MAIL"] = 265;
+    module["scanCodes"]["CALCULATOR"] = 266;
+    module["scanCodes"]["COMPUTER"] = 267;
+    module["scanCodes"]["AC_SEARCH"] = 268;
+    module["scanCodes"]["AC_HOME"] = 269;
+    module["scanCodes"]["AC_BACK"] = 270;
+    module["scanCodes"]["AC_FORWARD"] = 271;
+    module["scanCodes"]["AC_STOP"] = 272;
+    module["scanCodes"]["AC_REFRESH"] = 273;
+    module["scanCodes"]["AC_BOOKMARKS"] = 274;
+    module["scanCodes"]["BRIGHTNESSDOWN"] = 275;
+    module["scanCodes"]["BRIGHTNESSUP"] = 276;
+    module["scanCodes"]["DISPLAYSWITCH"] = 277;
+    module["scanCodes"]["KBDILLUMTOGGLE"] = 278;
+    module["scanCodes"]["KBDILLUMDOWN"] = 279;
+    module["scanCodes"]["KBDILLUMUP"] = 280;
+    module["scanCodes"]["EJECT"] = 281;
+    module["scanCodes"]["SLEEP"] = 282;
+    module["scanCodes"]["APP1"] = 283;
+    module["scanCodes"]["APP2"] = 284;
+    module["scanCodes"]["AUDIOREWIND"] = 285;
+    module["scanCodes"]["AUDIOFASTFORWARD"] = 286;
 
     // User Types -------------------------------------------------------------------------------------------------------------------------
 
