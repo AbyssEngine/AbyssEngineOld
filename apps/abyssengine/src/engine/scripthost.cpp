@@ -522,6 +522,24 @@ std::tuple<int, int> AbyssEngine::ScriptHost::LuaOrthoToWorld(int x, int y) {
     MapRenderer::OrthoToWorld(x, y);
     return {x, y};
 }
-std::string AbyssEngine::ScriptHost::LuaUtf16To8(const std::u16string &str) {
-    return std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(str);
+std::string AbyssEngine::ScriptHost::LuaUtf16To8(const std::string &str) {
+    std::string result;
+    result.reserve(str.length());
+
+        int i = 0;
+        bool skip = false;
+
+        for (auto ch : str) {
+            if (i++ < 2)
+                continue;
+
+            if (skip) {
+                skip = false;
+                continue;
+            }
+            skip = true;
+            result += (char)ch;
+        }
+
+    return result;
 }
