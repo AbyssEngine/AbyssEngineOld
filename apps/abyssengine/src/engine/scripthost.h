@@ -44,6 +44,8 @@ class ScriptHost {
     Node &LuaGetRootNode();
     template <class T, typename X>
     sol::basic_usertype<T, sol::basic_reference<false>> CreateLuaObjectType(sol::table &module, std::string_view name, X &&constructor);
+    template <typename T>
+    std::unique_ptr<T> InitializeTableFor(std::unique_ptr<T>);
 
     // -----------------------------------------------------------------------------------------------
     // Script Functions
