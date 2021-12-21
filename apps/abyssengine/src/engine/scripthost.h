@@ -28,7 +28,7 @@ class Engine;
 class ScriptHost {
   public:
     explicit ScriptHost(Engine *engine);
-    void ExecuteString(std::string_view code);
+    std::string ExecuteString(std::string_view code);
     void ExecuteFile(std::string_view path);
     void GC();
 
@@ -193,6 +193,7 @@ class ScriptHost {
     /// \brief Creates a new empty node
     /// \return The new node
     std::unique_ptr<Node> LuaCreateNode();
+    void DefineScanCodes(sol::table module);
 };
 
 } // namespace AbyssEngine

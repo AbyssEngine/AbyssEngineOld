@@ -131,6 +131,12 @@ class SystemIO {
     virtual void DrawRect(int x, int y, int w, int h, uint8_t r, uint8_t g, uint8_t b) = 0;
 
     virtual bool IsKeyPressed(uint16_t scancode) = 0;
+
+    virtual void ResetKeyState(uint16_t scancode) = 0;
+
+    virtual std::string GetInputText() = 0;
+
+    virtual void ClearInputText() = 0;
 };
 
 } // namespace AbyssEngine

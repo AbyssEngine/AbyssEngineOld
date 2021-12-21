@@ -9,18 +9,19 @@
 namespace LibAbyss {
 
 class SizeableStreambuf : public std::basic_streambuf<char> {
-    public:
-        virtual std::streamsize size() const = 0;
+  public:
+    virtual std::streamsize size() const = 0;
 };
 
 class InputStream : public std::istream {
   public:
     explicit InputStream(std::unique_ptr<std::streambuf> streamBuff) : std::istream(streamBuff.get()), _streamBuff(std::move(streamBuff)) {}
 
+
     InputStream(InputStream &&other) noexcept : std::istream(other._streamBuff.get()), _streamBuff(std::move(other._streamBuff)) {}
 
     std::streamsize size() {
-        if (auto* sizeable = dynamic_cast<SizeableStreambuf*>(_streamBuff.get())) {
+        if (auto *sizeable = dynamic_cast<SizeableStreambuf *>(_streamBuff.get())) {
             return sizeable->size();
         }
         const auto curPos = tellg();

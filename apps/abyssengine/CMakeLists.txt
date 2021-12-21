@@ -38,12 +38,14 @@ target_sources(${APP_NAME} PRIVATE
         src/engine/filesystemprovider.cpp
         src/engine/cascprovider.cpp
         src/engine/mpqprovider.cpp
+        src/engine/embeddedfileprovider.cpp
         src/engine/spritefont.cpp
         src/engine/ttffont.cpp
         src/engine/soundeffect.cpp
         src/common/alignment.cpp
         src/common/blendmode.cpp
         src/common/color.cpp
+        src/common/sysfont.cpp
 
         # Nodes --------------------------------------------------------
         src/node/node.cpp
@@ -55,6 +57,7 @@ target_sources(${APP_NAME} PRIVATE
         src/node/button.cpp
         src/node/maprenderer.cpp
         src/node/inputlistener.cpp
+        src/node/debugconsole.cpp
 
         # Scripting ----------------------------------------------------
         src/engine/scripthost.cpp

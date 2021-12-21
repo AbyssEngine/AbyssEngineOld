@@ -155,6 +155,12 @@ bool AbyssEngine::SDL2::SDL2SystemIO::HandleSdlEvent(const SDL_Event &sdlEvent, 
         return true;
     }
     case SDL_KEYDOWN: {
+        if (sdlEvent.key.keysym.sym == SDLK_BACKSPACE) {
+            if (_inputText.length() > 0)
+                _inputText.pop_back();
+            return true;
+        }
+
         _pressedKeys[sdlEvent.key.keysym.scancode] = true;
         rootNode.KeyboardEventCallback(KeyboardEvent{.Scancode = (uint16_t)sdlEvent.key.keysym.scancode, .Pressed = true});
         return true;
@@ -162,6 +168,13 @@ bool AbyssEngine::SDL2::SDL2SystemIO::HandleSdlEvent(const SDL_Event &sdlEvent, 
     case SDL_KEYUP: {
         _pressedKeys[sdlEvent.key.keysym.scancode] = false;
         rootNode.KeyboardEventCallback(KeyboardEvent{.Scancode = (uint16_t)sdlEvent.key.keysym.scancode, .Pressed = false});
+        return true;
+    }
+    case SDL_TEXTINPUT: {
+        if (sdlEvent.text.text[0] == '`')
+            return true;
+
+        _inputText += sdlEvent.text.text;
         return true;
     }
     case SDL_QUIT:
@@ -426,6 +439,13 @@ void AbyssEngine::SDL2::SDL2SystemIO::DrawRect(int x, int y, int w, int h, uint8
     SDL_Rect destRect{x, y, w, h};
     SDL_RenderFillRect(_sdlRenderer.get(), &destRect);
 }
-bool AbyssEngine::SDL2::SDL2SystemIO::IsKeyPressed(uint16_t scancode) {
-    return _pressedKeys[scancode];
+
+bool AbyssEngine::SDL2::SDL2SystemIO::IsKeyPressed(uint16_t scancode) { return _pressedKeys[scancode]; }
+
+std::string AbyssEngine::SDL2::SDL2SystemIO::GetInputText() { return _inputText; }
+
+void AbyssEngine::SDL2::SDL2SystemIO::ClearInputText() { _inputText.clear(); }
+
+void AbyssEngine::SDL2::SDL2SystemIO::ResetKeyState(uint16_t scancode) {
+    _pressedKeys[scancode] = false;
 }
