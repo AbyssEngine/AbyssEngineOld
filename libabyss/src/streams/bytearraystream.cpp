@@ -16,11 +16,11 @@ int LibAbyss::ByteArrayStream::underflow() {
     return gptr() == egptr() ? traits_type::eof() : traits_type::to_int_type(*gptr());
 }
 
-LibAbyss::ByteArrayStream::pos_type LibAbyss::ByteArrayStream::seekpos(LibAbyss::ByteArrayStream::pos_type pos, std::ios_base::openmode which) {
+LibAbyss::ByteArrayStream::pos_type LibAbyss::ByteArrayStream::seekpos(pos_type pos, std::ios_base::openmode which) {
     return seekoff(pos, std::ios_base::beg, which);
 }
 
-LibAbyss::ByteArrayStream::pos_type LibAbyss::ByteArrayStream::seekoff(long long int off, std::ios_base::seekdir dir, std::ios_base::openmode) {
+LibAbyss::ByteArrayStream::pos_type LibAbyss::ByteArrayStream::seekoff(off_type off, std::ios_base::seekdir dir, std::ios_base::openmode) {
     std::streamsize newPos = 0;
     switch (dir) {
     case std::ios_base::beg:
