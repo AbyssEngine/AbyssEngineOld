@@ -1,4 +1,6 @@
 #include "libabyss/streams/bytearraystream.h"
+#include <ios>
+
 LibAbyss::ByteArrayStream::ByteArrayStream(std::vector<uint8_t> data) : _data(data) {}
 
 LibAbyss::ByteArrayStream::~ByteArrayStream() = default;
