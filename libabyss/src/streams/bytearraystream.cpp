@@ -1,7 +1,7 @@
 #include "libabyss/streams/bytearraystream.h"
 #include <ios>
 
-LibAbyss::ByteArrayStream::ByteArrayStream(std::vector<uint8_t> data) : _data(data) {}
+LibAbyss::ByteArrayStream::ByteArrayStream(std::vector<uint8_t> data) : _data(std::move(data)) {}
 
 LibAbyss::ByteArrayStream::~ByteArrayStream() = default;
 
@@ -19,7 +19,8 @@ int LibAbyss::ByteArrayStream::underflow() {
 std::fpos<mbstate_t> LibAbyss::ByteArrayStream::seekpos(std::fpos<mbstate_t> pos, std::ios_base::openmode which) {
     return seekoff(pos, std::ios_base::beg, which);
 }
-std::fpos<mbstate_t> LibAbyss::ByteArrayStream::seekoff(long long int off, std::ios_base::seekdir dir, std::ios_base::openmode which) {
+
+std::fpos<mbstate_t> LibAbyss::ByteArrayStream::seekoff(long long int off, std::ios_base::seekdir dir, std::ios_base::openmode) {
     std::streamsize newPos = 0;
     switch (dir) {
     case std::ios_base::beg:
