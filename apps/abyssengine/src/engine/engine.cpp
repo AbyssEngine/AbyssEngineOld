@@ -1,7 +1,10 @@
 #include "engine.h"
+#include "../common/sysfont.h"
 #include "../hostnotify/hostnotify.h"
+#include "../node/debugconsole.h"
 #include "filesystemprovider.h"
 #include <cmath>
+#include <memory>
 #include <spdlog/spdlog.h>
 
 AbyssEngine::Engine *engineGlobalInstance = nullptr;
@@ -9,6 +12,7 @@ AbyssEngine::Engine *engineGlobalInstance = nullptr;
 AbyssEngine::Engine::Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO> systemIo)
     : _iniFile(std::move(iniFile)), _loader(), _systemIO(std::move(systemIo)), _palettes(), _scriptHost(std::make_unique<ScriptHost>(this)),
       _rootNode("__root"), _videoNode(), _mouseButtonState((eMouseButton)0) {
+
     SPDLOG_TRACE("Creating engine");
 
     // Set up the global instance
@@ -29,10 +33,19 @@ AbyssEngine::Engine::Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO>
 }
 
 void AbyssEngine::Engine::Run() {
+    auto _embeddedFileProvider = std::make_unique<EmbeddedFileProvider>();
+    _embeddedFileProvider->AddFile("/__ABYSS_CONSOLE_FONT", std::vector<uint8_t>(ConsoleFont, ConsoleFont + ConsoleFontSize));
+    _loader.AddProvider(std::move(_embeddedFileProvider));
+
+    _logger =
+        std::make_shared<EngineLogger>([this](const std::string &line) { dynamic_cast<DebugConsole *>(_debugConsoleNode.get())->AddLine(line); });
+    spdlog::set_default_logger(_logger);
     SPDLOG_TRACE("Running engine");
 
     // Add a filesystem provider to allow loading of files in the working directory
     _loader.AddProvider(std::make_unique<FileSystemProvider>(std::filesystem::current_path()));
+
+    _debugConsoleNode = std::make_unique<DebugConsole>();
 
     // Run the script
     _scriptHost->ExecuteFile("bootstrap.lua");
@@ -74,13 +87,22 @@ void AbyssEngine::Engine::RunMainLoop() {
     while (_running) {
         ScriptGarbageCollect();
 
-        if (!_systemIO->HandleInputEvents(GetRootNodeOrVideo()))
+        if (!_systemIO->HandleInputEvents(GetInputReceiverNode()))
             Stop();
 
         if (!UpdateTicks())
             continue;
 
-        // Process updates for video or root node
+        // Process updates
+        if (_debugConsoleNode->Active)
+            _debugConsoleNode->UpdateCallback(_tickDiff);
+        else if (_systemIO->IsKeyPressed(53)) {
+            _systemIO->ResetKeyState(53);
+            // Grave pressed, activate terminal
+            _debugConsoleNode->Active = true;
+            _debugConsoleNode->UpdateCallback(_tickDiff);
+        }
+
         (_videoNode != nullptr) ? UpdateVideo(_tickDiff) : UpdateRootNode(_tickDiff);
 
         // Run node initializations
@@ -94,6 +116,8 @@ void AbyssEngine::Engine::RunMainLoop() {
         // Render the video or root node
         _systemIO->RenderStart();
         _videoNode != nullptr ? RenderVideo() : RenderRootNode();
+        if (_debugConsoleNode->Active)
+            _debugConsoleNode->RenderCallback(0, 0);
         _systemIO->RenderEnd();
     }
 }
@@ -188,12 +212,17 @@ AbyssEngine::SystemIO &AbyssEngine::Engine::GetSystemIO() { return *_systemIO; }
 
 bool AbyssEngine::Engine::IsRunning() const { return _running; }
 
-AbyssEngine::Node &AbyssEngine::Engine::GetRootNodeOrVideo() { return _videoNode != nullptr ? *_videoNode : _rootNode; }
+AbyssEngine::Node &AbyssEngine::Engine::GetInputReceiverNode() {
+    if (_debugConsoleNode->Active)
+        return *_debugConsoleNode;
+
+    return _videoNode != nullptr ? *_videoNode : _rootNode;
+}
 
 void AbyssEngine::Engine::Panic(std::string_view message) {
     spdlog::critical(message);
-    HostNotify::Notify(eNotifyType::Fatal, "Engine Panic", (std::string)message);
-    Stop();
+    // HostNotify::Notify(eNotifyType::Fatal, "Engine Panic", (std::string)message);
+    // Stop();
 }
 
 bool AbyssEngine::Engine::UpdateTicks() {
@@ -208,3 +237,4 @@ bool AbyssEngine::Engine::UpdateTicks() {
 
     return true;
 }
+std::string AbyssEngine::Engine::ExecuteCommand(std::string command) { return _scriptHost->ExecuteString(command); }

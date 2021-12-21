@@ -54,9 +54,9 @@ LibAbyss::DC6::Direction::Frame::Frame(StreamReader &sr)  {
     Decode();
 }
 void LibAbyss::DC6::Direction::Frame::Decode() {
-    auto x = 0;
-    auto y = (int)Height - 1;
-    auto offset = 0;
+    uint32_t x = 0;
+    uint32_t y = Height - 1;
+    uint32_t offset = 0;
 
     for (;;) {
         if (offset >= Length)
@@ -77,7 +77,7 @@ void LibAbyss::DC6::Direction::Frame::Decode() {
             continue;
         case RunOfOpaquePixels:
             for (int i = 0; i < b; i++) {
-                if (offset >= (int)Length)
+                if (offset >= Length)
                     throw std::runtime_error("Data overrun while decoding DC6 frame.");
 
                 if ((x + (y * Width) + i) >= (Width * Height))

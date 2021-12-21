@@ -37,6 +37,9 @@ class SDL2SystemIO : public SystemIO {
     void DrawLine(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, uint8_t b) final;
     void DrawRect(int x, int y, int w, int h, uint8_t r, uint8_t g, uint8_t b) final;
     bool IsKeyPressed(uint16_t scancode) final;
+    std::string GetInputText() final;
+    void ClearInputText() final;
+    void ResetKeyState(uint16_t scancode) final;
 
   private:
     void InitializeAudio();
@@ -50,6 +53,7 @@ class SDL2SystemIO : public SystemIO {
     std::unique_ptr<LibAbyss::AudioStream> _backgroundMusicStream;
     std::vector<SoundEffect *> _soundEffects;
     int _backgroundMusicSampleRate = 0;
+    std::string _inputText;
     bool _hasAudio = false;
     SDL_AudioSpec _audioSpec;
     SDL_AudioDeviceID _audioDeviceId = 0;

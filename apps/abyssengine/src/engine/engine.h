@@ -11,7 +11,10 @@
 #include <absl/container/node_hash_map.h>
 #include <exception>
 #include <filesystem>
+#include <functional>
 #include <string>
+#include <utility>
+#include "embeddedfileprovider.h"
 
 namespace AbyssEngine {
 
@@ -106,22 +109,40 @@ class Engine {
     /// \param message The message to display
     void Panic(std::string_view message);
 
+    std::string ExecuteCommand(std::string command);
+
   private:
+    class EngineLogger : public spdlog::logger {
+      public:
+        explicit EngineLogger(std::function<void(std::string)> logCallback) : logger("Debug Console Logger"), _logCallback(std::move(logCallback)) {}
+
+      protected:
+        void sink_it_(const spdlog::details::log_msg &msg) override {
+            // Convert msg.payload to a string
+            _logCallback(std::string(msg.payload.data(), msg.payload.size()));
+        }
+
+      private:
+        std::function<void(std::string)> _logCallback;
+    };
+
     void RunMainLoop();
     void UpdateVideo(uint32_t tickDiff);
     void UpdateRootNode(uint32_t tickDiff);
     void RenderVideo();
     void RenderRootNode();
-    Node &GetRootNodeOrVideo();
+    Node &GetInputReceiverNode();
     void ScriptGarbageCollect();
 
     LibAbyss::INIFile _iniFile;
     Loader _loader;
+    std::shared_ptr<EngineLogger> _logger;
     std::unique_ptr<AbyssEngine::SystemIO> _systemIO;
     absl::node_hash_map<std::string, LibAbyss::Palette> _palettes;
     std::unique_ptr<ScriptHost> _scriptHost;
     Node _rootNode;
     Node *_focusedNode = nullptr;
+    std::unique_ptr<Node> _debugConsoleNode;
     bool _running = true;
     uint32_t _lastTicks = 0;
     std::unique_ptr<Video> _videoNode;
