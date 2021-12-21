@@ -37,6 +37,16 @@ static std::filesystem::path GetConfigPath(std::string_view exePath) {
 }
 
 int main(int, char *argv[]) {
+#if _WINDOWS
+    // Windows is 'special' and doesn't output to console even if the app is launched
+    // from the console (who would want that?!). Lets ensure the console actually
+    // gets the output when launched on the console. -_-
+    if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+        freopen("CONOUT$","wb",stdout);
+        freopen("CONOUT$","wb",stderr);
+    }
+#endif
+
     SPDLOG_INFO(ABYSS_VERSION_STRING);
 
 #ifndef NDEBUG
