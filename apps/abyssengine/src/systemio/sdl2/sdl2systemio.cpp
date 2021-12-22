@@ -242,6 +242,9 @@ class AbyssSDL2TTF : public AbyssEngine::ITtf {
         std::string s(text);
         SDL_Color color = {255, 255, 255, 0};
         SDL_Surface *surf = TTF_RenderUTF8_Blended(_font, s.c_str(), color);
+        if (!surf) {
+            throw std::runtime_error(absl::StrCat("TTF render error: ", TTF_GetError()));
+        }
         width = surf->w;
         height = surf->h;
         SDL_Texture *texture = SDL_CreateTextureFromSurface(_sdlRenderer, surf);
