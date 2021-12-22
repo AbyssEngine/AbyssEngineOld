@@ -31,10 +31,10 @@ LibAbyss::PNGLoader::PNGLoader(LibAbyss::InputStream &stream) : _pixelData() {
         throw std::runtime_error("Failed to initialize PNG info structure.");
 
     png_bytepp rowPointers = nullptr;
-    auto rowPointersCleanup = absl::Cleanup([rowPointers] { delete[] rowPointers; });
+    absl::Cleanup rowPointersCleanup([&rowPointers] { delete[] rowPointers; });
 
     char *data = nullptr;
-    auto cleanupData = absl::Cleanup([data] { delete[] data; });
+    absl::Cleanup cleanupData([&data] { delete[] data; });
 
     if (setjmp(png_jmpbuf(pngPtr))) { // NOLINT(cert-err52-cpp)
         png_destroy_read_struct(&pngPtr, &infoPtr, nullptr);
