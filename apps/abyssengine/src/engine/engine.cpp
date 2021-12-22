@@ -61,7 +61,10 @@ void AbyssEngine::Engine::Run() {
     Stop();
 }
 
-AbyssEngine::Engine::~Engine() { SPDLOG_TRACE("destroying engine"); }
+AbyssEngine::Engine::~Engine() {
+    spdlog::set_default_logger(spdlog::stdout_color_mt("Exit"));
+    SPDLOG_TRACE("destroying engine");
+}
 
 void AbyssEngine::Engine::Stop() {
     _running = false;
