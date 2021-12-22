@@ -21,7 +21,7 @@ class DebugConsole : public Node {
     TtfFont _consoleFont;
     TtfLabel _consoleLabel;
     TtfLabel _inputLabel;
-    std::vector<std::string> _lines;
+    std::deque<std::string> _lines;
     bool _canClose = false;
     uint64_t _upTicks = 0;
 };

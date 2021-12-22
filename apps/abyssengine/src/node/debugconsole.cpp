@@ -44,7 +44,7 @@ void AbyssEngine::DebugConsole::RenderCallback(int offsetX, int offsetY) {
 
 void AbyssEngine::DebugConsole::AddLine(const std::string &line) {
     while (_lines.size() >= CONSOLE_MAX_LINES)
-        _lines.erase(_lines.begin());
+        _lines.pop_front();
 
     _lines.push_back(line);
     _consoleLabel.SetCaption(absl::StrJoin(_lines, "\n"));
