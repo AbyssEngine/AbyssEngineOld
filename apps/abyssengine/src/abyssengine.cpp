@@ -11,7 +11,6 @@
 #include <libavutil/version.h>
 #include <libswresample/version.h>
 #include <memory>
-#include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
 static std::filesystem::path GetConfigPath(std::string_view exePath) {
