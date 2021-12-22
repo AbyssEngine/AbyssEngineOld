@@ -15,7 +15,7 @@ SET(APP_NAME libabyss)
 # -------------------------------------------------------------------------------------------------
 
 add_library(${APP_NAME}
-        src/pngloader.cpp
+        src/common/pngloader.cpp
 
         src/formats/d2/casc.cpp
         src/formats/d2/mpq.cpp
