@@ -4,6 +4,7 @@
 #include "../node/sprite.h"
 #include "../node/video.h"
 #include "../systemio/interface.h"
+#include "embeddedfileprovider.h"
 #include "libabyss/formats/abyss/inifile.h"
 #include "libabyss/formats/d2/palette.h"
 #include "loader.h"
@@ -14,7 +15,6 @@
 #include <functional>
 #include <string>
 #include <utility>
-#include "embeddedfileprovider.h"
 
 namespace AbyssEngine {
 
@@ -112,15 +112,13 @@ class Engine {
     std::string ExecuteCommand(std::string command);
 
   private:
-    class EngineLogger : public spdlog::logger {
+    class EngineLogger : public spdlog::sinks::sink {
       public:
-        explicit EngineLogger(std::function<void(std::string)> logCallback) : logger("Debug Console Logger"), _logCallback(std::move(logCallback)) {}
-
-      protected:
-        void sink_it_(const spdlog::details::log_msg &msg) override {
-            // Convert msg.payload to a string
-            _logCallback(std::string(msg.payload.data(), msg.payload.size()));
-        }
+        explicit EngineLogger(std::function<void(std::string)> logCallback) : sink(), _logCallback(std::move(logCallback)) {}
+        void log(const spdlog::details::log_msg &msg) override { _logCallback(std::string(msg.payload.data(), msg.payload.size())); }
+        void flush() override {}
+        void set_pattern(const std::string &pattern) override {}
+        void set_formatter(std::unique_ptr<spdlog::formatter> sink_formatter) override {}
 
       private:
         std::function<void(std::string)> _logCallback;

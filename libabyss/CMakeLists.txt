@@ -29,7 +29,6 @@ add_library(${APP_NAME}
 
         src/streams/cascstream.cpp
         src/streams/mpqstream.cpp
-        src/streams/bytearraystream.cpp
         src/streams/streamreader.cpp
         src/streams/audiostream.cpp
 

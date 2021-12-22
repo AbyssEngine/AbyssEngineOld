@@ -5,6 +5,8 @@
 #include "filesystemprovider.h"
 #include <cmath>
 #include <memory>
+#include <span>
+#include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
 AbyssEngine::Engine *engineGlobalInstance = nullptr;
@@ -34,12 +36,17 @@ AbyssEngine::Engine::Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO>
 
 void AbyssEngine::Engine::Run() {
     auto _embeddedFileProvider = std::make_unique<EmbeddedFileProvider>();
-    _embeddedFileProvider->AddFile("/__ABYSS_CONSOLE_FONT", std::vector<uint8_t>(ConsoleFont, ConsoleFont + ConsoleFontSize));
+    _embeddedFileProvider->AddFile("/__ABYSS_CONSOLE_FONT", std::span<uint8_t>((uint8_t *)ConsoleFont, ConsoleFontSize));
     _loader.AddProvider(std::move(_embeddedFileProvider));
 
-    _logger =
-        std::make_shared<EngineLogger>([this](const std::string &line) { dynamic_cast<DebugConsole *>(_debugConsoleNode.get())->AddLine(line); });
-    spdlog::set_default_logger(_logger);
+    auto logger = std::shared_ptr<spdlog::logger>(new spdlog::logger(
+        "Logger", {std::make_shared<spdlog::sinks::stdout_color_sink_mt>(), std::make_shared<EngineLogger>([this](const std::string &line) {
+                       dynamic_cast<DebugConsole *>(_debugConsoleNode.get())->AddLine(line);
+                   })}));
+
+    spdlog::register_logger(logger);
+    spdlog::set_default_logger(logger);
+
     SPDLOG_TRACE("Running engine");
 
     // Add a filesystem provider to allow loading of files in the working directory

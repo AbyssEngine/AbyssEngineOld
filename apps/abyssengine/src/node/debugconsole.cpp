@@ -55,7 +55,7 @@ void AbyssEngine::DebugConsole::KeyboardEventCallback(const AbyssEngine::Keyboar
         AddLine("> " + command);
         std::string result = Engine::Get()->ExecuteCommand(command);
         if (!result.empty())
-            AddLine(result);
+            SPDLOG_INFO("{}", result);
         io.ClearInputText();
         _inputLabel.SetCaption("> ");
         return;
@@ -89,7 +89,7 @@ void AbyssEngine::DebugConsole::UpdateCallback(uint32_t ticks) {
         return;
     }
 
-    Y = -CONSOLE_HEIGHT + (uint64_t)(std::pow(((float)_upTicks / (float)CONSOLE_SLIDE_OUT_TICKS), 2.0f) * (float)CONSOLE_HEIGHT);
+    Y = -CONSOLE_HEIGHT + (int)(std::pow(((float)_upTicks / (float)CONSOLE_SLIDE_OUT_TICKS), 2.0f) * (float)CONSOLE_HEIGHT);
 
     Node::UpdateCallback(ticks);
 }
