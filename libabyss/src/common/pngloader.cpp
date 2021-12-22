@@ -1,4 +1,4 @@
-#include "pngloader.h"
+#include "libabyss/common/pngloader.h"
 #include <absl/cleanup/cleanup.h>
 #include <exception>
 #include <memory>
@@ -19,7 +19,7 @@ LibAbyss::PNGLoader::PNGLoader(LibAbyss::InputStream &stream) : _pixelData() {
     if (!stream.good())
         throw std::runtime_error("Failed to read stream while loading PNG image.");
 
-    if (!png_sig_cmp(pngSig, 0, PNG_SIGNATURE_SIZE))
+    if (0 != png_sig_cmp(pngSig, 0, PNG_SIGNATURE_SIZE))
         throw std::runtime_error("Invalid signature while reading PNG image.");
 
     png_structp pngPtr = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
@@ -46,8 +46,8 @@ LibAbyss::PNGLoader::PNGLoader(LibAbyss::InputStream &stream) : _pixelData() {
     png_set_sig_bytes(pngPtr, PNG_SIGNATURE_SIZE);
     png_read_info(pngPtr, infoPtr);
 
-    const auto imageWidth = png_get_image_width(pngPtr, infoPtr);
-    const auto imageHeight = png_get_image_height(pngPtr, infoPtr);
+    _width = png_get_image_width(pngPtr, infoPtr);
+    _height = png_get_image_height(pngPtr, infoPtr);
     auto bitDepth = png_get_bit_depth(pngPtr, infoPtr);
     auto numChannels = png_get_channels(pngPtr, infoPtr);
     auto colorType = png_get_color_type(pngPtr, infoPtr);
@@ -78,7 +78,7 @@ LibAbyss::PNGLoader::PNGLoader(LibAbyss::InputStream &stream) : _pixelData() {
 
     png_read_update_info(pngPtr, infoPtr);
 
-    rowPointers = new png_bytep[imageHeight];
+    rowPointers = new png_bytep[_height];
 
     if (bitDepth != 8)
         throw std::runtime_error("PNG must have an 8 bit depth.");
@@ -86,27 +86,31 @@ LibAbyss::PNGLoader::PNGLoader(LibAbyss::InputStream &stream) : _pixelData() {
     if (numChannels != 4)
         throw std::runtime_error("PNG must convertable to RGBA format.");
 
-    data = new char[imageWidth * imageHeight * numChannels];
-    auto stride = imageWidth * numChannels;
+    data = new char[_width * _height * numChannels];
+    auto stride = _width * numChannels;
 
-    for (size_t i = 0; i < imageHeight; i++) {
-        png_uint_32 q = (imageHeight - i - 1) * stride;
+    for (size_t i = 0; i < _height; i++) {
+        png_uint_32 q = (_height - i - 1) * stride;
         rowPointers[i] = (png_bytep)data + q;
     }
 
     png_read_image(pngPtr, rowPointers);
 
-    for (auto i = 0; i < imageWidth * imageHeight; i++) {
-        const auto dataPtr = &data[i * 4];
-        const auto red = dataPtr[0];
-        const auto green = dataPtr[1];
-        const auto blue = dataPtr[2];
-        const auto alpha = dataPtr[3];
+    for (uint32_t i = 0; i < _width * _height; i++) {
+        const uint32_t red = (unsigned char)data[(i * 4)];
+        const uint32_t green = (unsigned char)data[(i * 4) + 1];
+        const uint32_t blue = (unsigned char)data[(i * 4) + 2];
+        const uint32_t alpha = (unsigned char)data[(i * 4) + 3];
 
-        _pixelData.emplace_back(((uint32_t)red) | ((uint32_t)green << 8) | ((uint32_t)blue << 16) | ((uint32_t)alpha << 24));
+        _pixelData.emplace_back((alpha) | (blue << 8) | (green << 16) | (red << 24));
     }
 
     png_destroy_read_struct(&pngPtr, &infoPtr, nullptr);
 }
 
 std::span<uint32_t> LibAbyss::PNGLoader::GetPixelData() { return _pixelData; }
+
+void LibAbyss::PNGLoader::GetSize(uint32_t &width, uint32_t &height) const {
+    width = _width;
+    height = _height;
+}

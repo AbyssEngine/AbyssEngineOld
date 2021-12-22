@@ -5,8 +5,8 @@
 
 namespace AbyssEngine {
 
-#define ConsoleFontSize 69876
-extern const uint8_t ConsoleFont[69876];
+const int ConsoleFontSize = 309408;
+extern const uint8_t ConsoleFont[309408];
 
 } // namespace AbyssEngine
 

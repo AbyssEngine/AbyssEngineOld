@@ -4,12 +4,14 @@
 #include "config.h"
 #include "sdl2texture.h"
 #include <cstdint>
+#include <png.h>
 #include <SDL.h>
 #include <SDL_hints.h>
 #include <SDL_stdinc.h>
 #include <SDL_syswm.h>
 #include <SDL_ttf.h>
 #include <span>
+#include <libabyss/common/pngloader.h>
 #include <spdlog/spdlog.h>
 #ifdef __APPLE__
 #include "../../hostnotify/hostnotify_mac_shim.h"
@@ -31,7 +33,7 @@ AbyssEngine::SDL2::SDL2SystemIO::SDL2SystemIO() : AbyssEngine::SystemIO::SystemI
     }
 
     _sdlWindow = std::unique_ptr<SDL_Window, std::function<void(SDL_Window *)>>(
-        SDL_CreateWindow(ABYSS_VERSION_STRING, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_RESIZABLE), [](SDL_Window *x) {
+        SDL_CreateWindow(ABYSS_VERSION_STRING, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI), [](SDL_Window *x) {
             SDL_DestroyWindow(x);
             SDL_Quit();
             TTF_Quit();
@@ -451,4 +453,12 @@ void AbyssEngine::SDL2::SDL2SystemIO::ClearInputText() { _inputText.clear(); }
 
 void AbyssEngine::SDL2::SDL2SystemIO::ResetKeyState(uint16_t scancode) {
     _pressedKeys[scancode] = false;
+}
+std::unique_ptr<AbyssEngine::ITexture> AbyssEngine::SDL2::SDL2SystemIO::LoadPNG(LibAbyss::InputStream stream) {
+    auto png = LibAbyss::PNGLoader(stream);
+    uint32_t width, height;
+    png.GetSize(width, height);
+    SDL_Texture* texture = SDL_CreateTexture(_sdlRenderer.get(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, width, height);
+    SDL_UpdateTexture(texture, nullptr, png.GetPixelData().data(), 4 * (int)width);
+    return std::make_unique<AbyssEngine::SDL2::SDL2Texture>(_sdlRenderer.get(), texture);
 }

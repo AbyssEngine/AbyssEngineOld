@@ -1,9 +1,9 @@
 #include "engine.h"
 #include "../common/sysfont.h"
+#include "../common/consolebg.h"
 #include "../hostnotify/hostnotify.h"
 #include "../node/debugconsole.h"
 #include "filesystemprovider.h"
-#include <cmath>
 #include <memory>
 #include <span>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -12,8 +12,8 @@
 AbyssEngine::Engine *engineGlobalInstance = nullptr;
 
 AbyssEngine::Engine::Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO> systemIo)
-    : _iniFile(std::move(iniFile)), _loader(), _systemIO(std::move(systemIo)), _palettes(), _scriptHost(std::make_unique<ScriptHost>(this)),
-      _rootNode("__root"), _videoNode(), _mouseButtonState((eMouseButton)0) {
+    : _iniFile(std::move(iniFile)), _loader(), _systemIO(std::move(systemIo)), _palettes(), _rootNode("__root"),
+      _scriptHost(std::make_unique<ScriptHost>(this)), _mouseButtonState((eMouseButton)0) {
 
     SPDLOG_TRACE("Creating engine");
 
@@ -37,6 +37,7 @@ AbyssEngine::Engine::Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO>
 void AbyssEngine::Engine::Run() {
     auto _embeddedFileProvider = std::make_unique<EmbeddedFileProvider>();
     _embeddedFileProvider->AddFile("/__ABYSS_CONSOLE_FONT", std::span<uint8_t>((uint8_t *)ConsoleFont, ConsoleFontSize));
+    _embeddedFileProvider->AddFile("/__ABYSS_CONSOLE_BACKGROUND", std::span<uint8_t>((uint8_t *)ConsoleBackgroundImage, ConsoleBackgroundImageSize));
     _loader.AddProvider(std::move(_embeddedFileProvider));
 
     auto logger = std::shared_ptr<spdlog::logger>(new spdlog::logger(
