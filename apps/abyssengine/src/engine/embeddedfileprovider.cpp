@@ -4,18 +4,13 @@
 #include <sstream>
 #include <ios>
 
-class vectorwrapbuf : public std::basic_streambuf<uint8_t> {
-  public:
-    vectorwrapbuf(std::vector<uint8_t> &vec) { setg(vec.data(), vec.data(), vec.data() + vec.size()); }
-};
-
 bool AbyssEngine::EmbeddedFileProvider::Exists(const std::filesystem::path &path) { return _files.contains(absl::AsciiStrToLower(path.string())); }
 
 LibAbyss::InputStream AbyssEngine::EmbeddedFileProvider::Load(const std::filesystem::path &path) {
-    auto file = _files[absl::AsciiStrToLower(path.string())];
+    std::span file = _files[absl::AsciiStrToLower(path.string())];
     std::string str(file.begin(), file.end());
     auto sb = std::make_unique<std::stringbuf>();
-    sb->str(str);
+    sb->str(std::move(str));
     return LibAbyss::InputStream(std::move(sb));
 }
 

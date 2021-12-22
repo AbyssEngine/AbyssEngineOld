@@ -111,9 +111,8 @@ void TtfLabel::ClearCache() {
 }
 
 void Label::SetCaption(std::string_view value) {
-    std::string str(value);
-    str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
     _caption = value;
+    _caption.erase(std::remove(_caption.begin(), _caption.end(), '\r'), _caption.end());
     ClearCache();
 }
 std::string_view Label::GetCaption() const { return _caption; }
