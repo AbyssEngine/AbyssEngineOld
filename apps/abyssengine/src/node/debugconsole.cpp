@@ -3,10 +3,12 @@
 #include "config.h"
 #include <absl/strings/str_join.h>
 
+namespace {
 const int CONSOLE_MAX_LINES = 13;
 const int CONSOLE_SLIDE_OUT_TICKS = 150;
 const int CONSOLE_HEIGHT = 225;
 constexpr std::string_view CONSOLE_SYMBOL = ">";
+}
 
 AbyssEngine::DebugConsole::DebugConsole()
     : _consoleFont("/__ABYSS_CONSOLE_FONT", 13, AbyssEngine::ITtf::Hinting::Light), _consoleLabel(_consoleFont), _inputLabel(_consoleFont) {
