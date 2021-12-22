@@ -12,8 +12,8 @@
 AbyssEngine::Engine *engineGlobalInstance = nullptr;
 
 AbyssEngine::Engine::Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO> systemIo)
-    : _iniFile(std::move(iniFile)), _loader(), _systemIO(std::move(systemIo)), _palettes(), _scriptHost(std::make_unique<ScriptHost>(this)),
-      _rootNode("__root"), _videoNode(), _mouseButtonState((eMouseButton)0) {
+    : _iniFile(std::move(iniFile)), _loader(), _systemIO(std::move(systemIo)), _palettes(),_rootNode("__root"), _scriptHost(std::make_unique<ScriptHost>(this)),
+     _mouseButtonState((eMouseButton)0) {
 
     SPDLOG_TRACE("Creating engine");
 

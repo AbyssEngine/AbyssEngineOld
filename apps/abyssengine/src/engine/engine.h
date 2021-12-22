@@ -137,8 +137,8 @@ class Engine {
     std::shared_ptr<EngineLogger> _logger;
     std::unique_ptr<AbyssEngine::SystemIO> _systemIO;
     absl::node_hash_map<std::string, LibAbyss::Palette> _palettes;
-    std::unique_ptr<ScriptHost> _scriptHost;
     Node _rootNode;
+    std::unique_ptr<ScriptHost> _scriptHost;
     Node *_focusedNode = nullptr;
     std::unique_ptr<Node> _debugConsoleNode;
     bool _running = true;

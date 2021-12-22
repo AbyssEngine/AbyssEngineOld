@@ -37,6 +37,7 @@ class ScriptHost {
 
     sol::state _lua;
     sol::environment _environment;
+    sol::usertype<Node> _nodeType;
 
     std::tuple<sol::object, sol::object> LuaLoadString(std::string_view str, std::string_view chunkName);
     std::tuple<sol::object, sol::object> LuaLoadFile(std::string_view pathStr);
