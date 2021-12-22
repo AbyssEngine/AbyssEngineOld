@@ -30,6 +30,7 @@ class Node {
     void AppendChild(Node *childNode);
     void RemoveChild(Node *nodeRef);
     void RemoveAllChildren();
+    std::vector<Node*> GetChildren() { return Children; }
     void SetPosition(int x, int y);
     void ProcessQueuedActions();
     void SetActive(bool active);

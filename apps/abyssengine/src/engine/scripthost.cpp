@@ -22,18 +22,20 @@
 #include <stdexcept>
 
 namespace {
-template <typename T, typename N> void AddNodeFunctionProperties(N &module) {
+template <typename T, typename N> void AddNodeFunctionProperties(N &nodeType) {
     // Functions work via sol::base_classes, but are slow; properties don't work at all.
     // So create both explicitly
-    module["removeAllChildren"] = &T::RemoveAllChildren;
-    module["appendChild"] = &T::AppendChild;
-    module["removeChild"] = &T::RemoveChild;
-    module["getPosition"] = &T::GetPosition;
-    module["setPosition"] = &T::SetPosition;
-    module["onUpdate"] = &T::SetLuaOnUpdateHandler;
-    module["visible"] = sol::property(&T::GetVisible, &T::SetVisible);
-    module["active"] = sol::property(&T::GetActive, &T::SetActive);
-    module["data"] = sol::property(&T::GetLuaTable, &T::SetLuaTable);
+    nodeType["nodeType"] = &T::NodeType;
+    nodeType["removeAllChildren"] = &T::RemoveAllChildren;
+    nodeType["appendChild"] = &T::AppendChild;
+    nodeType["removeChild"] = &T::RemoveChild;
+    nodeType["getChildren"] = &T::GetChildren;
+    nodeType["getPosition"] = &T::GetPosition;
+    nodeType["setPosition"] = &T::SetPosition;
+    nodeType["onUpdate"] = &T::SetLuaOnUpdateHandler;
+    nodeType["visible"] = sol::property(&T::GetVisible, &T::SetVisible);
+    nodeType["active"] = sol::property(&T::GetActive, &T::SetActive);
+    nodeType["data"] = sol::property(&T::GetLuaTable, &T::SetLuaTable);
 }
 
 } // namespace
@@ -106,10 +108,11 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     // Image (Not node based)
     auto imageType = module.new_usertype<Image>("Image", sol::no_constructor);
     imageType["getFrameSize"] = &Image::LuaGetFrameSize;
+    imageType["getNumberOfFrames"] = &Image::GetFramesPerAnimation;
 
     // Node
-    auto nodeType = module.new_usertype<Node>("Node", sol::no_constructor);
-    AddNodeFunctionProperties<Node>(nodeType);
+    _nodeType = module.new_usertype<Node>("Node", sol::no_constructor);
+    AddNodeFunctionProperties<Node>(_nodeType);
 
     // Button
     auto buttonType = CreateLuaObjectType<Button>(module, "Button", sol::no_constructor);
@@ -219,6 +222,7 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     zoneType["height"] = sol::readonly_property(&LibAbyss::Zone::HeightInTiles);
 
     _environment.add(module);
+    _engine->GetRootNode().SetLuaTable(_lua.create_table());
 }
 
 std::tuple<sol::object, sol::object> AbyssEngine::ScriptHost::LuaLoadString(const std::string_view str, std::string_view chunkName) {
@@ -428,6 +432,12 @@ sol::basic_usertype<T, sol::basic_reference<false>> AbyssEngine::ScriptHost::Cre
                                                                                                  X &&constructor) {
     auto val = module.new_usertype<T>(name, "new", std::forward<X>(constructor), sol::base_classes, sol::bases<Node>());
     AddNodeFunctionProperties<T>(val);
+    _nodeType[absl::StrCat("castTo", name)] = [](Node& node) -> T* {
+        if (auto* cast = dynamic_cast<T*>(&node)) {
+            return cast;
+        }
+        return nullptr;
+    };
     return val;
 }
 
