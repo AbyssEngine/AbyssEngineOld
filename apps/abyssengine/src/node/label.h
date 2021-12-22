@@ -15,7 +15,7 @@ class Label : public Node {
   public:
     ~Label() override;
 
-    void SetCaption(std::string value);
+    void SetCaption(std::string_view value);
     [[nodiscard]] std::string_view GetCaption() const;
     void SetAlignment(eAlignment hAlign, eAlignment vAlign);
     void SetAlignmentStr(std::string_view hAlign, std::string_view vAlign);
