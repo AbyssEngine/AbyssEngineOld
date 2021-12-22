@@ -137,6 +137,8 @@ class SystemIO {
     virtual std::string GetInputText() = 0;
 
     virtual void ClearInputText() = 0;
+
+    virtual std::unique_ptr<AbyssEngine::ITexture> LoadPNG(LibAbyss::InputStream stream) = 0;
 };
 
 } // namespace AbyssEngine

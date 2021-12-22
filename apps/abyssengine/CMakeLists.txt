@@ -46,6 +46,7 @@ target_sources(${APP_NAME} PRIVATE
         src/common/blendmode.cpp
         src/common/color.cpp
         src/common/sysfont.cpp
+        src/common/consolebg.cpp
 
         # Nodes --------------------------------------------------------
         src/node/node.cpp

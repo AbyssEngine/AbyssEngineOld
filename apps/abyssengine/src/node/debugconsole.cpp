@@ -3,12 +3,13 @@
 #include "config.h"
 #include <absl/strings/str_join.h>
 
-const int CONSOLE_MAX_LINES = 14;
+const int CONSOLE_MAX_LINES = 13;
 const int CONSOLE_SLIDE_OUT_TICKS = 150;
-const int CONSOLE_HEIGHT = 200;
+const int CONSOLE_HEIGHT = 225;
+const std::string CONSOLE_SYMBOL = ">"; // NOLINT(cert-err58-cpp)
 
 AbyssEngine::DebugConsole::DebugConsole()
-    : _consoleFont("/__ABYSS_CONSOLE_FONT", 8, AbyssEngine::ITtf::Hinting::None), _consoleLabel(_consoleFont), _inputLabel(_consoleFont) {
+    : _consoleFont("/__ABYSS_CONSOLE_FONT", 13, AbyssEngine::ITtf::Hinting::Light), _consoleLabel(_consoleFont), _inputLabel(_consoleFont) {
     _consoleLabel.SetCaption("");
     _consoleLabel.SetColorMod(255, 255, 255);
     _consoleLabel.SetVisible(true);
@@ -17,7 +18,7 @@ AbyssEngine::DebugConsole::DebugConsole()
     _consoleLabel.SetPosition(5, CONSOLE_HEIGHT - 16);
 
     _inputLabel.SetCaption("> ");
-    _inputLabel.SetColorMod(0, 0, 0);
+    _inputLabel.SetColorMod(255, 255, 0);
     _inputLabel.SetVisible(true);
     _inputLabel.SetActive(true);
     _inputLabel.SetAlignment(eAlignment::Start, eAlignment::End);
@@ -27,6 +28,8 @@ AbyssEngine::DebugConsole::DebugConsole()
     AppendChild(&_inputLabel);
     SetVisible(true);
     SetActive(false);
+
+    _consoleBackground = Engine::Get()->GetSystemIO().LoadPNG(Engine::Get()->GetLoader().Load("/__ABYSS_CONSOLE_BACKGROUND"));
 }
 
 AbyssEngine::DebugConsole::~DebugConsole() = default;
@@ -34,8 +37,11 @@ AbyssEngine::DebugConsole::~DebugConsole() = default;
 void AbyssEngine::DebugConsole::RenderCallback(int offsetX, int offsetY) {
     auto &io = Engine::Get()->GetSystemIO();
     auto originY = Y + offsetY;
-    io.DrawRect(0, originY, 800, CONSOLE_HEIGHT - 15, 0, 0, 0);
-    io.DrawRect(0, originY + CONSOLE_HEIGHT - 15, 800, 15, 200, 200, 200);
+    //io.DrawRect(0, originY, 800, CONSOLE_HEIGHT, 0, 0, 0);
+    AbyssEngine::Rectangle srcRect = {0, 0, 800, 225};
+    AbyssEngine::Rectangle destRect = {0, originY, 800, 225};
+    _consoleBackground->Render(srcRect, destRect);
+    io.DrawLine(0, originY + CONSOLE_HEIGHT, 800, originY + CONSOLE_HEIGHT, 255, 255, 255);
     Node::RenderCallback(offsetX, offsetY);
 }
 
@@ -52,12 +58,12 @@ void AbyssEngine::DebugConsole::KeyboardEventCallback(const AbyssEngine::Keyboar
     if (event.Pressed && event.Scancode == 40) {
         // The user pressed return
         std::string command = io.GetInputText();
-        AddLine("> " + command);
+        AddLine(CONSOLE_SYMBOL + command);
         std::string result = Engine::Get()->ExecuteCommand(command);
         if (!result.empty())
             SPDLOG_INFO("{}", result);
         io.ClearInputText();
-        _inputLabel.SetCaption("> ");
+        _inputLabel.SetCaption(CONSOLE_SYMBOL);
         return;
     }
 
@@ -65,7 +71,7 @@ void AbyssEngine::DebugConsole::KeyboardEventCallback(const AbyssEngine::Keyboar
         // Grave key
         SetActive(false);
         io.ClearInputText();
-        _inputLabel.SetCaption("> ");
+        _inputLabel.SetCaption(CONSOLE_SYMBOL);
         _canClose = false;
         _upTicks = 0;
         return;
@@ -75,7 +81,7 @@ void AbyssEngine::DebugConsole::KeyboardEventCallback(const AbyssEngine::Keyboar
         _canClose = true;
     }
 
-    _inputLabel.SetCaption("> " + io.GetInputText());
+    _inputLabel.SetCaption(CONSOLE_SYMBOL + io.GetInputText());
 
     Node::KeyboardEventCallback(event);
 }
