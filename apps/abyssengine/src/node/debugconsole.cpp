@@ -6,7 +6,7 @@
 const int CONSOLE_MAX_LINES = 13;
 const int CONSOLE_SLIDE_OUT_TICKS = 150;
 const int CONSOLE_HEIGHT = 225;
-const std::string CONSOLE_SYMBOL = ">"; // NOLINT(cert-err58-cpp)
+constexpr std::string_view CONSOLE_SYMBOL = ">";
 
 AbyssEngine::DebugConsole::DebugConsole()
     : _consoleFont("/__ABYSS_CONSOLE_FONT", 13, AbyssEngine::ITtf::Hinting::Light), _consoleLabel(_consoleFont), _inputLabel(_consoleFont) {
@@ -28,8 +28,6 @@ AbyssEngine::DebugConsole::DebugConsole()
     AppendChild(&_inputLabel);
     SetVisible(true);
     SetActive(false);
-
-    _consoleBackground = Engine::Get()->GetSystemIO().LoadPNG(Engine::Get()->GetLoader().Load("/__ABYSS_CONSOLE_BACKGROUND"));
 }
 
 AbyssEngine::DebugConsole::~DebugConsole() = default;
@@ -37,10 +35,7 @@ AbyssEngine::DebugConsole::~DebugConsole() = default;
 void AbyssEngine::DebugConsole::RenderCallback(int offsetX, int offsetY) {
     auto &io = Engine::Get()->GetSystemIO();
     auto originY = Y + offsetY;
-    //io.DrawRect(0, originY, 800, CONSOLE_HEIGHT, 0, 0, 0);
-    AbyssEngine::Rectangle srcRect = {0, 0, 800, 225};
-    AbyssEngine::Rectangle destRect = {0, originY, 800, 225};
-    _consoleBackground->Render(srcRect, destRect);
+    io.DrawRect(0, originY, 800, CONSOLE_HEIGHT, 0, 0, 0);
     io.DrawLine(0, originY + CONSOLE_HEIGHT, 800, originY + CONSOLE_HEIGHT, 255, 255, 255);
     Node::RenderCallback(offsetX, offsetY);
 }
@@ -58,7 +53,7 @@ void AbyssEngine::DebugConsole::KeyboardEventCallback(const AbyssEngine::Keyboar
     if (event.Pressed && event.Scancode == 40) {
         // The user pressed return
         std::string command = io.GetInputText();
-        AddLine(CONSOLE_SYMBOL + command);
+        AddLine(absl::StrCat(CONSOLE_SYMBOL, command));
         std::string result = Engine::Get()->ExecuteCommand(command);
         if (!result.empty())
             SPDLOG_INFO("{}", result);
@@ -81,7 +76,7 @@ void AbyssEngine::DebugConsole::KeyboardEventCallback(const AbyssEngine::Keyboar
         _canClose = true;
     }
 
-    _inputLabel.SetCaption(CONSOLE_SYMBOL + io.GetInputText());
+    _inputLabel.SetCaption(absl::StrCat(CONSOLE_SYMBOL, io.GetInputText()));
 
     Node::KeyboardEventCallback(event);
 }

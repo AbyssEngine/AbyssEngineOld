@@ -22,7 +22,6 @@ class DebugConsole : public Node {
     TtfLabel _consoleLabel;
     TtfLabel _inputLabel;
     std::vector<std::string> _lines;
-    std::unique_ptr<ITexture> _consoleBackground;
     bool _canClose = false;
     uint64_t _upTicks = 0;
 };
