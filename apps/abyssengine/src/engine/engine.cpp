@@ -1,5 +1,4 @@
 #include "engine.h"
-#include "../common/sysfont.h"
 #include "../common/consolebg.h"
 #include "../hostnotify/hostnotify.h"
 #include "../node/debugconsole.h"
@@ -35,9 +34,7 @@ AbyssEngine::Engine::Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO>
 }
 
 void AbyssEngine::Engine::Run() {
-    auto _embeddedFileProvider = std::make_unique<EmbeddedFileProvider>();
-    _embeddedFileProvider->AddFile("/__ABYSS_CONSOLE_FONT", std::span<uint8_t>((uint8_t *)ConsoleFont, ConsoleFontSize));
-    _loader.AddProvider(std::move(_embeddedFileProvider));
+    _loader.AddProvider(std::make_unique<EmbeddedFileProvider>());
 
     auto logger = std::shared_ptr<spdlog::logger>(new spdlog::logger(
         "Logger", {std::make_shared<spdlog::sinks::stdout_color_sink_mt>(), std::make_shared<EngineLogger>([this](const std::string &line) {

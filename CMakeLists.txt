@@ -13,13 +13,14 @@ project(abyss VERSION "${abyss_VERSION_MAJOR}.${abyss_VERSION_MINOR}")
 # CMake and  modules configuration
 # -------------------------------------------------------------------------------------------------
 
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-include(${CMAKE_SOURCE_DIR}/cmake/CPM.cmake)
-include(${CMAKE_SOURCE_DIR}/cmake/ConfigureVCPKG.cmake)
-include(${CMAKE_SOURCE_DIR}/cmake/Stormlib.cmake)
-include(${CMAKE_SOURCE_DIR}/cmake/Casclib.cmake)
-include(${CMAKE_SOURCE_DIR}/cmake/SDL2.cmake)
+include(CPM)
+include(ConfigureVCPKG)
+include(Stormlib)
+include(Casclib)
+include(SDL2)
+include(CMakeRC)
 
 
 # -------------------------------------------------------------------------------------------------

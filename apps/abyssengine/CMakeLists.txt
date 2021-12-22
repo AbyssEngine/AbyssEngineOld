@@ -45,7 +45,6 @@ target_sources(${APP_NAME} PRIVATE
         src/common/alignment.cpp
         src/common/blendmode.cpp
         src/common/color.cpp
-        src/common/sysfont.cpp
         src/common/consolebg.cpp
 
         # Nodes --------------------------------------------------------
@@ -74,6 +73,13 @@ target_sources(${APP_NAME} PRIVATE
         ${SOURCE_APP}
         )
 
+cmrc_add_resource_library(abyssengine_resources
+    NAMESPACE AbyssEngine
+    WHENCE embed
+    PREFIX abyss-embedded
+    embed/Hack-Regular.ttf
+    embed/attribution.txt
+    )
 
 # -------------------------------------------------------------------------------------------------
 # Includes
@@ -138,6 +144,7 @@ endif ()
 
 target_link_libraries(${APP_NAME}
         PRIVATE
+        abyssengine_resources
         libabyss
         absl::flat_hash_map
         Threads::Threads
