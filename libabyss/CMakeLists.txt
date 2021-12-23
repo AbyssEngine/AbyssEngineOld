@@ -23,6 +23,7 @@ add_library(${APP_NAME}
         src/formats/d2/dc6.cpp
         src/formats/d2/dt1.cpp
         src/formats/d2/ds1.cpp
+        src/formats/d2/tbl.cpp
 
         src/formats/abyss/inifile.cpp
         src/formats/abyss/abysssprite.cpp

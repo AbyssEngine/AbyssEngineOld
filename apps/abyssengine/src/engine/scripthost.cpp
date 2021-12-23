@@ -1,4 +1,5 @@
 #include "scripthost.h"
+#include <absl/container/flat_hash_map.h>
 #include "../node/d2rsprite.h"
 #include "../node/dc6sprite.h"
 #include "../node/inputlistener.h"
@@ -15,6 +16,7 @@
 #include <libabyss/common/levelpreset.h>
 #include <libabyss/common/leveltype.h>
 #include <libabyss/formats/d2/dt1.h>
+#include <libabyss/formats/d2/tbl.h>
 #include <locale>
 #include <memory>
 #include <sol/sol.hpp>
@@ -79,6 +81,7 @@ AbyssEngine::ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     module.set_function("loadDS1", &ScriptHost::LuaLoadDS1, this);
     module.set_function("loadImage", &ScriptHost::LuaLoadImage, this);
     module.set_function("loadString", &ScriptHost::LuaLoadText, this);
+    module.set_function("loadTbl", &ScriptHost::LuaLoadTbl, this);
     module.set_function("createZone", &ScriptHost::LuaCreateZone, this);
     module.set_function("fileExists", &ScriptHost::LuaFileExists, this);
     module.set_function("getConfig", &ScriptHost::LuaGetConfig, this);
@@ -448,6 +451,17 @@ std::string AbyssEngine::ScriptHost::LuaLoadText(std::string_view filePath) {
     std::string result;
     result.resize(stream.size());
     stream.read(result.data(), stream.size());
+    return result;
+}
+
+sol::table AbyssEngine::ScriptHost::LuaLoadTbl(std::string_view filePath) {
+    absl::flat_hash_map<std::string, std::string> table = LibAbyss::ReadTbl(_engine->GetLoader().Load(filePath));
+
+    sol::table result = _lua.create_table();
+    for (auto&& [key, value] : std::move(table)) {
+        result[key] = std::move(value);
+    }
+
     return result;
 }
 
