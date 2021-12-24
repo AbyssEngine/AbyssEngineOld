@@ -5,7 +5,9 @@
 #include <absl/strings/str_cat.h>
 #include <utility>
 
-void AbyssEngine::Sprite::UpdateCallback(uint32_t ticks) {
+namespace AbyssEngine {
+
+void Sprite::UpdateCallback(uint32_t ticks) {
     if (!Active || !(_playMode == ePlayMode::Backwards || _playMode == ePlayMode::Forwards)) {
         Node::UpdateCallback(ticks);
         return;
@@ -16,7 +18,7 @@ void AbyssEngine::Sprite::UpdateCallback(uint32_t ticks) {
     Node::UpdateCallback(ticks);
 }
 
-void AbyssEngine::Sprite::RenderCallback(int offsetX, int offsetY) {
+void Sprite::RenderCallback(int offsetX, int offsetY) {
     if (!Visible)
         return;
 
@@ -36,7 +38,7 @@ void AbyssEngine::Sprite::RenderCallback(int offsetX, int offsetY) {
     Node::RenderCallback(offsetX, offsetY);
 }
 
-void AbyssEngine::Sprite::MouseEventCallback(const AbyssEngine::MouseEvent &event) {
+void Sprite::MouseEventCallback(const MouseEvent &event) {
     if (!Active)
         return;
 
@@ -122,7 +124,7 @@ void AbyssEngine::Sprite::MouseEventCallback(const AbyssEngine::MouseEvent &even
     Node::MouseEventCallback(event);
 }
 
-void AbyssEngine::Sprite::Animate(float elapsed) {
+void Sprite::Animate(float elapsed) {
     if (_playMode == ePlayMode::Unknown || _playMode == ePlayMode::Paused)
         return;
 
@@ -136,7 +138,7 @@ void AbyssEngine::Sprite::Animate(float elapsed) {
         AdvanceFrame();
 }
 
-void AbyssEngine::Sprite::AdvanceFrame() {
+void Sprite::AdvanceFrame() {
     if (_playMode == ePlayMode::Unknown || _playMode == ePlayMode::Paused)
         return;
 
@@ -165,30 +167,26 @@ void AbyssEngine::Sprite::AdvanceFrame() {
         throw std::runtime_error("Unimplemented play mode");
     }
 }
-std::tuple<uint32_t, uint32_t> AbyssEngine::Sprite::GetCellSize() { return {_cellSizeX, _cellSizeY}; }
-void AbyssEngine::Sprite::SetCellSize(const int x, const int y) {
+std::tuple<uint32_t, uint32_t> Sprite::GetCellSize() { return {_cellSizeX, _cellSizeY}; }
+void Sprite::SetCellSize(const int x, const int y) {
     _cellSizeX = x;
     _cellSizeY = y;
 }
-void AbyssEngine::Sprite::SetLuaMouseButtonDownHandler(sol::protected_function mouseButtonDownHandler) {
+void Sprite::SetLuaMouseButtonDownHandler(sol::protected_function mouseButtonDownHandler) {
     _mouseButtonDownHandler = std::move(mouseButtonDownHandler);
 }
 
-void AbyssEngine::Sprite::SetLuaMouseButtonUpHandler(sol::protected_function mouseButtonUpHandler) {
-    _mouseButtonUpHandler = std::move(mouseButtonUpHandler);
-}
+void Sprite::SetLuaMouseButtonUpHandler(sol::protected_function mouseButtonUpHandler) { _mouseButtonUpHandler = std::move(mouseButtonUpHandler); }
 
-std::string_view AbyssEngine::Sprite::LuaGetBlendMode() { return BlendModeToString(_image.GetBlendMode()); }
+std::string_view Sprite::LuaGetBlendMode() { return BlendModeToString(_image.GetBlendMode()); }
 
-void AbyssEngine::Sprite::LuaSetBlendMode(std::string_view val) {
-    _image.SetBlendMode(StringToBlendMode(val));
-}
+void Sprite::LuaSetBlendMode(std::string_view val) { _image.SetBlendMode(StringToBlendMode(val)); }
 
-void AbyssEngine::Sprite::SetIsBottomOrigin(bool val) { _bottomOrigin = val; }
+void Sprite::SetIsBottomOrigin(bool val) { _bottomOrigin = val; }
 
-bool AbyssEngine::Sprite::GetIsBottomOrigin() const { return _bottomOrigin; }
+bool Sprite::GetIsBottomOrigin() const { return _bottomOrigin; }
 
-void AbyssEngine::Sprite::LuaSetPlayMode(std::string_view mode) {
+void Sprite::LuaSetPlayMode(std::string_view mode) {
     auto str = absl::AsciiStrToLower(mode);
 
     if (str == "paused")
@@ -202,7 +200,7 @@ void AbyssEngine::Sprite::LuaSetPlayMode(std::string_view mode) {
     else
         throw std::runtime_error(absl::StrCat("Unknown play mode: ", mode));
 }
-std::string_view AbyssEngine::Sprite::LuaGetPlayMode() {
+std::string_view Sprite::LuaGetPlayMode() {
     switch (_playMode) {
 
     case ePlayMode::Unknown:
@@ -216,3 +214,5 @@ std::string_view AbyssEngine::Sprite::LuaGetPlayMode() {
     }
     return "";
 }
+
+} // namespace AbyssEngine

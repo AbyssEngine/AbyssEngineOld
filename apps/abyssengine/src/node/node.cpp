@@ -4,11 +4,12 @@
 
 #include <utility>
 
-AbyssEngine::Node::Node() : _addChildQueue(), _removeChildQueue() {}
+namespace AbyssEngine {
+Node::Node() : _addChildQueue(), _removeChildQueue() {}
 
-AbyssEngine::Node::Node(std::string_view name) : Name(name) {}
+Node::Node(std::string_view name) : Name(name) {}
 
-void AbyssEngine::Node::UpdateCallback(uint32_t ticks) {
+void Node::UpdateCallback(uint32_t ticks) {
     ProcessQueuedActions();
 
     if (_onUpdateHandler.valid()) {
@@ -28,7 +29,7 @@ void AbyssEngine::Node::UpdateCallback(uint32_t ticks) {
     }
 }
 
-void AbyssEngine::Node::RenderCallback(int offsetX, int offsetY) {
+void Node::RenderCallback(int offsetX, int offsetY) {
     for (auto &item : Children) {
         if (!item->Active || !item->Visible)
             continue;
@@ -37,7 +38,7 @@ void AbyssEngine::Node::RenderCallback(int offsetX, int offsetY) {
     }
 }
 
-void AbyssEngine::Node::GetEffectiveLayout(int &x, int &y) const {
+void Node::GetEffectiveLayout(int &x, int &y) const {
     x += X;
     y += Y;
 
@@ -46,7 +47,7 @@ void AbyssEngine::Node::GetEffectiveLayout(int &x, int &y) const {
     }
 }
 
-void AbyssEngine::Node::AppendChild(Node *childNode) {
+void Node::AppendChild(Node *childNode) {
     if (childNode == nullptr)
         throw std::runtime_error("Attempted to append null node!");
 
@@ -54,7 +55,7 @@ void AbyssEngine::Node::AppendChild(Node *childNode) {
     _addChildQueue.push(childNode);
 }
 
-void AbyssEngine::Node::RemoveChild(Node *nodeRef) {
+void Node::RemoveChild(Node *nodeRef) {
     if (nodeRef == nullptr)
         throw std::runtime_error("Attempted to remove null node!");
 
@@ -62,24 +63,24 @@ void AbyssEngine::Node::RemoveChild(Node *nodeRef) {
     _removeChildQueue.push(nodeRef);
 }
 
-void AbyssEngine::Node::RemoveAllChildren() { _removeAllChildren = true; }
+void Node::RemoveAllChildren() { _removeAllChildren = true; }
 
-void AbyssEngine::Node::SetPosition(int x, int y) {
+void Node::SetPosition(int x, int y) {
     X = x;
     Y = y;
 }
 
-std::tuple<int, int> AbyssEngine::Node::GetPosition() const { return {X, Y}; }
+std::tuple<int, int> Node::GetPosition() const { return {X, Y}; }
 
-void AbyssEngine::Node::SetActive(bool active) { Active = active; }
+void Node::SetActive(bool active) { Active = active; }
 
-bool AbyssEngine::Node::GetActive() const { return Active; }
+bool Node::GetActive() const { return Active; }
 
-void AbyssEngine::Node::SetVisible(bool visible) { Visible = visible; }
+void Node::SetVisible(bool visible) { Visible = visible; }
 
-bool AbyssEngine::Node::GetVisible() const { return Visible; }
+bool Node::GetVisible() const { return Visible; }
 
-void AbyssEngine::Node::MouseEventCallback(const AbyssEngine::MouseEvent &event) {
+void Node::MouseEventCallback(const MouseEvent &event) {
     for (auto &item : Children) {
         if (!item->Active || !item->Visible)
             continue;
@@ -89,7 +90,7 @@ void AbyssEngine::Node::MouseEventCallback(const AbyssEngine::MouseEvent &event)
     }
 }
 
-void AbyssEngine::Node::ProcessQueuedActions() {
+void Node::ProcessQueuedActions() {
     if (_removeAllChildren) {
         _removeAllChildren = false;
         Children.clear();
@@ -106,7 +107,7 @@ void AbyssEngine::Node::ProcessQueuedActions() {
     }
 }
 
-void AbyssEngine::Node::DoInitialize() {
+void Node::DoInitialize() {
     if (!_initialized) {
         Initialize();
         _initialized = true;
@@ -117,13 +118,11 @@ void AbyssEngine::Node::DoInitialize() {
     }
 }
 
-void AbyssEngine::Node::Initialize() {}
+void Node::Initialize() {}
 
-void AbyssEngine::Node::SetLuaOnUpdateHandler(sol::protected_function onUpdateHandler) {
-    _onUpdateHandler = std::move(onUpdateHandler);
-}
+void Node::SetLuaOnUpdateHandler(sol::protected_function onUpdateHandler) { _onUpdateHandler = std::move(onUpdateHandler); }
 
-void AbyssEngine::Node::KeyboardEventCallback(const AbyssEngine::KeyboardEvent &event) {
+void Node::KeyboardEventCallback(const KeyboardEvent &event) {
     for (auto &item : Children) {
         if (!item->Active)
             continue;
@@ -132,3 +131,4 @@ void AbyssEngine::Node::KeyboardEventCallback(const AbyssEngine::KeyboardEvent &
             item->KeyboardEventCallback(event);
     }
 }
+} // namespace AbyssEngine

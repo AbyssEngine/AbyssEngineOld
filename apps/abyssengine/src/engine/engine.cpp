@@ -1,16 +1,16 @@
 #include "engine.h"
-#include "../common/consolebg.h"
 #include "../hostnotify/hostnotify.h"
-#include "../node/debugconsole.h"
 #include "filesystemprovider.h"
 #include <memory>
 #include <span>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
-AbyssEngine::Engine *engineGlobalInstance = nullptr;
+namespace AbyssEngine {
 
-AbyssEngine::Engine::Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO> systemIo)
+Engine *engineGlobalInstance = nullptr;
+
+Engine::Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO> systemIo)
     : _iniFile(std::move(iniFile)), _loader(), _systemIO(std::move(systemIo)), _palettes(), _rootNode("__root"),
       _scriptHost(std::make_unique<ScriptHost>(this)), _mouseButtonState((eMouseButton)0) {
 
@@ -33,13 +33,13 @@ AbyssEngine::Engine::Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO>
     _systemIO->SetAudioLevel(eAudioIntent::BackgroundMusic, _iniFile.GetValueFloat("Audio", "BackgroundMusicVolume"));
 }
 
-void AbyssEngine::Engine::Run() {
+void Engine::Run() {
     _loader.AddProvider(std::make_unique<EmbeddedFileProvider>());
+    _debugConsoleNode.emplace();
 
-    auto logger = std::shared_ptr<spdlog::logger>(new spdlog::logger(
-        "Logger", {std::make_shared<spdlog::sinks::stdout_color_sink_mt>(), std::make_shared<EngineLogger>([this](const std::string &line) {
-                       dynamic_cast<DebugConsole *>(_debugConsoleNode.get())->AddLine(line);
-                   })}));
+    auto logger = std::shared_ptr<spdlog::logger>(
+        new spdlog::logger("Logger", {std::make_shared<spdlog::sinks::stdout_color_sink_mt>(),
+                                      std::make_shared<EngineLogger>([this](const std::string &line) { _debugConsoleNode->AddLine(line); })}));
 
     spdlog::register_logger(logger);
     spdlog::set_default_logger(logger);
@@ -48,8 +48,6 @@ void AbyssEngine::Engine::Run() {
 
     // Add a filesystem provider to allow loading of files in the working directory
     _loader.AddProvider(std::make_unique<FileSystemProvider>(std::filesystem::current_path()));
-
-    _debugConsoleNode = std::make_unique<DebugConsole>();
 
     // Run the script
     _scriptHost->ExecuteFile("bootstrap.lua");
@@ -61,29 +59,29 @@ void AbyssEngine::Engine::Run() {
     Stop();
 }
 
-AbyssEngine::Engine::~Engine() {
+Engine::~Engine() {
     spdlog::set_default_logger(spdlog::stdout_color_mt("Exit"));
     SPDLOG_TRACE("destroying engine");
 }
 
-void AbyssEngine::Engine::Stop() {
+void Engine::Stop() {
     _running = false;
     _videoNode = nullptr;
 }
 
-void AbyssEngine::Engine::AddPalette(std::string_view paletteName, const LibAbyss::Palette &palette) { _palettes.emplace(paletteName, palette); }
+void Engine::AddPalette(std::string_view paletteName, const LibAbyss::Palette &palette) { _palettes.emplace(paletteName, palette); }
 
-AbyssEngine::Engine *AbyssEngine::Engine::Get() { return engineGlobalInstance; }
+Engine *Engine::Get() { return engineGlobalInstance; }
 
-const LibAbyss::Palette &AbyssEngine::Engine::GetPalette(std::string_view paletteName) { return _palettes.at(paletteName); }
+const LibAbyss::Palette &Engine::GetPalette(std::string_view paletteName) { return _palettes.at(paletteName); }
 
-AbyssEngine::Node &AbyssEngine::Engine::GetRootNode() { return _rootNode; }
+Node &Engine::GetRootNode() { return _rootNode; }
 
-AbyssEngine::Node *AbyssEngine::Engine::GetFocusedNode() { return _focusedNode; }
+Node *Engine::GetFocusedNode() { return _focusedNode; }
 
-void AbyssEngine::Engine::SetFocusedNode(AbyssEngine::Node *node) { _focusedNode = node; }
+void Engine::SetFocusedNode(Node *node) { _focusedNode = node; }
 
-void AbyssEngine::Engine::RunMainLoop() {
+void Engine::RunMainLoop() {
     // Initialize the running flag so that the loop happens
     _running = true;
 
@@ -129,7 +127,7 @@ void AbyssEngine::Engine::RunMainLoop() {
     }
 }
 
-void AbyssEngine::Engine::ScriptGarbageCollect() {
+void Engine::ScriptGarbageCollect() {
     if ((_systemIO->GetTicks() - _luaLastGc) <= _luaGcRateMsec)
         return;
 
@@ -137,7 +135,7 @@ void AbyssEngine::Engine::ScriptGarbageCollect() {
     _scriptHost->GC();
 }
 
-void AbyssEngine::Engine::SetCursorSprite(Sprite *cursorSprite, int offsetX, int offsetY) {
+void Engine::SetCursorSprite(Sprite *cursorSprite, int offsetX, int offsetY) {
     _cursorSprite = cursorSprite;
 
     _cursorOffsetX = offsetX;
@@ -147,28 +145,28 @@ void AbyssEngine::Engine::SetCursorSprite(Sprite *cursorSprite, int offsetX, int
     _cursorSprite->Y = _cursorY;
 }
 
-void AbyssEngine::Engine::ShowSystemCursor(bool show) { _showSystemCursor = show; }
+void Engine::ShowSystemCursor(bool show) { _showSystemCursor = show; }
 
-void AbyssEngine::Engine::GetCursorPosition(int &x, int &y) {
+void Engine::GetCursorPosition(int &x, int &y) {
     _systemIO->GetCursorState(_cursorX, _cursorY, _mouseButtonState);
 
     x = _cursorX;
     y = _cursorY;
 }
 
-AbyssEngine::eMouseButton AbyssEngine::Engine::GetMouseButtonState() {
+eMouseButton Engine::GetMouseButtonState() {
     _systemIO->GetCursorState(_cursorX, _cursorY, _mouseButtonState);
 
     return _mouseButtonState;
 }
 
-void AbyssEngine::Engine::ResetMouseButtonState() {
+void Engine::ResetMouseButtonState() {
     _mouseButtonState = (eMouseButton)0;
     _systemIO->ResetMouseButtonState();
 }
 
-void AbyssEngine::Engine::PlayVideo(std::string_view name, LibAbyss::InputStream stream, std::optional<LibAbyss::InputStream> audio,
-                                    const sol::safe_function &callback) {
+void Engine::PlayVideo(std::string_view name, LibAbyss::InputStream stream, std::optional<LibAbyss::InputStream> audio,
+                       const sol::safe_function &callback) {
     if (!_running)
         return;
 
@@ -176,11 +174,11 @@ void AbyssEngine::Engine::PlayVideo(std::string_view name, LibAbyss::InputStream
     _onVideoEndCallback = callback;
 }
 
-LibAbyss::INIFile &AbyssEngine::Engine::GetIniFile() { return _iniFile; }
+LibAbyss::INIFile &Engine::GetIniFile() { return _iniFile; }
 
-AbyssEngine::Loader &AbyssEngine::Engine::GetLoader() { return _loader; }
+Loader &Engine::GetLoader() { return _loader; }
 
-void AbyssEngine::Engine::UpdateVideo(uint32_t tickDiff) {
+void Engine::UpdateVideo(uint32_t tickDiff) {
     _videoNode->UpdateCallback(tickDiff);
 
     if (_videoNode->GetIsPlaying())
@@ -200,11 +198,11 @@ void AbyssEngine::Engine::UpdateVideo(uint32_t tickDiff) {
     Engine::Get()->Panic(err.what());
 }
 
-void AbyssEngine::Engine::UpdateRootNode(uint32_t tickDiff) { _rootNode.UpdateCallback(tickDiff); }
+void Engine::UpdateRootNode(uint32_t tickDiff) { _rootNode.UpdateCallback(tickDiff); }
 
-void AbyssEngine::Engine::RenderVideo() { _videoNode->RenderCallback(0, 0); }
+void Engine::RenderVideo() { _videoNode->RenderCallback(0, 0); }
 
-void AbyssEngine::Engine::RenderRootNode() {
+void Engine::RenderRootNode() {
     _rootNode.RenderCallback(0, 0);
 
     if (!_showSystemCursor || _cursorSprite == nullptr)
@@ -215,24 +213,24 @@ void AbyssEngine::Engine::RenderRootNode() {
     _cursorSprite->RenderCallback(_cursorOffsetX, _cursorOffsetY);
 }
 
-AbyssEngine::SystemIO &AbyssEngine::Engine::GetSystemIO() { return *_systemIO; }
+SystemIO &Engine::GetSystemIO() { return *_systemIO; }
 
-bool AbyssEngine::Engine::IsRunning() const { return _running; }
+bool Engine::IsRunning() const { return _running; }
 
-AbyssEngine::Node &AbyssEngine::Engine::GetInputReceiverNode() {
+Node &Engine::GetInputReceiverNode() {
     if (_debugConsoleNode->Active)
         return *_debugConsoleNode;
 
     return _videoNode != nullptr ? *_videoNode : _rootNode;
 }
 
-void AbyssEngine::Engine::Panic(std::string_view message) {
+void Engine::Panic(std::string_view message) {
     spdlog::critical(message);
     // HostNotify::Notify(eNotifyType::Fatal, "Engine Panic", (std::string)message);
     // Stop();
 }
 
-bool AbyssEngine::Engine::UpdateTicks() {
+bool Engine::UpdateTicks() {
     const auto newTicks = _systemIO->GetTicks();
     const auto tickDiff = newTicks - _lastTicks;
 
@@ -244,4 +242,6 @@ bool AbyssEngine::Engine::UpdateTicks() {
 
     return true;
 }
-std::string AbyssEngine::Engine::ExecuteCommand(std::string command) { return _scriptHost->ExecuteString(command); }
+std::string Engine::ExecuteCommand(std::string command) { return _scriptHost->ExecuteString(command); }
+
+} // namespace AbyssEngine

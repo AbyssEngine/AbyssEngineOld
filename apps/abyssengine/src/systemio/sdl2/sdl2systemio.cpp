@@ -4,6 +4,7 @@
 #include "config.h"
 #include "sdl2texture.h"
 #include <cstdint>
+#include <libabyss/common/pngloader.h>
 #include <png.h>
 #include <SDL.h>
 #include <SDL_hints.h>
@@ -11,7 +12,6 @@
 #include <SDL_syswm.h>
 #include <SDL_ttf.h>
 #include <span>
-#include <libabyss/common/pngloader.h>
 #include <spdlog/spdlog.h>
 #ifdef __APPLE__
 #include "../../hostnotify/hostnotify_mac_shim.h"
@@ -22,7 +22,9 @@
 #undef None
 #endif
 
-AbyssEngine::SDL2::SDL2SystemIO::SDL2SystemIO() : AbyssEngine::SystemIO::SystemIO(), _audioSpec(), _mouseButtonState((eMouseButton)0) {
+namespace AbyssEngine {
+
+SDL2::SDL2SystemIO::SDL2SystemIO() : SystemIO::SystemIO(), _audioSpec(), _mouseButtonState((eMouseButton)0) {
     SPDLOG_TRACE("Creating SDL2 System IO");
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER | SDL_INIT_TIMER | SDL_INIT_AUDIO) != 0)
@@ -32,12 +34,14 @@ AbyssEngine::SDL2::SDL2SystemIO::SDL2SystemIO() : AbyssEngine::SystemIO::SystemI
         throw std::runtime_error(TTF_GetError());
     }
 
-    _sdlWindow = std::unique_ptr<SDL_Window, std::function<void(SDL_Window *)>>(
-        SDL_CreateWindow(ABYSS_VERSION_STRING, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI), [](SDL_Window *x) {
-            SDL_DestroyWindow(x);
-            SDL_Quit();
-            TTF_Quit();
-        });
+    _sdlWindow = std::unique_ptr<SDL_Window, std::function<void(SDL_Window *)>>(SDL_CreateWindow(ABYSS_VERSION_STRING, SDL_WINDOWPOS_UNDEFINED,
+                                                                                                 SDL_WINDOWPOS_UNDEFINED, 800, 600,
+                                                                                                 SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI),
+                                                                                [](SDL_Window *x) {
+                                                                                    SDL_DestroyWindow(x);
+                                                                                    SDL_Quit();
+                                                                                    TTF_Quit();
+                                                                                });
 
     if (_sdlWindow == nullptr)
         throw std::runtime_error(SDL_GetError());
@@ -46,7 +50,7 @@ AbyssEngine::SDL2::SDL2SystemIO::SDL2SystemIO() : AbyssEngine::SystemIO::SystemI
     SDL_SysWMinfo wmInfo;
     SDL_VERSION(&wmInfo.version);
     SDL_GetWindowWMInfo(_sdlWindow.get(), &wmInfo);
-    AbyssEngine::HostNotify::Win32Handle = wmInfo.info.win.window;
+    HostNotify::Win32Handle = wmInfo.info.win.window;
 #endif // _WIN32
 #ifdef __APPLE__
     AbyssHostNotifyInitMac();
@@ -85,7 +89,7 @@ AbyssEngine::SDL2::SDL2SystemIO::SDL2SystemIO() : AbyssEngine::SystemIO::SystemI
     PauseAudio(false);
 }
 
-AbyssEngine::SDL2::SDL2SystemIO::~SDL2SystemIO() {
+SDL2::SDL2SystemIO::~SDL2SystemIO() {
     SPDLOG_TRACE("Destroying SDL2 System IO");
 
     FinalizeAudio();
@@ -95,18 +99,18 @@ AbyssEngine::SDL2::SDL2SystemIO::~SDL2SystemIO() {
 #endif // __APPLE__
 }
 
-std::string_view AbyssEngine::SDL2::SDL2SystemIO::Name() { return "SDL2"; }
+std::string_view SDL2::SDL2SystemIO::Name() { return "SDL2"; }
 
-void AbyssEngine::SDL2::SDL2SystemIO::PauseAudio(bool pause) {
+void SDL2::SDL2SystemIO::PauseAudio(bool pause) {
     if (!_hasAudio)
         return;
 
     SDL_PauseAudioDevice(_audioDeviceId, pause ? SDL_TRUE : SDL_FALSE);
 }
 
-void AbyssEngine::SDL2::SDL2SystemIO::SetFullscreen(bool fullscreen) { SDL_SetWindowFullscreen(_sdlWindow.get(), fullscreen ? SDL_TRUE : SDL_FALSE); }
+void SDL2::SDL2SystemIO::SetFullscreen(bool fullscreen) { SDL_SetWindowFullscreen(_sdlWindow.get(), fullscreen ? SDL_TRUE : SDL_FALSE); }
 
-bool AbyssEngine::SDL2::SDL2SystemIO::HandleSdlEvent(const SDL_Event &sdlEvent, Node &rootNode) {
+bool SDL2::SDL2SystemIO::HandleSdlEvent(const SDL_Event &sdlEvent, Node &rootNode) {
     switch (sdlEvent.type) {
     case SDL_MOUSEMOTION: {
         _cursorX = sdlEvent.motion.x;
@@ -187,13 +191,12 @@ bool AbyssEngine::SDL2::SDL2SystemIO::HandleSdlEvent(const SDL_Event &sdlEvent, 
     }
 }
 
-std::unique_ptr<AbyssEngine::ITexture> AbyssEngine::SDL2::SDL2SystemIO::CreateTexture(ITexture::Format textureFormat, uint32_t width,
-                                                                                      uint32_t height) {
+std::unique_ptr<ITexture> SDL2::SDL2SystemIO::CreateTexture(ITexture::Format textureFormat, uint32_t width, uint32_t height) {
     return std::make_unique<SDL2Texture>(_sdlRenderer.get(), textureFormat, width, height);
 }
 
 namespace {
-class AbyssSDL2TTF : public AbyssEngine::ITtf {
+class AbyssSDL2TTF : public ITtf {
   public:
     explicit AbyssSDL2TTF(SDL_Renderer *renderer, LibAbyss::InputStream stream, int size, Hinting hinting) : _sdlRenderer(renderer) {
         auto len = stream.size();
@@ -238,7 +241,7 @@ class AbyssSDL2TTF : public AbyssEngine::ITtf {
         TTF_SetFontStyle(_font, x);
     }
 
-    std::unique_ptr<AbyssEngine::ITexture> RenderText(std::string_view text, int &width, int &height) override {
+    std::unique_ptr<ITexture> RenderText(std::string_view text, int &width, int &height) override {
         std::string s(text);
         SDL_Color color = {255, 255, 255, 0};
         SDL_Surface *surf = TTF_RenderUTF8_Blended(_font, s.c_str(), color);
@@ -249,7 +252,7 @@ class AbyssSDL2TTF : public AbyssEngine::ITtf {
         height = surf->h;
         SDL_Texture *texture = SDL_CreateTextureFromSurface(_sdlRenderer, surf);
         SDL_FreeSurface(surf);
-        return std::make_unique<AbyssEngine::SDL2::SDL2Texture>(_sdlRenderer, texture);
+        return std::make_unique<SDL2::SDL2Texture>(_sdlRenderer, texture);
     }
 
     ~AbyssSDL2TTF() override { TTF_CloseFont(_font); }
@@ -261,11 +264,10 @@ class AbyssSDL2TTF : public AbyssEngine::ITtf {
 };
 } // namespace
 
-std::unique_ptr<AbyssEngine::ITtf> AbyssEngine::SDL2::SDL2SystemIO::CreateTtf(LibAbyss::InputStream stream, int size,
-                                                                              AbyssEngine::ITtf::Hinting hinting) {
+std::unique_ptr<ITtf> SDL2::SDL2SystemIO::CreateTtf(LibAbyss::InputStream stream, int size, ITtf::Hinting hinting) {
     return std::make_unique<AbyssSDL2TTF>(_sdlRenderer.get(), std::move(stream), size, hinting);
 }
-void AbyssEngine::SDL2::SDL2SystemIO::InitializeAudio() {
+void SDL2::SDL2SystemIO::InitializeAudio() {
     SDL_AudioSpec requestedAudioSpec{
         .freq = 44100,
         .format = AUDIO_S16LSB,
@@ -286,12 +288,12 @@ void AbyssEngine::SDL2::SDL2SystemIO::InitializeAudio() {
     SPDLOG_INFO("Using audio device {0} via {1}", SDL_GetAudioDeviceName(_audioDeviceId, SDL_FALSE), SDL_GetCurrentAudioDriver());
 }
 
-void AbyssEngine::SDL2::SDL2SystemIO::HandleAudioCallback(void *userData, Uint8 *stream, int length) {
+void SDL2::SDL2SystemIO::HandleAudioCallback(void *userData, Uint8 *stream, int length) {
     auto *source = (SDL2SystemIO *)userData;
     source->HandleAudio(stream, length);
 }
 
-void AbyssEngine::SDL2::SDL2SystemIO::HandleAudio(uint8_t *stream, int length) {
+void SDL2::SDL2SystemIO::HandleAudio(uint8_t *stream, int length) {
     if (length & 1) {
         SPDLOG_WARN("Audio callback length is not even, dropping samples");
         return;
@@ -335,7 +337,7 @@ void AbyssEngine::SDL2::SDL2SystemIO::HandleAudio(uint8_t *stream, int length) {
     }
 }
 
-void AbyssEngine::SDL2::SDL2SystemIO::FinalizeAudio() const {
+void SDL2::SDL2SystemIO::FinalizeAudio() const {
     if (!_hasAudio)
         return;
 
@@ -343,7 +345,7 @@ void AbyssEngine::SDL2::SDL2SystemIO::FinalizeAudio() const {
     SDL_CloseAudioDevice(_audioDeviceId);
 }
 
-bool AbyssEngine::SDL2::SDL2SystemIO::HandleInputEvents(Node &rootNode) {
+bool SDL2::SDL2SystemIO::HandleInputEvents(Node &rootNode) {
     SDL_Event sdlEvent;
 
     while (SDL_PollEvent(&sdlEvent)) {
@@ -354,30 +356,30 @@ bool AbyssEngine::SDL2::SDL2SystemIO::HandleInputEvents(Node &rootNode) {
     return true;
 }
 
-uint32_t AbyssEngine::SDL2::SDL2SystemIO::GetTicks() { return SDL_GetTicks(); }
+uint32_t SDL2::SDL2SystemIO::GetTicks() { return SDL_GetTicks(); }
 
-void AbyssEngine::SDL2::SDL2SystemIO::RenderStart() {
+void SDL2::SDL2SystemIO::RenderStart() {
     SDL_SetRenderDrawColor(_sdlRenderer.get(), 0, 0, 0, 255);
     SDL_RenderClear(_sdlRenderer.get());
 }
 
-void AbyssEngine::SDL2::SDL2SystemIO::RenderEnd() { SDL_RenderPresent(_sdlRenderer.get()); }
+void SDL2::SDL2SystemIO::RenderEnd() { SDL_RenderPresent(_sdlRenderer.get()); }
 
-void AbyssEngine::SDL2::SDL2SystemIO::Delay(uint32_t ms) { SDL_Delay(ms); }
+void SDL2::SDL2SystemIO::Delay(uint32_t ms) { SDL_Delay(ms); }
 
-void AbyssEngine::SDL2::SDL2SystemIO::GetCursorState(int &cursorX, int &cursorY, eMouseButton &buttonState) {
+void SDL2::SDL2SystemIO::GetCursorState(int &cursorX, int &cursorY, eMouseButton &buttonState) {
     cursorX = _cursorX;
     cursorY = _cursorY;
     buttonState = _mouseButtonState;
 }
 
-float AbyssEngine::SDL2::SDL2SystemIO::GetAudioLevel(eAudioIntent intent) {
+float SDL2::SDL2SystemIO::GetAudioLevel(eAudioIntent intent) {
     std::lock_guard<std::mutex> lock(_mutex);
 
     return _masterAudioLevel;
 }
 
-void AbyssEngine::SDL2::SDL2SystemIO::SetAudioLevel(eAudioIntent intent, float level) {
+void SDL2::SDL2SystemIO::SetAudioLevel(eAudioIntent intent, float level) {
     std::lock_guard<std::mutex> lock(_mutex);
 
     if (level < 0.0f)
@@ -414,51 +416,51 @@ void AbyssEngine::SDL2::SDL2SystemIO::SetAudioLevel(eAudioIntent intent, float l
     }
 }
 
-void AbyssEngine::SDL2::SDL2SystemIO::ResetMouseButtonState() { _mouseButtonState = (eMouseButton)0; }
+void SDL2::SDL2SystemIO::ResetMouseButtonState() { _mouseButtonState = (eMouseButton)0; }
 
-void AbyssEngine::SDL2::SDL2SystemIO::SetBackgroundMusic(std::unique_ptr<LibAbyss::AudioStream> stream) {
+void SDL2::SDL2SystemIO::SetBackgroundMusic(std::unique_ptr<LibAbyss::AudioStream> stream) {
     std::lock_guard<std::mutex> lock(_mutex);
     _backgroundMusicStream = std::move(stream);
 }
-void AbyssEngine::SDL2::SDL2SystemIO::AddSoundEffect(AbyssEngine::SoundEffect *soundEffect) {
+void SDL2::SDL2SystemIO::AddSoundEffect(SoundEffect *soundEffect) {
     std::lock_guard<std::mutex> lock(_mutex);
     _soundEffects.push_back(soundEffect);
 }
 
-void AbyssEngine::SDL2::SDL2SystemIO::RemoveSoundEffect(AbyssEngine::SoundEffect *soundEffect) {
+void SDL2::SDL2SystemIO::RemoveSoundEffect(SoundEffect *soundEffect) {
     std::lock_guard<std::mutex> lock(_mutex);
     _soundEffects.erase(std::remove(_soundEffects.begin(), _soundEffects.end(), soundEffect), _soundEffects.end());
 }
 
-void AbyssEngine::SDL2::SDL2SystemIO::SetVideo(IAudio *video) {
+void SDL2::SDL2SystemIO::SetVideo(IAudio *video) {
     std::lock_guard<std::mutex> lock(_mutex);
     _video = video;
 }
-void AbyssEngine::SDL2::SDL2SystemIO::DrawLine(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, uint8_t b) {
+void SDL2::SDL2SystemIO::DrawLine(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, uint8_t b) {
     SDL_SetRenderDrawColor(_sdlRenderer.get(), r, g, b, 255);
     SDL_RenderDrawLine(_sdlRenderer.get(), x1, y1, x2, y2);
 }
 
-void AbyssEngine::SDL2::SDL2SystemIO::DrawRect(int x, int y, int w, int h, uint8_t r, uint8_t g, uint8_t b) {
+void SDL2::SDL2SystemIO::DrawRect(int x, int y, int w, int h, uint8_t r, uint8_t g, uint8_t b) {
     SDL_SetRenderDrawColor(_sdlRenderer.get(), r, g, b, 255);
     SDL_Rect destRect{x, y, w, h};
     SDL_RenderFillRect(_sdlRenderer.get(), &destRect);
 }
 
-bool AbyssEngine::SDL2::SDL2SystemIO::IsKeyPressed(uint16_t scancode) { return _pressedKeys[scancode]; }
+bool SDL2::SDL2SystemIO::IsKeyPressed(uint16_t scancode) { return _pressedKeys[scancode]; }
 
-std::string AbyssEngine::SDL2::SDL2SystemIO::GetInputText() { return _inputText; }
+std::string SDL2::SDL2SystemIO::GetInputText() { return _inputText; }
 
-void AbyssEngine::SDL2::SDL2SystemIO::ClearInputText() { _inputText.clear(); }
+void SDL2::SDL2SystemIO::ClearInputText() { _inputText.clear(); }
 
-void AbyssEngine::SDL2::SDL2SystemIO::ResetKeyState(uint16_t scancode) {
-    _pressedKeys[scancode] = false;
-}
-std::unique_ptr<AbyssEngine::ITexture> AbyssEngine::SDL2::SDL2SystemIO::LoadPNG(LibAbyss::InputStream stream) {
+void SDL2::SDL2SystemIO::ResetKeyState(uint16_t scancode) { _pressedKeys[scancode] = false; }
+std::unique_ptr<ITexture> SDL2::SDL2SystemIO::LoadPNG(LibAbyss::InputStream stream) {
     auto png = LibAbyss::PNGLoader(stream);
     uint32_t width, height;
     png.GetSize(width, height);
-    SDL_Texture* texture = SDL_CreateTexture(_sdlRenderer.get(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, width, height);
+    SDL_Texture *texture = SDL_CreateTexture(_sdlRenderer.get(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, width, height);
     SDL_UpdateTexture(texture, nullptr, png.GetPixelData().data(), 4 * (int)width);
-    return std::make_unique<AbyssEngine::SDL2::SDL2Texture>(_sdlRenderer.get(), texture);
+    return std::make_unique<SDL2::SDL2Texture>(_sdlRenderer.get(), texture);
 }
+
+} // namespace AbyssEngine

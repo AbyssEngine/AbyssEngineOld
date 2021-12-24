@@ -6,11 +6,12 @@
 #include <spdlog/spdlog.h>
 #include <utility>
 
-AbyssEngine::Button::Button(Image &image) : _image(image), _luaActivateCallback(), _luaPressedCallback() {}
+namespace AbyssEngine {
+Button::Button(Image &image) : _image(image), _luaActivateCallback(), _luaPressedCallback() {}
 
-AbyssEngine::Button::~Button() = default;
+Button::~Button() = default;
 
-void AbyssEngine::Button::UpdateCallback(uint32_t ticks) {
+void Button::UpdateCallback(uint32_t ticks) {
     auto engine = Engine::Get();
 
     if (!Active) {
@@ -169,7 +170,7 @@ void AbyssEngine::Button::UpdateCallback(uint32_t ticks) {
     Node::UpdateCallback(ticks);
 }
 
-void AbyssEngine::Button::RenderCallback(int offsetX, int offsetY) {
+void Button::RenderCallback(int offsetX, int offsetY) {
     if (!Visible)
         return;
 
@@ -213,26 +214,26 @@ void AbyssEngine::Button::RenderCallback(int offsetX, int offsetY) {
     Node::RenderCallback(offsetX + text_offset_x, offsetY + text_offset_y);
 }
 
-void AbyssEngine::Button::MouseEventCallback(const AbyssEngine::MouseEvent &event) { Node::MouseEventCallback(event); }
-void AbyssEngine::Button::SetSegments(int x, int y) {
+void Button::MouseEventCallback(const MouseEvent &event) { Node::MouseEventCallback(event); }
+void Button::SetSegments(int x, int y) {
     _xSegments = x;
     _ySegments = y;
 }
 
-void AbyssEngine::Button::SetSize(int x, int y) {
+void Button::SetSize(int x, int y) {
     _fixedWidth = x;
     _fixedHeight = y;
 }
 
-bool AbyssEngine::Button::GetChecked() const { return _checked; }
-void AbyssEngine::Button::SetChecked(bool b) { _checked = b; }
+bool Button::GetChecked() const { return _checked; }
+void Button::SetChecked(bool b) { _checked = b; }
 
-void AbyssEngine::Button::SetPressedOffset(int x, int y) {
+void Button::SetPressedOffset(int x, int y) {
     _pressedOffsetX = x;
     _pressedOffsetY = y;
 }
 
-void AbyssEngine::Button::LuaSetFrameIndex(std::string_view frameType, int index) {
+void Button::LuaSetFrameIndex(std::string_view frameType, int index) {
     std::string str = absl::AsciiStrToLower(frameType);
 
     if (str == "normal")
@@ -253,18 +254,15 @@ void AbyssEngine::Button::LuaSetFrameIndex(std::string_view frameType, int index
         throw std::runtime_error(absl::StrCat("Unknown button state: ", frameType));
 }
 
-void AbyssEngine::Button::LuaSetActivateCallback(sol::safe_function luaActivateCallback) { _luaActivateCallback = std::move(luaActivateCallback); }
+void Button::LuaSetActivateCallback(sol::safe_function luaActivateCallback) { _luaActivateCallback = std::move(luaActivateCallback); }
 
-void AbyssEngine::Button::LuaSetPressCallback(sol::safe_function luaPressCallback) { _luaPressedCallback = std::move(luaPressCallback); }
+void Button::LuaSetPressCallback(sol::safe_function luaPressCallback) { _luaPressedCallback = std::move(luaPressCallback); }
 
-void AbyssEngine::Button::SetDisabled(bool disabled) { _buttonState = disabled ? eState::Disabled : eState::Normal; }
+void Button::SetDisabled(bool disabled) { _buttonState = disabled ? eState::Disabled : eState::Normal; }
 
-bool AbyssEngine::Button::GetDisabled() const { return _buttonState == eState::Disabled; }
+bool Button::GetDisabled() const { return _buttonState == eState::Disabled; }
 
-void AbyssEngine::Button::LuaSetMouseEnterCallback(sol::safe_function luaMouseEnterCallback) {
-    _luaMouseEnterCallback = std::move(luaMouseEnterCallback);
-}
+void Button::LuaSetMouseEnterCallback(sol::safe_function luaMouseEnterCallback) { _luaMouseEnterCallback = std::move(luaMouseEnterCallback); }
 
-void AbyssEngine::Button::LuaSetMouseLeaveCallback(sol::safe_function luaMouseLeaveCallback) {
-    _luaMouseLeaveCallback = std::move(luaMouseLeaveCallback);
-}
+void Button::LuaSetMouseLeaveCallback(sol::safe_function luaMouseLeaveCallback) { _luaMouseLeaveCallback = std::move(luaMouseLeaveCallback); }
+} // namespace AbyssEngine

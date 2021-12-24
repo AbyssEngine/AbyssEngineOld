@@ -1,6 +1,7 @@
 #include "libabyss/formats/d2/dc6.h"
 #include "libabyss/streams/streamreader.h"
 
+namespace LibAbyss {
 namespace {
 const uint8_t EndOfScanline = 0x80;
 const uint8_t MaxRunLength = 0x7F;
@@ -9,7 +10,7 @@ const int RunOfTransparentPixels = 2;
 const int RunOfOpaquePixels = 3;
 } // namespace
 
-LibAbyss::DC6::DC6(LibAbyss::InputStream &stream) : Directions(), Termination() {
+DC6::DC6(InputStream &stream) : Termination() {
     StreamReader sr(stream);
 
     Version = sr.ReadInt32();
@@ -37,13 +38,13 @@ LibAbyss::DC6::DC6(LibAbyss::InputStream &stream) : Directions(), Termination() 
     }
 }
 
-LibAbyss::DC6::Direction::Frame::Frame(StreamReader &sr)  {
+DC6::Direction::Frame::Frame(StreamReader &sr) {
     Flipped = sr.ReadUInt32();
     Width = sr.ReadUInt32();
     Height = sr.ReadUInt32();
     OffsetX = sr.ReadInt32();
     OffsetY = sr.ReadInt32();
-    Unknown  = sr.ReadUInt32();
+    Unknown = sr.ReadUInt32();
     NextBlock = sr.ReadUInt32();
     Length = sr.ReadUInt32();
     FrameData.resize(Length);
@@ -53,7 +54,7 @@ LibAbyss::DC6::Direction::Frame::Frame(StreamReader &sr)  {
 
     Decode();
 }
-void LibAbyss::DC6::Direction::Frame::Decode() {
+void DC6::Direction::Frame::Decode() {
     uint32_t x = 0;
     uint32_t y = Height - 1;
     uint32_t offset = 0;
@@ -93,7 +94,7 @@ void LibAbyss::DC6::Direction::Frame::Decode() {
 done:
     return;
 }
-uint8_t LibAbyss::DC6::Direction::Frame::GetScanlineType(uint8_t b) {
+uint8_t DC6::Direction::Frame::GetScanlineType(uint8_t b) {
     if (b == EndOfScanline)
         return EndOfLine;
 
@@ -102,3 +103,5 @@ uint8_t LibAbyss::DC6::Direction::Frame::GetScanlineType(uint8_t b) {
 
     return RunOfOpaquePixels;
 }
+
+} // namespace LibAbyss

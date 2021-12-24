@@ -7,12 +7,12 @@ extern "C" {
 #include <absl/strings/str_cat.h>
 #include <spdlog/spdlog.h>
 
+namespace LibAbyss {
 namespace {
 const int DecodeBufferSize = 1024;
 } // namespace
 
-LibAbyss::AudioStream::AudioStream(InputStream stream)
-    : _stream(std::move(stream)), _ringBuffer(1024 * 1024), _mutex() {
+AudioStream::AudioStream(InputStream stream) : _stream(std::move(stream)), _ringBuffer(1024 * 1024), _mutex() {
     const auto streamSize = _stream.size();
     const int decodeBufferSize = streamSize < DecodeBufferSize ? streamSize : DecodeBufferSize;
 
@@ -30,7 +30,6 @@ LibAbyss::AudioStream::AudioStream(InputStream stream)
 
     if ((avError = avformat_open_input(&_avFormatContext, "", nullptr, nullptr)) < 0)
         throw std::runtime_error(absl::StrCat("Failed to open AV format context: ", AvErrorCodeToString(avError)));
-
 
     if ((avError = avformat_find_stream_info(_avFormatContext, nullptr)) < 0)
         throw std::runtime_error(absl::StrCat("Failed to find stream info: ", AvErrorCodeToString(avError)));
@@ -76,7 +75,7 @@ LibAbyss::AudioStream::AudioStream(InputStream stream)
     _avFrame = av_frame_alloc();
 }
 
-LibAbyss::AudioStream::~AudioStream() {
+AudioStream::~AudioStream() {
     av_free(_avioContext->buffer);
     avio_context_free(&_avioContext);
     if (_audioStreamIdx >= 0) {
@@ -88,7 +87,7 @@ LibAbyss::AudioStream::~AudioStream() {
     avformat_free_context(_avFormatContext);
 }
 
-int LibAbyss::AudioStream::StreamRead(uint8_t *buffer, int size) {
+int AudioStream::StreamRead(uint8_t *buffer, int size) {
     _stream.read((char *)buffer, size);
     if (_stream) {
         return (int)_stream.gcount();
@@ -96,7 +95,7 @@ int LibAbyss::AudioStream::StreamRead(uint8_t *buffer, int size) {
     return -1;
 }
 
-int64_t LibAbyss::AudioStream::StreamSeek(int64_t offset, int whence) {
+int64_t AudioStream::StreamSeek(int64_t offset, int whence) {
     std::ios_base::seekdir dir;
     _stream.clear();
 
@@ -120,12 +119,12 @@ int64_t LibAbyss::AudioStream::StreamSeek(int64_t offset, int whence) {
     return _stream.tellg();
 }
 
-std::string LibAbyss::AudioStream::AvErrorCodeToString(int avError) {
+std::string AudioStream::AvErrorCodeToString(int avError) {
     char str[2048] = {};
     av_make_error_string(str, 2048, avError);
     return {str};
 }
-void LibAbyss::AudioStream::Update() {
+void AudioStream::Update() {
     if (_avFormatContext == nullptr)
         return;
 
@@ -173,12 +172,12 @@ void LibAbyss::AudioStream::Update() {
         int _lineSize;
         auto outSamples = swr_get_out_samples(_resampleContext, _avFrame->nb_samples);
         auto audioOutSize = av_samples_get_buffer_size(&_lineSize, 2, outSamples, AV_SAMPLE_FMT_S16, 0);
-        uint8_t *ptr[1] = { _audioOutBuffer };
+        uint8_t *ptr[1] = {_audioOutBuffer};
         auto result = swr_convert(_resampleContext, ptr, audioOutSize, (const uint8_t **)_avFrame->data, _avFrame->nb_samples);
         _ringBuffer.PushData(std::span(_audioOutBuffer, result * 4));
     }
 }
-int16_t LibAbyss::AudioStream::GetSample() {
+int16_t AudioStream::GetSample() {
     std::lock_guard<std::mutex> lock(_mutex);
 
     if (_isPaused || (!_isPlaying && _ringBuffer.Available() == 0))
@@ -195,46 +194,48 @@ int16_t LibAbyss::AudioStream::GetSample() {
     return (int16_t)((uint16_t)(data[0] & 0xFF) | ((uint16_t)data[1] << 8));
 }
 
-void LibAbyss::AudioStream::SetLoop(bool loop) {
+void AudioStream::SetLoop(bool loop) {
     std::lock_guard<std::mutex> lock(_mutex);
 
     _loop = loop;
 }
 
-bool LibAbyss::AudioStream::IsLooped() {
+bool AudioStream::IsLooped() {
     std::lock_guard<std::mutex> lock(_mutex);
 
     return _loop;
 }
 
-bool LibAbyss::AudioStream::IsPlaying() {
+bool AudioStream::IsPlaying() {
     std::lock_guard<std::mutex> lock(_mutex);
 
     return _isPlaying;
 }
 
-bool LibAbyss::AudioStream::IsPaused() {
+bool AudioStream::IsPaused() {
     std::lock_guard<std::mutex> lock(_mutex);
 
     return _isPaused;
 }
 
-void LibAbyss::AudioStream::Pause() {
+void AudioStream::Pause() {
     std::lock_guard<std::mutex> lock(_mutex);
 
     _isPaused = true;
 }
 
-void LibAbyss::AudioStream::Play() {
+void AudioStream::Play() {
     std::lock_guard<std::mutex> lock(_mutex);
 
     _isPaused = false;
     _isPlaying = true;
 }
 
-void LibAbyss::AudioStream::Stop() {
+void AudioStream::Stop() {
     std::lock_guard<std::mutex> lock(_mutex);
 
     _isPlaying = false;
     _isPaused = false;
 }
+
+} // namespace LibAbyss

@@ -2,35 +2,37 @@
 #include "../engine/engine.h"
 #include <cmath>
 
-AbyssEngine::SoundEffect::SoundEffect(std::unique_ptr<LibAbyss::AudioStream> audioStream) : _audioStream(std::move(audioStream)), _mutex() {
+namespace AbyssEngine {
+
+SoundEffect::SoundEffect(std::unique_ptr<LibAbyss::AudioStream> audioStream) : _audioStream(std::move(audioStream)), _mutex() {
     _audioStream->Stop();
 
     Engine::Get()->GetSystemIO().AddSoundEffect(this);
 }
 
-AbyssEngine::SoundEffect::~SoundEffect() { Engine::Get()->GetSystemIO().RemoveSoundEffect(this); }
+SoundEffect::~SoundEffect() { Engine::Get()->GetSystemIO().RemoveSoundEffect(this); }
 
-void AbyssEngine::SoundEffect::Play() { _audioStream->Play(); }
+void SoundEffect::Play() { _audioStream->Play(); }
 
-bool AbyssEngine::SoundEffect::GetIsPlaying() { return _audioStream->IsPlaying(); }
+bool SoundEffect::GetIsPlaying() { return _audioStream->IsPlaying(); }
 
-void AbyssEngine::SoundEffect::Stop() { _audioStream->Stop(); }
+void SoundEffect::Stop() { _audioStream->Stop(); }
 
-void AbyssEngine::SoundEffect::Pause() { _audioStream->Pause(); }
+void SoundEffect::Pause() { _audioStream->Pause(); }
 
-bool AbyssEngine::SoundEffect::GetIsPaused() { return _audioStream->IsPaused(); }
+bool SoundEffect::GetIsPaused() { return _audioStream->IsPaused(); }
 
-bool AbyssEngine::SoundEffect::GetLoop() { return _audioStream->IsLooped(); }
+bool SoundEffect::GetLoop() { return _audioStream->IsLooped(); }
 
-void AbyssEngine::SoundEffect::SetLoop(bool looping) { _audioStream->SetLoop(looping); }
+void SoundEffect::SetLoop(bool looping) { _audioStream->SetLoop(looping); }
 
-float AbyssEngine::SoundEffect::GetVolume() {
+float SoundEffect::GetVolume() {
     std::lock_guard<std::mutex> lock(_mutex);
 
     return _volume;
 }
 
-void AbyssEngine::SoundEffect::SetVolume(float volume) {
+void SoundEffect::SetVolume(float volume) {
     std::lock_guard<std::mutex> lock(_mutex);
 
     _volume = volume;
@@ -49,7 +51,7 @@ void AbyssEngine::SoundEffect::SetVolume(float volume) {
     }
 }
 
-int16_t AbyssEngine::SoundEffect::GetSample() {
+int16_t SoundEffect::GetSample() {
     std::lock_guard<std::mutex> lock(_mutex);
 
     auto sample = (int32_t)_audioStream->GetSample();
@@ -66,3 +68,5 @@ int16_t AbyssEngine::SoundEffect::GetSample() {
 
     return (int16_t)sample;
 }
+
+} // namespace AbyssEngine

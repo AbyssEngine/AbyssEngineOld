@@ -2,6 +2,7 @@
 #define ABYSS_ENGINE_H
 
 #include "../node/sprite.h"
+#include "../node/debugconsole.h"
 #include "../node/video.h"
 #include "../systemio/interface.h"
 #include "embeddedfileprovider.h"
@@ -13,6 +14,7 @@
 #include <exception>
 #include <filesystem>
 #include <functional>
+#include <optional>
 #include <string>
 #include <utility>
 
@@ -140,7 +142,7 @@ class Engine {
     Node _rootNode;
     std::unique_ptr<ScriptHost> _scriptHost;
     Node *_focusedNode = nullptr;
-    std::unique_ptr<Node> _debugConsoleNode;
+    std::optional<DebugConsole> _debugConsoleNode;
     bool _running = true;
     uint32_t _lastTicks = 0;
     std::unique_ptr<Video> _videoNode;
@@ -154,7 +156,6 @@ class Engine {
     int _cursorOffsetY = 0;
     uint32_t _luaGcRateMsec = 1024;
     uint32_t _luaLastGc = 0;
-    bool _inputBlocked = false;
     sol::safe_function _onVideoEndCallback;
     bool UpdateTicks();
 };
