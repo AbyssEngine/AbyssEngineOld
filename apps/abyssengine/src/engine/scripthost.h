@@ -96,6 +96,11 @@ class ScriptHost {
     /// \return The text of the file.
     std::string LuaLoadText(std::string_view filePath);
 
+    /// \brief Loads a .tbl file
+    /// \param filePath The path to the file to load.
+    /// \return The lua table.
+    sol::table LuaLoadTbl(std::string_view filePath);
+
     /// \brief Loads an image from file
     /// \param spritePath The path to the sprite file.
     /// \param paletteName The name of the palette to use for the sprite.

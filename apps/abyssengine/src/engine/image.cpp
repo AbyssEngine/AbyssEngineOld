@@ -1,4 +1,6 @@
 #include "image.h"
+#include <absl/strings/str_cat.h>
+#include <stdexcept>
 
 namespace AbyssEngine {
 
@@ -15,7 +17,10 @@ void Image::Render(uint32_t frameIdx, int cellSizeX, int cellSizeY, int posX, in
 
         for (auto cellOffsetX = 0; cellOffsetX < cellSizeX; cellOffsetX++) {
             const auto cellIndex = frameIdx + (cellOffsetX + (cellOffsetY * cellSizeX));
-            const auto framePos = _framePositions[(/*currentAnimation*/0 * totalFrames) + cellIndex];
+            if (cellIndex >= totalFrames)
+                throw std::runtime_error(absl::StrCat("No such frame in image: ", cellIndex, ", it has only ",
+                            totalFrames, " frames"));
+            const auto& framePos = _framePositions.at((/*currentAnimation*/0 * totalFrames) + cellIndex);
 
             auto destRect = framePos.Rect;
             destRect.X = framePos.OffsetX + posX;
