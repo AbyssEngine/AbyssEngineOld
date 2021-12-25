@@ -3,13 +3,14 @@
 #include <cmath>
 #include <libabyss/common/tiletype.h>
 
-AbyssEngine::MapRenderer::MapRenderer(LibAbyss::Zone *zone) : _zone(zone) {}
+namespace AbyssEngine {
+MapRenderer::MapRenderer(LibAbyss::Zone *zone) : _zone(zone) {}
 
-AbyssEngine::MapRenderer::~MapRenderer() {}
+MapRenderer::~MapRenderer() {}
 
-void AbyssEngine::MapRenderer::UpdateCallback(uint32_t ticks) { Node::UpdateCallback(ticks); }
+void MapRenderer::UpdateCallback(uint32_t ticks) { Node::UpdateCallback(ticks); }
 
-void AbyssEngine::MapRenderer::RenderCallback(int offsetX, int offsetY) {
+void MapRenderer::RenderCallback(int offsetX, int offsetY) {
     auto &io = Engine::Get()->GetSystemIO();
 
     //    // Lower Walls (below the floor
@@ -135,7 +136,7 @@ void AbyssEngine::MapRenderer::RenderCallback(int offsetX, int offsetY) {
     Node::RenderCallback(offsetX, offsetY);
 }
 
-void AbyssEngine::MapRenderer::RenderMapBorderLines(AbyssEngine::SystemIO &io) const {
+void MapRenderer::RenderMapBorderLines(SystemIO &io) const {
     auto &renderer = Engine::Get()->GetSystemIO();
 
     int x1;
@@ -171,11 +172,11 @@ void AbyssEngine::MapRenderer::RenderMapBorderLines(AbyssEngine::SystemIO &io) c
     io.DrawLine(X + x1, Y + y1, X + x2, Y + y2, 0x00, 0xFF, 0x00);
 }
 
-void AbyssEngine::MapRenderer::Initialize() { Node::Initialize(); }
+void MapRenderer::Initialize() { Node::Initialize(); }
 
-void AbyssEngine::MapRenderer::MouseEventCallback(const AbyssEngine::MouseEvent &event) { Node::MouseEventCallback(event); }
+void MapRenderer::MouseEventCallback(const MouseEvent &event) { Node::MouseEventCallback(event); }
 
-void AbyssEngine::MapRenderer::OrthoToWorld(int &x, int &y) {
+void MapRenderer::OrthoToWorld(int &x, int &y) {
     auto x2 = (float)x;
     auto y2 = (float)y;
     auto worldX = (x2 / 80.f + y2 / 40.f) / 2.f;
@@ -184,7 +185,7 @@ void AbyssEngine::MapRenderer::OrthoToWorld(int &x, int &y) {
     x = (int)worldX;
     y = (int)worldY;
 }
-void AbyssEngine::MapRenderer::WorldToOrtho(int &x, int &y) {
+void MapRenderer::WorldToOrtho(int &x, int &y) {
     auto x2 = (float)x;
     auto y2 = (float)y;
     auto orthoX = (x2 - y2) * 80.f;
@@ -193,7 +194,7 @@ void AbyssEngine::MapRenderer::WorldToOrtho(int &x, int &y) {
     x = (int)orthoX;
     y = (int)orthoY;
 }
-void AbyssEngine::MapRenderer::Compile(std::string_view paletteName) {
+void MapRenderer::Compile(std::string_view paletteName) {
     const auto &palette = Engine::Get()->GetPalette(paletteName);
     _mapTileRects.clear();
 
@@ -270,8 +271,8 @@ void AbyssEngine::MapRenderer::Compile(std::string_view paletteName) {
     _mapTileset->SetBlendMode(eBlendMode::Blend);
     //    _mapTileset->SaveAsBMP("/Users/essial/MapTileSet.bmp");
 }
-void AbyssEngine::MapRenderer::DecodeTileGraphics(LibAbyss::DT1::Tile &tile, AbyssEngine::Rectangle &tileRect, uint32_t *pixelBuffer,
-                                                  int textureWidth, const LibAbyss::Palette &palette) {
+void MapRenderer::DecodeTileGraphics(LibAbyss::DT1::Tile &tile, Rectangle &tileRect, uint32_t *pixelBuffer, int textureWidth,
+                                     const LibAbyss::Palette &palette) {
     int32_t offsetY;
 
     switch (tile.GetTileType()) {
@@ -358,7 +359,7 @@ void AbyssEngine::MapRenderer::DecodeTileGraphics(LibAbyss::DT1::Tile &tile, Aby
         }
     }
 }
-void AbyssEngine::MapRenderer::GetTileSize(const LibAbyss::DT1::Tile &tile, int &width, int &height) {
+void MapRenderer::GetTileSize(const LibAbyss::DT1::Tile &tile, int &width, int &height) {
     width = tile.Width;
     height = tile.Height < 0 ? -tile.Height : tile.Height;
 
@@ -401,3 +402,4 @@ void AbyssEngine::MapRenderer::GetTileSize(const LibAbyss::DT1::Tile &tile, int 
     if (height < actualTileHeight)
         height = actualTileHeight;
 }
+} // namespace AbyssEngine

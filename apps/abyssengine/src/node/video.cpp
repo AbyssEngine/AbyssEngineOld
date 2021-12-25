@@ -6,12 +6,12 @@
 #include <ios>
 #include <utility>
 
+namespace AbyssEngine {
 namespace {
 const int DecodeBufferSize = 1024;
 } // namespace
 
-AbyssEngine::Video::Video(std::string_view name, LibAbyss::InputStream stream, std::optional<LibAbyss::InputStream>
-        separateAudio)
+Video::Video(std::string_view name, LibAbyss::InputStream stream, std::optional<LibAbyss::InputStream> separateAudio)
     : Node(name), _stream(std::move(stream)), _ringBuffer(1024 * 4096), _videoCodecContext(), _audioCodecContext(), _avFrame(), _avBuffer(),
       _yPlane(), _uPlane(), _vPlane(), _sourceRect(), _targetRect() {
 
@@ -120,7 +120,7 @@ AbyssEngine::Video::Video(std::string_view name, LibAbyss::InputStream stream, s
     }
 }
 
-AbyssEngine::Video::~Video() {
+Video::~Video() {
     Engine::Get()->GetSystemIO().SetVideo(nullptr);
 
     av_free(_avioContext->buffer);
@@ -136,7 +136,7 @@ AbyssEngine::Video::~Video() {
     avformat_free_context(_avFormatContext);
 }
 
-void AbyssEngine::Video::UpdateCallback(uint32_t ticks) {
+void Video::UpdateCallback(uint32_t ticks) {
     _totalTicks += ticks;
     while (_isPlaying) {
         const auto diff = av_gettime() - _videoTimestamp;
@@ -151,14 +151,14 @@ void AbyssEngine::Video::UpdateCallback(uint32_t ticks) {
     Node::UpdateCallback(ticks);
 }
 
-void AbyssEngine::Video::RenderCallback(int offsetX, int offsetY) {
+void Video::RenderCallback(int offsetX, int offsetY) {
     if (_framesReady)
         _videoTexture->Render(_sourceRect, _targetRect);
 
     Node::RenderCallback(offsetX, offsetY);
 }
 
-void AbyssEngine::Video::MouseEventCallback(const AbyssEngine::MouseEvent &event) {
+void Video::MouseEventCallback(const MouseEvent &event) {
     std::visit(Overload{[](const MouseMoveEvent &evt) {},
                         [this](const MouseButtonEvent &evt) {
                             if (!evt.IsPressed || (evt.Button != eMouseButton::Left) || (_totalTicks < 1000))
@@ -173,7 +173,7 @@ void AbyssEngine::Video::MouseEventCallback(const AbyssEngine::MouseEvent &event
     Node::MouseEventCallback(event);
 }
 
-int AbyssEngine::Video::VideoStreamRead(uint8_t *buffer, int size) {
+int Video::VideoStreamRead(uint8_t *buffer, int size) {
     if (!_isPlaying)
         return 0;
 
@@ -184,7 +184,7 @@ int AbyssEngine::Video::VideoStreamRead(uint8_t *buffer, int size) {
     return -1;
 }
 
-int64_t AbyssEngine::Video::VideoStreamSeek(int64_t offset, int whence) {
+int64_t Video::VideoStreamSeek(int64_t offset, int whence) {
     if (!_isPlaying)
         return -1;
     _stream.clear();
@@ -210,7 +210,7 @@ int64_t AbyssEngine::Video::VideoStreamSeek(int64_t offset, int whence) {
     _stream.seekg(offset, dir);
     return _stream.tellg();
 }
-bool AbyssEngine::Video::ProcessFrame() {
+bool Video::ProcessFrame() {
     if (_avFormatContext == nullptr || !_isPlaying)
         return false;
 
@@ -265,7 +265,7 @@ bool AbyssEngine::Video::ProcessFrame() {
             int _lineSize;
             auto outSamples = swr_get_out_samples(_resampleContext, _avFrame->nb_samples);
             auto audioOutSize = av_samples_get_buffer_size(&_lineSize, 2, outSamples, AV_SAMPLE_FMT_S16, 0);
-            uint8_t *ptr[1] = { _audioOutBuffer };
+            uint8_t *ptr[1] = {_audioOutBuffer};
             auto result = swr_convert(_resampleContext, ptr, audioOutSize, (const uint8_t **)_avFrame->data, _avFrame->nb_samples);
             _ringBuffer.PushData(std::span(_audioOutBuffer, result * 4));
         }
@@ -275,8 +275,8 @@ bool AbyssEngine::Video::ProcessFrame() {
 
     return false;
 }
-void AbyssEngine::Video::StopVideo() { _isPlaying = false; }
-int16_t AbyssEngine::Video::GetAudioSample() {
+void Video::StopVideo() { _isPlaying = false; }
+int16_t Video::GetAudioSample() {
     uint8_t data[2] = {};
     _ringBuffer.ReadData(std::span(data, 2));
     int16_t sample = (int16_t)((uint16_t)(data[0] & 0xFF) | ((uint16_t)data[1] << 8));
@@ -286,7 +286,7 @@ int16_t AbyssEngine::Video::GetAudioSample() {
     return sample;
 }
 
-std::string AbyssEngine::Video::AvErrorCodeToString(int avError) {
+std::string Video::AvErrorCodeToString(int avError) {
     char str[2048] = {};
 
     av_make_error_string(str, 2048, avError);
@@ -294,4 +294,6 @@ std::string AbyssEngine::Video::AvErrorCodeToString(int avError) {
     return {str};
 }
 
-bool AbyssEngine::Video::GetIsPlaying() const { return _isPlaying; }
+bool Video::GetIsPlaying() const { return _isPlaying; }
+
+} // namespace AbyssEngine

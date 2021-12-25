@@ -6,12 +6,14 @@
 
 #define PNG_SIGNATURE_SIZE 8
 
+namespace LibAbyss {
+
 static void readPngDataStream(png_structp pngPtr, png_bytep data, png_size_t length) {
     png_voidp a = png_get_io_ptr(pngPtr);
     ((std::istream *)a)->read((char *)data, (std::streamsize)length);
 }
 
-LibAbyss::PNGLoader::PNGLoader(LibAbyss::InputStream &stream) : _pixelData() {
+PNGLoader::PNGLoader(InputStream &stream) : _pixelData() {
 
     png_byte pngSig[8];
     stream.read((char *)pngSig, PNG_SIGNATURE_SIZE);
@@ -108,9 +110,11 @@ LibAbyss::PNGLoader::PNGLoader(LibAbyss::InputStream &stream) : _pixelData() {
     png_destroy_read_struct(&pngPtr, &infoPtr, nullptr);
 }
 
-std::span<uint32_t> LibAbyss::PNGLoader::GetPixelData() { return _pixelData; }
+std::span<uint32_t> PNGLoader::GetPixelData() { return _pixelData; }
 
-void LibAbyss::PNGLoader::GetSize(uint32_t &width, uint32_t &height) const {
+void PNGLoader::GetSize(uint32_t &width, uint32_t &height) const {
     width = _width;
     height = _height;
 }
+
+} // namespace LibAbyss

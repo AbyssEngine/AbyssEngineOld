@@ -1,16 +1,18 @@
 #include "libabyss/streams/streamreader.h"
 
-LibAbyss::StreamReader::StreamReader(LibAbyss::InputStream &inputStream) : _inputStream(inputStream) {}
+namespace LibAbyss {
 
-uint8_t LibAbyss::StreamReader::ReadByte() { return _inputStream.get(); }
+StreamReader::StreamReader(InputStream &inputStream) : _inputStream(inputStream) {}
 
-void LibAbyss::StreamReader::ReadBytes(std::span<uint8_t> data) {
+uint8_t StreamReader::ReadByte() { return _inputStream.get(); }
+
+void StreamReader::ReadBytes(std::span<uint8_t> data) {
     if (data.empty()) {
         return;
     }
     _inputStream.read(reinterpret_cast<char *>(&data[0]), (long)data.size());
 }
-std::string LibAbyss::StreamReader::ReadString() {
+std::string StreamReader::ReadString() {
     std::string result;
     char c;
 
@@ -19,3 +21,5 @@ std::string LibAbyss::StreamReader::ReadString() {
 
     return result;
 }
+
+} // namespace LibAbyss

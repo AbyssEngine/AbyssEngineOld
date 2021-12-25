@@ -1,10 +1,12 @@
 #include <cstring>
 #include <libabyss/common/ringbuffer.h>
 
-LibAbyss::RingBuffer::RingBuffer(uint32_t bufferSize)
+namespace LibAbyss {
+
+RingBuffer::RingBuffer(uint32_t bufferSize)
     : _bufferSize(bufferSize), _buffer(bufferSize), _readPosition(0), _writePosition(0), _remainingToRead(0), _mutex() {}
 
-void LibAbyss::RingBuffer::PushData(std::span<const uint8_t> data) {
+void RingBuffer::PushData(std::span<const uint8_t> data) {
     std::lock_guard<std::mutex> guard(_mutex);
 
     // Determine the bytes we have left to write before we hit the read position
@@ -43,7 +45,7 @@ void LibAbyss::RingBuffer::PushData(std::span<const uint8_t> data) {
     while (_readPosition >= _bufferSize)
         _readPosition -= _bufferSize;
 }
-void LibAbyss::RingBuffer::ReadData(std::span<uint8_t> outBuffer) {
+void RingBuffer::ReadData(std::span<uint8_t> outBuffer) {
     std::lock_guard<std::mutex> guard(_mutex);
 
     const auto toRead = std::min(_remainingToRead, (uint32_t)outBuffer.size());
@@ -67,11 +69,13 @@ void LibAbyss::RingBuffer::ReadData(std::span<uint8_t> outBuffer) {
     _readPosition = readPos;
     _remainingToRead -= toRead;
 }
-void LibAbyss::RingBuffer::Reset() {
+void RingBuffer::Reset() {
     std::lock_guard<std::mutex> guard(_mutex);
 
     _readPosition = 0;
     _writePosition = 0;
     _remainingToRead = 0;
 }
-uint32_t LibAbyss::RingBuffer::Available() { return _remainingToRead; }
+uint32_t RingBuffer::Available() { return _remainingToRead; }
+
+} // namespace LibAbyss

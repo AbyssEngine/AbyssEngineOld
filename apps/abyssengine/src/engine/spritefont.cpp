@@ -1,16 +1,17 @@
 #include "spritefont.h"
 #include "engine.h"
+#include <absl/strings/str_split.h>
 #include <filesystem>
 #include <spdlog/spdlog.h>
-#include <absl/strings/str_split.h>
 
+namespace AbyssEngine {
 namespace {
 const uint32_t MaxSpriteFontAtlasWidth = 1024;
 }
 
-AbyssEngine::SpriteFont::SpriteFont(std::string_view filePath, std::string_view paletteName)
-    : _atlas(), _glyphs(), _frameRects(), _palette(AbyssEngine::Engine::Get()->GetPalette(paletteName)) {
-    auto engine = AbyssEngine::Engine::Get();
+SpriteFont::SpriteFont(std::string_view filePath, std::string_view paletteName)
+    : _atlas(), _glyphs(), _frameRects(), _palette(Engine::Get()->GetPalette(paletteName)) {
+    auto engine = Engine::Get();
 
     std::filesystem::path rootPath(filePath);
     auto dc6Path = std::filesystem::path(std::string(filePath) + ".dc6");
@@ -31,7 +32,7 @@ AbyssEngine::SpriteFont::SpriteFont(std::string_view filePath, std::string_view 
     LibAbyss::StreamReader sr(dataStream);
     uint8_t signature[5] = {};
     sr.ReadBytes(signature);
-    if (std::string_view(reinterpret_cast<const char*>(signature), 5) != "Woo!\x01")
+    if (std::string_view(reinterpret_cast<const char *>(signature), 5) != "Woo!\x01")
         throw std::runtime_error("Invalid signature on font table: " + tblPath.string());
 
     dataStream.ignore(7); // Skip unknown bytes
@@ -63,7 +64,7 @@ AbyssEngine::SpriteFont::SpriteFont(std::string_view filePath, std::string_view 
     }
 }
 
-void AbyssEngine::SpriteFont::RegenerateAtlas() {
+void SpriteFont::RegenerateAtlas() {
     if (_dc6->NumberOfDirections != 1)
         throw std::runtime_error("Sprite had more than one direction, which is unexpected for fonts.");
 
@@ -139,7 +140,7 @@ void AbyssEngine::SpriteFont::RegenerateAtlas() {
         _atlas->SetPixels(buffer);
     }
 }
-void AbyssEngine::SpriteFont::GetMetrics(std::string_view text, int &width, int &height, int vertSpacing) const {
+void SpriteFont::GetMetrics(std::string_view text, int &width, int &height, int vertSpacing) const {
     int x = 0;
     int rowHeight = 0;
     width = 0;
@@ -164,7 +165,8 @@ void AbyssEngine::SpriteFont::GetMetrics(std::string_view text, int &width, int 
     height += rowHeight;
 }
 
-void AbyssEngine::SpriteFont::RenderText(int x, int y, std::string_view text, AbyssEngine::eBlendMode blendMode, AbyssEngine::RGB colorMod, eAlignment horizontalAlignment, int vertSpacing) {
+void SpriteFont::RenderText(int x, int y, std::string_view text, eBlendMode blendMode, RGB colorMod, eAlignment horizontalAlignment,
+                            int vertSpacing) {
     if (_atlas == nullptr)
         RegenerateAtlas();
 
@@ -175,33 +177,33 @@ void AbyssEngine::SpriteFont::RenderText(int x, int y, std::string_view text, Ab
     int rowHeight = 0;
     int totalWidth = 0;
     switch (horizontalAlignment) {
-        case eAlignment::Middle:
-        case eAlignment::End: {
-            int h;
-            GetMetrics(text, totalWidth, h, vertSpacing);
-            break;
-        }
-        default:
-            break;
+    case eAlignment::Middle:
+    case eAlignment::End: {
+        int h;
+        GetMetrics(text, totalWidth, h, vertSpacing);
+        break;
+    }
+    default:
+        break;
     }
 
     for (std::string_view line : absl::StrSplit(text, '\n')) {
         int startX = x;
         switch (horizontalAlignment) {
-            case eAlignment::Middle: {
-                int w, h;
-                GetMetrics(line, w, h, vertSpacing);
-                startX += (totalWidth - w) / 2;
-                break;
-            }
-            case eAlignment::End: {
-                int w, h;
-                GetMetrics(line, w, h, vertSpacing);
-                startX += totalWidth - w;
-                break;
-            }
-            default:
-                break;
+        case eAlignment::Middle: {
+            int w, h;
+            GetMetrics(line, w, h, vertSpacing);
+            startX += (totalWidth - w) / 2;
+            break;
+        }
+        case eAlignment::End: {
+            int w, h;
+            GetMetrics(line, w, h, vertSpacing);
+            startX += totalWidth - w;
+            break;
+        }
+        default:
+            break;
         }
         targetRect.X = startX;
 
@@ -222,3 +224,5 @@ void AbyssEngine::SpriteFont::RenderText(int x, int y, std::string_view text, Ab
         rowHeight = 0;
     }
 }
+
+} // namespace AbyssEngine

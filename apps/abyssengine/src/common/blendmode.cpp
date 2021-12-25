@@ -3,24 +3,26 @@
 #include <absl/strings/str_cat.h>
 #include <stdexcept>
 
-std::string_view AbyssEngine::BlendModeToString(const AbyssEngine::eBlendMode &blendMode) {
+namespace AbyssEngine {
+
+std::string_view BlendModeToString(const eBlendMode &blendMode) {
     switch (blendMode) {
-    case AbyssEngine::eBlendMode::None:
+    case eBlendMode::None:
         return "none";
-    case AbyssEngine::eBlendMode::Blend:
+    case eBlendMode::Blend:
         return "blend";
-    case AbyssEngine::eBlendMode::Add:
+    case eBlendMode::Add:
         return "additive";
-    case AbyssEngine::eBlendMode::Mod:
+    case eBlendMode::Mod:
         return "modulus";
-    case AbyssEngine::eBlendMode::Mul:
+    case eBlendMode::Mul:
         return "multiply";
     default:
         return "";
     }
 }
 
-AbyssEngine::eBlendMode AbyssEngine::StringToBlendMode(std::string_view str) {
+eBlendMode StringToBlendMode(std::string_view str) {
     auto val = absl::AsciiStrToLower(str);
 
     if (val == "none")
@@ -43,3 +45,5 @@ AbyssEngine::eBlendMode AbyssEngine::StringToBlendMode(std::string_view str) {
 
     throw std::runtime_error(absl::StrCat("Unknown Blend Mode: ", str));
 }
+
+} // namespace AbyssEngine

@@ -4,9 +4,11 @@
 #include <spdlog/spdlog.h>
 #include <utility>
 
-LibAbyss::Zone::Zone(LibAbyss::ProvideDT1Handler provideDT1Handler) : _provideDT1Handler(std::move(provideDT1Handler)) {}
+namespace LibAbyss {
 
-void LibAbyss::Zone::ResetMap(const LibAbyss::LevelType &levelType, uint32_t dt1Mask, int width, int height, uint64_t seed) {
+Zone::Zone(ProvideDT1Handler provideDT1Handler) : _provideDT1Handler(std::move(provideDT1Handler)) {}
+
+void Zone::ResetMap(const LevelType &levelType, uint32_t dt1Mask, int width, int height, uint64_t seed) {
     WidthInTiles = width;
     HeightInTiles = height;
 
@@ -26,7 +28,7 @@ void LibAbyss::Zone::ResetMap(const LibAbyss::LevelType &levelType, uint32_t dt1
         dt1Mask >>= 1;
     }
 }
-void LibAbyss::Zone::Stamp(const LibAbyss::DS1 &ds1, int x, int y)   {
+void Zone::Stamp(const DS1 &ds1, int x, int y) {
 
     // Load all of the DS1 files
     for (auto &file : ds1.Files)
@@ -116,7 +118,7 @@ void LibAbyss::Zone::Stamp(const LibAbyss::DS1 &ds1, int x, int y)   {
         }
     }
 }
-void LibAbyss::Zone::AddDT1File(std::string_view fileName) {
+void Zone::AddDT1File(std::string_view fileName) {
     std::string file = absl::AsciiStrToLower(fileName);
 
     // If DT1File already has file, then do nothing
@@ -134,7 +136,7 @@ void LibAbyss::Zone::AddDT1File(std::string_view fileName) {
 static std::random_device randomDevice;
 static std::mt19937 randomGenerator(randomDevice());
 
-int LibAbyss::Zone::GetTile(int style, int sequence, uint32_t type) {
+int Zone::GetTile(int style, int sequence, uint32_t type) {
     int firstTileIdx = -1;
     std::vector<int> tileIds;
 
@@ -179,7 +181,7 @@ int LibAbyss::Zone::GetTile(int style, int sequence, uint32_t type) {
     Tiles[tileIdx].InUse = true;
     return tileIdx;
 }
-std::vector<LibAbyss::DT1::Tile> LibAbyss::Zone::GetTileInfo(int x, int y) {
+std::vector<DT1::Tile> Zone::GetTileInfo(int x, int y) {
     std::vector<DT1::Tile> result;
     const uint32_t idx = x + (y * WidthInTiles);
 
@@ -193,3 +195,5 @@ std::vector<LibAbyss::DT1::Tile> LibAbyss::Zone::GetTileInfo(int x, int y) {
 
     return result;
 }
+
+} // namespace LibAbyss

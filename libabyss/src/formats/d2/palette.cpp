@@ -1,6 +1,7 @@
 #include "libabyss/formats/d2/palette.h"
 #include <string>
 
+namespace LibAbyss {
 namespace {
 const int NUM_PALETTE_COLORS = 256;
 const int NUM_TEXT_COLORS = 13;
@@ -16,7 +17,7 @@ const int COMPONENT_BLENDS = 256;
 const int TEXT_SHIFTS = 13;
 } // namespace
 
-LibAbyss::Palette::Palette(std::istream &stream, bool isDat) {
+Palette::Palette(std::istream &stream, bool isDat) {
     if (isDat) {
         BasePalette = DecodeColors(stream, 3, NUM_PALETTE_COLORS);
         return;
@@ -41,7 +42,7 @@ LibAbyss::Palette::Palette(std::istream &stream, bool isDat) {
     TextColorShifts = LoadTransformMulti(stream, TEXT_SHIFTS);
 }
 
-std::vector<LibAbyss::PaletteColor> LibAbyss::Palette::DecodeColors(std::istream &stream, uint8_t colorBytes, int numColor) {
+std::vector<PaletteColor> Palette::DecodeColors(std::istream &stream, uint8_t colorBytes, int numColor) {
     std::vector<PaletteColor> result;
 
     if (numColor < 1)
@@ -78,7 +79,7 @@ std::vector<LibAbyss::PaletteColor> LibAbyss::Palette::DecodeColors(std::istream
     return result;
 }
 
-std::vector<std::vector<uint8_t>> LibAbyss::Palette::LoadTransformMulti(std::istream &stream, int variations) {
+std::vector<std::vector<uint8_t>> Palette::LoadTransformMulti(std::istream &stream, int variations) {
     std::vector<std::vector<uint8_t>> result;
     result.reserve(variations);
 
@@ -88,8 +89,10 @@ std::vector<std::vector<uint8_t>> LibAbyss::Palette::LoadTransformMulti(std::ist
     return result;
 }
 
-std::vector<uint8_t> LibAbyss::Palette::LoadTransformSingle(std::istream &stream) {
+std::vector<uint8_t> Palette::LoadTransformSingle(std::istream &stream) {
     std::vector<uint8_t> result(NUM_PALETTE_COLORS);
     stream.read((char *)result.data(), NUM_PALETTE_COLORS);
     return result;
 }
+
+} // namespace LibAbyss

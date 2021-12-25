@@ -1,6 +1,6 @@
 #include "libabyss/streams/cascstream.h"
-#include <ios>
 #include <absl/strings/str_format.h>
+#include <ios>
 
 #define CASCLIB_NO_AUTO_LINK_LIBRARY 1
 #include <CascLib.h>
@@ -13,9 +13,7 @@ CASCStream::CASCStream(HANDLE storage, std::string fileName) {
     }
 }
 
-CASCStream::~CASCStream() {
-    CascCloseFile(_file);
-}
+CASCStream::~CASCStream() { CascCloseFile(_file); }
 
 int CASCStream::underflow() {
     if (gptr() == egptr()) {
@@ -32,26 +30,22 @@ int CASCStream::underflow() {
     return gptr() == egptr() ? traits_type::eof() : traits_type::to_int_type(*gptr());
 }
 
-CASCStream::pos_type CASCStream::seekpos(pos_type pos,
-        std::ios_base::openmode which) {
-    return seekoff(pos, std::ios_base::beg, which);
-}
+CASCStream::pos_type CASCStream::seekpos(pos_type pos, std::ios_base::openmode which) { return seekoff(pos, std::ios_base::beg, which); }
 
-CASCStream::pos_type CASCStream::seekoff(off_type off, std::ios_base::seekdir dir,
-        std::ios_base::openmode) {
+CASCStream::pos_type CASCStream::seekoff(off_type off, std::ios_base::seekdir dir, std::ios_base::openmode) {
     std::streamsize newPos = 0;
     switch (dir) {
-        case std::ios_base::beg:
-            newPos = off;
-            break;
-        case std::ios_base::cur:
-            newPos = _startOfBlock + (gptr() - eback()) + off;
-            break;
-        case std::ios_base::end:
-            newPos = size() + off;
-            break;
-        default:
-            break;
+    case std::ios_base::beg:
+        newPos = off;
+        break;
+    case std::ios_base::cur:
+        newPos = _startOfBlock + (gptr() - eback()) + off;
+        break;
+    case std::ios_base::end:
+        newPos = size() + off;
+        break;
+    default:
+        break;
     }
     if (newPos >= _startOfBlock && newPos < _startOfBlock + (egptr() - eback())) {
         // The new position is already in the buffer, just repoint the pointer to it
@@ -71,4 +65,4 @@ std::streamsize CASCStream::size() const {
     return ulongsize;
 }
 
-}
+} // namespace LibAbyss

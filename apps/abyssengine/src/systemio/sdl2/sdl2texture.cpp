@@ -1,10 +1,12 @@
 #include "sdl2texture.h"
 #include <stdexcept>
 
-AbyssEngine::SDL2::SDL2Texture::SDL2Texture(SDL_Renderer *renderer, SDL_Texture* texture) : _renderer(renderer), _texture(texture), _width(0), _height(0),
-    _textureFormat(ITexture::Format::TTF) {}
+namespace AbyssEngine {
 
-AbyssEngine::SDL2::SDL2Texture::SDL2Texture(SDL_Renderer *renderer, ITexture::Format textureFormat, uint32_t width, uint32_t height)
+SDL2::SDL2Texture::SDL2Texture(SDL_Renderer *renderer, SDL_Texture *texture)
+    : _renderer(renderer), _texture(texture), _width(0), _height(0), _textureFormat(ITexture::Format::TTF) {}
+
+SDL2::SDL2Texture::SDL2Texture(SDL_Renderer *renderer, ITexture::Format textureFormat, uint32_t width, uint32_t height)
     : _renderer(renderer), _texture(nullptr), _width(width), _height(height), _textureFormat(textureFormat) {
 
     switch (textureFormat) {
@@ -20,26 +22,26 @@ AbyssEngine::SDL2::SDL2Texture::SDL2Texture(SDL_Renderer *renderer, ITexture::Fo
     }
 }
 
-AbyssEngine::SDL2::SDL2Texture::~SDL2Texture() {
+SDL2::SDL2Texture::~SDL2Texture() {
     if (_texture != nullptr)
         SDL_DestroyTexture(_texture);
 }
 
-void AbyssEngine::SDL2::SDL2Texture::SetPixels(std::span<const uint32_t> pixels) {
+void SDL2::SDL2Texture::SetPixels(std::span<const uint32_t> pixels) {
     if (pixels.size() != (_width * _height))
         throw std::runtime_error("Attempted to set pixels on the texture, but the data was the incorrect size.");
 
     SDL_UpdateTexture(_texture, nullptr, pixels.data(), 4 * (int)_width);
 }
 
-void AbyssEngine::SDL2::SDL2Texture::SetPixels(std::span<const uint8_t> pixels) {
+void SDL2::SDL2Texture::SetPixels(std::span<const uint8_t> pixels) {
     if (pixels.size() != (4 * _width * _height))
         throw std::runtime_error("Attempted to set pixels on the texture, but the data was the incorrect size.");
 
     SDL_UpdateTexture(_texture, nullptr, pixels.data(), 4 * (int)_width);
 }
 
-void AbyssEngine::SDL2::SDL2Texture::Render(const AbyssEngine::Rectangle &sourceRect, const AbyssEngine::Rectangle &destRect) {
+void SDL2::SDL2Texture::Render(const Rectangle &sourceRect, const Rectangle &destRect) {
     if (sourceRect.Width <= 0 || sourceRect.Height <= 0)
         return;
 
@@ -49,8 +51,8 @@ void AbyssEngine::SDL2::SDL2Texture::Render(const AbyssEngine::Rectangle &source
     SDL_RenderCopy(_renderer, _texture, &sr, &dr);
 }
 
-void AbyssEngine::SDL2::SDL2Texture::SetYUVData(std::span<const uint8_t> yPlane, int yPitch, std::span<const uint8_t> uPlane, int uPitch,
-                                                std::span<const uint8_t> vPlane, int vPitch) {
+void SDL2::SDL2Texture::SetYUVData(std::span<const uint8_t> yPlane, int yPitch, std::span<const uint8_t> uPlane, int uPitch,
+                                   std::span<const uint8_t> vPlane, int vPitch) {
     if (_textureFormat != ITexture::Format::YUV)
         throw std::runtime_error("Cannot set YUV data on a non YUV texture.");
 
@@ -59,7 +61,7 @@ void AbyssEngine::SDL2::SDL2Texture::SetYUVData(std::span<const uint8_t> yPlane,
     }
 }
 
-void AbyssEngine::SDL2::SDL2Texture::SetBlendMode(AbyssEngine::eBlendMode blendMode) {
+void SDL2::SDL2Texture::SetBlendMode(eBlendMode blendMode) {
     _blendMode = blendMode;
     SDL_BlendMode m;
     switch (blendMode) {
@@ -84,14 +86,12 @@ void AbyssEngine::SDL2::SDL2Texture::SetBlendMode(AbyssEngine::eBlendMode blendM
     SDL_SetTextureBlendMode(_texture, m);
 }
 
-AbyssEngine::eBlendMode AbyssEngine::SDL2::SDL2Texture::GetBlendMode() { return _blendMode; }
+eBlendMode SDL2::SDL2Texture::GetBlendMode() { return _blendMode; }
 
-void AbyssEngine::SDL2::SDL2Texture::SetColorMod(uint8_t red, uint8_t green, uint8_t blue) { SDL_SetTextureColorMod(_texture, red, green, blue); }
+void SDL2::SDL2Texture::SetColorMod(uint8_t red, uint8_t green, uint8_t blue) { SDL_SetTextureColorMod(_texture, red, green, blue); }
 
-void AbyssEngine::SDL2::SDL2Texture::SaveAsBMP(const std::string& filePath) {
-    SaveTexture(_renderer, _texture, filePath.c_str());
-}
-void AbyssEngine::SDL2::SDL2Texture::SaveTexture(SDL_Renderer *ren, SDL_Texture *tex, const char *filename) {
+void SDL2::SDL2Texture::SaveAsBMP(const std::string &filePath) { SaveTexture(_renderer, _texture, filePath.c_str()); }
+void SDL2::SDL2Texture::SaveTexture(SDL_Renderer *ren, SDL_Texture *tex, const char *filename) {
     SDL_Texture *ren_tex;
     SDL_Surface *surf;
     int st;
@@ -100,10 +100,10 @@ void AbyssEngine::SDL2::SDL2Texture::SaveTexture(SDL_Renderer *ren, SDL_Texture 
     int format;
     void *pixels;
 
-    pixels  = NULL;
-    surf    = NULL;
+    pixels = NULL;
+    surf = NULL;
     ren_tex = NULL;
-    format  = SDL_PIXELFORMAT_RGBA32;
+    format = SDL_PIXELFORMAT_RGBA32;
 
     /* Get information about texture we want to save */
     st = SDL_QueryTexture(tex, NULL, NULL, &w, &h);
@@ -171,3 +171,5 @@ cleanup:
     free(pixels);
     SDL_DestroyTexture(ren_tex);
 }
+
+} // namespace AbyssEngine

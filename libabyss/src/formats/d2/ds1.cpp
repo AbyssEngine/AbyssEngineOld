@@ -1,9 +1,11 @@
+#include <absl/strings/ascii.h>
 #include <libabyss/formats/d2/ds1.h>
 #include <libabyss/streams/streamreader.h>
-#include <absl/strings/ascii.h>
 #include <regex>
 
-LibAbyss::DS1::DS1(LibAbyss::InputStream &stream) {
+namespace LibAbyss {
+
+DS1::DS1(InputStream &stream) {
     StreamReader sr(stream);
 
     Version = sr.ReadInt32();
@@ -24,7 +26,7 @@ LibAbyss::DS1::DS1(LibAbyss::InputStream &stream) {
 
             std::replace(file.begin(), file.end(), '\\', '/');
             file = std::regex_replace(file, std::regex("/d2/data/"), "/data/");
-            file = std::regex_replace(file, std::regex("c:"), ""); // Yes they did
+            file = std::regex_replace(file, std::regex("c:"), "");        // Yes they did
             file = std::regex_replace(file, std::regex(".tg1$"), ".dt1"); // Yes they did
         }
     }
@@ -60,7 +62,7 @@ LibAbyss::DS1::DS1(LibAbyss::InputStream &stream) {
     if (Version > 14)
         LoadNPCs(stream);
 }
-void LibAbyss::DS1::Resize(int width, int height) {
+void DS1::Resize(int width, int height) {
     Width = width;
     Height = height;
 
@@ -76,7 +78,7 @@ void LibAbyss::DS1::Resize(int width, int height) {
     for (auto &substitution : Substitutions)
         substitution.Resize(width, height);
 }
-void LibAbyss::DS1::LoadLayerStreams(LibAbyss::InputStream &stream) {
+void DS1::LoadLayerStreams(InputStream &stream) {
     const uint8_t dirLookup[25] = {0x00, 0x01, 0x02, 0x01, 0x02, 0x03, 0x03, 0x05, 0x05, 0x06, 0x06, 0x07, 0x07,
                                    0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x14};
 
@@ -147,7 +149,7 @@ void LibAbyss::DS1::LoadLayerStreams(LibAbyss::InputStream &stream) {
         }
     }
 }
-std::vector<LibAbyss::DS1::eLayerStreamType> LibAbyss::DS1::GetLayerStreamTypes() const {
+std::vector<DS1::eLayerStreamType> DS1::GetLayerStreamTypes() const {
     if (Version < 4)
         return {eLayerStreamType::Wall1, eLayerStreamType::Floor1, eLayerStreamType::Orientation1, eLayerStreamType::Substitution,
                 eLayerStreamType::Shadow};
@@ -171,7 +173,7 @@ std::vector<LibAbyss::DS1::eLayerStreamType> LibAbyss::DS1::GetLayerStreamTypes(
 
     return layerStream;
 }
-void LibAbyss::DS1::LoadObjects(LibAbyss::InputStream &stream) {
+void DS1::LoadObjects(InputStream &stream) {
     StreamReader sr(stream);
 
     auto numObjects = sr.ReadInt32();
@@ -185,7 +187,7 @@ void LibAbyss::DS1::LoadObjects(LibAbyss::InputStream &stream) {
         object.Flags = sr.ReadUInt32();
     }
 }
-void LibAbyss::DS1::LoadSubstitutions(LibAbyss::InputStream &stream) {
+void DS1::LoadSubstitutions(InputStream &stream) {
     StreamReader sr(stream);
 
     if (Version >= 18)
@@ -202,7 +204,7 @@ void LibAbyss::DS1::LoadSubstitutions(LibAbyss::InputStream &stream) {
         substitutionGroup.Unknown = sr.ReadInt32();
     }
 }
-void LibAbyss::DS1::LoadNPCs(LibAbyss::InputStream &stream) {
+void DS1::LoadNPCs(InputStream &stream) {
     StreamReader sr(stream);
 
     auto numNPCs = sr.ReadInt32();
@@ -221,13 +223,13 @@ void LibAbyss::DS1::LoadNPCs(LibAbyss::InputStream &stream) {
         }
 
         // TODO: This crashes for some reason right now
-//        if (objectIdx >= 0)
-//            LoadNPCPaths(stream, objectIdx, numPaths);
-//        else
-            stream.seekg(numPaths * (Version > 15 ? 3 : 2), std::ios::cur);
+        //        if (objectIdx >= 0)
+        //            LoadNPCPaths(stream, objectIdx, numPaths);
+        //        else
+        stream.seekg(numPaths * (Version > 15 ? 3 : 2), std::ios::cur);
     }
 }
-void LibAbyss::DS1::LoadNPCPaths(LibAbyss::InputStream &stream, int idx, int32_t paths) {
+void DS1::LoadNPCPaths(InputStream &stream, int idx, int32_t paths) {
     StreamReader sr(stream);
 
     Objects[idx].Paths.resize(paths);
@@ -239,8 +241,10 @@ void LibAbyss::DS1::LoadNPCPaths(LibAbyss::InputStream &stream, int idx, int32_t
     }
 }
 
-void LibAbyss::DS1::Layer::Resize(int width, int height) {
+void DS1::Layer::Resize(int width, int height) {
     _width = width;
     _height = height;
     Tiles.resize(width * height);
 }
+
+} // namespace LibAbyss

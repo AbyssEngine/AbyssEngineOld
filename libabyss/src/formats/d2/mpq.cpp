@@ -1,6 +1,6 @@
-#include <absl/strings/str_format.h>
 #include "libabyss/formats/d2/mpq.h"
 #include "libabyss/streams/mpqstream.h"
+#include <absl/strings/str_format.h>
 #include <memory>
 #include <spdlog/spdlog.h>
 #include <string>
@@ -8,22 +8,22 @@
 #define STORMLIB_NO_AUTO_LINK 1
 #include <StormLib.h>
 
-LibAbyss::MPQ::MPQ(const std::filesystem::path &mpqPath) : _stormMpq(nullptr) {
+namespace LibAbyss {
+
+MPQ::MPQ(const std::filesystem::path &mpqPath) : _stormMpq(nullptr) {
     std::string path = std::filesystem::absolute(mpqPath).string();
     if (!SFileOpenArchive(path.c_str(), 0, STREAM_PROVIDER_FLAT | BASE_PROVIDER_FILE | STREAM_FLAG_READ_ONLY, &_stormMpq)) {
         throw std::runtime_error(absl::StrFormat("Error occurred while opening MPQ %s", mpqPath.string()));
     }
 }
 
-LibAbyss::MPQ::~MPQ() { SFileCloseArchive(_stormMpq); }
+MPQ::~MPQ() { SFileCloseArchive(_stormMpq); }
 
-LibAbyss::InputStream LibAbyss::MPQ::Load(std::string_view fileName) {
-    return LibAbyss::InputStream(std::make_unique<LibAbyss::MPQStream>(_stormMpq, FixPath(fileName)));
-}
+InputStream MPQ::Load(std::string_view fileName) { return InputStream(std::make_unique<MPQStream>(_stormMpq, FixPath(fileName))); }
 
-bool LibAbyss::MPQ::HasFile(std::string_view fileName) { return SFileHasFile(_stormMpq, FixPath(fileName).c_str()); }
+bool MPQ::HasFile(std::string_view fileName) { return SFileHasFile(_stormMpq, FixPath(fileName).c_str()); }
 
-std::vector<std::string> LibAbyss::MPQ::FileList() {
+std::vector<std::string> MPQ::FileList() {
     std::vector<std::string> result;
 
     if (!HasFile("(listfile)")) {
@@ -48,7 +48,7 @@ std::vector<std::string> LibAbyss::MPQ::FileList() {
     return result;
 }
 
-std::string LibAbyss::MPQ::FixPath(std::string_view str) {
+std::string MPQ::FixPath(std::string_view str) {
     std::string result(str);
     std::replace(result.begin(), result.end(), '/', '\\');
     if (result.starts_with('\\')) {
@@ -57,3 +57,5 @@ std::string LibAbyss::MPQ::FixPath(std::string_view str) {
 
     return result;
 }
+
+} // namespace LibAbyss

@@ -3,15 +3,16 @@
 #include "config.h"
 #include <absl/strings/str_join.h>
 
+namespace AbyssEngine {
 namespace {
 const int CONSOLE_MAX_LINES = 13;
 const int CONSOLE_SLIDE_OUT_TICKS = 150;
 const int CONSOLE_HEIGHT = 225;
 constexpr std::string_view CONSOLE_SYMBOL = ">";
-}
+} // namespace
 
-AbyssEngine::DebugConsole::DebugConsole()
-    : _consoleFont("/abyss-embedded/Hack-Regular.ttf", 13, AbyssEngine::ITtf::Hinting::Light), _consoleLabel(_consoleFont), _inputLabel(_consoleFont) {
+DebugConsole::DebugConsole()
+    : _consoleFont("/abyss-embedded/Hack-Regular.ttf", 13, ITtf::Hinting::Light), _consoleLabel(_consoleFont), _inputLabel(_consoleFont) {
     _consoleLabel.SetCaption("");
     _consoleLabel.SetColorMod(255, 255, 255);
     _consoleLabel.SetVisible(true);
@@ -32,9 +33,9 @@ AbyssEngine::DebugConsole::DebugConsole()
     SetActive(false);
 }
 
-AbyssEngine::DebugConsole::~DebugConsole() = default;
+DebugConsole::~DebugConsole() = default;
 
-void AbyssEngine::DebugConsole::RenderCallback(int offsetX, int offsetY) {
+void DebugConsole::RenderCallback(int offsetX, int offsetY) {
     auto &io = Engine::Get()->GetSystemIO();
     auto originY = Y + offsetY;
     io.DrawRect(0, originY, 800, CONSOLE_HEIGHT, 0, 0, 0);
@@ -42,14 +43,14 @@ void AbyssEngine::DebugConsole::RenderCallback(int offsetX, int offsetY) {
     Node::RenderCallback(offsetX, offsetY);
 }
 
-void AbyssEngine::DebugConsole::AddLine(const std::string &line) {
+void DebugConsole::AddLine(const std::string &line) {
     while (_lines.size() >= CONSOLE_MAX_LINES)
         _lines.pop_front();
 
     _lines.push_back(line);
     _consoleLabel.SetCaption(absl::StrJoin(_lines, "\n"));
 }
-void AbyssEngine::DebugConsole::KeyboardEventCallback(const AbyssEngine::KeyboardEvent &event) {
+void DebugConsole::KeyboardEventCallback(const KeyboardEvent &event) {
     auto &io = Engine::Get()->GetSystemIO();
 
     if (event.Pressed && event.Scancode == 40) {
@@ -83,7 +84,7 @@ void AbyssEngine::DebugConsole::KeyboardEventCallback(const AbyssEngine::Keyboar
     Node::KeyboardEventCallback(event);
 }
 
-void AbyssEngine::DebugConsole::UpdateCallback(uint32_t ticks) {
+void DebugConsole::UpdateCallback(uint32_t ticks) {
     _upTicks += ticks;
     if (_upTicks >= CONSOLE_SLIDE_OUT_TICKS) {
         _upTicks = CONSOLE_SLIDE_OUT_TICKS;
@@ -96,3 +97,4 @@ void AbyssEngine::DebugConsole::UpdateCallback(uint32_t ticks) {
 
     Node::UpdateCallback(ticks);
 }
+} // namespace AbyssEngine

@@ -4,7 +4,8 @@
 #include <utility>
 #include <variant>
 
-void AbyssEngine::InputListener::MouseEventCallback(const AbyssEngine::MouseEvent &event) {
+namespace AbyssEngine {
+void InputListener::MouseEventCallback(const MouseEvent &event) {
     std::visit(Overload{[this](const MouseMoveEvent &evt) {
                             if (!this->_luaMouseMoveCallback.valid())
                                 return;
@@ -34,12 +35,12 @@ void AbyssEngine::InputListener::MouseEventCallback(const AbyssEngine::MouseEven
     Node::MouseEventCallback(event);
 }
 
-void AbyssEngine::InputListener::LuaSetMouseButtonCallback(sol::safe_function func) { this->_luaMouseButtonCallback = std::move(func); }
+void InputListener::LuaSetMouseButtonCallback(sol::safe_function func) { this->_luaMouseButtonCallback = std::move(func); }
 
-void AbyssEngine::InputListener::LuaSetMouseMoveCallback(sol::safe_function func) { this->_luaMouseMoveCallback = std::move(func); }
+void InputListener::LuaSetMouseMoveCallback(sol::safe_function func) { this->_luaMouseMoveCallback = std::move(func); }
 
-void AbyssEngine::InputListener::LuaSetKeyCallback(sol::safe_function func) { this->_luaKeyCallback = std::move(func); }
-void AbyssEngine::InputListener::KeyboardEventCallback(const AbyssEngine::KeyboardEvent &event) {
+void InputListener::LuaSetKeyCallback(sol::safe_function func) { this->_luaKeyCallback = std::move(func); }
+void InputListener::KeyboardEventCallback(const KeyboardEvent &event) {
     if (!this->_luaKeyCallback.valid())
         return;
 
@@ -51,3 +52,4 @@ void AbyssEngine::InputListener::KeyboardEventCallback(const AbyssEngine::Keyboa
     sol::error err = result;
     Engine::Get()->Panic(err.what());
 }
+} // namespace AbyssEngine
