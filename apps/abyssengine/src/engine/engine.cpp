@@ -31,6 +31,9 @@ Engine::Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO> systemIo)
     _systemIO->SetAudioLevel(eAudioIntent::Video, _iniFile.GetValueFloat("Audio", "VideoVolume"));
     _systemIO->SetAudioLevel(eAudioIntent::SoundEffect, _iniFile.GetValueFloat("Audio", "SoundEffectsVolume"));
     _systemIO->SetAudioLevel(eAudioIntent::BackgroundMusic, _iniFile.GetValueFloat("Audio", "BackgroundMusicVolume"));
+
+    _maxFPS = _iniFile.GetValueInt("Video", "MaxFPS");
+    _ticksPerFrame = _maxFPS > 0 ?  1000 / _maxFPS : 0;
 }
 
 void Engine::Run() {
@@ -88,13 +91,33 @@ void Engine::RunMainLoop() {
     // Set the initial time so that we can calculate the delta time for lua garbage collection
     _luaLastGc = _systemIO->GetTicks();
 
+    unsigned int lastFrameTime = _systemIO->GetTicks();
+    unsigned int gcStart = 0;
+    unsigned int eventsStart = 0;
+    unsigned int updateStart = 0;
+    unsigned int renderStart = 0;
+    unsigned int loopDone = 0;
+
     // Run the main loop
     while (_running) {
+        // Limit max frame rate
+        if (_ticksPerFrame > 0) {
+            auto currentTime = _systemIO->GetTicks();
+            if (currentTime - lastFrameTime < _ticksPerFrame) {
+                _systemIO->Sleep(lastFrameTime + _ticksPerFrame - currentTime);
+            }
+            lastFrameTime = currentTime;
+        }
+
+
+        gcStart = _systemIO->GetTicks();
         ScriptGarbageCollect();
 
+        eventsStart = _systemIO->GetTicks();
         if (!_systemIO->HandleInputEvents(GetInputReceiverNode()))
             Stop();
 
+        updateStart = _systemIO->GetTicks();
         if (!UpdateTicks())
             continue;
 
@@ -119,11 +142,14 @@ void Engine::RunMainLoop() {
         _systemIO->GetCursorState(_cursorX, _cursorY, _mouseButtonState);
 
         // Render the video or root node
+        renderStart = _systemIO->GetTicks();
         _systemIO->RenderStart();
         _videoNode != nullptr ? RenderVideo() : RenderRootNode();
         if (_debugConsoleNode->Active)
             _debugConsoleNode->RenderCallback(0, 0);
+        loopDone = _systemIO->GetTicks();
         _systemIO->RenderEnd();
+
     }
 }
 
@@ -226,6 +252,7 @@ Node &Engine::GetInputReceiverNode() {
 
 void Engine::Panic(std::string_view message) {
     spdlog::critical(message);
+    _debugConsoleNode->Active = true;
     // HostNotify::Notify(eNotifyType::Fatal, "Engine Panic", (std::string)message);
     // Stop();
 }

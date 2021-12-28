@@ -142,14 +142,16 @@ ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
 
     // Sprite
     auto spriteType = CreateLuaObjectType<Sprite>(module, "Sprite", sol::no_constructor);
-    spriteType["setCellSize"] = &Sprite::SetCellSize;
-    spriteType["getCellSize"] = &Sprite::GetCellSize;
-    spriteType["onMouseButtonDown"] = &Sprite::SetLuaMouseButtonDownHandler;
-    spriteType["onMouseButtonUp"] = &Sprite::SetLuaMouseButtonUpHandler;
     spriteType["blendMode"] = sol::property(&Sprite::LuaGetBlendMode, &Sprite::LuaSetBlendMode);
     spriteType["bottomOrigin"] = sol::property(&Sprite::GetIsBottomOrigin, &Sprite::SetIsBottomOrigin);
     spriteType["playMode"] = sol::property(&Sprite::LuaGetPlayMode, &Sprite::LuaSetPlayMode);
     spriteType["currentFrameIndex"] = sol::property(&Sprite::GetCurrentFrameIndex, &Sprite::SetCurrentFrameIndex);
+    spriteType["loopAnimation"] = sol::property(&Sprite::GetLoopAnimation, &Sprite::SetLoopAnimation);
+    spriteType["setCellSize"] = &Sprite::SetCellSize;
+    spriteType["getCellSize"] = &Sprite::GetCellSize;
+    spriteType["onMouseButtonDown"] = &Sprite::SetLuaMouseButtonDownHandler;
+    spriteType["onMouseButtonUp"] = &Sprite::SetLuaMouseButtonUpHandler;
+    spriteType["onAnimationFinished"] = &Sprite::SetLuaAnimationFinishedHandler;
 
     // InputListener
     auto inputListenerType = CreateLuaObjectType<InputListener>(module, "InputListener", sol::no_constructor);

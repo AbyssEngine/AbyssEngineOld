@@ -1,6 +1,6 @@
 #include "label.h"
+#include <absl/strings/str_replace.h>
 #include <absl/strings/str_split.h>
-#include <spdlog/spdlog.h>
 
 namespace AbyssEngine {
 
@@ -112,6 +112,7 @@ void TtfLabel::ClearCache() {
 
 void Label::SetCaption(std::string_view value) {
     _caption = value;
+    _caption = absl::StrReplaceAll(_caption, {{"\t", "    "}});
     _caption.erase(std::remove(_caption.begin(), _caption.end(), '\r'), _caption.end());
     ClearCache();
 }

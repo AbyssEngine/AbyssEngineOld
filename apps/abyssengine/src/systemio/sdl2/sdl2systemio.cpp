@@ -454,13 +454,7 @@ std::string SDL2::SDL2SystemIO::GetInputText() { return _inputText; }
 void SDL2::SDL2SystemIO::ClearInputText() { _inputText.clear(); }
 
 void SDL2::SDL2SystemIO::ResetKeyState(uint16_t scancode) { _pressedKeys[scancode] = false; }
-std::unique_ptr<ITexture> SDL2::SDL2SystemIO::LoadPNG(LibAbyss::InputStream stream) {
-    auto png = LibAbyss::PNGLoader(stream);
-    uint32_t width, height;
-    png.GetSize(width, height);
-    SDL_Texture *texture = SDL_CreateTexture(_sdlRenderer.get(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, width, height);
-    SDL_UpdateTexture(texture, nullptr, png.GetPixelData().data(), 4 * (int)width);
-    return std::make_unique<SDL2::SDL2Texture>(_sdlRenderer.get(), texture);
-}
+
+void SDL2::SDL2SystemIO::Sleep(uint32_t ticks) { SDL_Delay(ticks); }
 
 } // namespace AbyssEngine
