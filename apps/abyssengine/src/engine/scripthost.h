@@ -98,7 +98,7 @@ class ScriptHost {
 
     /// \brief Loads a .tbl file
     /// \param filePath The path to the file to load.
-    /// \return The lua table.
+    /// \return The lua table. The string keys are exposed as is, the numeric keys as '#1234'
     sol::table LuaLoadTbl(std::string_view filePath);
 
     /// \brief Loads an image from file

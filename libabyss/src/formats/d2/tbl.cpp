@@ -1,4 +1,5 @@
 #include <absl/strings/str_format.h>
+#include <spdlog/spdlog.h>
 #include <ios>
 #include <libabyss/formats/d2/tbl.h>
 #include <libabyss/streams/streamreader.h>
@@ -24,8 +25,8 @@ absl::flat_hash_map<std::string, std::string> ReadTbl(InputStream stream) {
     }
     struct Record {
         uint8_t used;
-        /*uint16_t index;
-        uint32_t hash;*/
+        uint16_t index;
+        /*uint32_t hash;*/
         uint32_t keyOffset;
         uint32_t valueOffset;
         uint16_t valueLen;
@@ -36,7 +37,7 @@ absl::flat_hash_map<std::string, std::string> ReadTbl(InputStream stream) {
         records.emplace_back();
         Record &record = records.back();
         record.used = sr.ReadUInt8();
-        /*record.index = */ sr.ReadUInt16();
+        record.index =  sr.ReadUInt16();
         /*record.hash = */ sr.ReadUInt32();
         record.keyOffset = sr.ReadUInt32();
         record.valueOffset = sr.ReadUInt32();
@@ -60,6 +61,7 @@ absl::flat_hash_map<std::string, std::string> ReadTbl(InputStream stream) {
         std::string key(key_view.substr(0, key_view.find_first_of('\0')));
         std::string_view value_view = raw_data_view.substr(r.valueOffset - offsetStart, (int)r.valueLen - 1);
         result[std::move(key)] = std::string(value_view);
+        result[absl::StrCat("#", r.index)] = std::string(value_view);
     }
     return result;
 }
