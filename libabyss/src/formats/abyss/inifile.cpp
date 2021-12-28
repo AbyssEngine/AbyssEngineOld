@@ -31,6 +31,9 @@ INIFile::INIFile(const std::filesystem::path &iniFilePath) {
         if (line.empty())
             continue;
 
+        if (line.front() == ';')
+            continue;
+
         if (line.front() == '[') {
             if (line.back() != ']') {
                 spdlog::error("error parsing INI file '{0}' on line {1}: Malformed Category", iniFilePath.string(), lineIdx);
