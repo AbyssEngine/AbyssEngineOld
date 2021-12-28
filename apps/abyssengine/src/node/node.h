@@ -16,7 +16,7 @@ class Node {
   public:
     Node();
     explicit Node(std::string_view name);
-    virtual ~Node() {}
+    virtual ~Node();
 
     virtual void UpdateCallback(uint32_t ticks);
     virtual void RenderCallback(int offsetX, int offsetY);
@@ -41,6 +41,7 @@ class Node {
     void SetLuaTable(sol::table table) { _table = std::move(table); }
     [[nodiscard]] sol::table GetLuaTable() const { return _table; }
     void SetLuaOnUpdateHandler(sol::protected_function onUpdateHandler);
+    static int Count() { return _nodeCount; }
 
     int X = 0;
     int Y = 0;
@@ -51,7 +52,7 @@ class Node {
     std::vector<Node *> Children;
 
   private:
-
+    static int _nodeCount;
     std::queue<Node *> _addChildQueue;
     std::queue<Node *> _removeChildQueue;
     bool _removeAllChildren = false;

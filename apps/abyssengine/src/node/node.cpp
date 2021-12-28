@@ -1,13 +1,14 @@
 #include "node.h"
 #include "../engine/engine.h"
-#include <spdlog/spdlog.h>
-
 #include <utility>
 
 namespace AbyssEngine {
+
+int Node::_nodeCount = 0;
+
 Node::Node() : _addChildQueue(), _removeChildQueue() {}
 
-Node::Node(std::string_view name) : Name(name) {}
+Node::Node(std::string_view name) : Name(name) { _nodeCount++; }
 
 void Node::UpdateCallback(uint32_t ticks) {
     ProcessQueuedActions();
@@ -131,4 +132,5 @@ void Node::KeyboardEventCallback(const KeyboardEvent &event) {
             item->KeyboardEventCallback(event);
     }
 }
+Node::~Node() { _nodeCount--; }
 } // namespace AbyssEngine

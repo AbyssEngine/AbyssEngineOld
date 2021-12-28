@@ -40,7 +40,7 @@ class SDL2SystemIO : public SystemIO {
     std::string GetInputText() final;
     void ClearInputText() final;
     void ResetKeyState(uint16_t scancode) final;
-    std::unique_ptr<AbyssEngine::ITexture> LoadPNG(LibAbyss::InputStream stream) final;
+    void Sleep(uint32_t ticks) final;
 
   private:
     void InitializeAudio();

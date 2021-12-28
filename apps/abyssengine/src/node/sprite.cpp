@@ -1,6 +1,7 @@
 #include "sprite.h"
 
 #include "../common/overload.h"
+#include "../engine/engine.h"
 #include <absl/strings/ascii.h>
 #include <absl/strings/str_cat.h>
 #include <utility>
@@ -153,6 +154,16 @@ void Sprite::AdvanceFrame() {
             return;
 
         _currentFrame = _loopAnimation ? startIndex : endIndex - 1;
+
+        if (startIndex != endIndex && _onAnimationFinished.valid()) {
+            auto result = _onAnimationFinished();
+
+            if (result.valid())
+                return;
+
+            sol::error err = result;
+            Engine::Get()->Panic(err.what());
+        }
     }
         return;
     case ePlayMode::Backwards: {
@@ -162,6 +173,16 @@ void Sprite::AdvanceFrame() {
         }
 
         _currentFrame = _loopAnimation ? endIndex - 1 : startIndex;
+
+        if (startIndex != endIndex && _onAnimationFinished.valid()) {
+            auto result = _onAnimationFinished();
+
+            if (result.valid())
+                return;
+
+            sol::error err = result;
+            Engine::Get()->Panic(err.what());
+        }
     }
     default:
         throw std::runtime_error("Unimplemented play mode");
@@ -214,5 +235,12 @@ std::string_view Sprite::LuaGetPlayMode() {
     }
     return "";
 }
+void Sprite::SetLuaAnimationFinishedHandler(sol::protected_function animationFinishedHandler) {
+    _onAnimationFinished = std::move(animationFinishedHandler);
+}
+
+void Sprite::SetLoopAnimation(bool loop) { _loopAnimation = loop; }
+
+bool Sprite::GetLoopAnimation() { return _loopAnimation; }
 
 } // namespace AbyssEngine
