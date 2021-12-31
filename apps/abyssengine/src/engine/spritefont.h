@@ -1,6 +1,7 @@
 #ifndef ABYSS_SPRITEFONT_H
 #define ABYSS_SPRITEFONT_H
 
+#include <absl/container/btree_map.h>
 #include "../common/alignment.h"
 #include "../common/color.h"
 #include "../common/rectangle.h"
@@ -28,18 +29,19 @@ class SpriteFont : public IFont {
         int OffsetY;
     };
 
-    SpriteFont(std::string_view filePath, std::string_view paletteName);
+    SpriteFont(std::string_view filePath, std::string_view paletteName, bool useGlyphHeight);
     ~SpriteFont() = default;
-    void GetMetrics(std::string_view text, int &width, int &height, int vertSpacing) const;
-    void RenderText(int x, int y, std::string_view text, eBlendMode blendMode, RGB colorMod, eAlignment horizontalAlignment, int vertSpacing);
+    void GetMetrics(std::string_view text, int &width, int &height) const;
+    void RenderText(int x, int y, std::string_view text, eBlendMode blendMode, RGB colorMod, eAlignment horizontalAlignment);
 
   private:
     void RegenerateAtlas();
     std::unique_ptr<LibAbyss::DC6> _dc6;
     std::unique_ptr<ITexture> _atlas;
-    std::vector<Glyph> _glyphs;
+    absl::btree_map<int, Glyph> _glyphs;
     std::vector<FramePosition> _frameRects;
     const LibAbyss::Palette &_palette;
+    bool _useGlyphHeight = true;
 };
 
 } // namespace AbyssEngine

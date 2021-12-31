@@ -138,7 +138,6 @@ ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     labelType["italic"] = sol::property(&Label::GetItalic, &Label::SetItalic);
     labelType["underline"] = sol::property(&Label::GetUnderline, &Label::SetUnderline);
     labelType["strikethrough"] = sol::property(&Label::GetStrikethrough, &Label::SetStrikethrough);
-    labelType["verticalSpacing"] = sol::property(&Label::GetVerticalSpacing, &Label::SetVerticalSpacing);
 
     // Sprite
     auto spriteType = CreateLuaObjectType<Sprite>(module, "Sprite", sol::no_constructor);
@@ -464,8 +463,9 @@ sol::table ScriptHost::LuaLoadTbl(std::string_view filePath) {
     return result;
 }
 
-std::unique_ptr<SpriteFont> ScriptHost::LuaCreateSpriteFont(std::string_view fontPath, std::string_view paletteName) {
-    return std::make_unique<SpriteFont>(fontPath, paletteName);
+std::unique_ptr<SpriteFont> ScriptHost::LuaCreateSpriteFont(std::string_view fontPath, std::string_view paletteName,
+        bool useGlyphHeight) {
+    return std::make_unique<SpriteFont>(fontPath, paletteName, useGlyphHeight);
 }
 
 std::unique_ptr<TtfFont> ScriptHost::LuaCreateTtfFont(std::string_view fontPath, int size, std::string_view hinting) {

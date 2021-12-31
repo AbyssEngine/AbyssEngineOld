@@ -35,9 +35,6 @@ class Label : public Node {
     void SetStrikethrough(bool value);
     [[nodiscard]] bool GetStrikethrough() const;
 
-    void SetVerticalSpacing(int value);
-    [[nodiscard]] int GetVerticalSpacing() const;
-
     [[nodiscard]] std::string_view NodeType() const final { return "Label Node"; };
 
   protected:
@@ -54,7 +51,6 @@ class Label : public Node {
     int _labelOffsetX = 0;
     int _labelOffsetY = 0;
     ITtf::Style _style = (ITtf::Style)0;
-    int _vertSpacing = 0;
 };
 
 class SpriteLabel : public Label {

@@ -120,8 +120,10 @@ class ScriptHost {
     /// \brief Creates a sprite font
     /// \param fontPath The path to the font file.
     /// \param paletteName The name of the palette to use for the font.
+    /// \param useGlyphHeight Whether to adjust the height for difference between glyph height and frame height.
     /// \return The created sprite font.
-    std::unique_ptr<SpriteFont> LuaCreateSpriteFont(std::string_view fontPath, std::string_view paletteName);
+    std::unique_ptr<SpriteFont> LuaCreateSpriteFont(std::string_view fontPath, std::string_view paletteName, bool
+            useGlyphHeight);
 
     /// \brief Creates a TTF font
     /// \param fontPath The path to the font file.
