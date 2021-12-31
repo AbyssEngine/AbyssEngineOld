@@ -22,7 +22,6 @@ include(Casclib)
 include(SDL2)
 include(CMakeRC)
 
-
 # -------------------------------------------------------------------------------------------------
 # Build release mode by default
 # -------------------------------------------------------------------------------------------------
@@ -79,6 +78,7 @@ find_package(sol2 CONFIG REQUIRED)
 find_package(FFMPEG COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE POSTPROC REQUIRED)
 find_package(Lua 5.4 EXACT REQUIRED)
 find_package(PNG REQUIRED)
+find_package(ICU COMPONENTS uc REQUIRED)
 include_sdl2()
 include_stormlib()
 include_casclib()

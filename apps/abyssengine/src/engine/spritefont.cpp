@@ -4,6 +4,9 @@
 #include <absl/strings/str_split.h>
 #include <filesystem>
 #include <spdlog/spdlog.h>
+#include <unicode/chariter.h>
+#include <unicode/uchriter.h>
+#include <unicode/unistr.h>
 
 namespace AbyssEngine {
 namespace {
@@ -141,10 +144,15 @@ void SpriteFont::GetMetrics(std::string_view text, int &width, int &height) cons
     height = 0;
 
     for (std::string_view line : absl::StrSplit(text, '\n')) {
+        icu::UnicodeString us = icu::UnicodeString::fromUTF8(line);
+        icu::UCharCharacterIterator it(us.getTerminatedBuffer(), us.length());
         bool first = _useGlyphHeight;
         int rowHeight = 0;
         int x = 0;
-        for (char ch : line) {
+        it.setToStart();
+        while (true) {
+            UChar ch = it.nextPostInc();
+            if (ch == icu::CharacterIterator::DONE) break;
             const auto &glyph = _glyphs.at(ch);
             const auto& frame = _frameRects[glyph.FrameIndex];
             if (first) {
@@ -200,7 +208,13 @@ void SpriteFont::RenderText(int x, int y, std::string_view text, eBlendMode blen
         }
         targetRect.X = startX;
 
-        for (char ch : line) {
+        icu::UnicodeString us = icu::UnicodeString::fromUTF8(line);
+        icu::UCharCharacterIterator it(us.getTerminatedBuffer(), us.length());
+        it.setToStart();
+        while (true) {
+            UChar ch = it.nextPostInc();
+            if (ch == icu::CharacterIterator::DONE) break;
+
             const auto &glyph = _glyphs.at(ch);
             const auto &frame = _frameRects[glyph.FrameIndex];
             if (first) {
