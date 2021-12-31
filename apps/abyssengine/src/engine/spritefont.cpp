@@ -1,5 +1,6 @@
 #include "spritefont.h"
 #include "engine.h"
+#include <absl/container/flat_hash_map.h>
 #include <absl/strings/str_split.h>
 #include <filesystem>
 #include <spdlog/spdlog.h>
@@ -9,8 +10,8 @@ namespace {
 const uint32_t MaxSpriteFontAtlasWidth = 1024;
 }
 
-SpriteFont::SpriteFont(std::string_view filePath, std::string_view paletteName)
-    : _atlas(), _glyphs(), _frameRects(), _palette(Engine::Get()->GetPalette(paletteName)) {
+SpriteFont::SpriteFont(std::string_view filePath, std::string_view paletteName, bool useGlyphHeight)
+    : _atlas(), _frameRects(), _palette(Engine::Get()->GetPalette(paletteName)), _useGlyphHeight(useGlyphHeight) {
     auto engine = Engine::Get();
 
     std::filesystem::path rootPath(filePath);
@@ -37,14 +38,12 @@ SpriteFont::SpriteFont(std::string_view filePath, std::string_view paletteName)
 
     dataStream.ignore(7); // Skip unknown bytes
 
-    auto maxCode = 0;
-
     while (!dataStream.eof()) {
         const auto code = sr.ReadUInt16();
+        Glyph& glyph = _glyphs[code];
 
         dataStream.ignore(1); // Skip a byte for some reason
 
-        Glyph glyph{};
         glyph.Width = sr.ReadUInt8();
         glyph.Height = sr.ReadUInt8();
 
@@ -56,12 +55,9 @@ SpriteFont::SpriteFont(std::string_view filePath, std::string_view paletteName)
             throw std::runtime_error("Frame index out of range for sprite font.");
 
         dataStream.ignore(4); // Skip 4 bytes for some reason
-
-        if (maxCode < code)
-            maxCode = code;
-
-        _glyphs.push_back(glyph);
     }
+
+    RegenerateAtlas();
 }
 
 void SpriteFont::RegenerateAtlas() {
@@ -73,7 +69,7 @@ void SpriteFont::RegenerateAtlas() {
     int atlasWidth = 0;
     int atlasHeight = 0;
     int curX = 0;
-    int curHeight = 0;
+    unsigned int curHeight = 0;
 
     for (int frame_idx = 0; frame_idx < (int)_dc6->FramesPerDirection; frame_idx++) {
         const auto &frame = direction.Frames[frame_idx];
@@ -87,7 +83,7 @@ void SpriteFont::RegenerateAtlas() {
         }
 
         curX += (int)frame.Width;
-        curHeight = (curHeight < (int)frame.Height) ? (int)frame.Height : curHeight;
+        curHeight = std::max(curHeight, frame.Height);
     }
 
     atlasHeight += curHeight;
@@ -135,52 +131,47 @@ void SpriteFont::RegenerateAtlas() {
         }
 
         startX += (int)frame.Width;
-        curHeight = (curHeight < (int)frame.Height) ? (int)frame.Height : curHeight;
+        curHeight = std::max(curHeight, frame.Height);
 
         _atlas->SetPixels(buffer);
     }
 }
-void SpriteFont::GetMetrics(std::string_view text, int &width, int &height, int vertSpacing) const {
-    int x = 0;
-    int rowHeight = 0;
+void SpriteFont::GetMetrics(std::string_view text, int &width, int &height) const {
     width = 0;
     height = 0;
 
-    for (char ch : text) {
-        const auto &glyph = _glyphs[(int)ch];
+    for (std::string_view line : absl::StrSplit(text, '\n')) {
+        bool first = _useGlyphHeight;
+        int rowHeight = 0;
+        int x = 0;
+        for (char ch : line) {
+            const auto &glyph = _glyphs.at(ch);
+            const auto& frame = _frameRects[glyph.FrameIndex];
+            if (first) {
+                height += glyph.Height - frame.Rect.Height;
+                first = false;
+            }
+            rowHeight = std::max(rowHeight, frame.Rect.Height);
 
-        if (ch == '\n') {
-            x = 0;
-            height += rowHeight + vertSpacing;
-            rowHeight = 0;
-
-            continue;
+            x += glyph.Width;
+            width = std::max(x, width);
         }
-
-        rowHeight = (rowHeight < glyph.Height) ? glyph.Height : rowHeight;
-        x += glyph.Width;
-        width = (x > width) ? x : width;
+        height += rowHeight;
     }
-
-    height += rowHeight;
 }
 
-void SpriteFont::RenderText(int x, int y, std::string_view text, eBlendMode blendMode, RGB colorMod, eAlignment horizontalAlignment,
-                            int vertSpacing) {
-    if (_atlas == nullptr)
-        RegenerateAtlas();
-
+void SpriteFont::RenderText(int x, int y, std::string_view text, eBlendMode blendMode, RGB colorMod, eAlignment
+        horizontalAlignment) {
     _atlas->SetBlendMode(blendMode);
     _atlas->SetColorMod(colorMod.Red, colorMod.Green, colorMod.Blue);
 
     Rectangle targetRect{.X = x, .Y = y, .Width = 0, .Height = 0};
-    int rowHeight = 0;
     int totalWidth = 0;
     switch (horizontalAlignment) {
     case eAlignment::Middle:
     case eAlignment::End: {
         int h;
-        GetMetrics(text, totalWidth, h, vertSpacing);
+        GetMetrics(text, totalWidth, h);
         break;
     }
     default:
@@ -188,17 +179,19 @@ void SpriteFont::RenderText(int x, int y, std::string_view text, eBlendMode blen
     }
 
     for (std::string_view line : absl::StrSplit(text, '\n')) {
+        bool first = _useGlyphHeight;
+        int rowHeight = 0;
         int startX = x;
         switch (horizontalAlignment) {
         case eAlignment::Middle: {
             int w, h;
-            GetMetrics(line, w, h, vertSpacing);
+            GetMetrics(line, w, h);
             startX += (totalWidth - w) / 2;
             break;
         }
         case eAlignment::End: {
             int w, h;
-            GetMetrics(line, w, h, vertSpacing);
+            GetMetrics(line, w, h);
             startX += totalWidth - w;
             break;
         }
@@ -208,20 +201,21 @@ void SpriteFont::RenderText(int x, int y, std::string_view text, eBlendMode blen
         targetRect.X = startX;
 
         for (char ch : line) {
-            const auto &glyph = _glyphs[(int)ch];
-            if (ch != ' ') {
-                const auto &frame = _frameRects[glyph.FrameIndex];
-                targetRect.Width = frame.Rect.Width;
-                targetRect.Height = frame.Rect.Height;
-                rowHeight = (rowHeight < glyph.Height) ? glyph.Height : rowHeight;
-                _atlas->Render(frame.Rect, targetRect);
+            const auto &glyph = _glyphs.at(ch);
+            const auto &frame = _frameRects[glyph.FrameIndex];
+            if (first) {
+                targetRect.Y += glyph.Height - frame.Rect.Height;
+                first = false;
             }
+            targetRect.Width = frame.Rect.Width;
+            targetRect.Height = frame.Rect.Height;
+            rowHeight = std::max(rowHeight, frame.Rect.Height);
+            _atlas->Render(frame.Rect, targetRect);
 
             targetRect.X += glyph.Width;
         }
 
-        targetRect.Y += rowHeight + vertSpacing;
-        rowHeight = 0;
+        targetRect.Y += rowHeight;
     }
 }
 

@@ -1,4 +1,5 @@
 #include "label.h"
+#include "../engine/engine.h"
 #include <absl/strings/str_replace.h>
 #include <absl/strings/str_split.h>
 
@@ -42,12 +43,13 @@ void Label::RenderCallback(int offsetX, int offsetY) {
         break;
     }
 
+    //Engine::Get()->GetSystemIO().DrawRect(posX, posY, finalWidth, finalHeight, 255, 100, 100);
     DoRender(posX, posY);
 
     Node::RenderCallback(offsetX, offsetY);
 }
 
-void SpriteLabel::PrepareRender(int &width, int &height) { _font.GetMetrics(_caption, width, height, _vertSpacing); }
+void SpriteLabel::PrepareRender(int &width, int &height) { _font.GetMetrics(_caption, width, height); }
 void TtfLabel::PrepareRender(int &width, int &height) {
     if (_textures.empty()) {
         int total_width = 0;
@@ -63,22 +65,22 @@ void TtfLabel::PrepareRender(int &width, int &height) {
                 _textures.push_back(std::move(texture));
             }
             total_width = std::max(total_width, rect.Width);
-            total_height += rect.Height + _vertSpacing;
+            total_height += rect.Height;
             _rects.push_back(std::move(rect));
         }
-        _total_height = total_height - _vertSpacing;
+        _total_height = total_height;
         _total_width = total_width;
     }
     width = _total_width;
     height = _total_height;
 }
 
-void SpriteLabel::DoRender(int x, int y) { _font.RenderText(x, y, _caption, _blendMode, _colorMod, _horizontalAlignment, _vertSpacing); }
+void SpriteLabel::DoRender(int x, int y) { _font.RenderText(x, y, _caption, _blendMode, _colorMod, _horizontalAlignment); }
 void TtfLabel::DoRender(int x, int y) {
     for (int i = 0; i < (int)_textures.size(); ++i) {
         const Rectangle &rect = _rects[i];
         if (_textures[i] == nullptr) {
-            y += rect.Height + _vertSpacing;
+            y += rect.Height;
             continue;
         }
         const auto &texture = _textures[i];
@@ -102,7 +104,7 @@ void TtfLabel::DoRender(int x, int y) {
         dst.Width = rect.Width;
         dst.Height = rect.Height;
         texture->Render(rect, dst);
-        y += rect.Height + _vertSpacing;
+        y += rect.Height;
     }
 }
 void TtfLabel::ClearCache() {
@@ -165,10 +167,5 @@ void Label::SetStrikethrough(bool value) {
     ClearCache();
 }
 bool Label::GetStrikethrough() const { return _style & ITtf::Style::Strikethrough; }
-void Label::SetVerticalSpacing(int value) {
-    _vertSpacing = value;
-    ClearCache();
-}
-int Label::GetVerticalSpacing() const { return _vertSpacing; }
 
 } // namespace AbyssEngine
