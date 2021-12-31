@@ -24,7 +24,6 @@ class DC6 {
             uint32_t NextBlock = 0;
             uint32_t Length = 0;
             std::vector<uint8_t> FrameData;
-            uint8_t Terminator[3] = {};
             std::vector<uint8_t> IndexData;
 
           private:
