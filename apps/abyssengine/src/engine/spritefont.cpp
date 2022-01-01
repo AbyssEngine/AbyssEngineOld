@@ -13,7 +13,8 @@ namespace {
 const uint32_t MaxSpriteFontAtlasWidth = 1024;
 }
 
-SpriteFont::SpriteFont(std::string_view filePath, std::string_view paletteName, bool useGlyphHeight)
+SpriteFont::SpriteFont(std::string_view filePath, std::string_view paletteName, bool useGlyphHeight, eBlendMode
+        blendMode)
     : _atlas(), _frameRects(), _palette(Engine::Get()->GetPalette(paletteName)), _useGlyphHeight(useGlyphHeight) {
     auto engine = Engine::Get();
 
@@ -61,6 +62,7 @@ SpriteFont::SpriteFont(std::string_view filePath, std::string_view paletteName, 
     }
 
     RegenerateAtlas();
+    _atlas->SetBlendMode(blendMode);
 }
 
 void SpriteFont::RegenerateAtlas() {
@@ -168,9 +170,8 @@ void SpriteFont::GetMetrics(std::string_view text, int &width, int &height) cons
     }
 }
 
-void SpriteFont::RenderText(int x, int y, std::string_view text, eBlendMode blendMode, RGB colorMod, eAlignment
+void SpriteFont::RenderText(int x, int y, std::string_view text, RGB colorMod, eAlignment
         horizontalAlignment) {
-    _atlas->SetBlendMode(blendMode);
     _atlas->SetColorMod(colorMod.Red, colorMod.Green, colorMod.Blue);
 
     Rectangle targetRect{.X = x, .Y = y, .Width = 0, .Height = 0};

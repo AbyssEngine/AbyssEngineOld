@@ -75,7 +75,7 @@ void TtfLabel::PrepareRender(int &width, int &height) {
     height = _total_height;
 }
 
-void SpriteLabel::DoRender(int x, int y) { _font.RenderText(x, y, _caption, _blendMode, _colorMod, _horizontalAlignment); }
+void SpriteLabel::DoRender(int x, int y) { _font.RenderText(x, y, _caption, _colorMod, _horizontalAlignment); }
 void TtfLabel::DoRender(int x, int y) {
     for (int i = 0; i < (int)_textures.size(); ++i) {
         const Rectangle &rect = _rects[i];
