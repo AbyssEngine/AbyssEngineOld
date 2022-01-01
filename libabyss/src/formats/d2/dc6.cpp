@@ -62,6 +62,9 @@ DC6::Direction::Frame::Frame(StreamReader &sr) {
 void DC6::Direction::Frame::Decode() {
     uint32_t x = 0;
     uint32_t y = Height - 1;
+    uint32_t endy = 0;
+    if (Flipped) std::swap(y, endy);
+    int dy = Flipped ? 1 : -1;
     uint32_t offset = 0;
 
     for (;;) {
@@ -72,10 +75,10 @@ void DC6::Direction::Frame::Decode() {
 
         switch (GetScanlineType(b)) {
         case EndOfLine:
-            if (y == 0)
+            if (y == endy)
                 goto done;
 
-            y--;
+            y += dy;
             x = 0;
             continue;
         case RunOfTransparentPixels:
