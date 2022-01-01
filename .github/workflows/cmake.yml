@@ -38,7 +38,6 @@ jobs:
       - uses: lukka/get-cmake@latest
         name: Get CMake
 
-
       - name: Install Deps (Windows)
         if: matrix.os == 'windows-latest'
         uses: crazy-max/ghaction-chocolatey@v1
@@ -65,7 +64,11 @@ jobs:
 
       - name: Install Deps (MacOS)
         if: matrix.os == 'macos-11'
-        run: brew install nasm ffmpeg icu4c && echo "CC=$LLVM_PATH/bin/clang" >> $GITHUB_ENV && echo "CXX=$LLVM_PATH/bin/clang++" >> $GITHUB_ENV
+        run: brew install nasm icu4c && echo "CC=$LLVM_PATH/bin/clang" >> $GITHUB_ENV && echo "CXX=$LLVM_PATH/bin/clang++" >> $GITHUB_ENV && echo "ICU_ROOT=$(brew --prefix icu4c)" >> $GITHUB_ENV
+
+      - name: Remove broken dep
+        if: matrix.os == 'macos-11'
+        run: sed -i -e '/icu/d' vcpkg.json
 
       - name: Run vcpkg
         uses: lukka/run-vcpkg@v10
