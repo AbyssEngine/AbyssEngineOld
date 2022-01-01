@@ -15,13 +15,14 @@ project(abyss VERSION "${abyss_VERSION_MAJOR}.${abyss_VERSION_MINOR}")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+include(FindPackageMessage)
 include(CPM)
 include(ConfigureVCPKG)
 include(Stormlib)
 include(Casclib)
 include(SDL2)
 include(CMakeRC)
-
+include(Homebrew)
 
 # -------------------------------------------------------------------------------------------------
 # Build release mode by default
@@ -71,6 +72,7 @@ endif ()
 # -------------------------------------------------------------------------------------------------
 
 configure_vcpkg()
+configure_brew()
 find_package(absl CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(cppzmq CONFIG REQUIRED)
@@ -79,6 +81,7 @@ find_package(sol2 CONFIG REQUIRED)
 find_package(FFMPEG COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE POSTPROC REQUIRED)
 find_package(Lua 5.4 EXACT REQUIRED)
 find_package(PNG REQUIRED)
+find_package(ICU COMPONENTS uc REQUIRED)
 include_sdl2()
 include_stormlib()
 include_casclib()

@@ -464,8 +464,8 @@ sol::table ScriptHost::LuaLoadTbl(std::string_view filePath) {
 }
 
 std::unique_ptr<SpriteFont> ScriptHost::LuaCreateSpriteFont(std::string_view fontPath, std::string_view paletteName,
-        bool useGlyphHeight) {
-    return std::make_unique<SpriteFont>(fontPath, paletteName, useGlyphHeight);
+        bool useGlyphHeight, std::string_view blendMode) {
+    return std::make_unique<SpriteFont>(fontPath, paletteName, useGlyphHeight, StringToBlendMode(blendMode));
 }
 
 std::unique_ptr<TtfFont> ScriptHost::LuaCreateTtfFont(std::string_view fontPath, int size, std::string_view hinting) {

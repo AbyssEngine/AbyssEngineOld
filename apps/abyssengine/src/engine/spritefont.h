@@ -29,10 +29,10 @@ class SpriteFont : public IFont {
         int OffsetY;
     };
 
-    SpriteFont(std::string_view filePath, std::string_view paletteName, bool useGlyphHeight);
+    SpriteFont(std::string_view filePath, std::string_view paletteName, bool useGlyphHeight, eBlendMode blendMode);
     ~SpriteFont() = default;
     void GetMetrics(std::string_view text, int &width, int &height) const;
-    void RenderText(int x, int y, std::string_view text, eBlendMode blendMode, RGB colorMod, eAlignment horizontalAlignment);
+    void RenderText(int x, int y, std::string_view text, RGB colorMod, eAlignment horizontalAlignment);
 
   private:
     void RegenerateAtlas();
@@ -42,6 +42,7 @@ class SpriteFont : public IFont {
     std::vector<FramePosition> _frameRects;
     const LibAbyss::Palette &_palette;
     bool _useGlyphHeight = true;
+    Glyph _fallback;
 };
 
 } // namespace AbyssEngine

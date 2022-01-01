@@ -4,13 +4,17 @@
 #include <absl/strings/str_split.h>
 #include <filesystem>
 #include <spdlog/spdlog.h>
+#include <unicode/chariter.h>
+#include <unicode/uchriter.h>
+#include <unicode/unistr.h>
 
 namespace AbyssEngine {
 namespace {
 const uint32_t MaxSpriteFontAtlasWidth = 1024;
 }
 
-SpriteFont::SpriteFont(std::string_view filePath, std::string_view paletteName, bool useGlyphHeight)
+SpriteFont::SpriteFont(std::string_view filePath, std::string_view paletteName, bool useGlyphHeight, eBlendMode
+        blendMode)
     : _atlas(), _frameRects(), _palette(Engine::Get()->GetPalette(paletteName)), _useGlyphHeight(useGlyphHeight) {
     auto engine = Engine::Get();
 
@@ -56,8 +60,19 @@ SpriteFont::SpriteFont(std::string_view filePath, std::string_view paletteName, 
 
         dataStream.ignore(4); // Skip 4 bytes for some reason
     }
+    _fallback = _glyphs.at('?');
+
+    const auto addFallback = [&](uint16_t existing, uint16_t add) {
+        auto it = _glyphs.find(existing);
+        if (it == _glyphs.end()) return;
+        Glyph g = it->second;
+        _glyphs.try_emplace(add, g);
+    };
+    // Some kind of unicode dash
+    addFallback('-', 8211);
 
     RegenerateAtlas();
+    _atlas->SetBlendMode(blendMode);
 }
 
 void SpriteFont::RegenerateAtlas() {
@@ -141,11 +156,17 @@ void SpriteFont::GetMetrics(std::string_view text, int &width, int &height) cons
     height = 0;
 
     for (std::string_view line : absl::StrSplit(text, '\n')) {
+        icu::UnicodeString us = icu::UnicodeString::fromUTF8(line);
+        icu::UCharCharacterIterator it(us.getTerminatedBuffer(), us.length());
         bool first = _useGlyphHeight;
         int rowHeight = 0;
         int x = 0;
-        for (char ch : line) {
-            const auto &glyph = _glyphs.at(ch);
+        it.setToStart();
+        while (true) {
+            UChar ch = it.nextPostInc();
+            if (ch == icu::CharacterIterator::DONE) break;
+            const auto it = _glyphs.find(ch);
+            const auto& glyph = it == _glyphs.end() ? _fallback : it->second;
             const auto& frame = _frameRects[glyph.FrameIndex];
             if (first) {
                 height += glyph.Height - frame.Rect.Height;
@@ -160,9 +181,8 @@ void SpriteFont::GetMetrics(std::string_view text, int &width, int &height) cons
     }
 }
 
-void SpriteFont::RenderText(int x, int y, std::string_view text, eBlendMode blendMode, RGB colorMod, eAlignment
+void SpriteFont::RenderText(int x, int y, std::string_view text, RGB colorMod, eAlignment
         horizontalAlignment) {
-    _atlas->SetBlendMode(blendMode);
     _atlas->SetColorMod(colorMod.Red, colorMod.Green, colorMod.Blue);
 
     Rectangle targetRect{.X = x, .Y = y, .Width = 0, .Height = 0};
@@ -200,8 +220,15 @@ void SpriteFont::RenderText(int x, int y, std::string_view text, eBlendMode blen
         }
         targetRect.X = startX;
 
-        for (char ch : line) {
-            const auto &glyph = _glyphs.at(ch);
+        icu::UnicodeString us = icu::UnicodeString::fromUTF8(line);
+        icu::UCharCharacterIterator it(us.getTerminatedBuffer(), us.length());
+        it.setToStart();
+        while (true) {
+            UChar ch = it.nextPostInc();
+            if (ch == icu::CharacterIterator::DONE) break;
+
+            const auto it = _glyphs.find(ch);
+            const auto& glyph = it == _glyphs.end() ? _fallback : it->second;
             const auto &frame = _frameRects[glyph.FrameIndex];
             if (first) {
                 targetRect.Y += glyph.Height - frame.Rect.Height;

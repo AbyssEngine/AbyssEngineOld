@@ -24,15 +24,21 @@ DC6::DC6(InputStream &stream) : Termination() {
     Directions.reserve(NumberOfDirections);
     auto totalFrames = NumberOfDirections * FramesPerDirection;
 
-    // Skip the frame pointers
-    stream.ignore(totalFrames * 4);
+    std::vector<uint32_t> pointers;
+    for (unsigned int i = 0; i < totalFrames; ++i) {
+        pointers.push_back(sr.ReadUInt32());
+    }
 
+    uint32_t num = 0;
     for (auto directionIndex = 0; directionIndex < NumberOfDirections; directionIndex++) {
         Direction direction;
         direction.Frames.reserve(FramesPerDirection);
 
-        for (auto frameIndex = 0; frameIndex < FramesPerDirection; frameIndex++)
+        for (auto frameIndex = 0; frameIndex < FramesPerDirection; frameIndex++) {
+            stream.clear();
+            stream.seekg(pointers[num++], std::ios_base::beg);
             direction.Frames.emplace_back(sr);
+        }
 
         Directions.push_back(direction);
     }
@@ -49,7 +55,6 @@ DC6::Direction::Frame::Frame(StreamReader &sr) {
     Length = sr.ReadUInt32();
     FrameData.resize(Length);
     sr.ReadBytes(FrameData);
-    sr.ReadBytes(Terminator);
     IndexData.resize(Width * Height);
 
     Decode();
@@ -57,6 +62,9 @@ DC6::Direction::Frame::Frame(StreamReader &sr) {
 void DC6::Direction::Frame::Decode() {
     uint32_t x = 0;
     uint32_t y = Height - 1;
+    uint32_t endy = 0;
+    if (Flipped) std::swap(y, endy);
+    int dy = Flipped ? 1 : -1;
     uint32_t offset = 0;
 
     for (;;) {
@@ -67,10 +75,10 @@ void DC6::Direction::Frame::Decode() {
 
         switch (GetScanlineType(b)) {
         case EndOfLine:
-            if (y == 0)
+            if (y == endy)
                 goto done;
 
-            y--;
+            y += dy;
             x = 0;
             continue;
         case RunOfTransparentPixels:

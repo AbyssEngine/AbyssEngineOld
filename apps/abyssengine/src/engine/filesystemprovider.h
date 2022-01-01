@@ -2,6 +2,7 @@
 #define ABYSS_FILESYSTEMPROVIDER_H
 
 #include "provider.h"
+#include <absl/container/flat_hash_map.h>
 #include <libabyss/streams/inputstream.h>
 
 namespace AbyssEngine {
@@ -17,6 +18,8 @@ namespace AbyssEngine {
         LibAbyss::InputStream Load(const std::filesystem::path &path) override;
     private:
         std::filesystem::path _basePath;
+        // Makes the filenames case insensitive regardless of OS
+        absl::flat_hash_map<std::string, std::string> _files;
     };
 
 }
