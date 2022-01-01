@@ -60,6 +60,16 @@ SpriteFont::SpriteFont(std::string_view filePath, std::string_view paletteName, 
 
         dataStream.ignore(4); // Skip 4 bytes for some reason
     }
+    _fallback = _glyphs.at('?');
+
+    const auto addFallback = [&](uint16_t existing, uint16_t add) {
+        auto it = _glyphs.find(existing);
+        if (it == _glyphs.end()) return;
+        Glyph g = it->second;
+        _glyphs.try_emplace(add, g);
+    };
+    // Some kind of unicode dash
+    addFallback('-', 8211);
 
     RegenerateAtlas();
     _atlas->SetBlendMode(blendMode);
@@ -155,7 +165,8 @@ void SpriteFont::GetMetrics(std::string_view text, int &width, int &height) cons
         while (true) {
             UChar ch = it.nextPostInc();
             if (ch == icu::CharacterIterator::DONE) break;
-            const auto &glyph = _glyphs.at(ch);
+            const auto it = _glyphs.find(ch);
+            const auto& glyph = it == _glyphs.end() ? _fallback : it->second;
             const auto& frame = _frameRects[glyph.FrameIndex];
             if (first) {
                 height += glyph.Height - frame.Rect.Height;
@@ -216,7 +227,8 @@ void SpriteFont::RenderText(int x, int y, std::string_view text, RGB colorMod, e
             UChar ch = it.nextPostInc();
             if (ch == icu::CharacterIterator::DONE) break;
 
-            const auto &glyph = _glyphs.at(ch);
+            const auto it = _glyphs.find(ch);
+            const auto& glyph = it == _glyphs.end() ? _fallback : it->second;
             const auto &frame = _frameRects[glyph.FrameIndex];
             if (first) {
                 targetRect.Y += glyph.Height - frame.Rect.Height;

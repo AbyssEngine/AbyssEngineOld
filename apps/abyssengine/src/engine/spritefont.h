@@ -42,6 +42,7 @@ class SpriteFont : public IFont {
     std::vector<FramePosition> _frameRects;
     const LibAbyss::Palette &_palette;
     bool _useGlyphHeight = true;
+    Glyph _fallback;
 };
 
 } // namespace AbyssEngine
