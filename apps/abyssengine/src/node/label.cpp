@@ -104,7 +104,8 @@ void TtfLabel::DoRender(int x, int y) {
         dst.Width = rect.Width;
         dst.Height = rect.Height;
         texture->Render(rect, dst);
-        y += rect.Height;
+        // TODO this doesn't look right
+        y += rect.Height - 5;
     }
 }
 void TtfLabel::ClearCache() {
