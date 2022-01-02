@@ -1,0 +1,12 @@
+function(include_lualibs)
+    find_package(PkgConfig)
+    set(lua_so_dir)
+    if (PKG_CONFIG_FOUND)
+        pkg_get_variable(lua_so_dir lua-${ABYSS_REQUIRED_LUA} INSTALL_CMOD)
+    endif()
+
+    find_library(LUA_LPEG NAMES lpeg lpeg.so PATHS ${lua_so_dir} REQUIRED)
+    message(STATUS "Lua LPEG: ${LUA_LPEG}")
+    add_library(LUA::lpeg IMPORTED UNKNOWN)
+    set_target_properties(LUA::lpeg PROPERTIES IMPORTED_LOCATION ${LUA_LPEG})
+endfunction()

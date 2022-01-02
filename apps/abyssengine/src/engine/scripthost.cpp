@@ -23,6 +23,10 @@
 #include <spdlog/spdlog.h>
 #include <stdexcept>
 
+extern "C" {
+int luaopen_lpeg (lua_State *L);
+}
+
 namespace AbyssEngine {
 namespace {
 template <typename T, typename N> void AddNodeFunctionProperties(N &nodeType) {
@@ -51,6 +55,7 @@ template <typename T> std::unique_ptr<T> ScriptHost::InitializeTableFor(std::uni
 ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     _lua.stop_gc();
     _lua.open_libraries();
+    _lua.require("lpeg", luaopen_lpeg);
 
     _environment = sol::environment(_lua, sol::create, _lua.globals());
     sol::table module = _lua.create_table("abyss");
