@@ -155,6 +155,7 @@ target_link_libraries(${APP_NAME}
         cppzmq
         ${FFMPEG_LIBRARIES}
         ${LUA_LIBRARIES}
+        LUA::lpeg
         ICU::uc
         )
 

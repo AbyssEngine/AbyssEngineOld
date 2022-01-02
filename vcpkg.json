@@ -10,6 +10,7 @@
     "icu",
     "sdl2",
     "lua",
+    "lpeg",
     "sdl2-ttf",
     "sol2",
     "gtest",

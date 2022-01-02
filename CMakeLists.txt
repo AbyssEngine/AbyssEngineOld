@@ -13,6 +13,8 @@ project(abyss VERSION "${abyss_VERSION_MAJOR}.${abyss_VERSION_MINOR}")
 # CMake and  modules configuration
 # -------------------------------------------------------------------------------------------------
 
+set(ABYSS_REQUIRED_LUA 5.4)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 include(FindPackageMessage)
@@ -23,6 +25,7 @@ include(Casclib)
 include(SDL2)
 include(CMakeRC)
 include(Homebrew)
+include(Lualibs)
 
 # -------------------------------------------------------------------------------------------------
 # Build release mode by default
@@ -79,12 +82,13 @@ find_package(cppzmq CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(sol2 CONFIG REQUIRED)
 find_package(FFMPEG COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE POSTPROC REQUIRED)
-find_package(Lua 5.4 EXACT REQUIRED)
+find_package(Lua ${ABYSS_REQUIRED_LUA} EXACT REQUIRED)
 find_package(PNG REQUIRED)
 find_package(ICU COMPONENTS uc REQUIRED)
 include_sdl2()
 include_stormlib()
 include_casclib()
+include_lualibs()
 
 if (APPLE)
     find_library(OSX_VIDEOTOOLBOX VideoToolbox)
