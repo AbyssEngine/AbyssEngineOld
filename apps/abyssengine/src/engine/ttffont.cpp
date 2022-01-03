@@ -20,6 +20,7 @@ std::unique_ptr<ITexture> TtfFont::RenderText(const std::string &text, int &widt
 
     Glib::RefPtr<Pango::FontMap> fontmap = Glib::wrap(pango_cairo_font_map_new());
     Glib::RefPtr<Pango::Context> pctx = fontmap->create_context();
+
     Cairo::FontOptions opts;
     opts.set_hint_style(_hint);
     opts.set_antialias(Cairo::ANTIALIAS_SUBPIXEL);
@@ -53,9 +54,6 @@ std::unique_ptr<ITexture> TtfFont::RenderText(const std::string &text, int &widt
 
     layout->update_from_cairo_context(cr);
     layout->show_in_cairo_context(cr);
-
-    // Without this line, it leaks memory
-    pango_cairo_font_map_set_default(nullptr);
 
     // TODO use SDL_CreateRGBSurfaceWithFormatFrom
     auto texture = AbyssEngine::Engine::Get()->GetSystemIO().CreateTexture(ITexture::Format::BGRA, width, height);
