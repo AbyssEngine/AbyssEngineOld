@@ -2,17 +2,18 @@
 #include "../engine/engine.h"
 #include "config.h"
 #include <absl/strings/str_join.h>
+#include <glibmm.h>
 
 namespace AbyssEngine {
 namespace {
 const int CONSOLE_MAX_LINES = 13;
 const int CONSOLE_SLIDE_OUT_TICKS = 150;
 const int CONSOLE_HEIGHT = 225;
-constexpr std::string_view CONSOLE_SYMBOL = ">";
+constexpr std::string_view CONSOLE_SYMBOL = "> ";
 } // namespace
 
 DebugConsole::DebugConsole()
-    : _consoleFont(std::filesystem::path{"/abyss-embedded/Hack-Regular.ttf"}, "Hack", 13, Cairo::HINT_STYLE_SLIGHT), _consoleLabel(_consoleFont), _inputLabel(_consoleFont) {
+    : _consoleFont(std::filesystem::path{"/abyss-embedded/Hack-Regular.ttf"}, "Hack", 10, Cairo::HINT_STYLE_SLIGHT), _consoleLabel(_consoleFont), _inputLabel(_consoleFont) {
     _consoleLabel.SetCaption("");
     _consoleLabel.SetColorMod(255, 255, 255);
     _consoleLabel.SetVisible(true);
@@ -48,7 +49,7 @@ void DebugConsole::AddLine(const std::string &line) {
         _lines.pop_front();
 
     _lines.push_back(line);
-    _consoleLabel.SetCaption(absl::StrJoin(_lines, "\n"));
+    _consoleLabel.SetCaption(std::string(Glib::Markup::escape_text(absl::StrJoin(_lines, "\n"))));
 }
 void DebugConsole::KeyboardEventCallback(const KeyboardEvent &event) {
     auto &io = Engine::Get()->GetSystemIO();

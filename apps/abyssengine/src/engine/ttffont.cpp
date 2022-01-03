@@ -22,6 +22,7 @@ std::unique_ptr<ITexture> TtfFont::RenderText(const std::string &text, int &widt
     Glib::RefPtr<Pango::Context> pctx = fontmap->create_context();
     Cairo::FontOptions opts;
     opts.set_hint_style(_hint);
+    opts.set_antialias(Cairo::ANTIALIAS_SUBPIXEL);
     pctx->set_cairo_font_options(opts);
 
     Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(pctx);
