@@ -1,11 +1,11 @@
 #include "ttffont.h"
 #include "engine.h"
 #include <absl/strings/str_cat.h>
-#include <cairomm/fontoptions.h>
-#include <cairomm/surface.h>
+//#include <cairomm/fontoptions.h>
+//#include <cairomm/surface.h>
 #include <pango/pangocairo.h>
-#include <pangomm.h>
-#include <pangomm/init.h>
+//#include <pangomm.h>
+//#include <pangomm/init.h>
 
 namespace AbyssEngine {
 
@@ -16,6 +16,7 @@ TtfFont::TtfFont(const std::filesystem::path &path, std::string_view name, int s
 }
 
 std::unique_ptr<ITexture> TtfFont::RenderText(const std::string &text, int &width, int &height, eAlignment horizontalAlignment, int maxWidth) {
+#if 0
     Pango::init();
 
     Glib::RefPtr<Pango::FontMap> fontmap = Glib::wrap(pango_cairo_font_map_new());
@@ -54,10 +55,11 @@ std::unique_ptr<ITexture> TtfFont::RenderText(const std::string &text, int &widt
 
     layout->update_from_cairo_context(cr);
     layout->show_in_cairo_context(cr);
-
+#endif
+    width = 1; height = 1;
     // TODO use SDL_CreateRGBSurfaceWithFormatFrom
     auto texture = AbyssEngine::Engine::Get()->GetSystemIO().CreateTexture(ITexture::Format::BGRA, width, height);
-    texture->SetPixels(std::span(surface->get_data(), surface->get_height() * surface->get_stride()), surface->get_stride());
+    //texture->SetPixels(std::span(surface->get_data(), surface->get_height() * surface->get_stride()), surface->get_stride());
     texture->SetBlendMode(eBlendMode::Blend);
     return texture;
 }

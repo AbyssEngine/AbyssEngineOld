@@ -15,7 +15,8 @@ project(abyss VERSION "${abyss_VERSION_MAJOR}.${abyss_VERSION_MINOR}")
 
 set(ABYSS_REQUIRED_LUA 5.4)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" "${CMAKE_BINARY_DIR}")
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}")
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 include(FindPackageMessage)
 include(CPM)
@@ -85,6 +86,8 @@ find_package(FFMPEG COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE POSTPR
 find_package(Lua ${ABYSS_REQUIRED_LUA} EXACT REQUIRED)
 find_package(PNG REQUIRED)
 find_package(ICU COMPONENTS uc REQUIRED)
+find_package(Fontconfig REQUIRED)
+find_package(pango REQUIRED)
 include_sdl2()
 include_stormlib()
 include_casclib()

@@ -143,9 +143,6 @@ endif ()
 # Libraries
 # -------------------------------------------------------------------------------------------------
 
-pkg_check_modules(PangoCairo REQUIRED IMPORTED_TARGET pangomm-1.4)
-pkg_check_modules(FontConfig REQUIRED IMPORTED_TARGET fontconfig)
-
 target_link_libraries(${APP_NAME}
         PRIVATE
         abyssengine_resources
@@ -162,8 +159,8 @@ target_link_libraries(${APP_NAME}
         ${LUA_LIBRARIES}
         LUA::lpeg
         ICU::uc
-        PkgConfig::PangoCairo
-        PkgConfig::FontConfig
+        pango::pangocairo
+        Fontconfig::Fontconfig
         )
 
 

@@ -16,8 +16,6 @@
     "gtest",
     "cppzmq",
     "fmt",
-    "pangomm",
-    "fontconfig",
     {
       "name": "ffmpeg",
       "features": [

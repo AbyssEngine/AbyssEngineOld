@@ -1,0 +1,9 @@
+[requires]
+fontconfig/2.13.93
+pango/1.49.3
+
+[generators]
+cmake_find_package
+
+[options]
+cairo:shared=True

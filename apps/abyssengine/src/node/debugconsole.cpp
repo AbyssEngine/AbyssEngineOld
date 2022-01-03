@@ -2,7 +2,7 @@
 #include "../engine/engine.h"
 #include "config.h"
 #include <absl/strings/str_join.h>
-#include <glibmm.h>
+//#include <glibmm.h>
 
 namespace AbyssEngine {
 namespace {
@@ -49,7 +49,7 @@ void DebugConsole::AddLine(const std::string &line) {
         _lines.pop_front();
 
     _lines.push_back(line);
-    _consoleLabel.SetCaption(std::string(Glib::Markup::escape_text(absl::StrJoin(_lines, "\n"))));
+//    _consoleLabel.SetCaption(std::string(Glib::Markup::escape_text(absl::StrJoin(_lines, "\n"))));
 }
 void DebugConsole::KeyboardEventCallback(const KeyboardEvent &event) {
     auto &io = Engine::Get()->GetSystemIO();

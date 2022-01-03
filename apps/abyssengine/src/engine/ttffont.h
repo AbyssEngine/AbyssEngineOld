@@ -7,7 +7,14 @@
 #include "../systemio/interface.h"
 #include "font.h"
 #include <cairo/cairo.h>
-#include <cairomm/enums.h>
+//#include <cairomm/enums.h>
+namespace Cairo {
+    using HintStyle = int;
+    inline constexpr int HINT_STYLE_SLIGHT = 0;
+    inline constexpr int HINT_STYLE_MEDIUM = 0;
+    inline constexpr int HINT_STYLE_NONE = 0;
+    inline constexpr int HINT_STYLE_FULL = 0;
+}
 #include <filesystem>
 #include <memory>
 #include <string_view>
