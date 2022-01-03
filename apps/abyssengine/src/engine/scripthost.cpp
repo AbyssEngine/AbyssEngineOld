@@ -138,7 +138,7 @@ ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     labelType["caption"] = sol::property(&Label::GetCaption, &Label::SetCaption);
     labelType["setAlignment"] = &Label::SetAlignmentStr;
     labelType["setColorMod"] = &Label::SetColorMod;
-    labelType["blendMode"] = sol::property(&Label::LuaGetBlendMode, &Label::LuaSetBlendMode);
+    labelType["maxWidth"] = sol::property(&Label::GetMaxWidth, &Label::SetMaxWidth);
 
     // Sprite
     auto spriteType = CreateLuaObjectType<Sprite>(module, "Sprite", sol::no_constructor);

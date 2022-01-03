@@ -127,6 +127,7 @@ class ScriptHost {
             useGlyphHeight, std::string_view blendMode);
 
     /// \brief Creates a TTF font
+    /// \param fontName The name of the font as specified in the font file. TODO: read it automatically.
     /// \param fontPath The path to the font file.
     /// \param size The size of the font.
     /// \param hinting The hinting to use for the font ('light', 'mono', 'normal', 'none').

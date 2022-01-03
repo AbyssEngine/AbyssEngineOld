@@ -52,65 +52,24 @@ void Label::RenderCallback(int offsetX, int offsetY) {
 
 void SpriteLabel::PrepareRender(int &width, int &height) { _font.GetMetrics(_caption, width, height); }
 void TtfLabel::PrepareRender(int &width, int &height) {
-    if (_textures.empty()) {
-        int total_width = 0;
-        int total_height = 0;
-        for (std::string_view s : absl::StrSplit(_caption, '\n')) {
-            Rectangle rect = {};
-            if (s.empty()) {
-                auto texture = _font.RenderText("x", rect.Width, rect.Height);
-                _textures.push_back(nullptr);
-            } else {
-                std::string markup = absl::StrFormat("<span color='#%02x%02x%02x'>%s</span>", _colorMod.Red, _colorMod.Green, _colorMod.Blue, s);
-                auto texture = _font.RenderText(markup, rect.Width, rect.Height);
-                _textures.push_back(std::move(texture));
-            }
-            total_width = std::max(total_width, rect.Width);
-            total_height += rect.Height;
-            _rects.push_back(std::move(rect));
-        }
-        _total_height = total_height;
-        _total_width = total_width;
+    if (!_texture) {
+        std::string markup = absl::StrFormat("<span color='#%02x%02x%02x'>%s</span>", _colorMod.Red, _colorMod.Green, _colorMod.Blue, _caption);
+        _texture = _font.RenderText(markup, _rect.Width, _rect.Height, _horizontalAlignment, _maxWidth);
     }
-    width = _total_width;
-    height = _total_height;
+    width = _rect.Width;
+    height = _rect.Height;
 }
 
 void SpriteLabel::DoRender(int x, int y) { _font.RenderText(x, y, _caption, _colorMod, _horizontalAlignment); }
 void TtfLabel::DoRender(int x, int y) {
-    for (int i = 0; i < (int)_textures.size(); ++i) {
-        const Rectangle &rect = _rects[i];
-        if (_textures[i] == nullptr) {
-            y += rect.Height;
-            continue;
-        }
-        const auto &texture = _textures[i];
-        AbyssEngine::Rectangle dst = {};
-        dst.Y = y;
-        switch (_horizontalAlignment) {
-        case eAlignment::Start:
-            dst.X = x;
-            break;
-        case eAlignment::Middle:
-            dst.X = x + (_total_width - rect.Width) / 2;
-            break;
-        case eAlignment::End:
-            dst.X = x + _total_width - rect.Width;
-            break;
-        default:
-            break;
-        }
-        dst.Width = rect.Width;
-        dst.Height = rect.Height;
-        texture->Render(rect, dst);
-        // TODO this doesn't look right
-        y += rect.Height - 5;
-    }
+    Rectangle dst = {};
+    dst.X = x;
+    dst.Y = y;
+    dst.Width = _rect.Width;
+    dst.Height = _rect.Height;
+    _texture->Render(_rect, dst);
 }
-void TtfLabel::ClearCache() {
-    _textures.clear();
-    _rects.clear();
-}
+void TtfLabel::ClearCache() { _texture = {}; }
 
 void Label::SetCaption(std::string_view value) {
     _caption = value;
@@ -122,6 +81,7 @@ std::string_view Label::GetCaption() const { return _caption; }
 void Label::SetAlignment(eAlignment hAlign, eAlignment vAlign) {
     _horizontalAlignment = hAlign;
     _verticalAlignment = vAlign;
+    ClearCache();
 }
 void Label::SetAlignmentStr(std::string_view hAlign, std::string_view vAlign) { SetAlignment(StringToAlignment(hAlign), StringToAlignment(vAlign)); }
 void Label::SetColorMod(uint8_t red, uint8_t green, uint8_t blue) {
@@ -130,7 +90,10 @@ void Label::SetColorMod(uint8_t red, uint8_t green, uint8_t blue) {
     _colorMod.Blue = blue;
     ClearCache();
 }
-void Label::LuaSetBlendMode(std::string_view mode) { _blendMode = StringToBlendMode(mode); }
-std::string_view Label::LuaGetBlendMode() const { return BlendModeToString(_blendMode); }
+void Label::SetMaxWidth(int value) {
+    _maxWidth = value;
+    ClearCache();
+}
+int Label::GetMaxWidth() const { return _maxWidth; }
 
 } // namespace AbyssEngine

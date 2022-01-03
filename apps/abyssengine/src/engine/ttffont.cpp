@@ -15,7 +15,7 @@ TtfFont::TtfFont(const std::filesystem::path &path, std::string_view name, int s
     engine->GetTtfManager().AddFont(path);
 }
 
-std::unique_ptr<ITexture> TtfFont::RenderText(const std::string &text, int &width, int &height) {
+std::unique_ptr<ITexture> TtfFont::RenderText(const std::string &text, int &width, int &height, eAlignment horizontalAlignment, int maxWidth) {
     Pango::init();
 
     Glib::RefPtr<Pango::FontMap> fontmap = Glib::wrap(pango_cairo_font_map_new());
@@ -27,12 +27,27 @@ std::unique_ptr<ITexture> TtfFont::RenderText(const std::string &text, int &widt
     Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(pctx);
     layout->set_font_description(Pango::FontDescription(_name));
 
+    Pango::Alignment align = Pango::ALIGN_LEFT;
+    switch (horizontalAlignment) {
+    case eAlignment::Middle:
+        align = Pango::ALIGN_CENTER;
+        break;
+    case eAlignment::End:
+        align = Pango::ALIGN_RIGHT;
+        break;
+    default:
+        break;
+    }
+    layout->set_alignment(align);
+    layout->set_width(maxWidth * PANGO_SCALE);
+
     layout->set_markup(text);
     layout->get_pixel_size(width, height);
+    // This looks silly, but it doesn't work without it
+    layout->set_width(width * PANGO_SCALE);
 
     Cairo::RefPtr<Cairo::ImageSurface> surface = Cairo::ImageSurface::create(Cairo::FORMAT_ARGB32, width, height);
     Cairo::RefPtr<Cairo::Context> cr = Cairo::Context::create(surface);
-    cr->move_to(0, 0);
 
     layout->update_from_cairo_context(cr);
     layout->show_in_cairo_context(cr);
