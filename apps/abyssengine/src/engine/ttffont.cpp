@@ -43,12 +43,13 @@ std::unique_ptr<ITexture> TtfFont::RenderText(const std::string &text, int &widt
     layout->set_width(maxWidth * PANGO_SCALE);
 
     layout->set_markup(text);
-    layout->get_pixel_size(width, height);
-    // This looks silly, but it doesn't work without it
-    layout->set_width(width * PANGO_SCALE);
+    Pango::Rectangle r = layout->get_pixel_logical_extents();
+    width = r.get_width();
+    height = r.get_height();
 
     Cairo::RefPtr<Cairo::ImageSurface> surface = Cairo::ImageSurface::create(Cairo::FORMAT_ARGB32, width, height);
     Cairo::RefPtr<Cairo::Context> cr = Cairo::Context::create(surface);
+    cr->move_to(-r.get_x(), -r.get_y());
 
     layout->update_from_cairo_context(cr);
     layout->show_in_cairo_context(cr);

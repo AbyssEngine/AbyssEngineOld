@@ -471,7 +471,7 @@ std::unique_ptr<SpriteFont> ScriptHost::LuaCreateSpriteFont(std::string_view fon
 
 std::unique_ptr<TtfFont> ScriptHost::LuaCreateTtfFont(std::string_view name, std::string_view fontPath, int size, std::string_view hinting) {
     Cairo::HintStyle hint;
-    if (hinting == "light") {
+    if (hinting == "slight") {
         hint = Cairo::HINT_STYLE_SLIGHT;
     } else if (hinting == "medium") {
         hint = Cairo::HINT_STYLE_MEDIUM;
