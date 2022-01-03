@@ -139,10 +139,6 @@ ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     labelType["setAlignment"] = &Label::SetAlignmentStr;
     labelType["setColorMod"] = &Label::SetColorMod;
     labelType["blendMode"] = sol::property(&Label::LuaGetBlendMode, &Label::LuaSetBlendMode);
-    labelType["bold"] = sol::property(&Label::GetBold, &Label::SetBold);
-    labelType["italic"] = sol::property(&Label::GetItalic, &Label::SetItalic);
-    labelType["underline"] = sol::property(&Label::GetUnderline, &Label::SetUnderline);
-    labelType["strikethrough"] = sol::property(&Label::GetStrikethrough, &Label::SetStrikethrough);
 
     // Sprite
     auto spriteType = CreateLuaObjectType<Sprite>(module, "Sprite", sol::no_constructor);
@@ -473,20 +469,20 @@ std::unique_ptr<SpriteFont> ScriptHost::LuaCreateSpriteFont(std::string_view fon
     return std::make_unique<SpriteFont>(fontPath, paletteName, useGlyphHeight, StringToBlendMode(blendMode));
 }
 
-std::unique_ptr<TtfFont> ScriptHost::LuaCreateTtfFont(std::string_view fontPath, int size, std::string_view hinting) {
-    ITtf::Hinting hint;
+std::unique_ptr<TtfFont> ScriptHost::LuaCreateTtfFont(std::string_view name, std::string_view fontPath, int size, std::string_view hinting) {
+    Cairo::HintStyle hint;
     if (hinting == "light") {
-        hint = ITtf::Hinting::Light;
-    } else if (hinting == "mono") {
-        hint = ITtf::Hinting::Mono;
-    } else if (hinting == "normal") {
-        hint = ITtf::Hinting::Normal;
+        hint = Cairo::HINT_STYLE_SLIGHT;
+    } else if (hinting == "medium") {
+        hint = Cairo::HINT_STYLE_MEDIUM;
     } else if (hinting == "none") {
-        hint = ITtf::Hinting::None;
+        hint = Cairo::HINT_STYLE_NONE;
+    } else if (hinting == "full") {
+        hint = Cairo::HINT_STYLE_FULL;
     } else {
         throw std::runtime_error("Unknown hinting type");
     }
-    return std::make_unique<TtfFont>(fontPath, size, hint);
+    return std::make_unique<TtfFont>(fontPath, name, size, hint);
 }
 
 std::unique_ptr<Label> ScriptHost::LuaCreateLabel(IFont &font) {

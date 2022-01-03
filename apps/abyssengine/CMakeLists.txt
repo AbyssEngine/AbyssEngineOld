@@ -41,6 +41,7 @@ target_sources(${APP_NAME} PRIVATE
         src/engine/embeddedfileprovider.cpp
         src/engine/spritefont.cpp
         src/engine/ttffont.cpp
+        src/engine/ttfmanager.cpp
         src/engine/soundeffect.cpp
         src/common/alignment.cpp
         src/common/blendmode.cpp
@@ -78,6 +79,7 @@ cmrc_add_resource_library(abyssengine_resources
     PREFIX abyss-embedded
     embed/Hack-Regular.ttf
     embed/attribution.txt
+    embed/fontconfig.xml
     )
 
 # -------------------------------------------------------------------------------------------------
@@ -141,6 +143,9 @@ endif ()
 # Libraries
 # -------------------------------------------------------------------------------------------------
 
+pkg_check_modules(PangoCairo REQUIRED IMPORTED_TARGET pangomm-1.4)
+pkg_check_modules(FontConfig REQUIRED IMPORTED_TARGET fontconfig)
+
 target_link_libraries(${APP_NAME}
         PRIVATE
         abyssengine_resources
@@ -157,6 +162,8 @@ target_link_libraries(${APP_NAME}
         ${LUA_LIBRARIES}
         LUA::lpeg
         ICU::uc
+        PkgConfig::PangoCairo
+        PkgConfig::FontConfig
         )
 
 

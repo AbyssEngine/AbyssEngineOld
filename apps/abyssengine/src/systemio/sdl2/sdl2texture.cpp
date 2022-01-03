@@ -1,10 +1,11 @@
 #include "sdl2texture.h"
 #include <stdexcept>
+#include <spdlog/spdlog.h>
 
 namespace AbyssEngine {
 
 SDL2::SDL2Texture::SDL2Texture(SDL_Renderer *renderer, SDL_Texture *texture)
-    : _renderer(renderer), _texture(texture), _width(0), _height(0), _textureFormat(ITexture::Format::TTF) {}
+    : _renderer(renderer), _texture(texture), _width(0), _height(0), _textureFormat(ITexture::Format::Static) {}
 
 SDL2::SDL2Texture::SDL2Texture(SDL_Renderer *renderer, ITexture::Format textureFormat, uint32_t width, uint32_t height)
     : _renderer(renderer), _texture(nullptr), _width(width), _height(height), _textureFormat(textureFormat) {
@@ -13,6 +14,9 @@ SDL2::SDL2Texture::SDL2Texture(SDL_Renderer *renderer, ITexture::Format textureF
 
     case Format::Static:
         _texture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, (int)width, (int)height);
+        break;
+    case Format::BGRA:
+        _texture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_BGRA32, SDL_TEXTUREACCESS_STATIC, (int)width, (int)height);
         break;
     case Format::YUV:
         _texture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_IYUV, SDL_TEXTUREACCESS_STREAMING, (int)width, (int)height);
@@ -35,10 +39,14 @@ void SDL2::SDL2Texture::SetPixels(std::span<const uint32_t> pixels) {
 }
 
 void SDL2::SDL2Texture::SetPixels(std::span<const uint8_t> pixels) {
-    if (pixels.size() != (4 * _width * _height))
+    SetPixels(pixels, 4 * (int)_width);
+}
+
+void SDL2::SDL2Texture::SetPixels(std::span<const uint8_t> pixels, int pitch) {
+    if (pixels.size() != (pitch * _height))
         throw std::runtime_error("Attempted to set pixels on the texture, but the data was the incorrect size.");
 
-    SDL_UpdateTexture(_texture, nullptr, pixels.data(), 4 * (int)_width);
+    SDL_UpdateTexture(_texture, nullptr, pixels.data(), pitch);
 }
 
 void SDL2::SDL2Texture::Render(const Rectangle &sourceRect, const Rectangle &destRect) {

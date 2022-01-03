@@ -1,5 +1,6 @@
 #include "label.h"
 #include "../engine/engine.h"
+#include <absl/strings/str_format.h>
 #include <absl/strings/str_replace.h>
 #include <absl/strings/str_split.h>
 
@@ -43,7 +44,7 @@ void Label::RenderCallback(int offsetX, int offsetY) {
         break;
     }
 
-    //Engine::Get()->GetSystemIO().DrawRect(posX, posY, finalWidth, finalHeight, 255, 100, 100);
+    // Engine::Get()->GetSystemIO().DrawRect(posX, posY, finalWidth, finalHeight, 255, 100, 100);
     DoRender(posX, posY);
 
     Node::RenderCallback(offsetX, offsetY);
@@ -54,14 +55,14 @@ void TtfLabel::PrepareRender(int &width, int &height) {
     if (_textures.empty()) {
         int total_width = 0;
         int total_height = 0;
-        _font.SetStyle(_style);
         for (std::string_view s : absl::StrSplit(_caption, '\n')) {
             Rectangle rect = {};
             if (s.empty()) {
                 auto texture = _font.RenderText("x", rect.Width, rect.Height);
                 _textures.push_back(nullptr);
             } else {
-                auto texture = _font.RenderText(s, rect.Width, rect.Height);
+                std::string markup = absl::StrFormat("<span color='#%02x%02x%02x'>%s</span>", _colorMod.Red, _colorMod.Green, _colorMod.Blue, s);
+                auto texture = _font.RenderText(markup, rect.Width, rect.Height);
                 _textures.push_back(std::move(texture));
             }
             total_width = std::max(total_width, rect.Width);
@@ -84,8 +85,6 @@ void TtfLabel::DoRender(int x, int y) {
             continue;
         }
         const auto &texture = _textures[i];
-        texture->SetBlendMode(_blendMode);
-        texture->SetColorMod(_colorMod.Red, _colorMod.Green, _colorMod.Blue);
         AbyssEngine::Rectangle dst = {};
         dst.Y = y;
         switch (_horizontalAlignment) {
@@ -129,44 +128,9 @@ void Label::SetColorMod(uint8_t red, uint8_t green, uint8_t blue) {
     _colorMod.Red = red;
     _colorMod.Green = green;
     _colorMod.Blue = blue;
+    ClearCache();
 }
 void Label::LuaSetBlendMode(std::string_view mode) { _blendMode = StringToBlendMode(mode); }
 std::string_view Label::LuaGetBlendMode() const { return BlendModeToString(_blendMode); }
-void Label::SetBold(bool value) {
-    if (value) {
-        _style += ITtf::Style::Bold;
-    } else {
-        _style -= ITtf::Style::Bold;
-    }
-    ClearCache();
-}
-bool Label::GetBold() const { return _style & ITtf::Style::Bold; }
-void Label::SetItalic(bool value) {
-    if (value) {
-        _style += ITtf::Style::Italic;
-    } else {
-        _style -= ITtf::Style::Italic;
-    }
-    ClearCache();
-}
-bool Label::GetItalic() const { return _style & ITtf::Style::Italic; }
-void Label::SetUnderline(bool value) {
-    if (value) {
-        _style += ITtf::Style::Underline;
-    } else {
-        _style -= ITtf::Style::Underline;
-    }
-    ClearCache();
-}
-bool Label::GetUnderline() const { return _style & ITtf::Style::Underline; }
-void Label::SetStrikethrough(bool value) {
-    if (value) {
-        _style += ITtf::Style::Strikethrough;
-    } else {
-        _style -= ITtf::Style::Strikethrough;
-    }
-    ClearCache();
-}
-bool Label::GetStrikethrough() const { return _style & ITtf::Style::Strikethrough; }
 
 } // namespace AbyssEngine

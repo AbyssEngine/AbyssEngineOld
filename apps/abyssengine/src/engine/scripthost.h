@@ -130,7 +130,7 @@ class ScriptHost {
     /// \param fontPath The path to the font file.
     /// \param size The size of the font.
     /// \param hinting The hinting to use for the font ('light', 'mono', 'normal', 'none').
-    std::unique_ptr<TtfFont> LuaCreateTtfFont(std::string_view fontPath, int size, std::string_view hinting);
+    std::unique_ptr<TtfFont> LuaCreateTtfFont(std::string_view name, std::string_view fontPath, int size, std::string_view hinting);
 
     /// \brief Creates a label
     /// \param font The font to use for the label.

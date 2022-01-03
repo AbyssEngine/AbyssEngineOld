@@ -21,7 +21,6 @@ class SDL2SystemIO : public SystemIO {
     void PauseAudio(bool pause) final;
     void SetFullscreen(bool fullscreen) final;
     std::unique_ptr<ITexture> CreateTexture(ITexture::Format textureFormat, uint32_t width, uint32_t height) final;
-    std::unique_ptr<ITtf> CreateTtf(LibAbyss::InputStream stream, int size, ITtf::Hinting hinting) final;
     bool HandleInputEvents(Node &rootNode) final;
     uint32_t GetTicks() final;
     void RenderStart() final;

@@ -50,7 +50,6 @@ class Label : public Node {
     std::string _caption;
     int _labelOffsetX = 0;
     int _labelOffsetY = 0;
-    ITtf::Style _style = (ITtf::Style)0;
 };
 
 class SpriteLabel : public Label {

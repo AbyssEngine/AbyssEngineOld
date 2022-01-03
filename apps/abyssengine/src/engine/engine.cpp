@@ -38,6 +38,7 @@ Engine::Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO> systemIo)
 
 void Engine::Run() {
     _loader.AddProvider(std::make_unique<EmbeddedFileProvider>());
+    _ttfManager.emplace();
     _debugConsoleNode.emplace();
 
     auto logger = std::shared_ptr<spdlog::logger>(

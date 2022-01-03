@@ -7,16 +7,19 @@
 #include "font.h"
 #include <memory>
 #include <string_view>
+#include <filesystem>
+#include <cairo/cairo.h>
+#include <cairomm/enums.h>
 
 namespace AbyssEngine {
 class TtfFont : public IFont {
   public:
-    explicit TtfFont(std::string_view filePath, int size, ITtf::Hinting hinting);
-    std::unique_ptr<ITexture> RenderText(std::string_view text, int &width, int &height);
-    void SetStyle(ITtf::Style style) { _ttf->SetStyle(style); }
+    explicit TtfFont(const std::filesystem::path& path, std::string_view name, int size, Cairo::HintStyle hint);
+    std::unique_ptr<ITexture> RenderText(const std::string& text, int &width, int &height);
 
   private:
-    std::unique_ptr<ITtf> _ttf;
+    std::string _name;
+    Cairo::HintStyle _hint;
 };
 } // namespace AbyssEngine
 
