@@ -8,13 +8,6 @@
 #include "font.h"
 #include <cairo/cairo.h>
 //#include <cairomm/enums.h>
-namespace Cairo {
-    using HintStyle = int;
-    inline constexpr int HINT_STYLE_SLIGHT = 0;
-    inline constexpr int HINT_STYLE_MEDIUM = 0;
-    inline constexpr int HINT_STYLE_NONE = 0;
-    inline constexpr int HINT_STYLE_FULL = 0;
-}
 #include <filesystem>
 #include <memory>
 #include <string_view>
@@ -22,12 +15,13 @@ namespace Cairo {
 namespace AbyssEngine {
 class TtfFont : public IFont {
   public:
-    explicit TtfFont(const std::filesystem::path &path, std::string_view name, int size, Cairo::HintStyle hint);
+    explicit TtfFont(const std::filesystem::path &path, std::string_view name, int size, /*Cairo::HintStyle*/
+            cairo_hint_style_t hint);
     std::unique_ptr<ITexture> RenderText(const std::string &text, int &width, int &height, eAlignment horizontalAlignment, int maxWidth);
 
   private:
     std::string _name;
-    Cairo::HintStyle _hint;
+    /*Cairo::HintStyle*/ cairo_hint_style_t _hint;
 };
 } // namespace AbyssEngine
 

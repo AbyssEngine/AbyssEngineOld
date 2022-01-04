@@ -13,7 +13,7 @@ constexpr std::string_view CONSOLE_SYMBOL = "> ";
 } // namespace
 
 DebugConsole::DebugConsole()
-    : _consoleFont(std::filesystem::path{"/abyss-embedded/Hack-Regular.ttf"}, "Hack", 10, Cairo::HINT_STYLE_SLIGHT), _consoleLabel(_consoleFont), _inputLabel(_consoleFont) {
+    : _consoleFont(std::filesystem::path{"/abyss-embedded/Hack-Regular.ttf"}, "Hack", 10, /*Cairo::HINT_STYLE_SLIGHT*/ CAIRO_HINT_STYLE_SLIGHT), _consoleLabel(_consoleFont), _inputLabel(_consoleFont) {
     _consoleLabel.SetCaption("");
     _consoleLabel.SetColorMod(255, 255, 255);
     _consoleLabel.SetVisible(true);

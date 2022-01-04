@@ -89,13 +89,6 @@ jobs:
         if: matrix.os == 'macos-11'
         run: brew install nasm icu4c && echo "CC=$LLVM_PATH/bin/clang" >> $GITHUB_ENV && echo "CXX=$LLVM_PATH/bin/clang++" >> $GITHUB_ENV
 
-      - name: Maybe reconfigure Conan (MacOS)
-        if: matrix.os == 'macos-11'
-        run: |
-            rm ~/.conan/profiles/default
-            conan profile new default --detect
-            conan profile update settings.compiler.libcxx=libcxx default
-
       - name: Remove broken dep
         if: matrix.os == 'macos-11'
         run: sed -i -e '/icu/d' vcpkg.json

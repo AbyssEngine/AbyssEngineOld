@@ -470,15 +470,20 @@ std::unique_ptr<SpriteFont> ScriptHost::LuaCreateSpriteFont(std::string_view fon
 }
 
 std::unique_ptr<TtfFont> ScriptHost::LuaCreateTtfFont(std::string_view name, std::string_view fontPath, int size, std::string_view hinting) {
-    Cairo::HintStyle hint;
+    //Cairo::HintStyle hint;
+    cairo_hint_style_t hint;
     if (hinting == "slight") {
-        hint = Cairo::HINT_STYLE_SLIGHT;
+        //hint = Cairo::HINT_STYLE_SLIGHT;
+        hint = CAIRO_HINT_STYLE_SLIGHT;
     } else if (hinting == "medium") {
-        hint = Cairo::HINT_STYLE_MEDIUM;
+        //hint = Cairo::HINT_STYLE_MEDIUM;
+        hint = CAIRO_HINT_STYLE_MEDIUM;
     } else if (hinting == "none") {
-        hint = Cairo::HINT_STYLE_NONE;
+        //hint = Cairo::HINT_STYLE_NONE;
+        hint = CAIRO_HINT_STYLE_NONE;
     } else if (hinting == "full") {
-        hint = Cairo::HINT_STYLE_FULL;
+        //hint = Cairo::HINT_STYLE_FULL;
+        hint = CAIRO_HINT_STYLE_FULL;
     } else {
         throw std::runtime_error("Unknown hinting type");
     }
