@@ -3,6 +3,7 @@
 #include "config.h"
 #include <absl/strings/str_join.h>
 //#include <glibmm.h>
+#include <glib.h>
 
 namespace AbyssEngine {
 namespace {
@@ -50,6 +51,11 @@ void DebugConsole::AddLine(const std::string &line) {
 
     _lines.push_back(line);
 //    _consoleLabel.SetCaption(std::string(Glib::Markup::escape_text(absl::StrJoin(_lines, "\n"))));
+    std::string text = absl::StrJoin(_lines, "\n");
+    char* result = g_markup_escape_text(text.data(), text.length());
+    std::string escaped = result;
+    free(result);
+    _consoleLabel.SetCaption(escaped);
 }
 void DebugConsole::KeyboardEventCallback(const KeyboardEvent &event) {
     auto &io = Engine::Get()->GetSystemIO();
