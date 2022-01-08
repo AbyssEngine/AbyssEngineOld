@@ -10,7 +10,6 @@
 #include <SDL_hints.h>
 #include <SDL_stdinc.h>
 #include <SDL_syswm.h>
-#include <SDL_ttf.h>
 #include <span>
 #include <spdlog/spdlog.h>
 #ifdef __APPLE__
@@ -30,17 +29,12 @@ SDL2::SDL2SystemIO::SDL2SystemIO() : SystemIO::SystemIO(), _audioSpec(), _mouseB
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER | SDL_INIT_TIMER | SDL_INIT_AUDIO) != 0)
         throw std::runtime_error(SDL_GetError());
 
-    if (TTF_Init() != 0) {
-        throw std::runtime_error(TTF_GetError());
-    }
-
     _sdlWindow = std::unique_ptr<SDL_Window, std::function<void(SDL_Window *)>>(SDL_CreateWindow(ABYSS_VERSION_STRING, SDL_WINDOWPOS_UNDEFINED,
                                                                                                  SDL_WINDOWPOS_UNDEFINED, 800, 600,
                                                                                                  SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI),
                                                                                 [](SDL_Window *x) {
                                                                                     SDL_DestroyWindow(x);
                                                                                     SDL_Quit();
-                                                                                    TTF_Quit();
                                                                                 });
 
     if (_sdlWindow == nullptr)
@@ -64,7 +58,6 @@ SDL2::SDL2SystemIO::SDL2SystemIO() : SystemIO::SystemIO(), _audioSpec(), _mouseB
         SDL_CreateRenderer(_sdlWindow.get(), -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC), [](SDL_Renderer *x) {
             SDL_DestroyRenderer(x);
             SDL_Quit();
-            TTF_Quit();
         });
 
     if (_sdlRenderer == nullptr)
