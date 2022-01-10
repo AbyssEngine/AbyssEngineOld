@@ -11,13 +11,14 @@ namespace AbyssEngine {
 Engine *engineGlobalInstance = nullptr;
 
 Engine::Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO> systemIo)
-    : _iniFile(std::move(iniFile)), _loader(), _systemIO(std::move(systemIo)), _palettes(), _rootNode("__root"),
-      _scriptHost(std::make_unique<ScriptHost>(this)), _mouseButtonState((eMouseButton)0) {
+    : _iniFile(std::move(iniFile)), _loader(), _systemIO(std::move(systemIo)), _palettes(),
+      _scriptHost(std::make_unique<ScriptHost>(this)), _rootNode("__root"), _mouseButtonState((eMouseButton)0) {
 
     SPDLOG_TRACE("Creating engine");
 
     // Set up the global instance
     engineGlobalInstance = this;
+    _rootNode.SetLuaTable(_scriptHost->CreateTable());
 
     // Set the full screen mode based on the INI file
     _systemIO->SetFullscreen(_iniFile.GetValueBool("Video", "FullScreen"));
