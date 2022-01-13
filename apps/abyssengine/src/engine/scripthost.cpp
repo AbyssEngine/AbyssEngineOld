@@ -229,7 +229,6 @@ ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     zoneType["height"] = sol::readonly_property(&LibAbyss::Zone::HeightInTiles);
 
     _environment.add(module);
-    _engine->GetRootNode().SetLuaTable(_lua.create_table());
 }
 
 std::tuple<sol::object, sol::object> ScriptHost::LuaLoadString(const std::string_view str, std::string_view chunkName) {
