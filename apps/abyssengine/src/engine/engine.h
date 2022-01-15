@@ -1,8 +1,8 @@
 #ifndef ABYSS_ENGINE_H
 #define ABYSS_ENGINE_H
 
-#include "../node/sprite.h"
 #include "../node/debugconsole.h"
+#include "../node/sprite.h"
 #include "../node/video.h"
 #include "../systemio/interface.h"
 #include "ttfmanager.h"
@@ -143,8 +143,8 @@ class Engine {
     std::shared_ptr<EngineLogger> _logger;
     std::unique_ptr<AbyssEngine::SystemIO> _systemIO;
     absl::node_hash_map<std::string, LibAbyss::Palette> _palettes;
-    Node _rootNode;
     std::unique_ptr<ScriptHost> _scriptHost;
+    Node _rootNode;
     Node *_focusedNode = nullptr;
     std::optional<DebugConsole> _debugConsoleNode;
     bool _running = true;

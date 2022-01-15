@@ -31,6 +31,7 @@ class ScriptHost {
     std::string ExecuteString(std::string_view code);
     void ExecuteFile(std::string_view path);
     void GC();
+    sol::table CreateTable() { return _lua.create_table(); }
 
   private:
     Engine *_engine;
