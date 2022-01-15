@@ -486,7 +486,7 @@ std::unique_ptr<TtfFont> ScriptHost::LuaCreateTtfFont(std::string_view name, std
     } else {
         throw std::runtime_error("Unknown hinting type");
     }
-    return std::make_unique<TtfFont>(fontPath, name, size, hint);
+    return std::make_unique<TtfFont>(fontPath, name, size, hint, CAIRO_ANTIALIAS_SUBPIXEL);
 }
 
 std::unique_ptr<Label> ScriptHost::LuaCreateLabel(IFont &font) {

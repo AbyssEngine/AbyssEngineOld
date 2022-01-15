@@ -16,12 +16,13 @@ namespace AbyssEngine {
 class TtfFont : public IFont {
   public:
     explicit TtfFont(const std::filesystem::path &path, std::string_view name, int size, /*Cairo::HintStyle*/
-            cairo_hint_style_t hint);
+            cairo_hint_style_t hint, cairo_antialias_t antialias);
     std::unique_ptr<ITexture> RenderText(const std::string &text, int &width, int &height, eAlignment horizontalAlignment, int maxWidth);
 
   private:
     std::string _name;
     /*Cairo::HintStyle*/ cairo_hint_style_t _hint;
+    cairo_antialias_t _antialias;
 };
 } // namespace AbyssEngine
 

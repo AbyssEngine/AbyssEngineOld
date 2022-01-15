@@ -11,8 +11,8 @@
 namespace AbyssEngine {
 
 TtfFont::TtfFont(const std::filesystem::path &path, std::string_view name, int size, /*Cairo::HintStyle*/
-        cairo_hint_style_t hint)
-    : _name(absl::StrCat(name, " ", size)), _hint(hint) {
+        cairo_hint_style_t hint, cairo_antialias_t antialias)
+    : _name(absl::StrCat(name, " ", size)), _hint(hint), _antialias(antialias) {
     auto *engine = AbyssEngine::Engine::Get();
     engine->GetTtfManager().AddFont(path);
 }
@@ -26,12 +26,13 @@ std::unique_ptr<ITexture> TtfFont::RenderText(const std::string &text, int &widt
     auto* opts = cairo_font_options_create();
     absl::Cleanup clean_opts([&]{ cairo_font_options_destroy(opts); });
     cairo_font_options_set_hint_style(opts, _hint);
-    cairo_font_options_set_antialias(opts, CAIRO_ANTIALIAS_SUBPIXEL);
+    cairo_font_options_set_antialias(opts, _antialias);
     pango_cairo_context_set_font_options(pctx, opts);
 
     auto* layout = pango_layout_new(pctx);
     absl::Cleanup clean_layout([&]{ g_object_unref(layout); });
     auto* desc = pango_font_description_from_string(_name.c_str());
+    pango_font_description_set_weight(desc, PANGO_WEIGHT_BOLD);
     pango_layout_set_font_description(layout, desc);
     pango_font_description_free(desc);
 
