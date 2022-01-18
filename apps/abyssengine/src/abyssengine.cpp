@@ -13,6 +13,11 @@
 #include <memory>
 #include <spdlog/spdlog.h>
 
+#if _WINDOWS
+#define _WIN32_WINNT 0x0502
+#include <Windows.h>
+#endif
+
 static std::filesystem::path GetConfigPath(std::string_view exePath) {
     auto testPath = std::filesystem::current_path() / "config.ini";
 
