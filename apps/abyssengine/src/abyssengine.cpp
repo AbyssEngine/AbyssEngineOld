@@ -82,7 +82,7 @@ int main(int, char *argv[]) {
         engine.Run();
 
     } catch (std::exception &ex) {
-        SPDLOG_CRITICAL(ex.what());
+        SPDLOG_CRITICAL("{}", ex.what());
         AbyssEngine::HostNotify::Notify(AbyssEngine::eNotifyType::Fatal, "AbyssEngine Crash", ex.what());
         return EXIT_FAILURE;
     }

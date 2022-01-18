@@ -281,11 +281,15 @@ void SDL2::SDL2SystemIO::InitializeAudio() {
     _hasAudio = _audioDeviceId >= 0;
 
     if (!_hasAudio) {
-        SPDLOG_WARN(SDL_GetError());
+        SPDLOG_WARN("{}", SDL_GetError());
         return;
     }
 
-    SPDLOG_INFO("Using audio device {0} via {1}", SDL_GetAudioDeviceName(_audioDeviceId, SDL_FALSE), SDL_GetCurrentAudioDriver());
+    const char* name = SDL_GetAudioDeviceName(_audioDeviceId, SDL_FALSE);
+    if (name == nullptr) {
+        name = "(unknown)";
+    }
+    SPDLOG_INFO("Using audio device {0} via {1}", name, SDL_GetCurrentAudioDriver());
 }
 
 void SDL2::SDL2SystemIO::HandleAudioCallback(void *userData, Uint8 *stream, int length) {
