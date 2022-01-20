@@ -336,32 +336,32 @@ void ScriptHost::LuaShowSystemCursor(bool show) { _engine->ShowSystemCursor(show
 
 void ScriptHost::LuaLog(std::string_view level, std::string_view message) {
     if (level == "info") {
-        SPDLOG_INFO(message);
+        SPDLOG_INFO("{}", message);
         return;
     }
 
     if (level == "error") {
-        SPDLOG_ERROR(message);
+        SPDLOG_ERROR("{}", message);
         return;
     }
 
     if (level == "fatal") {
-        SPDLOG_CRITICAL(message);
+        SPDLOG_CRITICAL("{}", message);
         return;
     }
 
     if (level == "warn") {
-        SPDLOG_WARN(message);
+        SPDLOG_WARN("{}", message);
         return;
     }
 
     if (level == "debug") {
-        SPDLOG_DEBUG(message);
+        SPDLOG_DEBUG("{}", message);
         return;
     }
 
     if (level == "trace") {
-        SPDLOG_TRACE(message);
+        SPDLOG_TRACE("{}", message);
         return;
     }
 
