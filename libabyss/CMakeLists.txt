@@ -75,8 +75,12 @@ target_link_libraries(${APP_NAME}
         PNG::PNG
         stormlib::stormlib
         absl::str_format
-        fmt::fmt
         ${FFMPEG_LIBRARIES}
+        )
+
+target_link_libraries(${APP_NAME}
+        PUBLIC
+        spdlog::spdlog
         )
 
 

@@ -16,6 +16,7 @@
 #include <filesystem>
 #include <functional>
 #include <optional>
+#include <spdlog/sinks/sink.h>
 #include <string>
 #include <utility>
 

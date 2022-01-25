@@ -151,7 +151,7 @@ target_link_libraries(${APP_NAME}
         Threads::Threads
         SDL2::SDL2main
         SDL2::SDL2
-        spdlog::spdlog_header_only
+        spdlog::spdlog
         sol2::sol2
         cppzmq
         ${FFMPEG_LIBRARIES}
