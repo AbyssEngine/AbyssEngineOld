@@ -1,6 +1,8 @@
 [requires]
 fontconfig/2.13.93
 pango/1.49.3
+expat/2.4.2
+freetype/2.11.1
 
 [generators]
 cmake_find_package
