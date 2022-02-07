@@ -5,9 +5,12 @@ namespace LibAbyss {
 namespace {
 const uint8_t EndOfScanline = 0x80;
 const uint8_t MaxRunLength = 0x7F;
-const uint8_t EndOfLine = 1;
-const int RunOfTransparentPixels = 2;
-const int RunOfOpaquePixels = 3;
+enum ByteType {
+    EndOfLine = 1,
+    RunOfTransparentPixels,
+    RunOfOpaquePixels,
+    Terminator,
+};
 } // namespace
 
 DC6::DC6(InputStream &stream) : Termination() {
@@ -28,6 +31,7 @@ DC6::DC6(InputStream &stream) : Termination() {
     for (unsigned int i = 0; i < totalFrames; ++i) {
         pointers.push_back(sr.ReadUInt32());
     }
+    pointers.push_back(stream.size());
 
     uint32_t num = 0;
     for (auto directionIndex = 0; directionIndex < NumberOfDirections; directionIndex++) {
@@ -37,14 +41,14 @@ DC6::DC6(InputStream &stream) : Termination() {
         for (auto frameIndex = 0; frameIndex < FramesPerDirection; frameIndex++) {
             stream.clear();
             stream.seekg(pointers[num++], std::ios_base::beg);
-            direction.Frames.emplace_back(sr);
+            direction.Frames.emplace_back(this, sr, pointers[num] - pointers[num - 1]);
         }
 
         Directions.push_back(direction);
     }
 }
 
-DC6::Direction::Frame::Frame(StreamReader &sr) {
+DC6::Direction::Frame::Frame(DC6* dc6, StreamReader &sr, uint32_t Len): dc6(dc6) {
     Flipped = sr.ReadUInt32();
     Width = sr.ReadUInt32();
     Height = sr.ReadUInt32();
@@ -53,10 +57,10 @@ DC6::Direction::Frame::Frame(StreamReader &sr) {
     Unknown = sr.ReadUInt32();
     NextBlock = sr.ReadUInt32();
     Length = sr.ReadUInt32();
+    Length = Len - 32;
     FrameData.resize(Length);
     sr.ReadBytes(FrameData);
     IndexData.resize(Width * Height);
-
     Decode();
 }
 void DC6::Direction::Frame::Decode() {
@@ -73,7 +77,7 @@ void DC6::Direction::Frame::Decode() {
 
         auto b = FrameData[offset++];
 
-        switch (GetScanlineType(b)) {
+        switch (dc6->GetScanlineType(b)) {
         case EndOfLine:
             if (y == endy)
                 goto done;
@@ -96,13 +100,18 @@ void DC6::Direction::Frame::Decode() {
             }
             x += b;
             continue;
+        case Terminator:
+            return;
         }
     }
 
 done:
     return;
 }
-uint8_t DC6::Direction::Frame::GetScanlineType(uint8_t b) {
+uint8_t DC6::GetScanlineType(uint8_t b) {
+    if (Termination[0] != 0 && b == Termination[0])
+        return Terminator;
+
     if (b == EndOfScanline)
         return EndOfLine;
 

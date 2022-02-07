@@ -1,9 +1,9 @@
 #ifndef LIBABYSS_DC6_H
 #define LIBABYSS_DC6_H
 
-#include <cstdint>
 #include "libabyss/streams/inputstream.h"
 #include "libabyss/streams/streamreader.h"
+#include <cstdint>
 #include <vector>
 
 namespace LibAbyss {
@@ -14,7 +14,7 @@ class DC6 {
       public:
         class Frame {
           public:
-            explicit Frame(StreamReader &sr);
+            explicit Frame(DC6* dc6, StreamReader &sr, uint32_t Len);
             uint32_t Flipped = 0;
             uint32_t Width = 0;
             uint32_t Height = 0;
@@ -28,7 +28,7 @@ class DC6 {
 
           private:
             void Decode();
-            static uint8_t GetScanlineType(uint8_t b);
+            DC6* dc6;
         };
 
         Direction() : Frames() {}
@@ -43,6 +43,9 @@ class DC6 {
     uint32_t NumberOfDirections;
     uint32_t FramesPerDirection;
     std::vector<Direction> Directions;
+
+  private:
+    uint8_t GetScanlineType(uint8_t b);
 };
 } // namespace LibAbyss
 
