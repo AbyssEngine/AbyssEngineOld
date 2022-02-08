@@ -159,6 +159,12 @@ target_link_libraries(${APP_NAME}
         ICU::uc
         )
 
+if (UNIX)
+    if (ENV{GITHUB_ACTIONS})
+        # vcpkg's sdl2 is broken and doesn't depend on libX11 when it should
+        target_link_libraries(${APP_NAME} PRIVATE -lX11)
+    endif()
+endif()
 
 # -------------------------------------------------------------------------------------------------
 # FFMPEG Dependencies

@@ -52,11 +52,6 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get update && sudo apt-get install nasm libxext-dev libavcodec-dev libavformat-dev libavdevice-dev libavfilter-dev
 
-      - name: Fix vcpkg sdl (Ubuntu)
-        if: matrix.os == 'ubuntu-latest'
-        # sdl2 from vcpkg misses some build flags
-        run: echo "LDFLAGS=-lX11" >> $GITHUB_ENV
-
       - name: Install GCC (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
         run: sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get install g++-10 libstdc++-10-dev && echo "CC=gcc-10" >> $GITHUB_ENV && echo "CXX=g++-10" >> $GITHUB_ENV
