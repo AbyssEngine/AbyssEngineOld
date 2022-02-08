@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(APP_NAME abyssengine)
 
 if (MSVC)
-    set(OPTIONS WIN32 src/node/inputlistener.cpp src/node/inputlistener.h)
+    set(OPTIONS WIN32)
     set(SOURCE_EXTRA resource.rc)
     set(APP_NAME "AbyssEngine")
     add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_HAS_DEPRECATED_RESULT_OF=1)
