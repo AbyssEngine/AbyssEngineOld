@@ -162,6 +162,12 @@ target_link_libraries(${APP_NAME}
         Fontconfig::Fontconfig
         )
 
+if (UNIX AND NOT APPLE)
+    if (DEFINED ENV{GITHUB_ACTIONS})
+        # vcpkg's sdl2 is broken and doesn't depend on libX11 when it should
+        target_link_libraries(${APP_NAME} PRIVATE -lX11 -lXext)
+    endif()
+endif()
 
 # -------------------------------------------------------------------------------------------------
 # FFMPEG Dependencies

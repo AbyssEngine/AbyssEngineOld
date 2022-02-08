@@ -98,7 +98,7 @@ jobs:
         with:
           vcpkgJsonGlob: "**/vcpkg.json"
           vcpkgDirectory: "${{ github.workspace }}/vcpkg"
-          vcpkgGitCommitId: "709e9ec32e27319636c047a38744e1ce0e229ae4"
+          vcpkgGitCommitId: "cef0e8a8c7e5493283f2895c9c6fd8431d166b43"
           appendedCacheKey: ${{ hashFiles( '**/vcpkg.json' ) }}
 
       - name: Build
