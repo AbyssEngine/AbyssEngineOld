@@ -31,6 +31,14 @@
         "CMAKE_TOOLCHAIN_FILE": {
           "type": "FILEPATH",
           "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        },
+        "VCPKG_LIBRARY_LINKAGE": {
+          "type": "STRING",
+          "value": "dynamic"
+        },
+        "VCPKG_BUILD_TYPE": {
+          "type": "STRING",
+          "value": "release"
         }
       }
     },
