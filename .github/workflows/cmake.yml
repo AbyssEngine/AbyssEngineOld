@@ -56,15 +56,9 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get install g++-10 libstdc++-10-dev && echo "CC=gcc-10" >> $GITHUB_ENV && echo "CXX=g++-10" >> $GITHUB_ENV
 
-      - name: Install LLVM and Clang (MacOS)
-        if: matrix.os == 'macos-11'
-        uses: KyleMayes/install-llvm-action@v1
-        with:
-          version: "13.0"
-
       - name: Install Deps (MacOS)
         if: matrix.os == 'macos-11'
-        run: brew install nasm icu4c && echo "CC=$LLVM_PATH/bin/clang" >> $GITHUB_ENV && echo "CXX=$LLVM_PATH/bin/clang++" >> $GITHUB_ENV
+        run: brew install nasm icu4c
 
       - name: Remove broken dep
         if: matrix.os == 'macos-11'
