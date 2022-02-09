@@ -52,6 +52,8 @@ DC6::DC6(InputStream &stream) : Termination() {
             stream.clear();
             stream.seekg(pointers[num++], std::ios_base::beg);
             direction.Frames.emplace_back(this, sr, pointers[num] - pointers[num - 1]);
+            if (stream.eof())
+                throw std::runtime_error("EOF while decoding DC6.");
         }
 
         Directions.push_back(direction);
@@ -85,8 +87,6 @@ void DC6::Direction::Frame::Decode(StreamReader &sr) {
 
         auto b = sr.ReadUInt8();
         offset++;
-        if (sr.eof())
-            throw std::runtime_error("EOF while decoding DC6 frame.");
 
         switch (GetScanlineType(b)) {
         case EndOfLine:
@@ -114,8 +114,6 @@ void DC6::Direction::Frame::Decode(StreamReader &sr) {
 
                 IndexData[x + (y * Width) + i] = sr.ReadUInt8();
                 offset++;
-                if (sr.eof())
-                    throw std::runtime_error("EOF while decoding DC6 frame.");
             }
             x += b;
             continue;
