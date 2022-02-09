@@ -37,6 +37,8 @@ class StreamReader {
 
     std::string ReadString();
 
+    bool eof() const { return _inputStream.eof(); }
+
   private:
     InputStream &_inputStream;
 };

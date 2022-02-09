@@ -23,11 +23,10 @@ class DC6 {
             uint32_t Unknown = 0;
             uint32_t NextBlock = 0;
             uint32_t Length = 0;
-            std::vector<uint8_t> FrameData;
             std::vector<uint8_t> IndexData;
 
           private:
-            void Decode();
+            void Decode(StreamReader &sr);
             DC6* dc6;
         };
 
@@ -43,9 +42,6 @@ class DC6 {
     uint32_t NumberOfDirections;
     uint32_t FramesPerDirection;
     std::vector<Direction> Directions;
-
-  private:
-    uint8_t GetScanlineType(uint8_t b);
 };
 } // namespace LibAbyss
 
