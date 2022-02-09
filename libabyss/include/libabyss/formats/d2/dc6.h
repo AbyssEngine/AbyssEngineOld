@@ -14,7 +14,7 @@ class DC6 {
       public:
         class Frame {
           public:
-            explicit Frame(DC6* dc6, StreamReader &sr, uint32_t Len);
+            explicit Frame(StreamReader &sr);
             uint32_t Flipped = 0;
             uint32_t Width = 0;
             uint32_t Height = 0;
@@ -27,7 +27,6 @@ class DC6 {
 
           private:
             void Decode(StreamReader &sr);
-            DC6* dc6;
         };
 
         Direction() : Frames() {}

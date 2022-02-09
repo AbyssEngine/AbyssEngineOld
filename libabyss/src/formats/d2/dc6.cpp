@@ -41,7 +41,6 @@ DC6::DC6(InputStream &stream) : Termination() {
     for (unsigned int i = 0; i < totalFrames; ++i) {
         pointers.push_back(sr.ReadUInt32());
     }
-    pointers.push_back(stream.size());
 
     uint32_t num = 0;
     for (auto directionIndex = 0; directionIndex < NumberOfDirections; directionIndex++) {
@@ -51,7 +50,7 @@ DC6::DC6(InputStream &stream) : Termination() {
         for (auto frameIndex = 0; frameIndex < FramesPerDirection; frameIndex++) {
             stream.clear();
             stream.seekg(pointers[num++], std::ios_base::beg);
-            direction.Frames.emplace_back(this, sr, pointers[num] - pointers[num - 1]);
+            direction.Frames.emplace_back(sr);
             if (stream.eof())
                 throw std::runtime_error("EOF while decoding DC6.");
         }
@@ -60,7 +59,7 @@ DC6::DC6(InputStream &stream) : Termination() {
     }
 }
 
-DC6::Direction::Frame::Frame(DC6 *dc6, StreamReader &sr, uint32_t Len) : dc6(dc6) {
+DC6::Direction::Frame::Frame(StreamReader &sr) {
     Flipped = sr.ReadUInt32();
     Width = sr.ReadUInt32();
     Height = sr.ReadUInt32();
@@ -121,6 +120,8 @@ void DC6::Direction::Frame::Decode(StreamReader &sr) {
     }
 
 done:
+    if (offset != Length)
+        throw std::runtime_error("Invalid DC6 frame length.");
     return;
 }
 
