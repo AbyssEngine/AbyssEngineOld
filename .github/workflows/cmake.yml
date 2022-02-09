@@ -58,7 +58,7 @@ jobs:
 
       - name: Install Deps (MacOS)
         if: matrix.os == 'macos-11'
-        run: brew install nasm icu4c
+        run: brew install nasm icu4c automake
 
       - name: Remove broken dep
         if: matrix.os == 'macos-11'
