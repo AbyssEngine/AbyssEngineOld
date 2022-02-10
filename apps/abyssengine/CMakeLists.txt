@@ -159,6 +159,7 @@ target_link_libraries(${APP_NAME}
         LUA::lpeg
         ICU::uc
         PkgConfig::PangoCairo
+        PkgConfig::PangoMM
         PkgConfig::Fontconfig
         )
 
