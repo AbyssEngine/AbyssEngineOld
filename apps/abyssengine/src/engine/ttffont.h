@@ -6,7 +6,7 @@
 #include "../common/color.h"
 #include "../systemio/interface.h"
 #include "font.h"
-#include <cairo/cairo.h>
+#include <cairo.h>
 //#include <cairomm/enums.h>
 #include <filesystem>
 #include <memory>
