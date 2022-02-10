@@ -58,11 +58,11 @@ jobs:
 
       - name: Install Deps (MacOS)
         if: matrix.os == 'macos-11'
-        run: brew install nasm icu4c automake
+        run: brew install nasm icu4c automake pangomm
 
       - name: Remove broken dep
         if: matrix.os == 'macos-11'
-        run: sed -i -e '/icu/d' vcpkg.json
+        run: sed -i -e '/icu/d' vcpkg.json && sed -i -e '/pango/d' vcpkg.json
 
       - name: Run vcpkg
         uses: lukka/run-vcpkg@v10
