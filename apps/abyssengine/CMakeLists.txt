@@ -161,6 +161,7 @@ target_link_libraries(${APP_NAME}
         PkgConfig::PangoCairo
         PkgConfig::PangoMM
         PkgConfig::Fontconfig
+        Freetype::Freetype
         )
 
 if (UNIX AND NOT APPLE)

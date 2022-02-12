@@ -468,7 +468,7 @@ std::unique_ptr<SpriteFont> ScriptHost::LuaCreateSpriteFont(std::string_view fon
     return std::make_unique<SpriteFont>(fontPath, paletteName, useGlyphHeight, StringToBlendMode(blendMode));
 }
 
-std::unique_ptr<TtfFont> ScriptHost::LuaCreateTtfFont(std::string_view name, std::string_view fontPath, int size, std::string_view hinting) {
+std::unique_ptr<TtfFont> ScriptHost::LuaCreateTtfFont(std::string_view fontPath, int size, std::string_view hinting) {
     //Cairo::HintStyle hint;
     cairo_hint_style_t hint;
     if (hinting == "slight") {
@@ -486,7 +486,7 @@ std::unique_ptr<TtfFont> ScriptHost::LuaCreateTtfFont(std::string_view name, std
     } else {
         throw std::runtime_error("Unknown hinting type");
     }
-    return std::make_unique<TtfFont>(fontPath, name, size, hint, CAIRO_ANTIALIAS_SUBPIXEL);
+    return std::make_unique<TtfFont>(fontPath, size, hint, CAIRO_ANTIALIAS_SUBPIXEL);
 }
 
 std::unique_ptr<Label> ScriptHost::LuaCreateLabel(IFont &font) {

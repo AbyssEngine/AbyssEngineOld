@@ -10,11 +10,11 @@
 
 namespace AbyssEngine {
 
-TtfFont::TtfFont(const std::filesystem::path &path, std::string_view name, int size, /*Cairo::HintStyle*/
+TtfFont::TtfFont(const std::filesystem::path &path, int size, /*Cairo::HintStyle*/
         cairo_hint_style_t hint, cairo_antialias_t antialias)
-    : _name(absl::StrCat(name, " ", size)), _hint(hint), _antialias(antialias) {
+    : _hint(hint), _antialias(antialias) {
     auto *engine = AbyssEngine::Engine::Get();
-    engine->GetTtfManager().AddFont(path);
+    _name = absl::StrCat(engine->GetTtfManager().AddFont(path), " ", size);
 }
 
 std::unique_ptr<ITexture> TtfFont::RenderText(const std::string &text, int &width, int &height, eAlignment horizontalAlignment, int maxWidth) {

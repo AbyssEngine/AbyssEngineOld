@@ -128,11 +128,10 @@ class ScriptHost {
             useGlyphHeight, std::string_view blendMode);
 
     /// \brief Creates a TTF font
-    /// \param fontName The name of the font as specified in the font file. TODO: read it automatically.
     /// \param fontPath The path to the font file.
     /// \param size The size of the font.
-    /// \param hinting The hinting to use for the font ('light', 'mono', 'normal', 'none').
-    std::unique_ptr<TtfFont> LuaCreateTtfFont(std::string_view name, std::string_view fontPath, int size, std::string_view hinting);
+    /// \param hinting The hinting to use for the font ('slight', 'medium', 'full', 'none').
+    std::unique_ptr<TtfFont> LuaCreateTtfFont(std::string_view fontPath, int size, std::string_view hinting);
 
     /// \brief Creates a label
     /// \param font The font to use for the label.

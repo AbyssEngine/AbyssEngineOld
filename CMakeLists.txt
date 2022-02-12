@@ -86,6 +86,7 @@ find_package(FFMPEG COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE REQUIR
 find_package(Lua ${ABYSS_REQUIRED_LUA} EXACT REQUIRED)
 find_package(PNG REQUIRED)
 find_package(ICU COMPONENTS uc REQUIRED)
+find_package(Freetype REQUIRED)
 include_sdl2()
 include_stormlib()
 include_casclib()

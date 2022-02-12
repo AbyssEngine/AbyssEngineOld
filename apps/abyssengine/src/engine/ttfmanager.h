@@ -12,11 +12,13 @@ class TtfManager {
   public:
     TtfManager();
     ~TtfManager();
-    void AddFont(const std::filesystem::path &path);
+
+    // Makes the font available to pango, returns the name which should be passed to pango
+    std::string AddFont(const std::filesystem::path &path);
 
   private:
     FcConfig *_fcConfig;
-    absl::flat_hash_map<std::string, std::filesystem::path> _knownFonts;
+    absl::flat_hash_map<std::string, std::pair<std::string, std::filesystem::path>> _knownFonts;
 };
 } // namespace AbyssEngine
 
