@@ -1,9 +1,9 @@
 #ifndef LIBABYSS_DC6_H
 #define LIBABYSS_DC6_H
 
-#include <cstdint>
 #include "libabyss/streams/inputstream.h"
 #include "libabyss/streams/streamreader.h"
+#include <cstdint>
 #include <vector>
 
 namespace LibAbyss {
@@ -23,12 +23,10 @@ class DC6 {
             uint32_t Unknown = 0;
             uint32_t NextBlock = 0;
             uint32_t Length = 0;
-            std::vector<uint8_t> FrameData;
             std::vector<uint8_t> IndexData;
 
           private:
-            void Decode();
-            static uint8_t GetScanlineType(uint8_t b);
+            void Decode(StreamReader &sr);
         };
 
         Direction() : Frames() {}
