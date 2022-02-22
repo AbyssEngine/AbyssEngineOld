@@ -18,11 +18,11 @@ function(configure_brew)
                 endif()
             endif()
 
-            execute_process(COMMAND "${brew}" --prefix
+            execute_process(COMMAND "${brew}" --prefix icu4c
                 RESULT_VARIABLE brew_f
                 OUTPUT_VARIABLE brew_out OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
             if (brew_f EQUAL 0)
-                file(GLOB dirs LIST_DIRECTORIES true CONFIGURE_DEPENDS "${brew_out}/*")
+                file(GLOB dirs LIST_DIRECTORIES true CONFIGURE_DEPENDS "${brew_out}/../*")
                 foreach(dir IN LISTS dirs)
                     set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${dir}/lib/pkgconfig")
                 endforeach()
