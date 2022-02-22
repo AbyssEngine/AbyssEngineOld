@@ -1,4 +1,4 @@
-macro(configure_brew)
+function(configure_brew)
     if(APPLE)
         find_program(brew brew)
         if(brew)
@@ -14,33 +14,24 @@ macro(configure_brew)
                     OUTPUT_VARIABLE brew_icu OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
                 if(brew_icu_f EQUAL 0)
                     find_package_message(brew_icu "ICU via Homebrew: ${brew_icu}" "${brew_icu}")
-                    SET(ICU_ROOT "${brew_icu}")
+                    SET(ICU_ROOT "${brew_icu}" PARENT_SCOPE)
                 endif()
             endif()
 
-            execute_process(COMMAND "${brew}" --prefix pango
-                RESULT_VARIABLE brew_pango_f
-                OUTPUT_VARIABLE brew_pango OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
-            if(brew_pango_f EQUAL 0)
-                find_package_message(brew_pango "Pango via Homebrew: ${brew_pango}" "${brew_pango}")
-                set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${brew_pango}/lib/pkgconfig")
-            endif()
+            function(brew_to_pkg_config name)
+                execute_process(COMMAND "${brew}" --prefix "${name}"
+                    RESULT_VARIABLE brew_f
+                    OUTPUT_VARIABLE brew_out OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+                if(brew_f EQUAL 0)
+                    find_package_message("brew_${name}" "${name} via Homebrew: ${brew_out}" "${brew_out}")
+                    set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${brew_out}/lib/pkgconfig")
+                endif()
+            endfunction()
 
-            execute_process(COMMAND "${brew}" --prefix pangomm
-                RESULT_VARIABLE brew_pangomm_f
-                OUTPUT_VARIABLE brew_pangomm OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
-            if(brew_pangomm_f EQUAL 0)
-                find_package_message(brew_pangomm "Pango via Homebrew: ${brew_pangomm}" "${brew_pangomm}")
-                set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${brew_pangomm}/lib/pkgconfig")
-            endif()
-
-            execute_process(COMMAND "${brew}" --prefix cairo
-                RESULT_VARIABLE brew_cairo_f
-                OUTPUT_VARIABLE brew_cairo OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
-            if(brew_cairo_f EQUAL 0)
-                find_package_message(brew_cairo "Cairo via Homebrew: ${brew_cairo}" "${brew_cairo}")
-                set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${brew_cairo}/lib/pkgconfig")
-            endif()
+            brew_to_pkg_config(pango)
+            brew_to_pkg_config(pangomm)
+            brew_to_pkg_config(cairo)
+            brew_to_pkg_config(harfbuzz)
         endif()
     endif()
-endmacro()
+endfunction()
