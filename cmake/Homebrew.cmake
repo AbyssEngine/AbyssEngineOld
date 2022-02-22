@@ -18,7 +18,7 @@ function(configure_brew)
                 endif()
             endif()
 
-            execute_process(COMMAND "${brew}" --prefix icu4c
+            execute_process(COMMAND "${brew}" --prefix pango
                 RESULT_VARIABLE brew_f
                 OUTPUT_VARIABLE brew_out OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
             if (brew_f EQUAL 0)
