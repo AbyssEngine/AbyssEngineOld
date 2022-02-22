@@ -28,6 +28,7 @@ function(configure_brew)
                 endif()
             endfunction()
 
+            brew_to_pkg_config(glib)
             brew_to_pkg_config(pango)
             brew_to_pkg_config(pangomm)
             brew_to_pkg_config(cairo)
