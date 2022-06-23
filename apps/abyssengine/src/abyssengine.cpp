@@ -6,7 +6,6 @@
 #include <libavcodec/version.h>
 #include <libavfilter/version.h>
 #include <libavformat/version.h>
-#include <libavresample/version.h>
 #include <libavutil/log.h>
 #include <libavutil/version.h>
 #include <libswresample/version.h>
