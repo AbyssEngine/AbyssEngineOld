@@ -1,13 +1,26 @@
 #include "libabyss/formats/d2/dc6.h"
 #include "libabyss/streams/streamreader.h"
+#include <stdexcept>
 
 namespace LibAbyss {
 namespace {
-const uint8_t EndOfScanline = 0x80;
-const uint8_t MaxRunLength = 0x7F;
-const uint8_t EndOfLine = 1;
-const int RunOfTransparentPixels = 2;
-const int RunOfOpaquePixels = 3;
+constexpr uint8_t EndOfScanline = 0x80;
+constexpr uint8_t MaxRunLength = 0x7F;
+enum ByteType {
+    EndOfLine = 1,
+    RunOfTransparentPixels,
+    RunOfOpaquePixels,
+};
+
+ByteType GetScanlineType(uint8_t b) {
+    if (b == EndOfScanline)
+        return EndOfLine;
+
+    if ((b & EndOfScanline) > 0)
+        return RunOfTransparentPixels;
+
+    return RunOfOpaquePixels;
+}
 } // namespace
 
 DC6::DC6(InputStream &stream) : Termination() {
@@ -38,6 +51,8 @@ DC6::DC6(InputStream &stream) : Termination() {
             stream.clear();
             stream.seekg(pointers[num++], std::ios_base::beg);
             direction.Frames.emplace_back(sr);
+            if (stream.eof())
+                throw std::runtime_error("EOF while decoding DC6.");
         }
 
         Directions.push_back(direction);
@@ -53,17 +68,15 @@ DC6::Direction::Frame::Frame(StreamReader &sr) {
     Unknown = sr.ReadUInt32();
     NextBlock = sr.ReadUInt32();
     Length = sr.ReadUInt32();
-    FrameData.resize(Length);
-    sr.ReadBytes(FrameData);
     IndexData.resize(Width * Height);
-
-    Decode();
+    Decode(sr);
 }
-void DC6::Direction::Frame::Decode() {
+void DC6::Direction::Frame::Decode(StreamReader &sr) {
     uint32_t x = 0;
     uint32_t y = Height - 1;
     uint32_t endy = 0;
-    if (Flipped) std::swap(y, endy);
+    if (Flipped)
+        std::swap(y, endy);
     int dy = Flipped ? 1 : -1;
     uint32_t offset = 0;
 
@@ -71,7 +84,8 @@ void DC6::Direction::Frame::Decode() {
         if (offset >= Length)
             throw std::runtime_error("Data overrun while decoding DC6 frame.");
 
-        auto b = FrameData[offset++];
+        auto b = sr.ReadUInt8();
+        offset++;
 
         switch (GetScanlineType(b)) {
         case EndOfLine:
@@ -85,6 +99,11 @@ void DC6::Direction::Frame::Decode() {
             x += (b & MaxRunLength);
             continue;
         case RunOfOpaquePixels:
+            if (b == 0) {
+                // Some D2R DC6 files have data starting with zeros but going over the Length into the padding
+                offset--;
+                continue;
+            }
             for (int i = 0; i < b; i++) {
                 if (offset >= Length)
                     throw std::runtime_error("Data overrun while decoding DC6 frame.");
@@ -92,7 +111,8 @@ void DC6::Direction::Frame::Decode() {
                 if ((x + (y * Width) + i) >= (Width * Height))
                     throw std::runtime_error("X/Y position out of bounds while decoding DC6 frame.");
 
-                IndexData[x + (y * Width) + i] = FrameData[offset++];
+                IndexData[x + (y * Width) + i] = sr.ReadUInt8();
+                offset++;
             }
             x += b;
             continue;
@@ -100,16 +120,9 @@ void DC6::Direction::Frame::Decode() {
     }
 
 done:
+    if (offset != Length)
+        throw std::runtime_error("Invalid DC6 frame length.");
     return;
-}
-uint8_t DC6::Direction::Frame::GetScanlineType(uint8_t b) {
-    if (b == EndOfScanline)
-        return EndOfLine;
-
-    if ((b & EndOfScanline) > 0)
-        return RunOfTransparentPixels;
-
-    return RunOfOpaquePixels;
 }
 
 } // namespace LibAbyss
