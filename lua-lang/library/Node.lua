@@ -6,4 +6,44 @@
 
 ---@class Node
 Node = {
+---True if the node is visible, false otherwise.
+---@type boolean
+visible = false,
+
+---No description set in node.h:37.
+---@type boolean
+active = false,
+
 }
+
+---No description set in node.h:26.
+---@return string @ No description set in node.h:26.
+function Node:nodeType() end
+
+---No description set in node.h:32.
+function Node:removeAllChildren() end
+
+---No description set in node.h:30.
+---@param childNode Node @ No description set in node.h:30.
+function Node:appendChild(childNode) end
+
+---No description set in node.h:31.
+---@param nodeRef Node @ No description set in node.h:31.
+function Node:removeChild(nodeRef) end
+
+---No description set in node.h:33.
+---@return Node[] @ No description set in node.h:33.
+function Node:getChildren() end
+
+---No description set in node.h:43.
+---@return number, number @ No description set in node.h:43.
+function Node:getPosition() end
+
+---No description set in node.h:34.
+---@param x number @ No description set in node.h:34.
+---@param y number @ No description set in node.h:34.
+function Node:setPosition(x, y) end
+
+---No description set in node.h:46.
+---@param onUpdateHandler function @ No description set in node.h:46.
+function Node:onUpdate(onUpdateHandler) end

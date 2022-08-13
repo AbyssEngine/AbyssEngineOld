@@ -62,6 +62,10 @@ class Engine {
     /// \param offsetY The cursor offset Y
     void SetCursorSprite(Sprite *cursorSprite, int offsetX, int offsetY);
 
+    /// Sets the window title
+    /// \param title The title of the window
+    void SetWindowTitle(std::string_view title);
+
     /// Shows the system cursor
     /// \param show True to show the cursor, false to hide it
     void ShowSystemCursor(bool show);
@@ -112,7 +116,9 @@ class Engine {
     /// \param message The message to display
     void Panic(std::string_view message);
 
-    std::string ExecuteCommand(std::string command);
+    std::string ExecuteCommand(const std::string &command);
+
+    void GetScreenSize(int *width, int *height);
 
   private:
     class EngineLogger : public spdlog::sinks::sink {
@@ -155,6 +161,8 @@ class Engine {
     eMouseButton _mouseButtonState;
     int _cursorOffsetX = 0;
     int _cursorOffsetY = 0;
+    int _screenWidth = 0;
+    int _screenHeight = 0;
     uint32_t _luaGcRateMsec = 1024;
     uint32_t _luaLastGc = 0;
     unsigned int _maxFPS = 0;

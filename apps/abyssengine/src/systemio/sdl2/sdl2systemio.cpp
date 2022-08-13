@@ -43,6 +43,9 @@ SDL2::SDL2SystemIO::SDL2SystemIO() : SystemIO::SystemIO(), _audioSpec(), _mouseB
                                                                                     TTF_Quit();
                                                                                 });
 
+    _screenWidth = 800;
+    _screenHeight = 600;
+
     if (_sdlWindow == nullptr)
         throw std::runtime_error(SDL_GetError());
 
@@ -186,6 +189,14 @@ bool SDL2::SDL2SystemIO::HandleSdlEvent(const SDL_Event &sdlEvent, Node &rootNod
     case SDL_QUIT:
         Engine::Get()->Stop();
         return false;
+    case SDL_WINDOWEVENT:
+        switch (sdlEvent.window.event) {
+        case SDL_WINDOWEVENT_RESIZED:
+            _screenWidth = sdlEvent.window.data1;
+            _screenHeight = sdlEvent.window.data2;
+            return true;
+        }
+        return true;
     default:
         return true;
     }
@@ -440,6 +451,7 @@ void SDL2::SDL2SystemIO::SetVideo(IAudio *video) {
     std::lock_guard<std::mutex> lock(_mutex);
     _video = video;
 }
+
 void SDL2::SDL2SystemIO::DrawLine(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, uint8_t b) {
     SDL_SetRenderDrawColor(_sdlRenderer.get(), r, g, b, 255);
     SDL_RenderDrawLine(_sdlRenderer.get(), x1, y1, x2, y2);
@@ -460,5 +472,13 @@ void SDL2::SDL2SystemIO::ClearInputText() { _inputText.clear(); }
 void SDL2::SDL2SystemIO::ResetKeyState(uint16_t scancode) { _pressedKeys[scancode] = false; }
 
 void SDL2::SDL2SystemIO::Sleep(uint32_t ticks) { SDL_Delay(ticks); }
+
+void SDL2::SDL2SystemIO::GetScreenSize(int* width, int* height) {
+    *width = _screenWidth;
+    *height = _screenHeight;
+}
+void SDL2::SDL2SystemIO::SetWindowTitle(std::string_view title) {
+    SDL_SetWindowTitle(_sdlWindow.get(), title.data());
+}
 
 } // namespace AbyssEngine
