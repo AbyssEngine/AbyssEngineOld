@@ -41,6 +41,8 @@ class SDL2SystemIO : public SystemIO {
     void ClearInputText() final;
     void ResetKeyState(uint16_t scancode) final;
     void Sleep(uint32_t ticks) final;
+    void GetScreenSize(int* width, int* height) final;
+    void SetWindowTitle(std::string_view title) override;
 
   private:
     void InitializeAudio();
@@ -60,6 +62,8 @@ class SDL2SystemIO : public SystemIO {
     SDL_AudioDeviceID _audioDeviceId = 0;
     int _cursorX = 0;
     int _cursorY = 0;
+    int _screenWidth = 0;
+    int _screenHeight = 0;
     eMouseButton _mouseButtonState;
     float _masterAudioLevel = 1.0f;
     float _masterAudioLevelActual = 1.0f;

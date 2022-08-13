@@ -6,3 +6,13 @@
 
 ---@class Image
 Image = {}
+
+---No description set in image.h:23.
+---@param startFrameIdx number @ No description set in image.h:23.
+---@param cellSizeX number @ No description set in image.h:23.
+---@return number, number @ No description set in image.h:23.
+function Image:getFrameSize(startFrameIdx, cellSizeX) end
+
+---No description set in image.h:21.
+---@return number @ No description set in image.h:21.
+function Image:getNumberOfFrames() end

@@ -242,5 +242,8 @@ void Sprite::SetLuaAnimationFinishedHandler(sol::protected_function animationFin
 void Sprite::SetLoopAnimation(bool loop) { _loopAnimation = loop; }
 
 bool Sprite::GetLoopAnimation() { return _loopAnimation; }
+std::string_view Sprite::NodeType() const { return "Sprite Node"; }
+uint32_t Sprite::GetCurrentFrameIndex() const { return _currentFrame; }
+void Sprite::SetCurrentFrameIndex(uint32_t frame) { _currentFrame = frame; }
 
 } // namespace AbyssEngine
