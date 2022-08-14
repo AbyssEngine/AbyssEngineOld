@@ -1,13 +1,13 @@
 #ifndef ABYSS_SYSTEMIO_INTERFACE_H
 #define ABYSS_SYSTEMIO_INTERFACE_H
 
+#include "../common/audiointent.h"
 #include "../common/blendmode.h"
 #include "../common/enum.h"
 #include "../common/events.h"
 #include "../common/rectangle.h"
-#include "../common/audiointent.h"
-#include "libabyss/streams/audiostream.h"
 #include "../engine/soundeffect.h"
+#include "libabyss/streams/audiostream.h"
 #include <memory>
 #include <mutex>
 #include <span>
@@ -32,14 +32,14 @@ class ITexture {
     virtual void Render(const AbyssEngine::Rectangle &sourceRect, const AbyssEngine::Rectangle &destRect) = 0;
     virtual void SetBlendMode(eBlendMode blendMode) = 0;
     virtual void SetColorMod(uint8_t red, uint8_t green, uint8_t blue) = 0;
-    virtual void SaveAsBMP(const std::string& filePath) = 0;
+    virtual void SaveAsBMP(const std::string &filePath) = 0;
     virtual eBlendMode GetBlendMode() = 0;
 };
 
 class IAudio {
-    public:
-        virtual ~IAudio() = default;
-        virtual int16_t GetAudioSample() = 0;
+  public:
+    virtual ~IAudio() = default;
+    virtual int16_t GetAudioSample() = 0;
 };
 
 /// Interface for the host subsystems.
@@ -110,7 +110,7 @@ class SystemIO {
     virtual void RemoveSoundEffect(SoundEffect *soundEffect) = 0;
 
     /// Sets pointer to the video to get the audio samples from.
-    virtual void SetVideo(IAudio* video) = 0;
+    virtual void SetVideo(IAudio *video) = 0;
 
     virtual void DrawLine(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, uint8_t b) = 0;
 
@@ -125,6 +125,10 @@ class SystemIO {
     virtual void ClearInputText() = 0;
 
     virtual void Sleep(uint32_t ticks) = 0;
+
+    virtual void GetScreenSize(int *width, int *height) = 0;
+
+    virtual void SetWindowTitle(std::string_view title) = 0;
 };
 
 } // namespace AbyssEngine

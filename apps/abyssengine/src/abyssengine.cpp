@@ -6,7 +6,6 @@
 #include <libavcodec/version.h>
 #include <libavfilter/version.h>
 #include <libavformat/version.h>
-#include <libavresample/version.h>
 #include <libavutil/log.h>
 #include <libavutil/version.h>
 #include <libswresample/version.h>
@@ -46,8 +45,8 @@ int main(int, char *argv[]) {
     // from the console (who would want that?!). Lets ensure the console actually
     // gets the output when launched on the console. -_-
     if (AttachConsole(ATTACH_PARENT_PROCESS)) {
-        freopen("CONOUT$","wb",stdout);
-        freopen("CONOUT$","wb",stderr);
+        freopen("CONOUT$", "wb", stdout);
+        freopen("CONOUT$", "wb", stderr);
     }
 #endif
 

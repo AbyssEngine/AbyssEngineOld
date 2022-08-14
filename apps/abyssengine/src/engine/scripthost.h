@@ -5,17 +5,17 @@
 #include <sol/sol.hpp>
 // -------------------------------------
 
+#include "../engine/image.h"
 #include "../engine/soundeffect.h"
 #include "../engine/spritefont.h"
-#include "../engine/image.h"
 #include "../node/button.h"
+#include "../node/inputlistener.h"
 #include "../node/label.h"
 #include "../node/maprenderer.h"
+#include "../node/node.h"
 #include "../node/sprite.h"
 #include "provider.h"
-#include "../node/inputlistener.h"
 #include "ttffont.h"
-#include "../node/node.h"
 
 #include <filesystem>
 #include <libabyss/formats/d2/ds1.h>
@@ -46,8 +46,7 @@ class ScriptHost {
     Node &LuaGetRootNode();
     template <class T, typename X>
     sol::basic_usertype<T, sol::basic_reference<false>> CreateLuaObjectType(sol::table &module, std::string_view name, X &&constructor);
-    template <typename T>
-    std::unique_ptr<T> InitializeTableFor(std::unique_ptr<T>);
+    template <typename T> std::unique_ptr<T> InitializeTableFor(std::unique_ptr<T>);
 
     // -----------------------------------------------------------------------------------------------
     // Script Functions
@@ -111,12 +110,12 @@ class ScriptHost {
     /// \brief Creates a sprite from the image
     /// \param image The image to be used for the sprite. Needs to be alive at least as long as the sprite is.
     /// \return The created sprite.
-    std::unique_ptr<Sprite> LuaCreateSprite(Image& image);
+    std::unique_ptr<Sprite> LuaCreateSprite(Image &image);
 
     /// \brief Creates a button
     /// \param image The image to use for the button. Needs to be alive at least as long as the button is.
     /// \return The created button.
-    std::unique_ptr<Button> LuaCreateButton(Image& image);
+    std::unique_ptr<Button> LuaCreateButton(Image &image);
 
     /// \brief Creates a sprite font
     /// \param fontPath The path to the font file.
@@ -124,8 +123,8 @@ class ScriptHost {
     /// \param useGlyphHeight Whether to adjust the height for difference between glyph height and frame height.
     /// \param blendMode The blend mode to use.
     /// \return The created sprite font.
-    std::unique_ptr<SpriteFont> LuaCreateSpriteFont(std::string_view fontPath, std::string_view paletteName, bool
-            useGlyphHeight, std::string_view blendMode);
+    std::unique_ptr<SpriteFont> LuaCreateSpriteFont(std::string_view fontPath, std::string_view paletteName, bool useGlyphHeight,
+                                                    std::string_view blendMode);
 
     /// \brief Creates a TTF font
     /// \param fontPath The path to the font file.
@@ -167,6 +166,10 @@ class ScriptHost {
     /// \param offsetY The Y offset of the cursor.
     void LuaSetCursor(Sprite &sprite, int offsetX, int offsetY);
 
+    /// \brief Sets the window title
+    /// \param string The window title
+    void LuaSetWindowTitle(std::string_view title);
+
     /// \brief Plays a video
     /// \param videoPath The path to the video file.
     /// \param callback The callback to call when the video is finished.
@@ -193,7 +196,7 @@ class ScriptHost {
     /// \brief Converts UTF16 to UTF8
     /// \param str The source string.
     /// \return The string in UTF8 format.
-    std::string LuaUtf16To8(const std::string& str);
+    std::string LuaUtf16To8(const std::string &str);
 
     /// \brief Determines if a key was pressed
     /// \param scancode The scancode to test.
@@ -204,6 +207,30 @@ class ScriptHost {
     /// \return The new node
     std::unique_ptr<Node> LuaCreateNode();
     void DefineScanCodes(sol::table module);
+
+    /// \brief Gets the current screen size
+    /// \return The width/height screen size
+    std::tuple<int, int> LuaGetScreenSize();
+
+    /// \brief Gets the engine version
+    /// \return The engine version
+    std::tuple<int, int> LuaGetEngineVersion();
+
+    /// \brief Gets the CPU type of the engine
+    /// \return The CPU type
+    std::string LuaGetCpuType();
+
+    /// \brief Gets the name of the platform the engine was built for
+    /// \return The platform name
+    std::string LuaGetPlatform();
+
+    /// \brief Gets the build type of the platform the engine was built for
+    /// \return The build type
+    std::string LuaGetBuildType();
+
+    /// \brief Panics and terminates the engine
+    /// \param message The message to display
+    void LuaPanic(std::string_view message);
 };
 
 } // namespace AbyssEngine
