@@ -14,7 +14,8 @@
     "sol2",
     "gtest",
     "cppzmq",
-    "pangomm",
+    "pango",
+    "cairo",
     "fontconfig",
     "fmt",
     {

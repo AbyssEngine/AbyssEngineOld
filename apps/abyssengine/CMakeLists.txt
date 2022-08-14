@@ -158,8 +158,9 @@ target_link_libraries(${APP_NAME}
         ${LUA_LIBRARIES}
         LUA::lpeg
         ICU::uc
+        PkgConfig::Cairo
+        PkgConfig::Pango
         PkgConfig::PangoCairo
-        PkgConfig::PangoMM
         PkgConfig::Fontconfig
         Freetype::Freetype
         )
