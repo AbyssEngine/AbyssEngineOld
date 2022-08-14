@@ -33,10 +33,10 @@ class Sprite : public Node {
     void LuaSetPlayMode(std::string_view mode);
     std::string_view LuaGetPlayMode();
 
-    void SetCurrentFrameIndex(uint32_t frame) { _currentFrame = frame; }
-    uint32_t GetCurrentFrameIndex() const { return _currentFrame; }
+    void SetCurrentFrameIndex(uint32_t frame);
+    uint32_t GetCurrentFrameIndex() const;
 
-    [[nodiscard]] std::string_view NodeType() const final { return "Sprite Node"; }
+    [[nodiscard]] std::string_view NodeType() const final;
 
   protected:
     void Animate(float time_elapsed);

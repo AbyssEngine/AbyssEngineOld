@@ -46,8 +46,8 @@ int main(int, char *argv[]) {
     // from the console (who would want that?!). Lets ensure the console actually
     // gets the output when launched on the console. -_-
     if (AttachConsole(ATTACH_PARENT_PROCESS)) {
-        freopen("CONOUT$","wb",stdout);
-        freopen("CONOUT$","wb",stderr);
+        freopen("CONOUT$", "wb", stdout);
+        freopen("CONOUT$", "wb", stderr);
     }
 #endif
 

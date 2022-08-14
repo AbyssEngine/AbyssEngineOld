@@ -72,30 +72,50 @@ class Generator:
 
             parts = line.strip().split('"')
             function_name = parts[1].strip()
-            owned_function = parts[2].strip().split('&')[1].split(',')[0].strip()
+
+            owned_function = ""
+            if ("InitializeTableFor(" in parts[2]):
+                owned_function = "ScriptHost::" + parts[2].strip().split('InitializeTableFor(')[1].split('(')[0]
+            else:
+                owned_function = parts[2].strip().split('&')[1].split(',')[0].strip()
             results.append(GlobalFunctionItem(function_name, owned_function))
         return results
 
     def SanitizeTypeName(self, type_name: str):
+        is_vector = "std::vector<" in type_name
+
+        if "std::function<" in type_name or "sol::protected_function" in type_name or "sol::" in type_name:
+            return "function"
+
+
         result = type_name\
             .replace("*", "")\
             .replace("&", "")\
+            .replace("virtual", "")\
             .replace("const", "") \
             .replace("std::string_view", "string") \
             .replace("std::string", "string")\
             .replace("std::u16string", "string")\
             .replace("sol::safe_function", "function") \
             .replace("std::tuple<", "") \
+            .replace("std::vector<", "") \
             .replace("std::unique_ptr<", "") \
             .replace(">", "") \
+            .replace("function", "")\
             .replace("LibAbyss::", "") \
-            .replace("int", "number")\
+            .replace("uint32_t", "number")\
             .replace("uint16_t", "number")\
+            .replace("uint8_t", "number")\
+            .replace("int", "number")\
             .replace("bool", "boolean")\
             .replace("float", "number")\
             .replace("double", "number")\
             .replace("void", "nil")\
             .strip()
+
+        if is_vector:
+            result += "[]"
+
 
         return result
 
@@ -112,17 +132,19 @@ class Generator:
             if line.strip().startswith("[[nodiscard]]"):
                 line = line.replace("[[nodiscard]]", "").strip()
 
-            if (line.startswith("class ") or line.startswith("struct ")) and line.endswith("{"):
+
+            if current_class == "" and ((line.startswith("class ") or line.startswith("struct ")) and line.endswith("{")):
                 current_class = line.split(" ")[1].strip()
                 continue
 
-            if not ("(" in line and (");" in line or ") const;" in line)):
+            if not ("(" in line and (");" in line or ") const;" in line or " = 0;" in line)):
                 continue
 
             function_name = line.split("(")[0]
             function_name = function_name.split(" ")[function_name.count(" ")]
             function_return_type = self.SanitizeTypeName(line[0:line.find(function_name)-1])
             function_name = current_class + "::" + function_name
+
 
             default_comment = "No description set in " + os.path.basename(header_path) + ":" + str(line_idx+1) + "."
             result[function_name] = FunctionDefinition("", "", default_comment, default_comment, [])
@@ -205,30 +227,39 @@ class Generator:
         file_lines = self.ReadFileLines(os.path.join(self.base_path, "scripthost.cpp"))
 
         class_var = ""
+        node_special_case = class_name == "Node"
 
-        for line in file_lines:
-            line = line.strip()
-            if not line.startswith("auto "):
-                continue
-            if (not "<" + class_name + ">" in line) and (not "::" + class_name + ">" in line):
-                continue
+        if node_special_case:
+            class_var = "nodeType"
+        else:
+            for line in file_lines:
+                line = line.strip()
+                if not line.startswith("auto "):
+                    continue
+                if (not "<" + class_name + ">" in line) and (not "::" + class_name + ">" in line):
+                    continue
 
-            class_var = line.split(" ")[1]
-            break
+                class_var = line.split(" ")[1]
+                break
 
         if len(class_var) == 0:
             return []
 
         for line in file_lines:
             line = line.strip()
+
             if not line.startswith(class_var + "[\""):
                 continue
 
             if "sol::property(" not in line:
                 continue
 
+
+            if node_special_case:
+                owned_name = line.split("&")[1].replace(",", "").strip().replace("T::", "Node::").replace(";", "")
+            else:
+                owned_name = line.split("&")[1].replace(",", "").strip().replace(";", "")
             function_name = line.split('"')[1].strip()
-            owned_name = line.split("&")[1].replace(",", "").strip()
 
             result.append(GlobalFunctionItem(function_name, owned_name))
 
@@ -238,15 +269,19 @@ class Generator:
         file_lines = self.ReadFileLines(os.path.join(self.base_path, "scripthost.cpp"))
 
         class_var = ""
+        node_special_case = class_name == "Node"
 
-        for line in file_lines:
-            line = line.strip()
-            if not line.startswith("auto "):
-                continue
-            if not "<" + class_name + ">" in line:
-                continue
+        if node_special_case:
+            class_var = "nodeType"
+        else:
+            for line in file_lines:
+                line = line.strip()
+                if not line.startswith("auto "):
+                    continue
+                if not "<" + class_name + ">" in line:
+                    continue
 
-            class_var = line.split(" ")[1]
+                class_var = line.split(" ")[1].strip()
 
         if len(class_var) == 0:
             return []
@@ -260,8 +295,12 @@ class Generator:
             if "sol::property(" in line:
                 continue
 
+            if node_special_case:
+                owned_name = line.split("&")[1].replace(",", "").strip().replace("T::", class_name + "::").replace(";", "").strip()
+            else:
+                owned_name = line.split("&")[1].replace(";", "").strip()
+
             function_name = line.split('"')[1].strip()
-            owned_name = line.split("&")[1].replace(";", "").strip()
 
             result.append(GlobalFunctionItem(function_name, owned_name))
 
@@ -279,7 +318,7 @@ class Generator:
 
         return "nil"
 
-    def CreateAbyssClassFile(self, custom_type: str, header_path: str):
+    def CreateAbyssClassFile(self, custom_type: str, header_path: str, has_node_parent: bool):
         file_lines = [
             "---@meta",
             "---version: 0.1",
@@ -290,6 +329,18 @@ class Generator:
         class_header_functions = self.GetFunctionsForHeader(header_path)
         class_methods = self.GetHostClassMethods(custom_type)
         class_properties = self.GetHostClassProperties(custom_type)
+
+        if has_node_parent:
+            class_properties.extend(self.GetHostClassProperties("Node"))
+            class_methods.extend(self.GetHostClassMethods("Node"))
+            class_header_functions.update(self.GetFunctionsForHeader(os.path.join(self.base_path, "../node/node.h")))
+
+#         for header_funcs in class_header_functions:
+#             print("\t\theader_funcs: " + header_funcs)
+#
+#
+#         for class_method in class_methods:
+#             print("\t\tM: " + class_method.function_name + " -> " + class_method.owned_function)
 
         if len(class_properties) == 0:
             file_lines.append(custom_type + " = {}")
@@ -310,13 +361,13 @@ class Generator:
         if len(class_methods) > 0:
             for class_func in class_methods:
                 if class_func.owned_function not in class_header_functions.keys():
+                    print("\t\tFunction not found: " + class_func.owned_function)
                     continue
 
                 script_host_function = class_header_functions[class_func.owned_function]
                 file_lines.append("")
                 def_lines = self.GenerateFunctionDefLine(custom_type, class_func.function_name, script_host_function)
                 file_lines.extend(def_lines)
-
 
         self.WriteFileLines(os.path.join(self.out_path, custom_type + ".lua"), file_lines)
 
@@ -355,7 +406,7 @@ class Generator:
             header_lines = self.ReadFileLines(header_path)
 
             for line in header_lines:
-                if (class_name + " : " not in line) and (class_name + " {" not in line):
+                if (("class " + class_name + " ") not in line) and (("struct " + class_name + " ") not in line):
                     continue
                 return header_path
 
@@ -370,6 +421,7 @@ class Generator:
             if "<T>" in line:
                 continue
 
+            has_node_parent = "CreateLuaObjectType<" in line
             custom_type = line[line.find("<")+1:line.find(">")]
             parts = custom_type.split("::")
             custom_type = parts[len(parts)-1].strip()
@@ -379,7 +431,7 @@ class Generator:
                 continue
 
             print("   -> " + custom_type + " (" + custom_type_header + ")")
-            self.CreateAbyssClassFile(custom_type, custom_type_header)
+            self.CreateAbyssClassFile(custom_type, custom_type_header, has_node_parent)
 
         return
 

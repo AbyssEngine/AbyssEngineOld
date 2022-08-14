@@ -23,22 +23,25 @@ class Node {
     virtual void MouseEventCallback(const MouseEvent &event);
     virtual void KeyboardEventCallback(const KeyboardEvent &event);
     virtual void Initialize();
-    [[nodiscard]] virtual std::string_view NodeType() const { return "Node"; };
+    [[nodiscard]] virtual std::string_view NodeType() const;;
 
     void DoInitialize();
     void GetEffectiveLayout(int &x, int &y) const;
     void AppendChild(Node *childNode);
     void RemoveChild(Node *nodeRef);
     void RemoveAllChildren();
-    std::vector<Node*> GetChildren() { return Children; }
+    std::vector<Node*> GetChildren();
     void SetPosition(int x, int y);
     void ProcessQueuedActions();
     void SetActive(bool active);
     [[nodiscard]] bool GetActive() const;
-    void SetVisible(bool visible);
+
+    /// \brief Gets the visibility of the node.
+    /// \return True if the node is visible, false otherwise.
     [[nodiscard]] bool GetVisible() const;
+    void SetVisible(bool visible);
     [[nodiscard]] std::tuple<int, int> GetPosition() const;
-    void SetLuaTable(sol::table table) { _table = std::move(table); }
+    void SetLuaTable(sol::table table);
     [[nodiscard]] sol::table GetLuaTable() const { return _table; }
     void SetLuaOnUpdateHandler(sol::protected_function onUpdateHandler);
     static int Count() { return _nodeCount; }

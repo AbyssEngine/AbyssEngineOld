@@ -14,6 +14,14 @@ checked = false,
 ---@type boolean
 disabled = false,
 
+---True if the node is visible, false otherwise.
+---@type boolean
+visible = false,
+
+---No description set in node.h:37.
+---@type boolean
+active = false,
+
 }
 
 ---No description set in button.h:19.
@@ -51,3 +59,35 @@ function Button:onMouseEnter(_luaMouseEnterCallback) end
 ---No description set in button.h:30.
 ---@param _luaMouseLeaveCallback function @ No description set in button.h:30.
 function Button:onMouseLeave(_luaMouseLeaveCallback) end
+
+---No description set in node.h:26.
+---@return string @ No description set in node.h:26.
+function Button:nodeType() end
+
+---No description set in node.h:32.
+function Button:removeAllChildren() end
+
+---No description set in node.h:30.
+---@param childNode Node @ No description set in node.h:30.
+function Button:appendChild(childNode) end
+
+---No description set in node.h:31.
+---@param nodeRef Node @ No description set in node.h:31.
+function Button:removeChild(nodeRef) end
+
+---No description set in node.h:33.
+---@return Node[] @ No description set in node.h:33.
+function Button:getChildren() end
+
+---No description set in node.h:43.
+---@return number, number @ No description set in node.h:43.
+function Button:getPosition() end
+
+---No description set in node.h:34.
+---@param x number @ No description set in node.h:34.
+---@param y number @ No description set in node.h:34.
+function Button:setPosition(x, y) end
+
+---No description set in node.h:46.
+---@param onUpdateHandler function @ No description set in node.h:46.
+function Button:onUpdate(onUpdateHandler) end
