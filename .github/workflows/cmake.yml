@@ -50,7 +50,7 @@ jobs:
 
       - name: Install Deps (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get update && sudo apt-get install nasm libxext-dev libavcodec-dev libavformat-dev libavdevice-dev libavfilter-dev libegl-dev gperf
+        run: sudo apt-get update && sudo apt-get install nasm libxext-dev libavcodec-dev libavformat-dev libavdevice-dev libavfilter-dev libegl-dev gperf autoconf-archive
 
       - name: Install GCC (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
