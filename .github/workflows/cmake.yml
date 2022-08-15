@@ -58,18 +58,14 @@ jobs:
 
       - name: Install Deps (MacOS)
         if: matrix.os == 'macos-11'
-        run: brew install nasm icu4c automake pangomm
-
-      - name: Remove broken dep
-        if: matrix.os == 'macos-11'
-        run: sed -i -e '/icu/d' vcpkg.json && sed -i -e '/pango/d' vcpkg.json
+        run: brew install nasm automake autoconf autoconf-archive
 
       - name: Run vcpkg
         uses: lukka/run-vcpkg@v10
         with:
           vcpkgJsonGlob: "**/vcpkg.json"
           vcpkgDirectory: "${{ github.workspace }}/vcpkg"
-          vcpkgGitCommitId: "f93ba152d55e1d243160e690bc302ffe8638358e"
+          vcpkgGitCommitId: "d293ac220dd126165d24907b6f07e6b658b3329f"
           appendedCacheKey: ${{ hashFiles( '**/vcpkg.json' ) }}
 
       - name: Build

@@ -143,6 +143,12 @@ endif ()
 # Libraries
 # -------------------------------------------------------------------------------------------------
 
+if (TARGET sol2::sol2)
+    set(sol2_target sol2::sol2)
+else()
+    set(sol2_target sol2)
+endif()
+
 target_link_libraries(${APP_NAME}
         PRIVATE
         abyssengine_resources
@@ -152,7 +158,7 @@ target_link_libraries(${APP_NAME}
         SDL2::SDL2main
         SDL2::SDL2
         spdlog::spdlog
-        sol2::sol2
+        ${sol2_target}
         cppzmq
         ${FFMPEG_LIBRARIES}
         ${LUA_LIBRARIES}
