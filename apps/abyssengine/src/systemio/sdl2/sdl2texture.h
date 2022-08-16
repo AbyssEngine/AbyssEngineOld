@@ -13,6 +13,7 @@ class SDL2Texture : public ITexture {
     ~SDL2Texture() override;
     void SetPixels(std::span<const uint32_t> pixels) final;
     void SetPixels(std::span<const uint8_t> pixels) final;
+    void SetPixels(std::span<const uint8_t> pixels, int pitch) final;
     void Render(const AbyssEngine::Rectangle &sourceRect, const AbyssEngine::Rectangle &destRect) final;
     void SetYUVData(std::span<const uint8_t> yPlane, int yPitch, std::span<const uint8_t> uPlane, int uPitch, std::span<const uint8_t> vPlane,
                     int vPitch) final;

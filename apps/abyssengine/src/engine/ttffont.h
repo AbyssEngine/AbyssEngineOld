@@ -1,22 +1,28 @@
 #ifndef ABYSS_TTFFONT_H
 #define ABYSS_TTFFONT_H
 
+#include "../common/alignment.h"
 #include "../common/blendmode.h"
 #include "../common/color.h"
 #include "../systemio/interface.h"
 #include "font.h"
+#include <cairo/cairo.h>
+//#include <cairomm/enums.h>
+#include <filesystem>
 #include <memory>
 #include <string_view>
 
 namespace AbyssEngine {
 class TtfFont : public IFont {
   public:
-    explicit TtfFont(std::string_view filePath, int size, ITtf::Hinting hinting);
-    std::unique_ptr<ITexture> RenderText(std::string_view text, int &width, int &height);
-    void SetStyle(ITtf::Style style) { _ttf->SetStyle(style); }
+    explicit TtfFont(const std::filesystem::path &path, int size, /*Cairo::HintStyle*/
+            cairo_hint_style_t hint, cairo_antialias_t antialias);
+    std::unique_ptr<ITexture> RenderText(const std::string &text, int &width, int &height, eAlignment horizontalAlignment, int maxWidth);
 
   private:
-    std::unique_ptr<ITtf> _ttf;
+    std::string _name;
+    /*Cairo::HintStyle*/ cairo_hint_style_t _hint;
+    cairo_antialias_t _antialias;
 };
 } // namespace AbyssEngine
 

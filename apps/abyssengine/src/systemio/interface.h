@@ -21,11 +21,12 @@ class Node;
 
 class ITexture {
   public:
-    enum class Format { Static, YUV, TTF };
+    enum class Format { Static, YUV, BGRA };
 
     virtual ~ITexture() = default;
     virtual void SetPixels(std::span<const uint32_t> pixels) = 0;
     virtual void SetPixels(std::span<const uint8_t> pixels) = 0;
+    virtual void SetPixels(std::span<const uint8_t> pixels, int pitch) = 0;
     virtual void SetYUVData(std::span<const uint8_t> yPlane, int yPitch, std::span<const uint8_t> uPlane, int uPitch, std::span<const uint8_t> vPlane,
                             int vPitch) = 0;
     virtual void Render(const AbyssEngine::Rectangle &sourceRect, const AbyssEngine::Rectangle &destRect) = 0;
@@ -40,17 +41,6 @@ class IAudio {
     virtual ~IAudio() = default;
     virtual int16_t GetAudioSample() = 0;
 };
-
-class ITtf {
-  public:
-    enum class Hinting { Normal, Light, Mono, None };
-    enum class Style : uint8_t { Bold = 0x1, Italic = 0x2, Underline = 0x4, Strikethrough = 0x8 };
-
-    virtual ~ITtf() = default;
-    virtual std::unique_ptr<ITexture> RenderText(std::string_view text, int &width, int &height) = 0;
-    virtual void SetStyle(Style style) = 0;
-};
-ABYSS_ENUM_BITSET(ITtf::Style);
 
 /// Interface for the host subsystems.
 class SystemIO {
@@ -72,10 +62,6 @@ class SystemIO {
     /// \param height The height of the texture.
     /// \return A new texture instance.
     virtual std::unique_ptr<ITexture> CreateTexture(ITexture::Format textureFormat, uint32_t width, uint32_t height) = 0;
-
-    /// Loads TTF font from file.
-    /// This is in SystemIO because SDL_ttf is not supposed to be used outside of systemio/sdl2/
-    virtual std::unique_ptr<ITtf> CreateTtf(LibAbyss::InputStream stream, int size, ITtf::Hinting hinting) = 0;
 
     /// Handles input events from the host system.
     /// \returns True if the engine should continue, false if it should halt.

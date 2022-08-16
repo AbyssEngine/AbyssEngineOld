@@ -50,46 +50,36 @@ jobs:
 
       - name: Install Deps (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get update && sudo apt-get install nasm libxext-dev libavcodec-dev libavformat-dev libavdevice-dev libavfilter-dev
+        run: sudo apt-get update && sudo apt-get install nasm libxext-dev libavcodec-dev libavformat-dev libavdevice-dev libavfilter-dev libegl-dev gperf autoconf-archive
 
       - name: Install GCC (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
         run: sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get install g++-10 libstdc++-10-dev && echo "CC=gcc-10" >> $GITHUB_ENV && echo "CXX=g++-10" >> $GITHUB_ENV
 
-      - name: Install LLVM and Clang (MacOS)
-        if: matrix.os == 'macos-11'
-        uses: KyleMayes/install-llvm-action@v1
-        with:
-          version: "13.0"
-
       - name: Install Deps (MacOS)
         if: matrix.os == 'macos-11'
-        run: brew install nasm icu4c && echo "CC=$LLVM_PATH/bin/clang" >> $GITHUB_ENV && echo "CXX=$LLVM_PATH/bin/clang++" >> $GITHUB_ENV
-
-      - name: Remove broken dep
-        if: matrix.os == 'macos-11'
-        run: sed -i -e '/icu/d' vcpkg.json
+        run: brew install nasm automake autoconf autoconf-archive
 
       - name: Run vcpkg
         uses: lukka/run-vcpkg@v10
         with:
           vcpkgJsonGlob: "**/vcpkg.json"
           vcpkgDirectory: "${{ github.workspace }}/vcpkg"
-          vcpkgGitCommitId: "f93ba152d55e1d243160e690bc302ffe8638358e"
+          vcpkgGitCommitId: "d293ac220dd126165d24907b6f07e6b658b3329f"
           appendedCacheKey: ${{ hashFiles( '**/vcpkg.json' ) }}
 
       - name: Build
         uses: lukka/run-cmake@v10
         with:
-          configurePreset: 'ninja-multi-vcpkg'
-          buildPreset: 'ninja-multi-vcpkg'
+          configurePreset: 'ninja-vcpkg'
+          buildPreset: 'ninja-vcpkg'
 
       - name: Test
-        run: builds/ninja-multi-vcpkg/tests/Debug/abyss_test
+        run: builds/ninja-vcpkg/tests/abyss_test
 
       - name: Package (Windows)
         if: ${{ matrix.os == 'windows-latest' && github.event_name == 'push' }}
-        working-directory: builds/ninja-multi-vcpkg/
+        working-directory: builds/ninja-vcpkg/
         run: cpack -G ZIP -C Debug ./
 
       - name: Upload Release (Windows)
@@ -97,7 +87,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: "builds/ninja-multi-vcpkg/package/abyss-windows.zip"
+          file: "builds/ninja-vcpkg/package/abyss-windows.zip"
           overwrite: true
           prerelease: true
           tag: unstable
@@ -105,7 +95,7 @@ jobs:
 
       - name: Package (Ubuntu)
         if: ${{ matrix.os == 'ubuntu-latest' && github.event_name == 'push' }}
-        working-directory: builds/ninja-multi-vcpkg/
+        working-directory: builds/ninja-vcpkg/
         run: cpack -G TGZ -C Debug ./
 
       - name: Upload Release (Windows)
@@ -113,7 +103,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: "builds/ninja-multi-vcpkg/package/abyss-linux.tar.gz"
+          file: "builds/ninja-vcpkg/package/abyss-linux.tar.gz"
           overwrite: true
           prerelease: true
           tag: unstable
@@ -122,7 +112,7 @@ jobs:
 
       - name: Package (MacOS)
         if: ${{ matrix.os == 'macos-11' && github.event_name == 'push' }}
-        working-directory: builds/ninja-multi-vcpkg/
+        working-directory: builds/ninja-vcpkg/
         run: cpack -G DragNDrop -C Debug ./
 
       - name: Upload Release (MacOS)
@@ -130,7 +120,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: "builds/ninja-multi-vcpkg/package/abyss-darwin.dmg"
+          file: "builds/ninja-vcpkg/package/abyss-darwin.dmg"
           overwrite: true
           prerelease: true
           tag: unstable

@@ -5,6 +5,7 @@
 #include "../node/sprite.h"
 #include "../node/video.h"
 #include "../systemio/interface.h"
+#include "ttfmanager.h"
 #include "embeddedfileprovider.h"
 #include "libabyss/formats/abyss/inifile.h"
 #include "libabyss/formats/d2/palette.h"
@@ -92,6 +93,8 @@ class Engine {
     /// \return s The resource loader
     Loader &GetLoader();
 
+    TtfManager& GetTtfManager() { return *_ttfManager; }
+
     /// Returns the INI configuration file
     /// \return s The INI configuration file
     LibAbyss::INIFile &GetIniFile();
@@ -143,6 +146,7 @@ class Engine {
 
     LibAbyss::INIFile _iniFile;
     Loader _loader;
+    std::optional<TtfManager> _ttfManager;
     std::shared_ptr<EngineLogger> _logger;
     std::unique_ptr<AbyssEngine::SystemIO> _systemIO;
     absl::node_hash_map<std::string, LibAbyss::Palette> _palettes;
