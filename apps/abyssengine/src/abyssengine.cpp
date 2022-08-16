@@ -10,6 +10,7 @@
 #include <libavutil/version.h>
 #include <libswresample/version.h>
 #include <memory>
+#include <typeinfo>
 #include <spdlog/spdlog.h>
 
 #if _WINDOWS
@@ -81,7 +82,7 @@ int main(int, char *argv[]) {
         engine.Run();
 
     } catch (std::exception &ex) {
-        SPDLOG_CRITICAL("{}", ex.what());
+        SPDLOG_CRITICAL("Caught exception {}: {}", typeid(ex).name(), ex.what());
         AbyssEngine::HostNotify::Notify(AbyssEngine::eNotifyType::Fatal, "AbyssEngine Crash", ex.what());
         return EXIT_FAILURE;
     }
