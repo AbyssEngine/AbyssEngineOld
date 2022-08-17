@@ -18,8 +18,7 @@ TtfFont::TtfFont(const std::filesystem::path &path, int size, /*Cairo::HintStyle
 }
 
 std::unique_ptr<ITexture> TtfFont::RenderText(const std::string &text, int &width, int &height, eAlignment horizontalAlignment, int maxWidth) {
-    auto* font_map = pango_cairo_font_map_new();
-    absl::Cleanup clean_map([&] { g_object_unref(font_map); });
+    auto* font_map = AbyssEngine::Engine::Get()->GetTtfManager().FontMap();
     auto* pctx = pango_cairo_font_map_create_context(PANGO_CAIRO_FONT_MAP(font_map));
     absl::Cleanup clean_ctx([&] { g_object_unref(pctx); });
 

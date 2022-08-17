@@ -167,6 +167,7 @@ target_link_libraries(${APP_NAME}
         PkgConfig::Cairo
         PkgConfig::Pango
         PkgConfig::PangoCairo
+        PkgConfig::PangoFC
         PkgConfig::Fontconfig
         Freetype::Freetype
         )
