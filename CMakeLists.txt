@@ -95,6 +95,7 @@ pkg_check_modules(Fontconfig REQUIRED IMPORTED_TARGET fontconfig)
 pkg_check_modules(Pango REQUIRED IMPORTED_TARGET pango)
 pkg_check_modules(Cairo REQUIRED IMPORTED_TARGET cairo)
 pkg_check_modules(PangoCairo REQUIRED IMPORTED_TARGET pangocairo)
+pkg_check_modules(PangoFC REQUIRED IMPORTED_TARGET pangofc)
 
 if (APPLE)
     find_library(OSX_VIDEOTOOLBOX VideoToolbox)

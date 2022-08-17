@@ -8,6 +8,8 @@
 #include FT_FREETYPE_H
 #include <absl/strings/str_format.h>
 #include <fontconfig/fcfreetype.h>
+#include <pango/pangocairo.h>
+#include <pango/pangofc-fontmap.h>
 
 namespace AbyssEngine {
 
@@ -15,16 +17,20 @@ TtfManager::TtfManager() {
     auto stream = Engine::Get()->GetLoader().Load("/abyss-embedded/fontconfig.xml");
     std::string xml = std::string(std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
 
-    FcInit();
     _fcConfig = FcConfigCreate();
 
     FcConfigParseAndLoadFromMemory(_fcConfig, (const uint8_t *)xml.c_str(), true);
-    FcConfigSetCurrent(_fcConfig);
     // Just initialize FcSetApplication because FcConfigSetFonts is not available from outside fontconfig
     FcConfigAppFontAddFile(_fcConfig, (const FcChar8 *)"");
+
+    _pangoFontMap = pango_cairo_font_map_new_for_font_type(CAIRO_FONT_TYPE_FT);
+    pango_fc_font_map_set_config(PANGO_FC_FONT_MAP(_pangoFontMap), _fcConfig);
 }
 
 TtfManager::~TtfManager() {
+    g_object_unref(_pangoFontMap);
+
+    FcFontSetDestroy(FcConfigGetFonts(_fcConfig, FcSetApplication));
     FcConfigDestroy(_fcConfig);
     FcFini();
 
@@ -97,6 +103,7 @@ std::string TtfManager::AddFont(const std::filesystem::path &path) {
         }
         SPDLOG_INFO("Loaded font {} (face {}) as '{}'", p, i, name);
     }
+    pango_fc_font_map_config_changed(PANGO_FC_FONT_MAP(_pangoFontMap));
 
     _knownFonts[p] = std::make_pair(name, std::filesystem::path(tmp));
     return name;
