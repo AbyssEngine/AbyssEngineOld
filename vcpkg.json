@@ -10,7 +10,6 @@
     "icu",
     "sdl2",
     "lua",
-    "lpeg",
     "sol2",
     "gtest",
     "cppzmq",
@@ -18,6 +17,7 @@
     "cairo",
     "fontconfig",
     "fmt",
+    "sqlite3",
     {
       "name": "ffmpeg",
       "features": [
