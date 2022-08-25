@@ -23,6 +23,7 @@
 
 extern "C" {
 int luaopen_lpeg(lua_State *L);
+int luaopen_lsqlite3(lua_State *L);
 }
 
 namespace AbyssEngine {
@@ -54,6 +55,7 @@ ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     _lua.stop_gc();
     _lua.open_libraries();
     _lua.require("lpeg", luaopen_lpeg);
+    _lua.require("lsqlite3", luaopen_lsqlite3);
 
     _environment = sol::environment(_lua, sol::create, _lua.globals());
     sol::table module = _lua.create_table("abyss");

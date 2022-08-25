@@ -163,6 +163,7 @@ target_link_libraries(${APP_NAME}
         ${FFMPEG_LIBRARIES}
         ${LUA_LIBRARIES}
         LUA::lpeg
+        LUA::lsqlite3
         ICU::uc
         PkgConfig::Cairo
         PkgConfig::Pango
