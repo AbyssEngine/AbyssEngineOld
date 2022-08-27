@@ -89,7 +89,6 @@ cmrc_add_resource_library(abyssengine_resources
 target_include_directories(${APP_NAME}
         PRIVATE
         ${PROJECT_BINARY_DIR}
-        ${LUA_INCLUDE_DIR}
         ${FFMPEG_INCLUDE_DIRS}
         )
 
@@ -161,7 +160,7 @@ target_link_libraries(${APP_NAME}
         ${sol2_target}
         cppzmq
         ${FFMPEG_LIBRARIES}
-        ${LUA_LIBRARIES}
+        PkgConfig::Lua
         LUA::lpeg
         LUA::lsqlite3
         ICU::uc

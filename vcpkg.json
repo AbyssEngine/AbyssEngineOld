@@ -9,8 +9,7 @@
     "zlib",
     "icu",
     "sdl2",
-    "lua",
-    "sol2",
+    "luajit",
     "gtest",
     "cppzmq",
     "pango",
@@ -38,11 +37,7 @@
       ]
     }
   ],
-  "builtin-baseline": "d293ac220dd126165d24907b6f07e6b658b3329f",
+  "builtin-baseline": "5f82fa45df07a446bab57f65479f3d2df797f408",
   "overrides": [
-    {
-      "name": "lua",
-      "version": "5.4.3"
-    }
   ]
 }
