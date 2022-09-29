@@ -58,7 +58,7 @@ if desc.defines then
     end
 end
 
-text = 'target_include_directories(LUA_LIB_NAME PRIVATE ${LUA_INCLUDE_DIR})'
+text = 'target_link_libraries(LUA_LIB_NAME PRIVATE PkgConfig::Lua)'
 text = string.gsub(text, 'NAME', lib)
 print(text)
 

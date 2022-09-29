@@ -2,7 +2,7 @@ function(include_lualibs)
     find_package(PkgConfig)
     set(lua_so_dir)
     if (PKG_CONFIG_FOUND)
-        pkg_get_variable(lua_so_dir lua-${ABYSS_REQUIRED_LUA} INSTALL_CMOD)
+        pkg_get_variable(lua_so_dir luajit INSTALL_CMOD)
     endif()
 
     function(add_lua_library lib version)

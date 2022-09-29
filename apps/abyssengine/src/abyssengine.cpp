@@ -57,8 +57,12 @@ int main(int, char *argv[]) {
     spdlog::set_level(spdlog::level::trace);
 #endif
 
+#ifdef LUAJIT_VERSION
+    SPDLOG_INFO("LuaJIT Version " LUA_VERSION " / " LUAJIT_VERSION);
+#else
+    SPDLOG_INFO("Lua Version " LUA_VERSION);
+#endif
     SPDLOG_INFO("SOL version " SOL_VERSION_STRING);
-    SPDLOG_INFO("Lua Version " LUA_VERSION_MAJOR "." LUA_VERSION_MINOR);
     SPDLOG_INFO("FFMPEG Library:");
     SPDLOG_INFO("   AVFormat Version    - " AV_STRINGIFY(LIBAVFORMAT_VERSION));
     SPDLOG_INFO("   AVResample Version  - " AV_STRINGIFY(LIBAVRESAMPLE_VERSION));
