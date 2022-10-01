@@ -74,8 +74,10 @@ std::string TtfManager::AddFont(const std::filesystem::path &path) {
 
     // Pango needs the font file to be a real file. Write it to tmp.
     std::string tmp = absl::StrCat(std::tmpnam(nullptr), path.extension().string());
-    std::ofstream ostr(tmp);
-    std::copy(str.begin(), str.end(), std::ostreambuf_iterator<char>(ostr));
+    {
+        std::ofstream ostr(tmp, std::ios::binary);
+        std::copy(str.begin(), str.end(), std::ostreambuf_iterator<char>(ostr));
+    }
 
     FTLib lib;
     FT_Long num_faces = 0;
