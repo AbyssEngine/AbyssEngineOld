@@ -109,7 +109,11 @@ endif ()
 
 add_subdirectory(libabyss)
 add_subdirectory(apps)
-add_subdirectory(tests)
+
+option(ENABLE_TESTS "Enable unit tests" TRUE)
+if (ENABLE_TESTS)
+    add_subdirectory(tests)
+endif()
 
 
 # -------------------------------------------------------------------------------------------------
