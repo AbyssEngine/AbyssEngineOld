@@ -98,18 +98,6 @@ jobs:
         working-directory: builds/ninja-vcpkg/
         run: cpack -G TGZ -C Debug ./
 
-      - name: Upload Release (Windows)
-        if: ${{ matrix.os == 'ubuntu-latest' && github.event_name == 'push' }}
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: "builds/ninja-vcpkg/package/abyss-linux.tar.gz"
-          overwrite: true
-          prerelease: true
-          tag: unstable
-          body: "Unstable Release"
-
-
       - name: Package (MacOS)
         if: ${{ matrix.os == 'macos-11' && github.event_name == 'push' }}
         working-directory: builds/ninja-vcpkg/
