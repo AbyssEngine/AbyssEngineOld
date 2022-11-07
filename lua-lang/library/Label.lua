@@ -30,9 +30,13 @@ underline = false,
 ---@type boolean
 strikethrough = false,
 
----No description set in label.h:39.
----@type number
-verticalSpacing = 0,
+---True if the node is visible, false otherwise.
+---@type boolean
+visible = false,
+
+---No description set in node.h:37.
+---@type boolean
+active = false,
 
 }
 
@@ -42,7 +46,39 @@ verticalSpacing = 0,
 function Label:setAlignment(hAlign, vAlign) end
 
 ---No description set in label.h:22.
----@param red unumber8_t @ No description set in label.h:22.
----@param green unumber8_t @ No description set in label.h:22.
----@param blue unumber8_t @ No description set in label.h:22.
+---@param red number @ No description set in label.h:22.
+---@param green number @ No description set in label.h:22.
+---@param blue number @ No description set in label.h:22.
 function Label:setColorMod(red, green, blue) end
+
+---No description set in node.h:26.
+---@return string @ No description set in node.h:26.
+function Label:nodeType() end
+
+---No description set in node.h:32.
+function Label:removeAllChildren() end
+
+---No description set in node.h:30.
+---@param childNode Node @ No description set in node.h:30.
+function Label:appendChild(childNode) end
+
+---No description set in node.h:31.
+---@param nodeRef Node @ No description set in node.h:31.
+function Label:removeChild(nodeRef) end
+
+---No description set in node.h:33.
+---@return Node[] @ No description set in node.h:33.
+function Label:getChildren() end
+
+---No description set in node.h:43.
+---@return number, number @ No description set in node.h:43.
+function Label:getPosition() end
+
+---No description set in node.h:34.
+---@param x number @ No description set in node.h:34.
+---@param y number @ No description set in node.h:34.
+function Label:setPosition(x, y) end
+
+---No description set in node.h:46.
+---@param onUpdateHandler function @ No description set in node.h:46.
+function Label:onUpdate(onUpdateHandler) end

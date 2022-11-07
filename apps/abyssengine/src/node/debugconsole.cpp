@@ -2,26 +2,28 @@
 #include "../engine/engine.h"
 #include "config.h"
 #include <absl/strings/str_join.h>
+//#include <glibmm.h>
+#include <glib.h>
 
 namespace AbyssEngine {
 namespace {
-const int CONSOLE_MAX_LINES = 13;
+const int CONSOLE_MAX_LINES = 14;
 const int CONSOLE_SLIDE_OUT_TICKS = 150;
 const int CONSOLE_HEIGHT = 225;
-constexpr std::string_view CONSOLE_SYMBOL = ">";
+constexpr std::string_view CONSOLE_SYMBOL = "> ";
 } // namespace
 
 DebugConsole::DebugConsole()
-    : _consoleFont("/abyss-embedded/Hack-Regular.ttf", 13, ITtf::Hinting::Light), _consoleLabel(_consoleFont), _inputLabel(_consoleFont) {
+    : _consoleFont(std::filesystem::path{"/abyss-embedded/Hack-Regular.ttf"}, 9, /*Cairo::HINT_STYLE_SLIGHT*/ CAIRO_HINT_STYLE_MEDIUM, CAIRO_ANTIALIAS_SUBPIXEL), _consoleLabel(_consoleFont), _inputLabel(_consoleFont) {
     _consoleLabel.SetCaption("");
-    _consoleLabel.SetColorMod(255, 255, 255);
+    _consoleLabel.SetColorMod(0xAA, 0xAA, 0xAA);
     _consoleLabel.SetVisible(true);
     _consoleLabel.SetActive(true);
     _consoleLabel.SetAlignment(eAlignment::Start, eAlignment::End);
     _consoleLabel.SetPosition(5, CONSOLE_HEIGHT - 16);
 
-    _inputLabel.SetCaption("> ");
-    _inputLabel.SetColorMod(255, 255, 0);
+    _inputLabel.SetCaption(CONSOLE_SYMBOL);
+    _inputLabel.SetColorMod(0xAA, 0xAA, 0);
     _inputLabel.SetVisible(true);
     _inputLabel.SetActive(true);
     _inputLabel.SetAlignment(eAlignment::Start, eAlignment::End);
@@ -48,7 +50,12 @@ void DebugConsole::AddLine(const std::string &line) {
         _lines.pop_front();
 
     _lines.push_back(line);
-    _consoleLabel.SetCaption(absl::StrJoin(_lines, "\n"));
+//    _consoleLabel.SetCaption(std::string(Glib::Markup::escape_text(absl::StrJoin(_lines, "\n"))));
+    std::string text = absl::StrJoin(_lines, "\n");
+    char* result = g_markup_escape_text(text.data(), text.length());
+    std::string escaped = result;
+    free(result);
+    _consoleLabel.SetCaption(escaped);
 }
 void DebugConsole::KeyboardEventCallback(const KeyboardEvent &event) {
     auto &io = Engine::Get()->GetSystemIO();

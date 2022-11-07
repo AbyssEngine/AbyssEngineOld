@@ -20,20 +20,10 @@ class Label : public Node {
     void SetAlignment(eAlignment hAlign, eAlignment vAlign);
     void SetAlignmentStr(std::string_view hAlign, std::string_view vAlign);
     void SetColorMod(uint8_t red, uint8_t green, uint8_t blue);
-    void LuaSetBlendMode(std::string_view mode);
     [[nodiscard]] std::string_view LuaGetBlendMode() const;
 
-    void SetBold(bool value);
-    [[nodiscard]] bool GetBold() const;
-
-    void SetItalic(bool value);
-    [[nodiscard]] bool GetItalic() const;
-
-    void SetUnderline(bool value);
-    [[nodiscard]] bool GetUnderline() const;
-
-    void SetStrikethrough(bool value);
-    [[nodiscard]] bool GetStrikethrough() const;
+    void SetMaxWidth(int value);
+    [[nodiscard]] int GetMaxWidth() const;
 
     [[nodiscard]] std::string_view NodeType() const final { return "Label Node"; };
 
@@ -50,7 +40,7 @@ class Label : public Node {
     std::string _caption;
     int _labelOffsetX = 0;
     int _labelOffsetY = 0;
-    ITtf::Style _style = (ITtf::Style)0;
+    int _maxWidth = -1;
 };
 
 class SpriteLabel : public Label {
@@ -73,10 +63,8 @@ class TtfLabel : public Label {
     void DoRender(int x, int y) override;
     void ClearCache() override;
 
-    std::vector<std::unique_ptr<ITexture>> _textures;
-    std::vector<Rectangle> _rects = {};
-    int _total_width = 0;
-    int _total_height = 0;
+    std::unique_ptr<ITexture> _texture;
+    Rectangle _rect = {};
     TtfFont& _font;
 };
 

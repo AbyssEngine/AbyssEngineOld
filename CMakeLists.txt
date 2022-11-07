@@ -13,8 +13,6 @@ project(abyss VERSION "${abyss_VERSION_MAJOR}.${abyss_VERSION_MINOR}")
 # CMake and  modules configuration
 # -------------------------------------------------------------------------------------------------
 
-set(ABYSS_REQUIRED_LUA 5.4)
-
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 include(FindPackageMessage)
@@ -76,18 +74,26 @@ endif ()
 
 configure_vcpkg()
 configure_brew()
+find_package(PkgConfig REQUIRED)
 find_package(absl CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(cppzmq CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
-find_package(sol2 CONFIG REQUIRED)
 find_package(FFMPEG COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE REQUIRED)
-find_package(Lua ${ABYSS_REQUIRED_LUA} EXACT REQUIRED)
 find_package(PNG REQUIRED)
 find_package(ICU COMPONENTS uc REQUIRED)
+find_package(Freetype REQUIRED)
 include_sdl2()
 include_stormlib()
 include_casclib()
+pkg_check_modules(Lua REQUIRED IMPORTED_TARGET luajit)
+pkg_check_modules(Fontconfig REQUIRED IMPORTED_TARGET fontconfig)
+pkg_check_modules(Pango REQUIRED IMPORTED_TARGET pango)
+pkg_check_modules(Cairo REQUIRED IMPORTED_TARGET cairo)
+pkg_check_modules(PangoCairo REQUIRED IMPORTED_TARGET pangocairo)
+pkg_check_modules(PangoFC REQUIRED IMPORTED_TARGET pangofc)
+CPMFindPackage(NAME sol2 GITHUB_REPOSITORY ThePhD/sol2 VERSION 3.3.0)
+add_compile_definitions(SOL_LUAJIT=1)
 include_lualibs()
 
 if (APPLE)
@@ -103,7 +109,11 @@ endif ()
 
 add_subdirectory(libabyss)
 add_subdirectory(apps)
-add_subdirectory(tests)
+
+option(ENABLE_TESTS "Enable unit tests" TRUE)
+if (ENABLE_TESTS)
+    add_subdirectory(tests)
+endif()
 
 
 # -------------------------------------------------------------------------------------------------

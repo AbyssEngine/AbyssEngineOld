@@ -1,13 +1,13 @@
 #ifndef ABYSS_SYSTEMIO_INTERFACE_H
 #define ABYSS_SYSTEMIO_INTERFACE_H
 
+#include "../common/audiointent.h"
 #include "../common/blendmode.h"
 #include "../common/enum.h"
 #include "../common/events.h"
 #include "../common/rectangle.h"
-#include "../common/audiointent.h"
-#include "libabyss/streams/audiostream.h"
 #include "../engine/soundeffect.h"
+#include "libabyss/streams/audiostream.h"
 #include <memory>
 #include <mutex>
 #include <span>
@@ -21,36 +21,26 @@ class Node;
 
 class ITexture {
   public:
-    enum class Format { Static, YUV, TTF };
+    enum class Format { Static, YUV, BGRA };
 
     virtual ~ITexture() = default;
     virtual void SetPixels(std::span<const uint32_t> pixels) = 0;
     virtual void SetPixels(std::span<const uint8_t> pixels) = 0;
+    virtual void SetPixels(std::span<const uint8_t> pixels, int pitch) = 0;
     virtual void SetYUVData(std::span<const uint8_t> yPlane, int yPitch, std::span<const uint8_t> uPlane, int uPitch, std::span<const uint8_t> vPlane,
                             int vPitch) = 0;
     virtual void Render(const AbyssEngine::Rectangle &sourceRect, const AbyssEngine::Rectangle &destRect) = 0;
     virtual void SetBlendMode(eBlendMode blendMode) = 0;
     virtual void SetColorMod(uint8_t red, uint8_t green, uint8_t blue) = 0;
-    virtual void SaveAsBMP(const std::string& filePath) = 0;
+    virtual void SaveAsBMP(const std::string &filePath) = 0;
     virtual eBlendMode GetBlendMode() = 0;
 };
 
 class IAudio {
-    public:
-        virtual ~IAudio() = default;
-        virtual int16_t GetAudioSample() = 0;
+  public:
+    virtual ~IAudio() = default;
+    virtual int16_t GetAudioSample() = 0;
 };
-
-class ITtf {
-    public:
-    enum class Hinting { Normal, Light, Mono, None };
-    enum class Style : uint8_t { Bold = 0x1, Italic = 0x2, Underline = 0x4, Strikethrough = 0x8 };
-
-        virtual ~ITtf() = default;
-        virtual std::unique_ptr<ITexture> RenderText(std::string_view text, int &width, int &height) = 0;
-        virtual void SetStyle(Style style) = 0;
-};
-ABYSS_ENUM_BITSET(ITtf::Style);
 
 /// Interface for the host subsystems.
 class SystemIO {
@@ -72,10 +62,6 @@ class SystemIO {
     /// \param height The height of the texture.
     /// \return A new texture instance.
     virtual std::unique_ptr<ITexture> CreateTexture(ITexture::Format textureFormat, uint32_t width, uint32_t height) = 0;
-
-    /// Loads TTF font from file.
-    /// This is in SystemIO because SDL_ttf is not supposed to be used outside of systemio/sdl2/
-    virtual std::unique_ptr<ITtf> CreateTtf(LibAbyss::InputStream stream, int size, ITtf::Hinting hinting) = 0;
 
     /// Handles input events from the host system.
     /// \returns True if the engine should continue, false if it should halt.
@@ -124,7 +110,7 @@ class SystemIO {
     virtual void RemoveSoundEffect(SoundEffect *soundEffect) = 0;
 
     /// Sets pointer to the video to get the audio samples from.
-    virtual void SetVideo(IAudio* video) = 0;
+    virtual void SetVideo(IAudio *video) = 0;
 
     virtual void DrawLine(int x1, int y1, int x2, int y2, uint8_t r, uint8_t g, uint8_t b) = 0;
 
@@ -139,6 +125,10 @@ class SystemIO {
     virtual void ClearInputText() = 0;
 
     virtual void Sleep(uint32_t ticks) = 0;
+
+    virtual void GetScreenSize(int *width, int *height) = 0;
+
+    virtual void SetWindowTitle(std::string_view title) = 0;
 };
 
 } // namespace AbyssEngine

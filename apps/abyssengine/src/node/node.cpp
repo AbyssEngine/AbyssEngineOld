@@ -133,4 +133,7 @@ void Node::KeyboardEventCallback(const KeyboardEvent &event) {
     }
 }
 Node::~Node() { _nodeCount--; }
+std::vector<Node *> Node::GetChildren() { return Children; }
+void Node::SetLuaTable(sol::table table) { _table = std::move(table); }
+std::string_view Node::NodeType() const { return "Node"; }
 } // namespace AbyssEngine

@@ -21,7 +21,6 @@ class SDL2SystemIO : public SystemIO {
     void PauseAudio(bool pause) final;
     void SetFullscreen(bool fullscreen) final;
     std::unique_ptr<ITexture> CreateTexture(ITexture::Format textureFormat, uint32_t width, uint32_t height) final;
-    std::unique_ptr<ITtf> CreateTtf(LibAbyss::InputStream stream, int size, ITtf::Hinting hinting) final;
     bool HandleInputEvents(Node &rootNode) final;
     uint32_t GetTicks() final;
     void RenderStart() final;
@@ -41,6 +40,8 @@ class SDL2SystemIO : public SystemIO {
     void ClearInputText() final;
     void ResetKeyState(uint16_t scancode) final;
     void Sleep(uint32_t ticks) final;
+    void GetScreenSize(int* width, int* height) final;
+    void SetWindowTitle(std::string_view title) override;
 
   private:
     void InitializeAudio();
@@ -60,6 +61,8 @@ class SDL2SystemIO : public SystemIO {
     SDL_AudioDeviceID _audioDeviceId = 0;
     int _cursorX = 0;
     int _cursorY = 0;
+    int _screenWidth = 0;
+    int _screenHeight = 0;
     eMouseButton _mouseButtonState;
     float _masterAudioLevel = 1.0f;
     float _masterAudioLevelActual = 1.0f;

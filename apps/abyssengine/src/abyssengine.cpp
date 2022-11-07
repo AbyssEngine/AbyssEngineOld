@@ -6,11 +6,11 @@
 #include <libavcodec/version.h>
 #include <libavfilter/version.h>
 #include <libavformat/version.h>
-#include <libavresample/version.h>
 #include <libavutil/log.h>
 #include <libavutil/version.h>
 #include <libswresample/version.h>
 #include <memory>
+#include <typeinfo>
 #include <spdlog/spdlog.h>
 
 #if _WINDOWS
@@ -46,8 +46,8 @@ int main(int, char *argv[]) {
     // from the console (who would want that?!). Lets ensure the console actually
     // gets the output when launched on the console. -_-
     if (AttachConsole(ATTACH_PARENT_PROCESS)) {
-        freopen("CONOUT$","wb",stdout);
-        freopen("CONOUT$","wb",stderr);
+        freopen("CONOUT$", "wb", stdout);
+        freopen("CONOUT$", "wb", stderr);
     }
 #endif
 
@@ -57,8 +57,12 @@ int main(int, char *argv[]) {
     spdlog::set_level(spdlog::level::trace);
 #endif
 
+#ifdef LUAJIT_VERSION
+    SPDLOG_INFO("LuaJIT Version " LUA_VERSION " / " LUAJIT_VERSION);
+#else
+    SPDLOG_INFO("Lua Version " LUA_VERSION);
+#endif
     SPDLOG_INFO("SOL version " SOL_VERSION_STRING);
-    SPDLOG_INFO("Lua Version " LUA_VERSION_MAJOR "." LUA_VERSION_MINOR);
     SPDLOG_INFO("FFMPEG Library:");
     SPDLOG_INFO("   AVFormat Version    - " AV_STRINGIFY(LIBAVFORMAT_VERSION));
     SPDLOG_INFO("   AVResample Version  - " AV_STRINGIFY(LIBAVRESAMPLE_VERSION));
@@ -82,7 +86,7 @@ int main(int, char *argv[]) {
         engine.Run();
 
     } catch (std::exception &ex) {
-        SPDLOG_CRITICAL("{}", ex.what());
+        SPDLOG_CRITICAL("Caught exception {}: {}", typeid(ex).name(), ex.what());
         AbyssEngine::HostNotify::Notify(AbyssEngine::eNotifyType::Fatal, "AbyssEngine Crash", ex.what());
         return EXIT_FAILURE;
     }

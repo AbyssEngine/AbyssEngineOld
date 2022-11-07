@@ -24,7 +24,7 @@ class Image {
 
     void SetBlendMode(eBlendMode mode);
     void SetColorMod(uint8_t r, uint8_t g, uint8_t b);
-    eBlendMode GetBlendMode() const { return _blendMode; }
+    [[nodiscard]] eBlendMode GetBlendMode() const { return _blendMode; }
 
   protected:
     virtual void GetFrameOffset(uint32_t frameIdx, int &offsetX, int &offsetY) = 0;

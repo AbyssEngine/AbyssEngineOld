@@ -9,13 +9,14 @@
     "zlib",
     "icu",
     "sdl2",
-    "lua",
-    "lpeg",
-    "sdl2-ttf",
-    "sol2",
+    "luajit",
     "gtest",
     "cppzmq",
+    "pango",
+    "cairo",
+    "fontconfig",
     "fmt",
+    "sqlite3",
     {
       "name": "ffmpeg",
       "features": [
@@ -36,11 +37,7 @@
       ]
     }
   ],
-  "builtin-baseline": "cef0e8a8c7e5493283f2895c9c6fd8431d166b43",
+  "builtin-baseline": "5f82fa45df07a446bab57f65479f3d2df797f408",
   "overrides": [
-    {
-      "name": "lua",
-      "version": "5.4.3"
-    }
   ]
 }

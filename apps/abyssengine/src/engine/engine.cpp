@@ -11,8 +11,8 @@ namespace AbyssEngine {
 Engine *engineGlobalInstance = nullptr;
 
 Engine::Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO> systemIo)
-    : _iniFile(std::move(iniFile)), _loader(), _systemIO(std::move(systemIo)), _palettes(),
-      _scriptHost(std::make_unique<ScriptHost>(this)), _rootNode("__root"), _mouseButtonState((eMouseButton)0) {
+    : _iniFile(std::move(iniFile)), _loader(), _systemIO(std::move(systemIo)), _palettes(), _scriptHost(std::make_unique<ScriptHost>(this)),
+      _rootNode("__root"), _mouseButtonState((eMouseButton)0) {
 
     SPDLOG_TRACE("Creating engine");
 
@@ -34,11 +34,12 @@ Engine::Engine(LibAbyss::INIFile iniFile, std::unique_ptr<SystemIO> systemIo)
     _systemIO->SetAudioLevel(eAudioIntent::BackgroundMusic, _iniFile.GetValueFloat("Audio", "BackgroundMusicVolume"));
 
     _maxFPS = _iniFile.GetValueInt("Video", "MaxFPS");
-    _ticksPerFrame = _maxFPS > 0 ?  1000 / _maxFPS : 0;
+    _ticksPerFrame = _maxFPS > 0 ? 1000 / _maxFPS : 0;
 }
 
 void Engine::Run() {
     _loader.AddProvider(std::make_unique<EmbeddedFileProvider>());
+    _ttfManager.emplace();
     _debugConsoleNode.emplace();
 
     auto logger = std::shared_ptr<spdlog::logger>(
@@ -110,6 +111,7 @@ void Engine::RunMainLoop() {
             lastFrameTime = currentTime;
         }
 
+        _systemIO->GetScreenSize(&_screenWidth, &_screenHeight);
 
         gcStart = _systemIO->GetTicks();
         ScriptGarbageCollect();
@@ -150,7 +152,6 @@ void Engine::RunMainLoop() {
             _debugConsoleNode->RenderCallback(0, 0);
         loopDone = _systemIO->GetTicks();
         _systemIO->RenderEnd();
-
     }
 }
 
@@ -270,6 +271,9 @@ bool Engine::UpdateTicks() {
 
     return true;
 }
-std::string Engine::ExecuteCommand(std::string command) { return _scriptHost->ExecuteString(command); }
+std::string Engine::ExecuteCommand(const std::string &command) { return _scriptHost->ExecuteString(command); }
+
+void Engine::GetScreenSize(int *width, int *height) { _systemIO->GetScreenSize(width, height); }
+void Engine::SetWindowTitle(std::string_view title) { _systemIO->SetWindowTitle(title); }
 
 } // namespace AbyssEngine

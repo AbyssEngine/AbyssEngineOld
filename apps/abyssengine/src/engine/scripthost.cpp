@@ -1,7 +1,6 @@
 #include "scripthost.h"
 #include "../node/d2rsprite.h"
 #include "../node/dc6sprite.h"
-#include "../node/inputlistener.h"
 #include "cascprovider.h"
 #include "engine.h"
 #include "filesystemprovider.h"
@@ -11,20 +10,20 @@
 #include <absl/container/flat_hash_map.h>
 #include <absl/strings/ascii.h>
 #include <absl/strings/str_cat.h>
-#include <codecvt>
+#include <config.h>
 #include <filesystem>
 #include <libabyss/common/levelpreset.h>
 #include <libabyss/common/leveltype.h>
 #include <libabyss/formats/d2/dt1.h>
 #include <libabyss/formats/d2/tbl.h>
-#include <locale>
 #include <memory>
 #include <sol/sol.hpp>
 #include <spdlog/spdlog.h>
 #include <stdexcept>
 
 extern "C" {
-int luaopen_lpeg (lua_State *L);
+int luaopen_lpeg(lua_State *L);
+int luaopen_lsqlite3(lua_State *L);
 }
 
 namespace AbyssEngine {
@@ -56,6 +55,7 @@ ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     _lua.stop_gc();
     _lua.open_libraries();
     _lua.require("lpeg", luaopen_lpeg);
+    _lua.require("lsqlite3", luaopen_lsqlite3);
 
     _environment = sol::environment(_lua, sol::create, _lua.globals());
     sol::table module = _lua.create_table("abyss");
@@ -81,6 +81,11 @@ ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     module.set_function("createSoundEffect", &ScriptHost::LuaCreateSoundEffect, this);
     module.set_function("createSpriteFont", &ScriptHost::LuaCreateSpriteFont, this);
     module.set_function("createTtfFont", &ScriptHost::LuaCreateTtfFont, this);
+    module.set_function("getBuildType", &ScriptHost::LuaGetBuildType, this);
+    module.set_function("getCpuType", &ScriptHost::LuaGetCpuType, this);
+    module.set_function("getPlatform", &ScriptHost::LuaGetPlatform, this);
+    module.set_function("getScreenSize", &ScriptHost::LuaGetScreenSize, this);
+    module.set_function("getEngineVersion", &ScriptHost::LuaGetEngineVersion, this);
     module.set_function("isKeyPressed", &ScriptHost::LuaIsKeyPressed, this);
     module.set_function("loadDS1", &ScriptHost::LuaLoadDS1, this);
     module.set_function("loadImage", &ScriptHost::LuaLoadImage, this);
@@ -92,11 +97,13 @@ ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     module.set_function("getRootNode", &ScriptHost::LuaGetRootNode, this);
     module.set_function("log", &ScriptHost::LuaLog, this);
     module.set_function("orthoToWorld", &ScriptHost::LuaOrthoToWorld, this);
+    module.set_function("panic", &ScriptHost::LuaPanic, this);
     module.set_function("playBackgroundMusic", &ScriptHost::LuaPlayBackgroundMusic, this);
     module.set_function("playVideo", &ScriptHost::LuaPlayVideo, this);
     module.set_function("playVideoAndAudio", &ScriptHost::LuaPlayVideoAndAudio, this);
     module.set_function("resetMouseState", &ScriptHost::LuaResetMouseState, this);
     module.set_function("setCursor", &ScriptHost::LuaSetCursor, this);
+    module.set_function("setWindowTitle", &ScriptHost::LuaSetWindowTitle, this);
     module.set_function("showSystemCursor", &ScriptHost::LuaShowSystemCursor, this);
     module.set_function("shutdown", &ScriptHost::LuaFuncShutdown, this);
     module.set_function("utf16To8", &ScriptHost::LuaUtf16To8, this);
@@ -138,11 +145,7 @@ ScriptHost::ScriptHost(Engine *engine) : _engine(engine), _lua() {
     labelType["caption"] = sol::property(&Label::GetCaption, &Label::SetCaption);
     labelType["setAlignment"] = &Label::SetAlignmentStr;
     labelType["setColorMod"] = &Label::SetColorMod;
-    labelType["blendMode"] = sol::property(&Label::LuaGetBlendMode, &Label::LuaSetBlendMode);
-    labelType["bold"] = sol::property(&Label::GetBold, &Label::SetBold);
-    labelType["italic"] = sol::property(&Label::GetItalic, &Label::SetItalic);
-    labelType["underline"] = sol::property(&Label::GetUnderline, &Label::SetUnderline);
-    labelType["strikethrough"] = sol::property(&Label::GetStrikethrough, &Label::SetStrikethrough);
+    labelType["maxWidth"] = sol::property(&Label::GetMaxWidth, &Label::SetMaxWidth);
 
     // Sprite
     auto spriteType = CreateLuaObjectType<Sprite>(module, "Sprite", sol::no_constructor);
@@ -420,6 +423,8 @@ std::unique_ptr<Button> ScriptHost::LuaCreateButton(Image &image) { return std::
 
 void ScriptHost::LuaSetCursor(Sprite &sprite, int offsetX, int offsetY) { _engine->SetCursorSprite(&sprite, offsetX, offsetY); }
 
+void ScriptHost::LuaSetWindowTitle(std::string_view title) { _engine->SetWindowTitle(title); }
+
 Node &ScriptHost::LuaGetRootNode() { return _engine->GetRootNode(); }
 
 void ScriptHost::LuaPlayVideo(std::string_view videoPath, const sol::safe_function &callback) {
@@ -467,25 +472,30 @@ sol::table ScriptHost::LuaLoadTbl(std::string_view filePath) {
     return result;
 }
 
-std::unique_ptr<SpriteFont> ScriptHost::LuaCreateSpriteFont(std::string_view fontPath, std::string_view paletteName,
-        bool useGlyphHeight, std::string_view blendMode) {
+std::unique_ptr<SpriteFont> ScriptHost::LuaCreateSpriteFont(std::string_view fontPath, std::string_view paletteName, bool useGlyphHeight,
+                                                            std::string_view blendMode) {
     return std::make_unique<SpriteFont>(fontPath, paletteName, useGlyphHeight, StringToBlendMode(blendMode));
 }
 
 std::unique_ptr<TtfFont> ScriptHost::LuaCreateTtfFont(std::string_view fontPath, int size, std::string_view hinting) {
-    ITtf::Hinting hint;
-    if (hinting == "light") {
-        hint = ITtf::Hinting::Light;
-    } else if (hinting == "mono") {
-        hint = ITtf::Hinting::Mono;
-    } else if (hinting == "normal") {
-        hint = ITtf::Hinting::Normal;
+    //Cairo::HintStyle hint;
+    cairo_hint_style_t hint;
+    if (hinting == "slight") {
+        //hint = Cairo::HINT_STYLE_SLIGHT;
+        hint = CAIRO_HINT_STYLE_SLIGHT;
+    } else if (hinting == "medium") {
+        //hint = Cairo::HINT_STYLE_MEDIUM;
+        hint = CAIRO_HINT_STYLE_MEDIUM;
     } else if (hinting == "none") {
-        hint = ITtf::Hinting::None;
+        //hint = Cairo::HINT_STYLE_NONE;
+        hint = CAIRO_HINT_STYLE_NONE;
+    } else if (hinting == "full") {
+        //hint = Cairo::HINT_STYLE_FULL;
+        hint = CAIRO_HINT_STYLE_FULL;
     } else {
         throw std::runtime_error("Unknown hinting type");
     }
-    return std::make_unique<TtfFont>(fontPath, size, hint);
+    return std::make_unique<TtfFont>(fontPath, size, hint, CAIRO_ANTIALIAS_SUBPIXEL);
 }
 
 std::unique_ptr<Label> ScriptHost::LuaCreateLabel(IFont &font) {
@@ -570,7 +580,9 @@ std::string ScriptHost::LuaUtf16To8(const std::string &str) {
     return result;
 }
 bool ScriptHost::LuaIsKeyPressed(uint16_t scancode) { return _engine->GetSystemIO().IsKeyPressed(scancode); }
+
 std::unique_ptr<Node> ScriptHost::LuaCreateNode() { return std::make_unique<Node>(); }
+
 void ScriptHost::DefineScanCodes(sol::table module) {
     module["scanCodes"] = _lua.create_table();
     module["scanCodes"]["UNKNOWN"] = 0;
@@ -816,6 +828,24 @@ void ScriptHost::DefineScanCodes(sol::table module) {
     module["scanCodes"]["APP2"] = 284;
     module["scanCodes"]["AUDIOREWIND"] = 285;
     module["scanCodes"]["AUDIOFASTFORWARD"] = 286;
+}
+
+std::tuple<int, int> ScriptHost::LuaGetScreenSize() {
+    int screenWidth, screenHeight;
+    _engine->GetScreenSize(&screenWidth, &screenHeight);
+    return std::make_tuple(screenWidth, screenHeight);
+}
+
+std::tuple<int, int> ScriptHost::LuaGetEngineVersion() { return std::make_tuple(ABYSS_VERSION_MAJOR, ABYSS_VERSION_MINOR); }
+
+std::string ScriptHost::LuaGetCpuType() { return ABYSS_BUILD_CPU; }
+
+std::string ScriptHost::LuaGetPlatform() { return ABYSS_BUILD_PLATFORM; }
+
+std::string ScriptHost::LuaGetBuildType() { return ABYSS_BUILD_TYPE; }
+
+void ScriptHost::LuaPanic(std::string_view message) {
+    _engine->Panic(message);
 }
 
 } // namespace AbyssEngine
