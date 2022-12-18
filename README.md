@@ -36,3 +36,19 @@ The following are a list of game projects based on the AbyssEngine Engine:
 ## Screenshots
 
 ![Screenshot 1](screenshot-1.png)
+
+## Installation
+
+Binaries for Windows and MacOS are provided at [this page](https://github.com/AbyssEngine/AbyssEngine/releases/tag/unstable).
+
+If you want to build from source instead, or if you use another OS (e.g. Linux):
+
+1. Install [vcpkg](https://vcpkg.io/en/getting-started.html) (don't forget to `vcpkg integrate install` if you use
+   Visual Studio!)
+2. Install [luarocks](http://luarocks.github.io/luarocks/releases/) - just have luarocks.exe available in PATH,
+   otherwise you'll need to explicitly provide path to it to cmake.
+3. Either open the CMake project via Visual Studio, or use `-DCMAKE_TOOLCHAIN_FILE=...` option to cmake as described in
+   vcpkg docs.
+
+Note for package maintainers: if all the C++ and Lua dependencies are found on the system already, vcpkg and luarocks
+shouldn't be needed.

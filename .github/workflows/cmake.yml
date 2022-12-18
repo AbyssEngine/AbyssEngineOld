@@ -13,15 +13,14 @@ jobs:
         include:
           - name: Windows
             os: windows-latest
-            triplet: x64-windows
+            triplet: x64-windows-release
           - name: Ubuntu GCC
             os: ubuntu-latest
-            triplet: x64-linux
+            triplet: x64-linux-release
           - name: MacOS
             os: macos-11
-            triplet: x64-osx
+            triplet: x64-osx-release
     env:
-      CMAKE_BUILD_DIR: ${{ github.workspace }}/builddir/
       VCPKG_ROOT: ${{ github.workspace }}/vcpkg
       CMAKE_BUILD_TYPE: "MinSizeRel"
 
@@ -68,18 +67,23 @@ jobs:
           vcpkgGitCommitId: "5f82fa45df07a446bab57f65479f3d2df797f408"
           appendedCacheKey: ${{ hashFiles( '**/vcpkg.json' ) }}
 
+      - name: Make build dir
+        run: mkdir build
+
+      - name: Run cmake
+        working-directory: build/
+        run: cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }} ..
+
       - name: Build
-        uses: lukka/run-cmake@v10
-        with:
-          configurePreset: 'ninja-vcpkg'
-          buildPreset: 'ninja-vcpkg'
+        working-directory: build/
+        run: ninja
 
       - name: Test
-        run: builds/ninja-vcpkg/tests/abyss_test
+        run: build/tests/abyss_test
 
       - name: Package (Windows)
         if: ${{ matrix.os == 'windows-latest' && github.event_name == 'push' }}
-        working-directory: builds/ninja-vcpkg/
+        working-directory: build/
         run: cpack -G ZIP -C Debug ./
 
       - name: Upload Release (Windows)
@@ -87,7 +91,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: "builds/ninja-vcpkg/package/abyss-windows.zip"
+          file: "build/package/abyss-windows.zip"
           overwrite: true
           prerelease: true
           tag: unstable
@@ -95,12 +99,12 @@ jobs:
 
       - name: Package (Ubuntu)
         if: ${{ matrix.os == 'ubuntu-latest' && github.event_name == 'push' }}
-        working-directory: builds/ninja-vcpkg/
+        working-directory: build/
         run: cpack -G TGZ -C Debug ./
 
       - name: Package (MacOS)
         if: ${{ matrix.os == 'macos-11' && github.event_name == 'push' }}
-        working-directory: builds/ninja-vcpkg/
+        working-directory: build/
         run: cpack -G DragNDrop -C Debug ./
 
       - name: Upload Release (MacOS)
@@ -108,7 +112,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: "builds/ninja-vcpkg/package/abyss-darwin.dmg"
+          file: "build/package/abyss-darwin.dmg"
           overwrite: true
           prerelease: true
           tag: unstable
