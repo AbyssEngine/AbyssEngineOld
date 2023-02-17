@@ -57,7 +57,7 @@ jobs:
 
       - name: Install Deps (MacOS)
         if: matrix.os == 'macos-11'
-        run: brew install nasm automake autoconf autoconf-archive luarocks
+        run: brew install nasm automake autoconf autoconf-archive luarocks pkg-config
 
       - name: Run vcpkg
         uses: lukka/run-vcpkg@v10
