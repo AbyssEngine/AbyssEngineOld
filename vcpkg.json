@@ -37,7 +37,8 @@
       ]
     }
   ],
-  "builtin-baseline": "5f82fa45df07a446bab57f65479f3d2df797f408",
+  "builtin-baseline": "a325228200d7f229f3337e612e0077f2a5307090",
   "overrides": [
+      { "name": "ffmpeg", "version": "4.4.3" }
   ]
 }
