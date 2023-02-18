@@ -158,7 +158,6 @@ target_link_libraries(${APP_NAME}
         SDL2::SDL2
         spdlog::spdlog
         ${sol2_target}
-        cppzmq
         ${FFMPEG_LIBRARIES}
         PkgConfig::Lua
         LUA::lpeg

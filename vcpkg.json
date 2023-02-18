@@ -11,7 +11,6 @@
     "sdl2",
     "luajit",
     "gtest",
-    "cppzmq",
     "pango",
     "cairo",
     "fontconfig",
