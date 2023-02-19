@@ -12,7 +12,7 @@ jobs:
       matrix:
         include:
           - name: Windows
-            os: windows-latest
+            os: windows-2019
             triplet: x64-windows-release
           - name: Ubuntu GCC
             os: ubuntu-latest
@@ -38,13 +38,13 @@ jobs:
         name: Get CMake
 
       - name: Install Deps (Windows)
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2019'
         uses: crazy-max/ghaction-chocolatey@v1
         with:
           args: install nasm luarocks
 
       - name: Use MSVC (Windows)
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2019'
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Install Deps (Ubuntu)
@@ -82,12 +82,12 @@ jobs:
         run: build/tests/abyss_test
 
       - name: Package (Windows)
-        if: ${{ matrix.os == 'windows-latest' && github.event_name == 'push' }}
+        if: ${{ matrix.os == 'windows-2019' && github.event_name == 'push' }}
         working-directory: build/
         run: cpack -G ZIP -C Debug ./
 
       - name: Upload Release (Windows)
-        if: ${{ matrix.os == 'windows-latest' && github.event_name == 'push' }}
+        if: ${{ matrix.os == 'windows-2019' && github.event_name == 'push' }}
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
