@@ -6,6 +6,7 @@ cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
 set(abyss_VERSION_MAJOR 0)
 set(abyss_VERSION_MINOR 3)
+set(CMAKE_EXECUTE_PROCESS_COMMAND_ECHO STDOUT)
 
 project(abyss VERSION "${abyss_VERSION_MAJOR}.${abyss_VERSION_MINOR}")
 
