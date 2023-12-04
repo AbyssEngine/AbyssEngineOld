@@ -1,17 +1,12 @@
 #pragma once
 
-#include <Abyss/Common/Logging.h>
 #include <Abyss/DataTypes/Palette.h>
-#include <stdexcept>
-#include <string>
 #include <vector>
 
 namespace OD2::Common {
 
 class PaletteManager {
-  private:
     std::vector<Abyss::DataTypes::Palette> palettes;
-
     PaletteManager();
 
   public:

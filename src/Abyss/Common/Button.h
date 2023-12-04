@@ -5,7 +5,7 @@
 
 namespace Abyss::Common {
 
-typedef struct {
+struct ButtonDef {
     std::string name;
     std::string resourceName;
     DataTypes::Palette palette;
@@ -20,7 +20,7 @@ typedef struct {
         int8_t pressed;
         int8_t disabled;
     } frames;
-} ButtonDef;
+};
 
 enum class ButtonState { Normal, Pressed, Disabled };
 

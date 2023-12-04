@@ -1,5 +1,7 @@
 #include "ButtonDefManager.h"
 
+#include <Abyss/Common/Logging.h>
+
 namespace OD2::Common {
 
 ButtonDefManager::ButtonDefManager() : buttonDefs() {}

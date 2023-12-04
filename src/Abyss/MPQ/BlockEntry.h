@@ -1,10 +1,10 @@
 #pragma once
 
-#include <Abyss/MPQ/Crypto.h>
+#include <cstdint>
+#include <string_view>
 
 namespace Abyss::MPQ {
 class MPQBlockEntry {
-  private:
     enum class Flags : uint32_t {
         FILE_IMPLODE = 0x00000100,
         FILE_COMPRESS = 0x00000200,

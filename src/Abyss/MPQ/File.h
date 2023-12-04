@@ -1,8 +1,9 @@
 #pragma once
 
-#include <Abyss/MPQ/BlockEntry.h>
-#include <Abyss/MPQ/HashEntry.h>
-#include <Abyss/MPQ/Header.h>
+#include "BlockEntry.h"
+#include "HashEntry.h"
+#include "Header.h"
+
 #include <array>
 #include <coroutine>
 #include <filesystem>
@@ -13,7 +14,6 @@
 namespace Abyss::MPQ {
 
 class File {
-  private:
     std::filesystem::path path;
     std::ifstream file;
     Header header;

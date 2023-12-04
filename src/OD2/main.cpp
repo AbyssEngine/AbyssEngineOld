@@ -1,5 +1,5 @@
-#include "OD2/Scenes/MainMenu/MainMenu.h"
-
+#include "Common/PaletteManager.h"
+#include "Scenes/MainMenu/MainMenu.h"
 #include <Abyss/AbyssEngine.h>
 #include <Abyss/Common/Logging.h>
 #include <OD2/Common/ResourcePaths.h>
@@ -20,6 +20,7 @@ auto main(const int argc, char **argv) -> int {
         engine.run();
     } catch (const std::exception &exception) {
         Abyss::Common::Log::error("{}", exception.what());
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Abyss Engine", exception.what(), nullptr);
         return 1;
     }
     return 0;

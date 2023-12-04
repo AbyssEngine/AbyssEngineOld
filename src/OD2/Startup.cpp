@@ -1,7 +1,8 @@
 #include "Startup.h"
-#include "Abyss/AbyssEngine.h"
-#include "Abyss/DataTypes/DC6.h"
 #include "Common/ButtonDefManager.h"
+#include "Common/PaletteManager.h"
+#include "Common/ResourcePaths.h"
+#include <Abyss/Common/Logging.h>
 
 namespace OD2 {
 

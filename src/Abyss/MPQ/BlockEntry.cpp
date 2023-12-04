@@ -1,4 +1,5 @@
 #include "BlockEntry.h"
+#include "Crypto.h"
 
 namespace Abyss::MPQ {
 

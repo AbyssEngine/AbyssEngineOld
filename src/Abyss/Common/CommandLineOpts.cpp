@@ -1,16 +1,19 @@
 #include "CommandLineOpts.h"
+#include "Logging.h"
+#include <cxxopts.hpp>
 
 namespace Abyss::Common::CommandLineOpts {
 
 auto process(int argc, char **argv, bool &quitOnRun, Configuration &config) -> void {
     cxxopts::Options options("Abyss", "Abyss Engine");
-    options.add_options()("d,mpqdir", "Path to MPQ files", cxxopts::value<std::string>())("o,loadorder", "Comma separated list of MPQ files to load",
-                                                                                          cxxopts::value<std::string>())("h,help", "Print usage");
+    options.add_options()                                                //
+        ("d,mpqdir", "Path to MPQ files", cxxopts::value<std::string>()) //
+        ("o,loadorder", "Comma separated list of MPQ files to load", cxxopts::value<std::string>())("h,help", "Print usage");
 
     auto result = options.parse(argc, argv);
 
     if (result.count("help") != 0U) {
-        Abyss::Common::Log::info("{}", options.help());
+        Log::info("{}", options.help());
         quitOnRun = true;
         return;
     }
@@ -30,6 +33,12 @@ auto process(int argc, char **argv, bool &quitOnRun, Configuration &config) -> v
 
         config.setMPQDir(mpqDir);
         Log::info("Using MPQ directory: {}", mpqDir);
+    } else {
+#ifdef _WIN32
+        if (std::filesystem::is_directory("Z:/Documents/MPQs")) {
+            config.setMPQDir("Z:/Documents/MPQs");
+        }
+#endif // _WIN32
     }
 
     if (result.count("loadorder") == 0U) {
@@ -44,7 +53,7 @@ auto process(int argc, char **argv, bool &quitOnRun, Configuration &config) -> v
         while (std::getline(stringStream, item, ',')) {
             std::filesystem::path const mpqFile = config.getMPQDir() / item;
 
-            if (!std::filesystem::exists(mpqFile)) {
+            if (!exists(mpqFile)) {
                 Log::error("MPQ file does not exist: {}", mpqFile.string());
                 exit(1);
             }

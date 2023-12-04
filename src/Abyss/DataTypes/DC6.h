@@ -1,9 +1,8 @@
 #pragma once
 
-#include "Abyss/Streams/InputStream.h"
 #include <Abyss/Common/Animation.h>
-#include <Abyss/DataTypes/Palette.h>
 #include <Abyss/Enums/BlendMode.h>
+#include <Abyss/Streams/InputStream.h>
 #include <SDL2/SDL.h>
 #include <array>
 #include <vector>
@@ -16,7 +15,6 @@ constexpr int DC6TerminationSize = 4;
 constexpr int DC6TerminatorSize = 3;
 
 class DC6Frame {
-  private:
     uint32_t _flipped;
     uint32_t _width;
     uint32_t _height;

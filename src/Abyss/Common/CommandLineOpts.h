@@ -1,11 +1,6 @@
 #pragma once
 
-#include <Abyss/Common/Configuration.h>
-#include <Abyss/Common/Logging.h>
-#include <cxxopts.hpp>
-#include <filesystem>
-#include <string>
-#include <vector>
+#include "Configuration.h"
 
 namespace Abyss::Common::CommandLineOpts {
 

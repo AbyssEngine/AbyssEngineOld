@@ -1,14 +1,14 @@
 #pragma once
 
+#include "../Common/RingBuffer.h"
+#include "InputStream.h"
+#include <mutex>
+
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswresample/swresample.h>
 }
-
-#include <Abyss/Common/RingBuffer.h>
-#include <Abyss/Streams/InputStream.h>
-#include <mutex>
 
 // Compatability with newer API
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55, 28, 1)

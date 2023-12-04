@@ -1,8 +1,9 @@
 #include "PaletteManager.h"
+#include <Abyss/Common/Logging.h>
 
 namespace OD2::Common {
 
-PaletteManager::PaletteManager() : palettes() {}
+PaletteManager::PaletteManager() {}
 
 auto PaletteManager::getInstance() -> PaletteManager & {
     static PaletteManager instance;

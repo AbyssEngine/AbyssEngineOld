@@ -1,14 +1,13 @@
 #pragma once
 
-#include "Abyss/Streams/InputStream.h"
-#include <Abyss/Common/CommandLineOpts.h>
+#include "Common/MouseState.h"
+#include "Common/Scene.h"
+#include "DataTypes/DC6.h"
+#include "Streams/AudioStream.h"
+#include "Streams/MPQStream.h"
+
 #include <Abyss/Common/Configuration.h>
-#include <Abyss/Common/MouseState.h>
-#include <Abyss/Common/Scene.h>
-#include <Abyss/DataTypes/DC6.h>
 #include <Abyss/MPQ/File.h>
-#include <Abyss/Streams/AudioStream.h>
-#include <Abyss/Streams/MPQStream.h>
 #include <SDL2/SDL.h>
 #include <map>
 #include <string>

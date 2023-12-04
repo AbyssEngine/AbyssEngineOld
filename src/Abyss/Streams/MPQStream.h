@@ -1,25 +1,16 @@
 #pragma once
 
-#include <Abyss/MPQ/BlockEntry.h>
-#include <Abyss/MPQ/Crypto.h>
+#include "InputStream.h"
 #include <Abyss/MPQ/File.h>
-#include <Abyss/Streams/InputStream.h>
-#include <algorithm>
-#include <bit>
-#include <blast.h>
-#include <cmath>
 #include <ios>
-#include <memory>
 #include <span>
 #include <string>
-#include <utility>
 #include <vector>
 #include <zlib.h>
 
 namespace Abyss::Streams {
 
 class MPQStream : public SizeableStreambuf {
-  private:
     std::shared_ptr<MPQ::File> mpqFile;
     std::string fileName;
     size_t uncompressedSize;

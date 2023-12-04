@@ -1,9 +1,9 @@
-
 #include "AbyssEngine.h"
 
+#include "Common/CommandLineOpts.h"
+#include "Extras/Imgui/imgui_impl_sdl2.h"
+#include "Extras/Imgui/imgui_impl_sdlrenderer2.h"
 #include <Abyss/Common/Logging.h>
-#include <imgui_impl_sdl2.h>
-#include <imgui_impl_sdlrenderer2.h>
 #include <map>
 
 namespace Abyss {
@@ -293,7 +293,7 @@ auto AbyssEngine::initializeAudio() -> void {
 
     if (SDL_OpenAudio(&want, &have) != 0)
         throw std::runtime_error("Failed to open audio: " + std::string(SDL_GetError()));
-
+    /*
     if (have.format != want.format)
         throw std::runtime_error("Failed to open audio: Could not initialize with the proper format.");
 
@@ -304,7 +304,7 @@ auto AbyssEngine::initializeAudio() -> void {
         throw std::runtime_error("Failed to open audio: Could not initialize with the proper frequency.");
 
     if (have.samples != want.samples)
-        throw std::runtime_error("Failed to open audio: Could not initialize with the proper sample size.");
+        throw std::runtime_error("Failed to open audio: Could not initialize with the proper sample size.");*/
 
     Common::Log::info("Using audio device: {}", SDL_GetAudioDeviceName(0, 0));
 

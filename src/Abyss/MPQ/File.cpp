@@ -1,9 +1,11 @@
 #include "File.h"
 
+#include <Abyss/MPQ/Crypto.h>
+
 namespace Abyss::MPQ {
 
 File::File(const std::filesystem::path &filePath) : path(filePath), file(filePath, std::ios::in | std::ios::binary), header() {
-    this->path = std::filesystem::canonical(this->path);
+    this->path = canonical(this->path);
 
     if (!file.is_open())
         throw std::runtime_error("Failed to open MPQ file: " + this->path.string());
@@ -78,7 +80,7 @@ auto File::getFileBlockData(const std::string &fileName) -> MPQBlockEntry & {
 
 auto File::getBlockOffsets(const MPQBlockEntry &blockEntry) -> std::vector<uint32_t> {
     file.seekg(blockEntry.getFilePosition());
-    const auto vsize = (0x200 << header.blockSize);
+    const auto vsize = 0x200 << header.blockSize;
     const auto blockPositionCount = ((blockEntry.getUncompressedSize() + vsize - 1) / vsize) + 1;
     std::vector<uint32_t> blockPositions(blockPositionCount);
     file.read(std::bit_cast<char *>(blockPositions.data()), static_cast<std::streamsize>(blockPositionCount * sizeof(uint32_t)));
