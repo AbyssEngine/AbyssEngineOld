@@ -1,0 +1,25 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "abyss",
+  "version": "0.0.1",
+  "dependencies": [
+    "cxxopts",
+    "sdl2",
+    "spdlog",
+    "zlib",
+    "imgui",
+    {
+      "name": "ffmpeg",
+      "features": [
+        "avcodec",
+        "avdevice",
+        "avfilter",
+        "avformat",
+        "avresample",
+        "swscale",
+        "swresample",
+        "ffmpeg"
+      ]
+    }
+  ]
+}

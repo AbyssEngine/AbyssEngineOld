@@ -1,0 +1,36 @@
+#pragma once
+
+#include <Abyss/Common/Drawable.h>
+#include <chrono>
+
+namespace Abyss::Common {
+
+constexpr float AnimationFPS = 25.0;
+constexpr float AnimationDivisor = 1.0 / 256.0;
+constexpr float AnimationSpeedUnit = AnimationFPS * AnimationDivisor;
+
+template <Drawable T> class Animation {
+    T _drawable;
+    double _frameTime;
+    uint32_t _frameIdx;
+    double _animationSpeed;
+
+  public:
+    explicit Animation(std::string path) : _drawable(path), _frameTime(), _frameIdx(), _animationSpeed(0.5 * (AnimationSpeedUnit)) {}
+
+    auto draw(int x, int y) -> void { _drawable.draw(_frameIdx, x, y); }
+
+    auto update(const std::chrono::duration<double> deltaTime) -> void {
+        _frameTime += deltaTime.count();
+        const auto framesToAdd = static_cast<uint32_t>(_frameTime / _animationSpeed);
+        _frameTime -= framesToAdd * _animationSpeed;
+        _frameIdx += framesToAdd;
+        _frameIdx %= _drawable.getFrameCount();
+    }
+
+    auto setPalette(const DataTypes::Palette &palette) -> void { _drawable.setPalette(palette); }
+
+    auto setBlendMode(Enums::BlendMode blendMode) -> void { _drawable.setBlendMode(blendMode); }
+};
+
+} // namespace Abyss::Common

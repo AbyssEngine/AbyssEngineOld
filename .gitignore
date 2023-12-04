@@ -1,0 +1,9 @@
+.vs/
+.vscode/
+.idea/
+.DS_Store
+cmake-build-*
+build/
+CMakeSettings.json
+out/
+vcpkg_installed/
