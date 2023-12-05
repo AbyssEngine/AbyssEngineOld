@@ -5,9 +5,9 @@
 
 namespace Abyss::Common {
 
-constexpr float AnimationFPS = 25.0;
-constexpr float AnimationDivisor = 1.0 / 256.0;
-constexpr float AnimationSpeedUnit = AnimationFPS * AnimationDivisor;
+inline constexpr float AnimationFPS = 25.0;
+inline constexpr float AnimationDivisor = 1.0 / 256.0;
+inline constexpr float AnimationSpeedUnit = AnimationFPS * AnimationDivisor;
 
 template <Drawable T> class Animation {
     T _drawable;

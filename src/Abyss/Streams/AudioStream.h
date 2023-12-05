@@ -10,7 +10,7 @@ extern "C" {
 #include <libswresample/swresample.h>
 }
 
-// Compatability with newer API
+// Compatibility with newer API
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55, 28, 1)
 #define av_frame_alloc avcodec_alloc_frame
 #define av_frame_free avcodec_free_frame
