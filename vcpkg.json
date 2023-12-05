@@ -9,7 +9,7 @@
       "features": [
         "alsa"
       ]
-    }
+    },
     "spdlog",
     "zlib",
     {
