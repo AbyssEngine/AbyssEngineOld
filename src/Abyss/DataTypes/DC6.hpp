@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Abyss/Common/Animation.hpp>
+#include <Abyss/DataTypes/DC6Frame.hpp>
 #include <Abyss/DataTypes/Palette.hpp>
 #include <Abyss/Enums/BlendMode.hpp>
 #include <Abyss/Streams/InputStream.h>
@@ -9,37 +10,6 @@
 #include <vector>
 
 namespace Abyss::DataTypes {
-
-inline constexpr std::byte DC6EndOfScanline = static_cast<const std::byte>(0x80);
-inline constexpr std::byte DC6MaxRunLength = static_cast<const std::byte>(0x7F);
-inline constexpr int DC6TerminationSize = 4;
-inline constexpr int DC6TerminatorSize = 3;
-
-class DC6Frame {
-    uint32_t _flipped;
-    uint32_t _width;
-    uint32_t _height;
-    int32_t _xOffset;
-    int32_t _yOffset;
-    uint32_t _unknown;
-    uint32_t _nextBlock;
-    uint32_t _length;
-    std::vector<std::byte> _frameData;
-    std::vector<std::byte> _terminator;
-
-  public:
-    explicit DC6Frame(Streams::InputStream &stream);
-    [[nodiscard]] auto getFlipped() const -> uint32_t;
-    [[nodiscard]] auto getWidth() const -> uint32_t;
-    [[nodiscard]] auto getHeight() const -> uint32_t;
-    [[nodiscard]] auto getXOffset() const -> int32_t;
-    [[nodiscard]] auto getYOffset() const -> int32_t;
-    [[nodiscard]] auto getUnknown() const -> uint32_t;
-    [[nodiscard]] auto getNextBlock() const -> uint32_t;
-    [[nodiscard]] auto getLength() const -> uint32_t;
-    [[nodiscard]] auto getFrameData() const -> std::vector<std::byte>;
-    [[nodiscard]] auto getTerminator() const -> std::vector<std::byte>;
-};
 
 class DC6 {
     uint32_t _version;

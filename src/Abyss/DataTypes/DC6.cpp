@@ -7,43 +7,6 @@
 
 namespace Abyss::DataTypes {
 
-DC6Frame::DC6Frame(Streams::InputStream &stream) : _flipped(0), _width(0), _height(0), _xOffset(0), _yOffset(0), _unknown(0), _nextBlock(0), _length(0) {
-    stream.read(reinterpret_cast<char *>(&_flipped), sizeof(_flipped));
-    stream.read(reinterpret_cast<char *>(&_width), sizeof(_width));
-    stream.read(reinterpret_cast<char *>(&_height), sizeof(_height));
-    stream.read(reinterpret_cast<char *>(&_xOffset), sizeof(_xOffset));
-    stream.read(reinterpret_cast<char *>(&_yOffset), sizeof(_yOffset));
-    stream.read(reinterpret_cast<char *>(&_unknown), sizeof(_unknown));
-    stream.read(reinterpret_cast<char *>(&_nextBlock), sizeof(_nextBlock));
-    stream.read(reinterpret_cast<char *>(&_length), sizeof(_length));
-
-    _frameData.resize(_length);
-    stream.read(std::bit_cast<char *>(_frameData.data()), _length);
-
-    _terminator.resize(DC6TerminatorSize);
-    stream.read(std::bit_cast<char *>(_terminator.data()), DC6TerminatorSize);
-}
-
-auto DC6Frame::getFlipped() const -> uint32_t { return _flipped; }
-
-auto DC6Frame::getWidth() const -> uint32_t { return _width; }
-
-auto DC6Frame::getHeight() const -> uint32_t { return _height; }
-
-auto DC6Frame::getXOffset() const -> int32_t { return _xOffset; }
-
-auto DC6Frame::getYOffset() const -> int32_t { return _yOffset; }
-
-auto DC6Frame::getUnknown() const -> uint32_t { return _unknown; }
-
-auto DC6Frame::getNextBlock() const -> uint32_t { return _nextBlock; }
-
-auto DC6Frame::getLength() const -> uint32_t { return _length; }
-
-auto DC6Frame::getFrameData() const -> std::vector<std::byte> { return _frameData; }
-
-auto DC6Frame::getTerminator() const -> std::vector<std::byte> { return _terminator; }
-
 DC6::DC6(const std::string_view path)
     : _version(0), _flags(0), _encoding(0), _termination(), _directions(0), _framesPerDirection(0), _texture(nullptr, &SDL_DestroyTexture),
       _blendMode(Enums::BlendMode::None) {

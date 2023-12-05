@@ -9,6 +9,7 @@ add_library(Abyss
         Common/FileProvider.hpp
         Common/Huffman.hpp
         Common/Logging.hpp
+        Common/MouseProvider.hpp
         Common/MouseState.hpp
         Common/RendererProvider.hpp
         Common/RingBuffer.hpp
@@ -16,6 +17,7 @@ add_library(Abyss
         Common/SpriteFont.hpp
         Common/WavDecompress.hpp
 
+        DataTypes/DC6Frame.hpp
         DataTypes/DC6.cpp DataTypes/DC6.hpp
         DataTypes/Palette.hpp
 
@@ -46,7 +48,8 @@ add_library(Abyss
         ${imgui_SOURCE_DIR}/imgui_widgets.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl2.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_sdlrenderer2.cpp
-        Common/MouseProvider.hpp
+
+
 )
 
 target_include_directories(Abyss

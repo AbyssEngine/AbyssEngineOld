@@ -51,6 +51,7 @@ class AbyssEngine final : public Common::FileProvider, public Common::RendererPr
     [[nodiscard]] auto getConfiguration() -> Common::Configuration &;
     auto setBackgroundMusic(std::string_view path) -> void;
     auto addCursorImage(std::string_view name, std::string_view path, const DataTypes::Palette &palette) -> void;
+    [[nodiscard]] auto loadFile(std::string_view path) -> Streams::MPQStream;
 
     // MouseProvider
     auto setCursorImage(std::string_view cursorName) -> void override;
@@ -61,7 +62,6 @@ class AbyssEngine final : public Common::FileProvider, public Common::RendererPr
     [[nodiscard]] auto getRenderer() const -> SDL_Renderer *;
 
     // FileProvider
-    [[nodiscard]] auto loadFile(std::string_view path) -> Streams::MPQStream override;
     [[nodiscard]] auto loadStream(std::string_view path) -> Streams::InputStream override;
     [[nodiscard]] auto loadString(std::string_view path) -> std::string override;
     [[nodiscard]] auto loadStringList(std::string_view path) -> std::vector<std::string> override;
