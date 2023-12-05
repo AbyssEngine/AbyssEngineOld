@@ -4,6 +4,7 @@
 #include <mutex>
 #include <span>
 #include <vector>
+#include <stdexcept>
 
 namespace Abyss::Common {
 

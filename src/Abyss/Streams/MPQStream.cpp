@@ -1,6 +1,6 @@
 #include "MPQStream.h"
 #include <Abyss/Common/Logging.h>
-#include <Abyss/Extras/Blast/blast.h>
+#include <3rdParty/Blast/blast.h>
 #include <Abyss/MPQ/Crypto.h>
 
 namespace Abyss::Streams {
@@ -158,7 +158,7 @@ auto MPQStream::underflow() -> int {
     return gptr() == egptr() ? traits_type::eof() : traits_type::to_int_type(*gptr());
 }
 
-auto MPQStream::seekoff(const long long int off, const std::ios_base::seekdir dir, std::ios_base::openmode) -> pos_type {
+auto MPQStream::seekoff(const MPQStream::off_type off, const std::ios_base::seekdir dir, std::ios_base::openmode) -> pos_type {
     std::streamsize newPos = 0;
     switch (dir) {
     case std::ios_base::beg:

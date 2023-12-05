@@ -3,6 +3,7 @@
 #include <array>
 #include <span>
 #include <vector>
+#include <cstdint>
 
 namespace Abyss::Common {
 

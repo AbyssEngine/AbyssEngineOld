@@ -1,10 +1,11 @@
 #include "AbyssEngine.h"
 
 #include "Common/CommandLineOpts.h"
-#include "Extras/Imgui/imgui_impl_sdl2.h"
-#include "Extras/Imgui/imgui_impl_sdlrenderer2.h"
+#include "imgui_impl_sdl2.h"
+#include "imgui_impl_sdlrenderer2.h"
 #include <Abyss/Common/Logging.h>
 #include <map>
+#include <algorithm>
 
 namespace Abyss {
 
