@@ -45,5 +45,8 @@ target_link_libraries(Abyss
         cxxopts::cxxopts
         ZLIB::ZLIB
         ${FFMPEG_LIBRARIES}
+        ${OSX_VIDEOTOOLBOX}
+        ${OSX_COREMEDIA}
+        ${OSX_SECURITY}
 )
 
