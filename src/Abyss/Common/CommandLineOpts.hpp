@@ -7,7 +7,7 @@
 
 namespace Abyss::Common::CommandLineOpts {
 
-auto process(int argc, char **argv, bool &quitOnRun, Configuration &config) -> void {
+static auto process(int argc, char **argv, bool &quitOnRun, Configuration &config) -> void {
     cxxopts::Options options("Abyss", "Abyss Engine");
     options.add_options()                                                //
         ("d,mpqdir", "Path to MPQ files", cxxopts::value<std::string>()) //

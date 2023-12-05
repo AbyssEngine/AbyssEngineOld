@@ -18,25 +18,25 @@ add_library(Abyss
         Common/WavDecompress.hpp
 
         DataTypes/DC6Frame.hpp
-        DataTypes/DC6.cpp DataTypes/DC6.hpp
+        DataTypes/DC6.hpp
         DataTypes/Palette.hpp
 
         Enums/BlendMode.hpp
         Enums/MouseButton.hpp
 
-        MPQ/BlockEntry.cpp MPQ/BlockEntry.h
-        MPQ/Crypto.cpp MPQ/Crypto.h
-        MPQ/File.cpp MPQ/File.h
-        MPQ/HashEntry.cpp MPQ/HashEntry.h
-        MPQ/Header.cpp MPQ/Header.h
+        MPQ/BlockEntry.hpp
+        MPQ/Crypto.hpp
+        MPQ/File.hpp
+        MPQ/HashEntry.hpp
+        MPQ/Header.hpp
 
-        Streams/AudioStream.cpp Streams/AudioStream.h
-        Streams/InputStream.cpp Streams/InputStream.h
-        Streams/StreamReader.cpp Streams/StreamReader.h
-        Streams/MPQStream.cpp Streams/MPQStream.h
+        Streams/AudioStream.hpp
+        Streams/InputStream.hpp
+        Streams/StreamReader.hpp
+        Streams/MPQStream.hpp
 
         Singletons.hpp
-        AbyssEngine.cpp AbyssEngine.h
+        AbyssEngine.hpp
 
         # 3rdParty
         ${CMAKE_SOURCE_DIR}/3rdParty/Blast/blast.c

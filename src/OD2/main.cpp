@@ -1,6 +1,6 @@
 #include "Common/PaletteManager.h"
 #include "Scenes/MainMenu/MainMenu.h"
-#include <Abyss/AbyssEngine.h>
+#include <Abyss/AbyssEngine.hpp>
 #include <Abyss/Common/Logging.hpp>
 #include <OD2/Common/ResourcePaths.h>
 #include <OD2/Startup.h>

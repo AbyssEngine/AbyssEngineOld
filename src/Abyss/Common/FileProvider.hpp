@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Abyss/Streams/MPQStream.h>
+#include <Abyss/Streams/MPQStream.hpp>
 #include <string>
 
 namespace Abyss::Common {
