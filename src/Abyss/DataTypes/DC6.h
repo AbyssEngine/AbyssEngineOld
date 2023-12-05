@@ -9,10 +9,10 @@
 
 namespace Abyss::DataTypes {
 
-constexpr std::byte DC6EndOfScanline = static_cast<const std::byte>(0x80);
-constexpr std::byte DC6MaxRunLength = static_cast<const std::byte>(0x7F);
-constexpr int DC6TerminationSize = 4;
-constexpr int DC6TerminatorSize = 3;
+inline constexpr std::byte DC6EndOfScanline = static_cast<const std::byte>(0x80);
+inline constexpr std::byte DC6MaxRunLength = static_cast<const std::byte>(0x7F);
+inline constexpr int DC6TerminationSize = 4;
+inline constexpr int DC6TerminatorSize = 3;
 
 class DC6Frame {
     uint32_t _flipped;

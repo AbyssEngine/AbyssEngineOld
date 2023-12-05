@@ -19,14 +19,22 @@ add_library(Abyss
         Streams/StreamReader.cpp
         Streams/MPQStream.cpp
         AbyssEngine.cpp
-        Extras/Blast/blast.c
-        Extras/Imgui/imgui_impl_sdl2.cpp
-        Extras/Imgui/imgui_impl_sdlrenderer2.cpp
+
+        ${CMAKE_SOURCE_DIR}/3rdParty/Blast/blast.c
+        ${imgui_SOURCE_DIR}/imgui.cpp
+        ${imgui_SOURCE_DIR}/imgui_draw.cpp
+        ${imgui_SOURCE_DIR}/imgui_tables.cpp
+        ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+        ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl2.cpp
+        ${imgui_SOURCE_DIR}/backends/imgui_impl_sdlrenderer2.cpp
 )
 
 target_include_directories(Abyss
         PUBLIC
+        ${CMAKE_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/..
+        ${imgui_SOURCE_DIR}
+        ${imgui_SOURCE_DIR}/backends
 )
 
 target_compile_features(Abyss PUBLIC cxx_std_20)
@@ -36,7 +44,6 @@ target_link_libraries(Abyss
         spdlog::spdlog
         cxxopts::cxxopts
         ZLIB::ZLIB
-        imgui::imgui
         ${FFMPEG_LIBRARIES}
 )
 

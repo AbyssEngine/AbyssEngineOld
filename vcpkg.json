@@ -7,7 +7,6 @@
     "sdl2",
     "spdlog",
     "zlib",
-    "imgui",
     {
       "name": "ffmpeg",
       "features": [

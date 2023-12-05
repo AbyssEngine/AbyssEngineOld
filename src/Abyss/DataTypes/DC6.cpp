@@ -3,6 +3,7 @@
 #include <Abyss/AbyssEngine.h>
 #include <array>
 #include <cmath>
+#include <cstring>
 #include <utility>
 #include <vector>
 
