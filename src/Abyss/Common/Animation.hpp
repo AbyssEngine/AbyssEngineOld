@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Abyss/Common/Drawable.h>
+#include <Abyss/Common/Drawable.hpp>
 #include <chrono>
 
 namespace Abyss::Common {

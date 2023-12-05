@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Abyss/DataTypes/Palette.h>
+#include <Abyss/DataTypes/Palette.hpp>
 #include <vector>
 
 namespace OD2::Common {

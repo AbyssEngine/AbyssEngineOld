@@ -1,20 +1,20 @@
 #pragma once
 
-#include "Common/MouseState.h"
-#include "Common/Scene.h"
-#include "DataTypes/DC6.h"
-#include "Streams/AudioStream.h"
-#include "Streams/MPQStream.h"
-
-#include <Abyss/Common/Configuration.h>
+#include <Abyss/Common/Configuration.hpp>
+#include <Abyss/Common/FileProvider.hpp>
+#include <Abyss/Common/MouseProvider.hpp>
+#include <Abyss/Common/Scene.hpp>
+#include <Abyss/DataTypes/DC6.hpp>
 #include <Abyss/MPQ/File.h>
+#include <Abyss/Streams/AudioStream.h>
+#include <Abyss/Streams/MPQStream.h>
 #include <SDL2/SDL.h>
 #include <map>
 #include <string>
 
 namespace Abyss {
 
-class AbyssEngine {
+class AbyssEngine final : public Common::FileProvider, public Common::RendererProvider, public Common::MouseProvider {
     bool running;
     bool mouseOverGameWindow;
     Common::Configuration configuration;
@@ -23,15 +23,17 @@ class AbyssEngine {
     std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> _renderTexture;
     std::unique_ptr<Common::Scene> _currentScene;
     std::unique_ptr<Common::Scene> _nextScene;
+    std::map<std::string, std::unique_ptr<DataTypes::DC6>> _cursors;
     std::map<std::string, std::shared_ptr<MPQ::File>> _mapResourceMpqFileMap;
     std::vector<std::shared_ptr<MPQ::File>> _mpqFileCache;
-    std::unique_ptr<DataTypes::DC6> _cursorImage;
+    DataTypes::DC6 *_cursorImage;
     SDL_Rect _renderRect;
     Common::MouseState _mouseState;
     std::unique_ptr<Streams::AudioStream> _backgroundMusic;
+    std::string _locale;
 
     AbyssEngine();
-    ~AbyssEngine();
+    ~AbyssEngine() override;
     auto render() const -> void;
     auto processEvents(std::chrono::duration<double> deltaTime) -> void;
     auto initializeSDL() -> void;
@@ -46,17 +48,25 @@ class AbyssEngine {
     auto processCommandLineArguments(int argc, char **argv) -> bool;
     auto run() -> void;
     auto setScene(std::unique_ptr<Common::Scene> scene) -> void;
-    [[nodiscard]] auto getRenderer() const -> SDL_Renderer *;
     [[nodiscard]] auto getConfiguration() -> Common::Configuration &;
-    auto setCursorImage(std::string_view path, const DataTypes::Palette &palette) -> void;
-    auto setCursorLocked(bool locked) -> void;
     auto setBackgroundMusic(std::string_view path) -> void;
-    [[nodiscard]] auto getMouseState() -> Common::MouseState &;
-    [[nodiscard]] auto loadFile(std::string_view path) -> Streams::MPQStream;
-    [[nodiscard]] auto loadStream(std::string_view path) -> Streams::InputStream;
-    [[nodiscard]] auto loadString(std::string_view path) -> std::string;
-    [[nodiscard]] auto loadStringList(std::string_view path) -> std::vector<std::string>;
-    [[nodiscard]] auto loadBytes(std::string_view path) -> std::vector<std::byte>;
+    auto addCursorImage(std::string_view name, std::string_view path, const DataTypes::Palette &palette) -> void;
+
+    // MouseProvider
+    auto setCursorImage(std::string_view cursorName) -> void override;
+    auto setCursorLocked(bool locked) -> void override;
+    [[nodiscard]] auto getMouseState() -> Common::MouseState & override;
+
+    // RendererProvider
+    [[nodiscard]] auto getRenderer() const -> SDL_Renderer *;
+
+    // FileProvider
+    [[nodiscard]] auto loadFile(std::string_view path) -> Streams::MPQStream override;
+    [[nodiscard]] auto loadStream(std::string_view path) -> Streams::InputStream override;
+    [[nodiscard]] auto loadString(std::string_view path) -> std::string override;
+    [[nodiscard]] auto loadStringList(std::string_view path) -> std::vector<std::string> override;
+    [[nodiscard]] auto loadBytes(std::string_view path) -> std::vector<std::byte> override;
+    [[nodiscard]] auto getRenderer() -> SDL_Renderer * override { return _renderer.get(); }
 };
 
 } // namespace Abyss

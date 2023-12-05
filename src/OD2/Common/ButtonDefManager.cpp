@@ -1,10 +1,10 @@
 #include "ButtonDefManager.h"
 
-#include <Abyss/Common/Logging.h>
+#include <Abyss/Common/Logging.hpp>
 
 namespace OD2::Common {
 
-ButtonDefManager::ButtonDefManager() : buttonDefs() {}
+ButtonDefManager::ButtonDefManager() {}
 
 auto ButtonDefManager::getInstance() -> ButtonDefManager & {
     static ButtonDefManager instance;

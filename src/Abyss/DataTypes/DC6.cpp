@@ -1,16 +1,13 @@
-#include "DC6.h"
+#include "DC6.hpp"
 
-#include <Abyss/AbyssEngine.h>
+#include <Abyss/Singletons.hpp>
 #include <array>
-#include <cmath>
 #include <cstring>
-#include <utility>
 #include <vector>
 
 namespace Abyss::DataTypes {
 
-DC6Frame::DC6Frame(Streams::InputStream &stream)
-    : _flipped(0), _width(0), _height(0), _xOffset(0), _yOffset(0), _unknown(0), _nextBlock(0), _length(0), _frameData(), _terminator() {
+DC6Frame::DC6Frame(Streams::InputStream &stream) : _flipped(0), _width(0), _height(0), _xOffset(0), _yOffset(0), _unknown(0), _nextBlock(0), _length(0) {
     stream.read(reinterpret_cast<char *>(&_flipped), sizeof(_flipped));
     stream.read(reinterpret_cast<char *>(&_width), sizeof(_width));
     stream.read(reinterpret_cast<char *>(&_height), sizeof(_height));
@@ -50,7 +47,7 @@ auto DC6Frame::getTerminator() const -> std::vector<std::byte> { return _termina
 DC6::DC6(const std::string_view path)
     : _version(0), _flags(0), _encoding(0), _termination(), _directions(0), _framesPerDirection(0), _texture(nullptr, &SDL_DestroyTexture),
       _blendMode(Enums::BlendMode::None) {
-    auto stream = AbyssEngine::getInstance().loadStream(path);
+    auto stream = Singletons::getFileProvider().loadStream(path);
     stream.read(reinterpret_cast<char *>(&_version), sizeof(_version));
     stream.read(reinterpret_cast<char *>(&_flags), sizeof(_flags));
     stream.read(reinterpret_cast<char *>(&_encoding), sizeof(_encoding));
@@ -105,7 +102,7 @@ auto DC6::setPalette([[maybe_unused]] const Palette &palette) -> void {
         textureHeight = std::max(textureHeight, frame.getHeight());
     }
 
-    _texture.reset(SDL_CreateTexture(AbyssEngine::getInstance().getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING,
+    _texture.reset(SDL_CreateTexture(Singletons::getRendererProvider().getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING,
                                      static_cast<int>(textureWidth), static_cast<int>(textureHeight)));
 
     if (!_texture)
@@ -175,7 +172,7 @@ auto DC6::draw(const uint32_t frameIdx, const int x, const int y) const -> void 
     const auto &frameRect = _frameRects[frameIdx];
     const auto &frame = _frames[frameIdx];
     const SDL_Rect destRect{x + frame.getXOffset(), y + frame.getYOffset() - frameRect.h, frameRect.w, frameRect.h};
-    SDL_RenderCopy(AbyssEngine::getInstance().getRenderer(), _texture.get(), &frameRect, &destRect);
+    SDL_RenderCopy(Singletons::getRendererProvider().getRenderer(), _texture.get(), &frameRect, &destRect);
 }
 
 auto DC6::draw(uint32_t frameIdx, const int x, int y, const int framesX, const int framesY) const -> void {
@@ -220,6 +217,16 @@ auto DC6::getFrameSize(const uint32_t frameIdx, int &frameWidth, int &frameHeigh
 
     frameWidth = w;
     frameHeight = h;
+}
+
+auto DC6::getFrameOffset(const uint32_t frameIdx, int &offsetX, int &offsetY) const -> void {
+    if (frameIdx >= _frames.size())
+        throw std::runtime_error("Invalid frame index");
+
+    const auto &frame = _frames[frameIdx];
+
+    offsetX = frame.getXOffset();
+    offsetY = frame.getYOffset();
 }
 
 auto DC6::getFrameCount() const -> uint32_t { return _framesPerDirection; }

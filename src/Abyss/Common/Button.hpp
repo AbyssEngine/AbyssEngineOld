@@ -1,9 +1,8 @@
 #pragma once
 
+#include <Abyss/Common/SpriteFont.hpp>
+#include <Abyss/Singletons.hpp>
 #include <functional>
-
-#include <Abyss/AbyssEngine.h>
-#include <Abyss/Common/Drawable.h>
 
 namespace Abyss::Common {
 
@@ -34,10 +33,10 @@ template <Drawable T> class Button {
     std::function<void()> _onClick;
 
     auto handleMouse(const int x, const int y) -> void {
-        const auto mouseState = AbyssEngine::getInstance().getMouseState();
+        const auto mouseState = Singletons::getMouseProvider().getMouseState();
         int mouseX, mouseY;
         mouseState.getPosition(mouseX, mouseY);
-        const auto leftMousePressed = mouseState.isButtonPressed(MouseButton::Left);
+        const auto leftMousePressed = mouseState.isButtonPressed(Enums::MouseButton::Left);
         mouseX -= x;
         mouseY -= y;
         const auto isMouseOver = mouseX >= _def.clickableRect.x && mouseX <= _def.clickableRect.x + _def.clickableRect.w && mouseY >= _def.clickableRect.y &&

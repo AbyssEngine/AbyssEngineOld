@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../Common/RingBuffer.h"
-#include "InputStream.h"
+#include <Abyss/Common/RingBuffer.hpp>
+#include <Abyss/Streams/InputStream.h>
 #include <mutex>
 
 extern "C" {

@@ -1,17 +1,24 @@
 #include "AbyssEngine.h"
 
-#include "Common/CommandLineOpts.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_sdlrenderer2.h"
-#include <Abyss/Common/Logging.h>
-#include <map>
+#include <Abyss/Common/CommandLineOpts.hpp>
+#include <Abyss/Common/Logging.hpp>
+#include <Abyss/Singletons.hpp>
 #include <algorithm>
+#include <map>
+#include <ranges>
 
 namespace Abyss {
 
 AbyssEngine::AbyssEngine()
     : running(true), mouseOverGameWindow(false), _window(nullptr, SDL_DestroyWindow), _renderer(nullptr, SDL_DestroyRenderer),
-      _renderTexture(nullptr, SDL_DestroyTexture), _currentScene(nullptr), _nextScene(nullptr), _renderRect() {
+      _renderTexture(nullptr, SDL_DestroyTexture), _currentScene(nullptr), _nextScene(nullptr), _renderRect(), _locale("latin") {
+
+    Singletons::setFileProvider(this);
+    Singletons::setRendererProvider(this);
+    Singletons::setMouseProvider(this);
+
     Common::Log::Initialize();
     Common::Log::info("Abyss Engine");
     initializeSDL();
@@ -26,7 +33,7 @@ AbyssEngine::~AbyssEngine() {
     // NOTE: you MUST clear all SDL2 related resources before tearing down SDL2! ---
     _currentScene.reset(nullptr);
     _nextScene.reset(nullptr);
-    _cursorImage.reset(nullptr);
+    _cursorImage = nullptr;
     // -----------------------------------------------------------------------------
 
     ImGui_ImplSDLRenderer2_Shutdown();
@@ -74,8 +81,8 @@ auto AbyssEngine::render() const -> void {
 }
 
 auto AbyssEngine::processEvents(const std::chrono::duration<double> deltaTime) -> void {
-    const std::map<uint8_t, Common::MouseButton> buttonMap = {
-        {SDL_BUTTON_LEFT, Common::MouseButton::Left}, {SDL_BUTTON_RIGHT, Common::MouseButton::Right}, {SDL_BUTTON_MIDDLE, Common::MouseButton::Middle}};
+    const std::map<uint8_t, Enums::MouseButton> buttonMap = {
+        {SDL_BUTTON_LEFT, Enums::MouseButton::Left}, {SDL_BUTTON_RIGHT, Enums::MouseButton::Right}, {SDL_BUTTON_MIDDLE, Enums::MouseButton::Middle}};
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         ImGui_ImplSDL2_ProcessEvent(&event);
@@ -214,6 +221,8 @@ auto AbyssEngine::loadFile(const std::string_view path) -> Streams::MPQStream {
     std::string lowercasePath;
     lowercasePath = path;
     std::ranges::transform(lowercasePath, lowercasePath.begin(), [](const unsigned char c) { return std::tolower(c); });
+    if (const size_t pos = lowercasePath.find("{lang_font}"); pos != std::string::npos)
+        lowercasePath.replace(pos, std::string("{lang_font}").length(), _locale);
 
     if (const auto mpqFileMapExists = _mapResourceMpqFileMap.contains(lowercasePath); !mpqFileMapExists) {
         bool found = false;
@@ -331,15 +340,16 @@ auto AbyssEngine::fillAudioBuffer(Uint8 *stream, const int len) -> void {
         stream[i] = sample & 0xFF;
         stream[i + 1] = (sample >> 8) & 0xFF;
     }
-
-    //
 }
 
-auto AbyssEngine::setCursorImage(std::string_view path, const DataTypes::Palette &palette) -> void {
-    _cursorImage = std::make_unique<DataTypes::DC6>(path);
-    _cursorImage->setPalette(palette);
-    _cursorImage->setBlendMode(Enums::BlendMode::Blend);
+auto AbyssEngine::addCursorImage(const std::string_view name, const std::string_view path, const DataTypes::Palette &palette) -> void {
+    _cursors.emplace(std::string(name), new DataTypes::DC6(path));
+    auto &cursorIcon = *_cursors[name.data()];
+    cursorIcon.setPalette(palette);
+    cursorIcon.setBlendMode(Enums::BlendMode::Blend);
 }
+
+auto AbyssEngine::setCursorImage(const std::string_view cursorName) -> void { _cursorImage = _cursors[cursorName.data()].get(); }
 
 auto AbyssEngine::getMouseState() -> Common::MouseState & { return _mouseState; }
 

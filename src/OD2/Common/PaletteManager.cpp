@@ -1,5 +1,6 @@
 #include "PaletteManager.h"
-#include <Abyss/Common/Logging.h>
+
+#include <Abyss/Common/Logging.hpp>
 
 namespace OD2::Common {
 

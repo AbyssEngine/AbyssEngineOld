@@ -3,13 +3,12 @@
 #include <cstdint>
 #include <mutex>
 #include <span>
-#include <vector>
 #include <stdexcept>
+#include <vector>
 
 namespace Abyss::Common {
 
 template <typename T> class RingBuffer {
-  private:
     const uint32_t _bufferSize;
     uint32_t _writePosition;
     uint32_t _readPosition;

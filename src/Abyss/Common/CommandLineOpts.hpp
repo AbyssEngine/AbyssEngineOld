@@ -1,6 +1,9 @@
-#include "CommandLineOpts.h"
-#include "Logging.h"
+#pragma once
+
+#include <Abyss/Common/Configuration.hpp>
+#include <Abyss/Common/Logging.hpp>
 #include <cxxopts.hpp>
+#include <string>
 
 namespace Abyss::Common::CommandLineOpts {
 

@@ -1,6 +1,7 @@
 #include "MPQStream.h"
-#include <Abyss/Common/Logging.h>
+
 #include <3rdParty/Blast/blast.h>
+#include <Abyss/Common/Logging.hpp>
 #include <Abyss/MPQ/Crypto.h>
 
 namespace Abyss::Streams {

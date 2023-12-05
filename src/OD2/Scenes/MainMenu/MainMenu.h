@@ -1,9 +1,9 @@
 #pragma once
 
-#include <Abyss/AbyssEngine.h>
-#include <Abyss/Common/Button.h>
-#include <Abyss/Common/Scene.h>
-#include <Abyss/DataTypes/DC6.h>
+#include <Abyss/Common/Button.hpp>
+#include <Abyss/Common/Scene.hpp>
+#include <Abyss/Common/SpriteFont.hpp>
+#include <Abyss/DataTypes/DC6.hpp>
 #include <OD2/Scenes/MainMenu/Logo.h>
 #include <SDL2/SDL.h>
 
@@ -13,6 +13,8 @@ class MainMenu final : public Abyss::Common::Scene {
     Abyss::DataTypes::DC6 _background;
     Logo _d2Logo;
     Abyss::Common::Button<Abyss::DataTypes::DC6> _btnExit;
+    Abyss::Common::SpriteFont<Abyss::DataTypes::DC6> _font;
+
     auto onExitClicked() -> void;
 
   public:

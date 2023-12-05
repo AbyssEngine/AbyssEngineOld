@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Abyss/Common/Animation.h>
-#include <Abyss/DataTypes/DC6.h>
+#include <Abyss/Common/Animation.hpp>
+#include <Abyss/DataTypes/DC6.hpp>
 
 namespace OD2::Scenes::MainMenu {
 
