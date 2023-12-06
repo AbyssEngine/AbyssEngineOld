@@ -5,11 +5,11 @@ module;
 #include <string>
 #include <unordered_map>
 
+export module Abyss.Common.SpriteFont;
+
 import Abyss.Common.Drawable;
 import Abyss.Singletons;
 import Abyss.DataTypes.Palette;
-
-export module Abyss.Common.SpriteFont;
 
 namespace Abyss::Common {
 

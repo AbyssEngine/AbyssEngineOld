@@ -4,10 +4,10 @@ module;
 #include <string>
 #include <vector>
 
+export module Abyss.DataTypes.Palette;
+
 import Abyss.Singletons;
 import Abyss.Enums.MouseButton;
-
-export module Abyss.DataTypes.Palette;
 
 namespace Abyss::DataTypes {
 
@@ -29,7 +29,7 @@ export class PaletteEntry {
 };
 
 export class Palette {
-    std::vector<PaletteEntry> _entries;
+    std::vector<PaletteEntry> _entries{};
     std::string _name;
 
   public:

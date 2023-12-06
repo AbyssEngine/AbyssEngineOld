@@ -3,10 +3,10 @@ module;
 #include <cstdint>
 #include <string>
 
+export module Abyss.Common.Drawable;
+
 import Abyss.Enums.BlendMode;
 import Abyss.DataTypes.Palette;
-
-export module Abyss.Common.Drawable;
 
 export template <typename T>
 concept Drawable = requires(T t, int x, int y, uint32_t frameIdx, const Abyss::DataTypes::Palette &palette, Abyss::Enums::BlendMode blendMode, int &frameWidth,

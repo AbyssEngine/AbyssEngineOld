@@ -2,9 +2,9 @@ module;
 
 #include <string>
 
-import Abyss.Streams.InputStream;
-
 export module Abyss.Common.FileProvider;
+
+import Abyss.Streams.InputStream;
 
 namespace Abyss::Common {
 

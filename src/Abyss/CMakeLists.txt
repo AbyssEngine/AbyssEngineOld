@@ -16,7 +16,6 @@ target_sources(Abyss
         PUBLIC
         FILE_SET CXX_MODULES FILES
         Common/Animation.ixx
-        Common/Button.ixx
         Common/CommandLineOpts.ixx
         Common/Configuration.ixx
         Common/Drawable.ixx
@@ -48,6 +47,9 @@ target_sources(Abyss
         Streams/InputStream.ixx
         Streams/StreamReader.ixx
         Streams/MPQStream.ixx
+
+        UI/Button.ixx
+        UI/ButtonDef.ixx
 
         Singletons.ixx
         AbyssEngine.ixx

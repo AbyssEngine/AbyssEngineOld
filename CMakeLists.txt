@@ -24,6 +24,13 @@ if (MSVC)
   endif ()
 endif ()
 
+if (NOT CMAKE_BUILD_TYPE)
+  message(STATUS "No build type selected, defaulting to Release")
+  set(CMAKE_BUILD_TYPE Release)
+endif ()
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-implicit-modules")
+
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)

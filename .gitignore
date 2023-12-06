@@ -7,3 +7,4 @@ build/
 CMakeSettings.json
 out/
 vcpkg_installed/
+.cache/

@@ -21,10 +21,10 @@ extern "C" {
 #define av_frame_free avcodec_free_frame
 #endif
 
+export module Abyss.Streams.AudioStream;
+
 import Abyss.Streams.InputStream;
 import Abyss.Common.RingBuffer;
-
-export module Abyss.Streams.AudioStream;
 
 namespace Abyss::Streams {
 

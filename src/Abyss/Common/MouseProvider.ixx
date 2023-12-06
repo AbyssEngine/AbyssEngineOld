@@ -2,9 +2,9 @@ module;
 
 #include <string>
 
-import Abyss.Common.MouseState;
-
 export module Abyss.Common.MouseProvider;
+
+import Abyss.Common.MouseState;
 
 namespace Abyss::Common {
 

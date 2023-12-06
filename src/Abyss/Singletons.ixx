@@ -2,11 +2,11 @@ module;
 
 #include <stdexcept>
 
+export module Abyss.Singletons;
+
 import Abyss.Common.FileProvider;
 import Abyss.Common.MouseProvider;
 import Abyss.Common.RendererProvider;
-
-export module Abyss.Singletons;
 
 namespace Abyss {
 

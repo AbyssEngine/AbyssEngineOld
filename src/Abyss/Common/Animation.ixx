@@ -4,11 +4,11 @@ module;
 #include <cstdint>
 #include <string>
 
+export module Abyss.Common.Animation;
+
 import Abyss.Common.Drawable;
 import Abyss.DataTypes.Palette;
 import Abyss.Enums.BlendMode;
-
-export module Abyss.Common.Animation;
 
 namespace Abyss::Common {
 
@@ -23,7 +23,7 @@ export template <Drawable T> class Animation {
     double _animationSpeed;
 
   public:
-    explicit Animation(std::string path) : _drawable(path), _frameTime(), _frameIdx(), _animationSpeed(0.5 * (AnimationSpeedUnit)) {}
+    explicit Animation(const std::string &path) : _drawable(path), _frameTime(), _frameIdx(), _animationSpeed(0.5 * (AnimationSpeedUnit)) {}
 
     auto draw(int x, int y) -> void { _drawable.draw(_frameIdx, x, y); }
 
@@ -35,7 +35,7 @@ export template <Drawable T> class Animation {
         _frameIdx %= _drawable.getFrameCount();
     }
 
-    auto setPalette(const DataTypes::Palette &palette) -> void { _drawable.setPalette(palette); }
+    auto setPalette(const Abyss::DataTypes::Palette &palette) -> void { _drawable.setPalette(palette); }
 
     auto setBlendMode(Enums::BlendMode blendMode) -> void { _drawable.setBlendMode(blendMode); }
 };

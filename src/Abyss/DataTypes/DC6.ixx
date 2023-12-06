@@ -4,13 +4,13 @@ module;
 #include <array>
 #include <vector>
 
+export module Abyss.DataTypes.DC6;
+
 import Abyss.DataTypes.DC6Frame;
 import Abyss.Singletons;
 import Abyss.Enums.BlendMode;
 import Abyss.DataTypes.Palette;
 import Abyss.Common.Animation;
-
-export module Abyss.DataTypes.DC6;
 
 namespace Abyss::DataTypes {
 

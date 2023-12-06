@@ -9,6 +9,8 @@ module;
 #include <ranges>
 #include <string>
 
+export module Abyss.AbyssEngine;
+
 import Abyss.Common.Configuration;
 import Abyss.Common.FileProvider;
 import Abyss.Common.MouseProvider;
@@ -26,8 +28,6 @@ import Abyss.Common.CommandLineOpts;
 import Abyss.Enums.BlendMode;
 import Abyss.DataTypes.Palette;
 import Abyss.Streams.InputStream;
-
-export module Abyss.AbyssEngine;
 
 namespace Abyss {
 
@@ -400,6 +400,8 @@ export class AbyssEngine final : public Common::FileProvider, public Common::Ren
         stream.read(std::bit_cast<char *>(result.data()), stream.size());
         return result;
     }
+
+    auto setWindowTitle(const std::string_view title) -> void { SDL_SetWindowTitle(_window.get(), title.data()); }
 };
 
 } // namespace Abyss

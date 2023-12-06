@@ -67,9 +67,11 @@ export auto startup(const int argc, char **argv) -> int {
 
     try {
         auto &engine = Abyss::AbyssEngine::getInstance();
-        if (!engine.processCommandLineArguments(argc, argv)) {
+
+        if (!engine.processCommandLineArguments(argc, argv))
             return 0;
-        }
+
+        engine.setWindowTitle("OpenDiablo II");
 
         loadPalettes();
         loadButtonDefs();

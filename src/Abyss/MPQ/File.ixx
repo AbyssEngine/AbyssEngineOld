@@ -7,12 +7,12 @@ module;
 #include <map>
 #include <vector>
 
+export module Abyss.MPQ.File;
+
 import Abyss.MPQ.HashEntry;
 import Abyss.MPQ.BlockEntry;
 import Abyss.MPQ.Header;
 import Abyss.MPQ.Crypto;
-
-export module Abyss.MPQ.File;
 
 namespace Abyss::MPQ {
 

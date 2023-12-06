@@ -1,13 +1,12 @@
 module;
 
-#include <bit>
 #include <cstddef>
 #include <cstdint>
 #include <vector>
 
-import Abyss.Streams.InputStream;
-
 export module Abyss.DataTypes.DC6Frame;
+
+import Abyss.Streams.InputStream;
 
 namespace Abyss::DataTypes {
 

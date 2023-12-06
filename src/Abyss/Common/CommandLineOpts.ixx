@@ -4,10 +4,10 @@ module;
 #include <filesystem>
 #include <string>
 
+export module Abyss.Common.CommandLineOpts;
+
 import Abyss.Common.Configuration;
 import Abyss.Common.Logging;
-
-export module Abyss.Common.CommandLineOpts;
 
 namespace Abyss::Common::CommandLineOpts {
 

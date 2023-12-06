@@ -2,10 +2,10 @@ module;
 
 #include <vector>
 
+export module OD2.Common.PaletteManager;
+
 import Abyss.DataTypes.Palette;
 import Abyss.Common.Logging;
-
-export module OD2.Common.PaletteManager;
 
 namespace OD2::Common {
 

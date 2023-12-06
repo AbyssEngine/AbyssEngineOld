@@ -3,9 +3,9 @@ module;
 #include <span>
 #include <string>
 
-import Abyss.Streams.InputStream;
-
 export module Abyss.Streams.StreamReader;
+
+import Abyss.Streams.InputStream;
 
 namespace Abyss::Streams {
 

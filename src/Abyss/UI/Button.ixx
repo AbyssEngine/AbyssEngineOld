@@ -3,37 +3,21 @@ module;
 #include <SDL2/SDL.h>
 #include <functional>
 
+export module Abyss.UI.Button;
+
 import Abyss.DataTypes.Palette;
 import Abyss.Enums.MouseButton;
 import Abyss.Singletons;
 import Abyss.Common.Drawable;
+import Abyss.UI.ButtonDef;
 
-export module Abyss.Common.Button;
-
-namespace Abyss::Common {
-
-export struct ButtonDef {
-    std::string name;
-    std::string resourceName;
-    DataTypes::Palette palette;
-    std::string fontPath;
-    SDL_Rect clickableRect;
-    struct {
-        uint8_t x;
-        uint8_t y;
-    } segments;
-    struct {
-        int8_t base;
-        int8_t pressed;
-        int8_t disabled;
-    } frames;
-};
+namespace Abyss::UI {
 
 export enum class ButtonState { Normal, Pressed, Disabled };
 
 export template <Drawable T> class Button {
     T _drawable;
-    ButtonDef _def;
+    UI::ButtonDef _def;
     ButtonState _state;
     std::string _text;
     std::function<void()> _onClick;
@@ -52,7 +36,7 @@ export template <Drawable T> class Button {
     }
 
   public:
-    explicit Button(ButtonDef buttonDef, const std::string_view text, std::function<void()> onClick)
+    explicit Button(const ButtonDef &buttonDef, const std::string_view text, std::function<void()> onClick)
         : _drawable(buttonDef.resourceName), _def(buttonDef), _state(ButtonState::Normal), _text(text), _onClick(std::move(onClick)) {
         _drawable.setPalette(_def.palette);
     }
@@ -90,4 +74,4 @@ export template <Drawable T> class Button {
     }
 };
 
-} // namespace Abyss::Common
+} // namespace Abyss::UI

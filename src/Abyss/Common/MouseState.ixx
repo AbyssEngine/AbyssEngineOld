@@ -2,9 +2,9 @@ module;
 
 #include <cstdint>
 
-import Abyss.Enums.MouseButton;
-
 export module Abyss.Common.MouseState;
+
+import Abyss.Enums.MouseButton;
 
 namespace Abyss::Common {
 

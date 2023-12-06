@@ -3,9 +3,9 @@ module;
 #include <cstdint>
 #include <string_view>
 
-import Abyss.MPQ.Crypto;
-
 export module Abyss.MPQ.BlockEntry;
+
+import Abyss.MPQ.Crypto;
 
 namespace Abyss::MPQ {
 
