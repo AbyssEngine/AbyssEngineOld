@@ -1,3 +1,4 @@
+#include "imgui.h"
 module;
 
 #include "imgui_impl_sdl2.h"
@@ -181,7 +182,7 @@ export class AbyssEngine final : public Common::FileProvider, public Common::Ren
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImGuiIO &io = ImGui::GetIO();
-        (void)io;
+        io.IniFilename = nullptr;
         ImGui::StyleColorsDark();
         ImGui_ImplSDL2_InitForSDLRenderer(_window.get(), _renderer.get());
         ImGui_ImplSDLRenderer2_Init(_renderer.get());

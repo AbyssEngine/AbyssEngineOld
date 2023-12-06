@@ -1,6 +1,6 @@
 module;
 
-#include <string>
+#include <string_view>
 
 export module Abyss.Common.MouseProvider;
 
