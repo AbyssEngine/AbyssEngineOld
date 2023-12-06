@@ -1,43 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-
 add_library(Abyss
-        Common/Animation.hpp
-        Common/Button.hpp
-        Common/CommandLineOpts.hpp
-        Common/Configuration.hpp
-        Common/Drawable.hpp
-        Common/FileProvider.hpp
-        Common/Huffman.hpp
-        Common/Logging.hpp
-        Common/MouseProvider.hpp
-        Common/MouseState.hpp
-        Common/RendererProvider.hpp
-        Common/RingBuffer.hpp
-        Common/Scene.hpp
-        Common/SpriteFont.hpp
-        Common/WavDecompress.hpp
-
-        DataTypes/DC6Frame.hpp
-        DataTypes/DC6.hpp
-        DataTypes/Palette.hpp
-
-        Enums/BlendMode.hpp
-        Enums/MouseButton.hpp
-
-        MPQ/BlockEntry.hpp
-        MPQ/Crypto.hpp
-        MPQ/File.hpp
-        MPQ/HashEntry.hpp
-        MPQ/Header.hpp
-
-        Streams/AudioStream.hpp
-        Streams/InputStream.hpp
-        Streams/StreamReader.hpp
-        Streams/MPQStream.hpp
-
-        Singletons.hpp
-        AbyssEngine.hpp
-
         # 3rdParty
         ${CMAKE_SOURCE_DIR}/3rdParty/Blast/blast.c
 
@@ -48,8 +10,47 @@ add_library(Abyss
         ${imgui_SOURCE_DIR}/imgui_widgets.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl2.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_sdlrenderer2.cpp
+)
 
+target_sources(Abyss
+        PUBLIC
+        FILE_SET CXX_MODULES FILES
+        Common/Animation.ixx
+        Common/Button.ixx
+        Common/CommandLineOpts.ixx
+        Common/Configuration.ixx
+        Common/Drawable.ixx
+        Common/FileProvider.ixx
+        Common/Huffman.ixx
+        Common/Logging.ixx
+        Common/MouseProvider.ixx
+        Common/MouseState.ixx
+        Common/RendererProvider.ixx
+        Common/RingBuffer.ixx
+        Common/Scene.ixx
+        Common/SpriteFont.ixx
+        Common/WavDecompress.ixx
 
+        DataTypes/DC6Frame.ixx
+        DataTypes/DC6.ixx
+        DataTypes/Palette.ixx
+
+        Enums/BlendMode.ixx
+        Enums/MouseButton.ixx
+
+        MPQ/BlockEntry.ixx
+        MPQ/Crypto.ixx
+        MPQ/File.ixx
+        MPQ/HashEntry.ixx
+        MPQ/Header.ixx
+
+        Streams/AudioStream.ixx
+        Streams/InputStream.ixx
+        Streams/StreamReader.ixx
+        Streams/MPQStream.ixx
+
+        Singletons.ixx
+        AbyssEngine.ixx
 )
 
 target_include_directories(Abyss

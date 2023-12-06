@@ -2,13 +2,19 @@ cmake_minimum_required(VERSION 3.15)
 
 
 add_executable(OpenDiablo2 WIN32
-        Startup.cpp
-        Common/PaletteManager.cpp
-        Scenes/MainMenu/MainMenu.cpp
-        Scenes/MainMenu/Logo.cpp
-        main.cpp
-        Common/ButtonDefManager.cpp
-        Common/ButtonDefManager.h
+        main.ixx
+)
+
+target_sources(OpenDiablo2
+        PUBLIC
+        FILE_SET CXX_MODULES FILES
+        Startup.ixx
+        Common/PaletteManager.ixx
+        Scenes/MainMenu/MainMenu.ixx
+        Scenes/MainMenu/Logo.ixx
+        Common/ButtonDefManager.ixx
+        Common/ResourcePaths.ixx
+        main.ixx
 )
 
 if (WIN32)
