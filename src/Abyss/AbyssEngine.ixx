@@ -31,9 +31,9 @@ import Abyss.Common.CommandLineOpts;
 namespace Abyss {
 
 export class AbyssEngine final : public Common::FileProvider, public Common::RendererProvider, public Common::MouseProvider {
-    bool running;
-    bool mouseOverGameWindow;
-    Common::Configuration configuration;
+    bool _running;
+    bool _mouseOverGameWindow;
+    Common::Configuration _configuration;
     std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)> _window;
     std::unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)> _renderer;
     std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> _renderTexture;
@@ -49,7 +49,7 @@ export class AbyssEngine final : public Common::FileProvider, public Common::Ren
     std::string _locale;
 
     AbyssEngine()
-        : running(true), mouseOverGameWindow(false), _window(nullptr, SDL_DestroyWindow), _renderer(nullptr, SDL_DestroyRenderer),
+        : _running(true), _mouseOverGameWindow(false), _window(nullptr, SDL_DestroyWindow), _renderer(nullptr, SDL_DestroyRenderer),
           _renderTexture(nullptr, SDL_DestroyTexture), _currentScene(nullptr), _nextScene(nullptr), _renderRect(), _locale("latin") {
 
         Singletons::setFileProvider(this);
@@ -94,7 +94,7 @@ export class AbyssEngine final : public Common::FileProvider, public Common::Ren
 
             _currentScene->render();
 
-            if (_cursorImage != nullptr && _mouseState.isVisible() && mouseOverGameWindow) {
+            if (_cursorImage != nullptr && _mouseState.isVisible() && _mouseOverGameWindow) {
                 int mx, my;
                 _mouseState.getPosition(mx, my);
                 _cursorImage->draw(0, mx + 1, my + 2);
@@ -108,7 +108,7 @@ export class AbyssEngine final : public Common::FileProvider, public Common::Ren
         ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
 
         // Is the mouse over an ImGui window, or outside _renderRect? If so, show the cursor, otherwise hide it
-        if (ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow) || !mouseOverGameWindow) {
+        if (ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow) || !_mouseOverGameWindow) {
             SDL_ShowCursor(SDL_TRUE);
         } else {
             SDL_ShowCursor(SDL_FALSE);
@@ -125,12 +125,12 @@ export class AbyssEngine final : public Common::FileProvider, public Common::Ren
             ImGui_ImplSDL2_ProcessEvent(&event);
             switch (event.type) {
             case SDL_QUIT:
-                running = false;
+                _running = false;
                 return;
             case SDL_MOUSEMOTION: {
                 const auto mx = (event.motion.x - _renderRect.x) * 800 / _renderRect.w;
                 const auto my = (event.motion.y - _renderRect.y) * 600 / _renderRect.h;
-                mouseOverGameWindow = mx >= 0 && mx < 800 && my >= 0 && my < 600;
+                _mouseOverGameWindow = mx >= 0 && mx < 800 && my >= 0 && my < 600;
 
                 _mouseState.setPosition(std::clamp(mx, 0, 799), std::clamp(my, 0, 599));
             } break;
@@ -279,9 +279,11 @@ export class AbyssEngine final : public Common::FileProvider, public Common::Ren
         return instance;
     }
 
+    auto quit() -> void { _running = false; }
+
     auto processCommandLineArguments(const int argc, char **argv) -> bool {
         bool quitOnRun = false;
-        Common::CommandLineOpts::process(argc, argv, quitOnRun, configuration);
+        Common::CommandLineOpts::process(argc, argv, quitOnRun, _configuration);
 
         return !quitOnRun;
     }
@@ -289,7 +291,7 @@ export class AbyssEngine final : public Common::FileProvider, public Common::Ren
     auto run() -> void {
         SDL_ShowCursor(SDL_FALSE);
         auto lastTime = std::chrono::high_resolution_clock::now();
-        while (running) {
+        while (_running) {
             auto currentTime = std::chrono::high_resolution_clock::now();
             auto deltaTime = currentTime - lastTime;
             lastTime = currentTime;
@@ -306,7 +308,7 @@ export class AbyssEngine final : public Common::FileProvider, public Common::Ren
         _nextScene = std::move(scene);
     }
 
-    [[nodiscard]] auto getConfiguration() -> Common::Configuration & { return configuration; }
+    [[nodiscard]] auto getConfiguration() -> Common::Configuration & { return _configuration; }
 
     auto setBackgroundMusic(const std::string_view path) -> void {
         _backgroundMusic = std::make_unique<Streams::AudioStream>(loadStream(path));
@@ -339,7 +341,7 @@ export class AbyssEngine final : public Common::FileProvider, public Common::Ren
             }
 
             if (!found) {
-                for (const auto &mpqFile : configuration.getLoadOrder()) {
+                for (const auto &mpqFile : _configuration.getLoadOrder()) {
                     if (const auto file = std::make_shared<MPQ::File>(mpqFile); file->hasFile(lowercasePath)) {
                         Common::Log::info("Loaded MPQ file {}", mpqFile.string());
                         _mapResourceMpqFileMap[lowercasePath] = file;

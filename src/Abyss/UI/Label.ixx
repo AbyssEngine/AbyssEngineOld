@@ -4,6 +4,8 @@ module;
 #include <memory>
 #include <string>
 
+import Abyss.Enums.MouseButton;
+
 export module Abyss.UI.Label;
 
 import Abyss.Concepts.FontRenderer;

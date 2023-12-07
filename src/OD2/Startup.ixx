@@ -1,6 +1,7 @@
 module;
 
 #include <memory>
+#include <string>
 
 import Abyss.Common.Logging;
 import OD2.Common.ResourcePaths;
@@ -19,12 +20,15 @@ import Abyss.AbyssEngine;
 import Abyss.Common.Logging;
 import OD2.Common.ButtonDefManager;
 import Abyss.AbyssEngine;
+import OD2.Common.FontManager;
+import Abyss.UI.SpriteFont;
+import Abyss.DataTypes.DC6;
 
 export module OD2.Startup;
 
 namespace OD2 {
 
-export auto loadPalettes() -> void {
+auto loadPalettes() -> void {
     Abyss::Common::Log::info("Loading palettes...");
     auto &paletteManager = Common::PaletteManager::getInstance();
     paletteManager.addPalette({Common::ResourcePaths::Palettes::Act1, "Act1"});
@@ -47,7 +51,7 @@ export auto loadPalettes() -> void {
     paletteManager.addPalette({Common::ResourcePaths::Palettes::Units, "Units"});
 }
 
-export auto loadButtonDefs() -> void {
+auto loadButtonDefs() -> void {
     Abyss::Common::Log::info("Loading button definitions...");
     auto &buttonDefsMap = Common::ButtonDefManager::getInstance();
     auto &paletteManager = Common::PaletteManager::getInstance();
@@ -60,6 +64,24 @@ export auto loadButtonDefs() -> void {
         .segments = {.x = 2, .y = 1},
         .frames = {.base = 0, .pressed = 1, .disabled = -1},
     });
+}
+
+auto loadFonts() -> void {
+    const auto addFont = [](const std::string_view fontPath, const std::string paletteName) -> void {
+        const auto getFontName = [](const std::string_view path) -> std::string {
+            const auto pos = path.find_last_of('/');
+            if (pos == std::string_view::npos)
+                return std::string(path);
+
+            return std::string(path.substr(pos + 1));
+        };
+
+        Common::FontManager::getInstance().addFont(getFontName(fontPath), std::move(std::make_unique<Abyss::UI::SpriteFont<Abyss::DataTypes::DC6>>(
+                                                                              Common::ResourcePaths::FontsAndLocales::FontExocet10, GetPalette(paletteName))));
+    };
+
+    Abyss::Common::Log::info("Loading fonts...");
+    addFont(Common::ResourcePaths::FontsAndLocales::FontExocet10, "Units");
 }
 
 export auto startup(const int argc, char **argv) -> int {
@@ -75,6 +97,7 @@ export auto startup(const int argc, char **argv) -> int {
 
         loadPalettes();
         loadButtonDefs();
+        loadFonts();
 
         engine.addCursorImage("Default", Common::ResourcePaths::MousePointers::CursorDefault, Common::PaletteManager::getInstance().getPalette("Static"));
         engine.setCursorImage("Default");

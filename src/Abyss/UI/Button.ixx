@@ -10,6 +10,8 @@ import Abyss.Enums.MouseButton;
 import Abyss.Singletons;
 import Abyss.Concepts.Drawable;
 import Abyss.UI.ButtonDef;
+import Abyss.UI.Label;
+import Abyss.Concepts.FontRenderer;
 
 namespace Abyss::UI {
 
@@ -20,25 +22,48 @@ export template <Concepts::Drawable T> class Button {
     UI::ButtonDef _def;
     ButtonState _state;
     std::string _text;
+    Label _label;
     std::function<void()> _onClick;
+    bool _hasFocus{false};
+    bool _canFocus{false};
 
     auto handleMouse(const int x, const int y) -> void {
         const auto mouseState = Singletons::getMouseProvider().getMouseState();
         int mouseX, mouseY;
         mouseState.getPosition(mouseX, mouseY);
         const auto leftMousePressed = mouseState.isButtonPressed(Enums::MouseButton::Left);
+
         mouseX -= x;
         mouseY -= y;
         const auto isMouseOver = mouseX >= _def.clickableRect.x && mouseX <= _def.clickableRect.x + _def.clickableRect.w && mouseY >= _def.clickableRect.y &&
                                  mouseY <= _def.clickableRect.y + _def.clickableRect.h;
 
-        _state = isMouseOver && leftMousePressed ? ButtonState::Pressed : ButtonState::Normal;
+        if (isMouseOver && !leftMousePressed && _hasFocus) {
+            _onClick();
+            _hasFocus = false;
+            _state = ButtonState::Normal; // TODO: Disabled state
+            return;
+        }
+
+        if (isMouseOver && leftMousePressed && !_hasFocus && _canFocus)
+            _hasFocus = true;
+
+        if (!_hasFocus)
+            _canFocus = !leftMousePressed;
+
+        if (!leftMousePressed) {
+            _hasFocus = false;
+            _canFocus = true;
+        }
+
+        _state = isMouseOver && leftMousePressed && _canFocus ? ButtonState::Pressed : ButtonState::Normal;
     }
 
   public:
-    explicit Button(const ButtonDef &buttonDef, const std::string_view text, std::function<void()> onClick)
-        : _drawable(buttonDef.resourceName), _def(buttonDef), _state(ButtonState::Normal), _text(text), _onClick(std::move(onClick)) {
+    explicit Button(const ButtonDef &buttonDef, const std::string_view text, const Concepts::FontRenderer &fontRenderer, std::function<void()> onClick)
+        : _drawable(buttonDef.resourceName), _def(buttonDef), _state(ButtonState::Normal), _text(text), _label(fontRenderer), _onClick(std::move(onClick)) {
         _drawable.setPalette(_def.palette);
+        _label.setText(_text);
     }
 
     auto draw(const int x, const int y) -> void {
@@ -71,6 +96,16 @@ export template <Concepts::Drawable T> class Button {
             posX = x;
             posY += frameHeight;
         }
+
+        auto labelX = x + _def.clickableRect.x + (_def.clickableRect.w / 2) - (_label.getWidth() / 2);
+        auto labelY = y + _def.clickableRect.y + (_def.clickableRect.h / 2) - (_label.getHeight() / 2);
+
+        if (_state == ButtonState::Pressed) {
+            labelX -= 2;
+            labelY += 2;
+        }
+
+        _label.draw(labelX, labelY);
     }
 };
 

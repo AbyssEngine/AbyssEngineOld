@@ -1,6 +1,7 @@
 module;
 
-#include <vector>
+#include <string>
+#include <unordered_map>
 
 export module OD2.Common.PaletteManager;
 
@@ -10,7 +11,7 @@ import Abyss.Common.Logging;
 namespace OD2::Common {
 
 export class PaletteManager {
-    std::vector<Abyss::DataTypes::Palette> palettes;
+    std::unordered_map<std::string, Abyss::DataTypes::Palette> _palettes;
     PaletteManager() = default;
 
   public:
@@ -19,38 +20,31 @@ export class PaletteManager {
         return instance;
     }
 
-    auto getPalettes() -> std::vector<Abyss::DataTypes::Palette> & { return palettes; }
-
     auto getPalette(const std::string_view name) -> Abyss::DataTypes::Palette & {
-        for (auto &palette : palettes) {
-            if (palette.getName() == name) {
-                return palette;
-            }
-        }
-        throw std::runtime_error("Palette not found");
+        auto it = _palettes.find(std::string(name));
+        if (it == _palettes.end())
+            throw std::runtime_error("Palette not found");
+
+        return it->second;
     }
 
     auto addPalette(const Abyss::DataTypes::Palette &palette) -> void {
-        for (auto &existingPalette : palettes) {
-            if (existingPalette.getName() == palette.getName()) {
-                Abyss::Common::Log::warn("Palette already exists, replacing...");
-                existingPalette = palette;
-                return;
-            }
-        }
-        palettes.push_back(palette);
+        if (_palettes.find(palette.getName()) != _palettes.end())
+            throw std::runtime_error("Palette already exists");
+
+        _palettes.emplace(palette.getName(), palette);
     }
 
     auto removePalette(const std::string_view name) -> void {
-        for (auto it = palettes.begin(); it != palettes.end(); ++it) {
-            if (it->getName() == name) {
-                palettes.erase(it);
-                return;
-            }
-        }
-        throw std::runtime_error("Palette not found");
+        auto it = _palettes.find(std::string(name));
+        if (it == _palettes.end())
+            throw std::runtime_error("Palette not found");
+
+        _palettes.erase(it);
     }
 
-    auto clearPalettes() -> void { palettes.clear(); }
+    auto clearPalettes() -> void { _palettes.clear(); }
 };
 } // namespace OD2::Common
+
+export auto GetPalette(const std::string_view name) -> Abyss::DataTypes::Palette & { return OD2::Common::PaletteManager::getInstance().getPalette(name); }

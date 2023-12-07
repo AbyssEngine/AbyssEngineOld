@@ -14,10 +14,11 @@ target_sources(OpenDiablo2
         FILE_SET CXX_MODULES FILES
         Startup.ixx
         Common/PaletteManager.ixx
-        Scenes/MainMenu/MainMenu.ixx
-        Scenes/MainMenu/Logo.ixx
         Common/ButtonDefManager.ixx
         Common/ResourcePaths.ixx
+        Common/FontManager.ixx
+        Scenes/MainMenu/MainMenu.ixx
+        Scenes/MainMenu/Logo.ixx
         main.ixx
 )
 
