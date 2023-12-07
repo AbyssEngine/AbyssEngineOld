@@ -1,7 +1,6 @@
 module;
 
 #include <array>
-#include <coroutine>
 #include <filesystem>
 #include <fstream>
 #include <map>

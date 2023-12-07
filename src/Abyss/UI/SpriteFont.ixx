@@ -5,13 +5,13 @@ module;
 #include <string>
 #include <unordered_map>
 
-export module Abyss.Common.SpriteFont;
+export module Abyss.UI.SpriteFont;
 
-import Abyss.Common.Drawable;
+import Abyss.Concepts.Drawable;
 import Abyss.Singletons;
 import Abyss.DataTypes.Palette;
 
-namespace Abyss::Common {
+namespace Abyss::UI {
 
 export struct Glyph {
     uint16_t FrameIndex;
@@ -21,7 +21,7 @@ export struct Glyph {
     int OffsetY;
 };
 
-export template <Drawable T> class SpriteFont {
+export template <Concepts::Drawable T> class SpriteFont {
     T _drawable;
     std::unordered_map<int, Glyph> _glyphs;
     std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> _texture{nullptr, SDL_DestroyTexture};
@@ -123,4 +123,4 @@ export template <Drawable T> class SpriteFont {
     }
 };
 
-} // namespace Abyss::Common
+} // namespace Abyss::UI

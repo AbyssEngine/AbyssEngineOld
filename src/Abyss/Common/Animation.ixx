@@ -6,7 +6,7 @@ module;
 
 export module Abyss.Common.Animation;
 
-import Abyss.Common.Drawable;
+import Abyss.Concepts.Drawable;
 import Abyss.DataTypes.Palette;
 import Abyss.Enums.BlendMode;
 
@@ -16,7 +16,7 @@ inline constexpr float AnimationFPS = 25.0;
 inline constexpr float AnimationDivisor = 1.0 / 256.0;
 inline constexpr float AnimationSpeedUnit = AnimationFPS * AnimationDivisor;
 
-export template <Drawable T> class Animation {
+export template <Concepts::Drawable T> class Animation {
     T _drawable;
     double _frameTime;
     uint32_t _frameIdx;

@@ -8,14 +8,14 @@ export module Abyss.UI.Button;
 import Abyss.DataTypes.Palette;
 import Abyss.Enums.MouseButton;
 import Abyss.Singletons;
-import Abyss.Common.Drawable;
+import Abyss.Concepts.Drawable;
 import Abyss.UI.ButtonDef;
 
 namespace Abyss::UI {
 
 export enum class ButtonState { Normal, Pressed, Disabled };
 
-export template <Drawable T> class Button {
+export template <Concepts::Drawable T> class Button {
     T _drawable;
     UI::ButtonDef _def;
     ButtonState _state;

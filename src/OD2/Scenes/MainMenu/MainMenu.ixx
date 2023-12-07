@@ -7,7 +7,7 @@ export module OD2.Scenes.MainMenu;
 
 import Abyss.UI.Button;
 import Abyss.Common.Scene;
-import Abyss.Common.SpriteFont;
+import Abyss.UI.SpriteFont;
 import Abyss.DataTypes.DC6;
 import OD2.Scenes.MainMenu.Logo;
 import OD2.Common.PaletteManager;
@@ -20,7 +20,7 @@ export class MainMenu final : public Abyss::Common::Scene {
     Abyss::DataTypes::DC6 _background;
     Logo _d2Logo;
     Abyss::UI::Button<Abyss::DataTypes::DC6> _btnExit;
-    Abyss::Common::SpriteFont<Abyss::DataTypes::DC6> _font;
+    Abyss::UI::SpriteFont<Abyss::DataTypes::DC6> _font;
 
     auto onExitClicked() -> void {}
 

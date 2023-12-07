@@ -8,3 +8,4 @@ CMakeSettings.json
 out/
 vcpkg_installed/
 .cache/
+imgui.ini

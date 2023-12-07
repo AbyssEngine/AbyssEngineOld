@@ -18,7 +18,6 @@ target_sources(Abyss
         Common/Animation.ixx
         Common/CommandLineOpts.ixx
         Common/Configuration.ixx
-        Common/Drawable.ixx
         Common/FileProvider.ixx
         Common/Huffman.ixx
         Common/Logging.ixx
@@ -27,8 +26,10 @@ target_sources(Abyss
         Common/RendererProvider.ixx
         Common/RingBuffer.ixx
         Common/Scene.ixx
-        Common/SpriteFont.ixx
         Common/WavDecompress.ixx
+
+        Concepts/Drawable.ixx
+        Concepts/FontRenderer.ixx
 
         DataTypes/DC6Frame.ixx
         DataTypes/DC6.ixx
@@ -50,6 +51,8 @@ target_sources(Abyss
 
         UI/Button.ixx
         UI/ButtonDef.ixx
+        UI/Label.ixx
+        UI/SpriteFont.ixx
 
         Singletons.ixx
         AbyssEngine.ixx
