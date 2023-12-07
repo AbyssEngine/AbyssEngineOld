@@ -42,7 +42,6 @@ export template <Concepts::Drawable T> class Button {
             _onClick();
             _hasFocus = false;
             _state = ButtonState::Normal; // TODO: Disabled state
-            return;
         }
 
         if (isMouseOver && leftMousePressed && !_hasFocus && _canFocus)

@@ -14,7 +14,7 @@ export struct ButtonDef {
     std::string name;
     std::string resourceName;
     DataTypes::Palette palette;
-    std::string fontPath;
+    std::string font;
     SDL_Rect clickableRect;
     struct {
         uint8_t x;

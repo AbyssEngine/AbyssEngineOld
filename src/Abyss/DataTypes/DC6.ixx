@@ -52,6 +52,8 @@ export class DC6 {
         }
     }
 
+    DC6(const std::string_view path, const Palette &palette) : DC6(path) { setPalette(palette); }
+
     [[nodiscard]] auto getVersion() const -> uint32_t { return _version; }
 
     [[nodiscard]] auto getFlags() const -> uint32_t { return _flags; }

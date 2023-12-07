@@ -64,16 +64,8 @@ export auto GetButtonDef(const std::string_view name) -> Abyss::UI::ButtonDef & 
 
 export auto CreateButton(const std::string_view buttonDefName, const std::string_view text, std::function<void()> onClick)
     -> Abyss::UI::Button<Abyss::DataTypes::DC6> {
-    const auto getFontName = [](const std::string_view path) -> std::string {
-        const auto pos = path.find_last_of('/');
-        if (pos == std::string_view::npos)
-            return std::string(path);
-
-        return std::string(path.substr(pos + 1));
-    };
-
     const auto &buttonDef = GetButtonDef(buttonDefName);
-    const auto fontName = getFontName(buttonDef.fontPath);
+    const auto fontName = buttonDef.font;
     const auto &font = GetFont(fontName);
 
     return Abyss::UI::Button<Abyss::DataTypes::DC6>(buttonDef, text, font, std::move(onClick));

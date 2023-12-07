@@ -11,6 +11,7 @@ import Abyss.Concepts.Drawable;
 import Abyss.Singletons;
 import Abyss.DataTypes.Palette;
 import Abyss.Concepts.FontRenderer;
+import Abyss.Common.Logging;
 
 namespace Abyss::UI {
 
@@ -26,8 +27,7 @@ export template <Concepts::Drawable T> class SpriteFont : public Concepts::FontR
     T _drawable;
     std::unordered_map<int, Glyph> _glyphs;
 
-    auto renderText(std::string_view text, SDL_Color color, int &width, int &height) const
-        -> std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> override {
+    auto renderText(std::string_view text, int &width, int &height) const -> std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> override {
 
         std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> texture{nullptr, SDL_DestroyTexture};
         width = 0;
@@ -47,12 +47,6 @@ export template <Concepts::Drawable T> class SpriteFont : public Concepts::FontR
         const auto oldTarget = SDL_GetRenderTarget(renderer);
         SDL_SetRenderTarget(renderer, texture.get());
 
-        if (color.r != 255 || color.g != 255 || color.b != 255)
-            SDL_SetTextureColorMod(texture.get(), color.r, color.g, color.b);
-
-        if (color.a != 255)
-            SDL_SetTextureAlphaMod(texture.get(), color.a);
-
         int drawX = 0;
         for (const auto &c : text) {
             const auto &[glyphFrameIndex, glyphWidth, glyphHeight, glyphOffsetX, glyphOffsetY] = _glyphs.at(c);
@@ -69,6 +63,8 @@ export template <Concepts::Drawable T> class SpriteFont : public Concepts::FontR
 
   public:
     explicit SpriteFont(const std::string_view path, const DataTypes::Palette &palette) : _drawable(std::string(path) + ".dc6") {
+        Abyss::Common::Log::debug("Loading font {}...", path);
+
         _drawable.setPalette(palette);
 
         auto tableStream = Singletons::getFileProvider().loadStream(std::string(path) + ".tbl");

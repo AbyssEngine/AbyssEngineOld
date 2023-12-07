@@ -59,7 +59,7 @@ auto loadButtonDefs() -> void {
         .name = "Wide",
         .resourceName = Common::ResourcePaths::UI::WideButtonBlank,
         .palette = paletteManager.getPalette("Units"),
-        .fontPath = Common::ResourcePaths::FontsAndLocales::FontExocet10,
+        .font = "btntext",
         .clickableRect = {.x = 6, .y = 1, .w = 259, .h = 32},
         .segments = {.x = 2, .y = 1},
         .frames = {.base = 0, .pressed = 1, .disabled = -1},
@@ -76,12 +76,27 @@ auto loadFonts() -> void {
             return std::string(path.substr(pos + 1));
         };
 
-        Common::FontManager::getInstance().addFont(getFontName(fontPath), std::move(std::make_unique<Abyss::UI::SpriteFont<Abyss::DataTypes::DC6>>(
-                                                                              Common::ResourcePaths::FontsAndLocales::FontExocet10, GetPalette(paletteName))));
+        Common::FontManager::getInstance().addFont(
+            getFontName(fontPath), std::move(std::make_unique<Abyss::UI::SpriteFont<Abyss::DataTypes::DC6>>(fontPath, GetPalette(paletteName))));
     };
 
     Abyss::Common::Log::info("Loading fonts...");
-    addFont(Common::ResourcePaths::FontsAndLocales::FontExocet10, "Units");
+    addFont(Common::ResourcePaths::FontsAndLocales::Font6, "Static");
+    addFont(Common::ResourcePaths::FontsAndLocales::Font8, "Static");
+    addFont(Common::ResourcePaths::FontsAndLocales::Font16, "Static");
+    addFont(Common::ResourcePaths::FontsAndLocales::Font24, "Static");
+    addFont(Common::ResourcePaths::FontsAndLocales::Font30, "Static");
+    addFont(Common::ResourcePaths::FontsAndLocales::Font42, "Static");
+    addFont(Common::ResourcePaths::FontsAndLocales::FontFormal12, "Static");
+    addFont(Common::ResourcePaths::FontsAndLocales::FontFormal11, "Static");
+    addFont(Common::ResourcePaths::FontsAndLocales::FontFormal10, "Static");
+    addFont(Common::ResourcePaths::FontsAndLocales::FontExocet10, "Static");
+    addFont(Common::ResourcePaths::FontsAndLocales::FontExocet8, "Static");
+    addFont(Common::ResourcePaths::FontsAndLocales::FontSucker, "Static");
+    addFont(Common::ResourcePaths::FontsAndLocales::FontRediculous, "Static");
+
+    Common::FontManager::getInstance().addFont("btntext", std::move(std::make_unique<Abyss::UI::SpriteFont<Abyss::DataTypes::DC6>>(
+                                                              Common::ResourcePaths::FontsAndLocales::FontExocet10, GetPalette("Units"))));
 }
 
 export auto startup(const int argc, char **argv) -> int {
