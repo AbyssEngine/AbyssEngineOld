@@ -10,6 +10,7 @@ export module Abyss.UI.SpriteFont;
 import Abyss.Concepts.Drawable;
 import Abyss.Singletons;
 import Abyss.DataTypes.Palette;
+import Abyss.Concepts.FontRenderer;
 
 namespace Abyss::UI {
 
@@ -21,50 +22,53 @@ export struct Glyph {
     int OffsetY;
 };
 
-export template <Concepts::Drawable T> class SpriteFont {
+export template <Concepts::Drawable T> class SpriteFont : public Concepts::FontRenderer {
     T _drawable;
     std::unordered_map<int, Glyph> _glyphs;
-    std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> _texture{nullptr, SDL_DestroyTexture};
-    std::string _text;
-    bool _dirty;
-    int _width;
-    int _height;
 
-    auto regenerateTexture() -> void {
-        _dirty = false;
+    auto renderText(std::string_view text, SDL_Color color, int &width, int &height) const
+        -> std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> override {
 
-        _width = 0;
-        _height = 0;
+        std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> texture{nullptr, SDL_DestroyTexture};
+        width = 0;
+        height = 0;
 
-        for (const auto &c : _text) {
-            const auto &[glyphFrameIndex, glyphWidth, glyphHeight, glyphOffsetX, glyphOffsetY] = _glyphs[c];
+        for (const auto &c : text) {
+            const auto &[glyphFrameIndex, glyphWidth, glyphHeight, glyphOffsetX, glyphOffsetY] = _glyphs.at(c);
             int frameWidth, frameHeight;
             _drawable.getFrameSize(glyphFrameIndex, frameWidth, frameHeight);
-            _width += glyphWidth + glyphOffsetX;
-            _height = std::max(_height, frameHeight);
+            width += glyphWidth + glyphOffsetX;
+            height = std::max(height, frameHeight);
         }
 
         const auto renderer = Singletons::getRendererProvider().getRenderer();
-        _texture.reset(SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, _width, _height));
-        SDL_SetTextureBlendMode(_texture.get(), SDL_BLENDMODE_MUL);
+        texture.reset(SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width, height));
+        SDL_SetTextureBlendMode(texture.get(), SDL_BLENDMODE_MUL);
         const auto oldTarget = SDL_GetRenderTarget(renderer);
-        SDL_SetRenderTarget(renderer, _texture.get());
+        SDL_SetRenderTarget(renderer, texture.get());
+
+        if (color.r != 255 || color.g != 255 || color.b != 255)
+            SDL_SetTextureColorMod(texture.get(), color.r, color.g, color.b);
+
+        if (color.a != 255)
+            SDL_SetTextureAlphaMod(texture.get(), color.a);
 
         int drawX = 0;
-        for (const auto &c : _text) {
-            const auto &[glyphFrameIndex, glyphWidth, glyphHeight, glyphOffsetX, glyphOffsetY] = _glyphs[c];
+        for (const auto &c : text) {
+            const auto &[glyphFrameIndex, glyphWidth, glyphHeight, glyphOffsetX, glyphOffsetY] = _glyphs.at(c);
             int frameWidth, frameHeight;
             _drawable.getFrameSize(glyphFrameIndex, frameWidth, frameHeight);
-            _drawable.draw(glyphFrameIndex, drawX, _height);
+            _drawable.draw(glyphFrameIndex, drawX, height);
             drawX += glyphWidth + glyphOffsetX;
         }
 
         SDL_SetRenderTarget(renderer, oldTarget);
+
+        return std::move(texture);
     }
 
   public:
-    explicit SpriteFont(const std::string_view path, const DataTypes::Palette &palette)
-        : _drawable(std::string(path) + ".dc6"), _dirty(false), _width(0), _height(0) {
+    explicit SpriteFont(const std::string_view path, const DataTypes::Palette &palette) : _drawable(std::string(path) + ".dc6") {
         _drawable.setPalette(palette);
 
         auto tableStream = Singletons::getFileProvider().loadStream(std::string(path) + ".tbl");
@@ -95,31 +99,6 @@ export template <Concepts::Drawable T> class SpriteFont {
 
             tableStream.ignore(4); // More magic ignores, fun!
         }
-    }
-
-    auto draw(const int x, const int y) -> void {
-        const auto renderer = Singletons::getRendererProvider().getRenderer();
-
-        if (_texture == nullptr || _dirty)
-            regenerateTexture();
-
-        const SDL_Rect rect{x, y, _width, _height};
-        SDL_RenderCopy(renderer, _texture.get(), nullptr, &rect);
-    }
-
-    auto setText(const std::string_view text) -> void {
-        if (_text == text)
-            return;
-
-        _text = text;
-        _dirty = true;
-    }
-
-    [[nodiscard]] auto getText() const -> const std::string & { return _text; }
-
-    auto getSize(int &width, int &height) const -> void {
-        width = _width;
-        height = _height;
     }
 };
 

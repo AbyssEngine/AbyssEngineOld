@@ -3,24 +3,24 @@ cmake_minimum_required(VERSION 3.27)
 project(Abyss)
 
 
-# If using clang, require version 16 or higher
+# If using clang, require version 17 or higher
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 16)
-    message(FATAL_ERROR "Clang version must be at least 16!\nClang version: ${CMAKE_CXX_COMPILER_VERSION}\nClang path: ${CMAKE_CXX_COMPILER}\nhttps://www.kitware.com/import-cmake-the-experiment-is-over/")
+  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 17)
+    message(FATAL_ERROR "Clang version must be at least 17!")
   endif ()
 endif ()
 
 # If using gcc, it must be version 14 or higher
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 14)
-    message(FATAL_ERROR "GCC version must be at least 14!\nGCC version: ${CMAKE_CXX_COMPILER_VERSION}\nGCC path: ${CMAKE_CXX_COMPILER}\nhttps://www.kitware.com/import-cmake-the-experiment-is-over/")
+    message(FATAL_ERROR "GCC version must be at least 14!")
   endif ()
 endif ()
 
 # If using visual studio, must be MSVC 14.34 toolset or higher
 if (MSVC)
   if (MSVC_TOOLSET_VERSION VERSION_LESS 14.34)
-    message(FATAL_ERROR "MSVC toolset version must be at least 14.34!\nMSVC toolset version: ${MSVC_TOOLSET_VERSION}\nhttps://www.kitware.com/import-cmake-the-experiment-is-over/")
+    message(FATAL_ERROR "MSVC toolset version must be at least 14.34!")
   endif ()
 endif ()
 
