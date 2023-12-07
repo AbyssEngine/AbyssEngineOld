@@ -5,23 +5,23 @@ module;
 
 export module Abyss.Streams.StreamReader;
 
-import Abyss.Streams.InputStream;
+import Abyss.FileSystem.InputStream;
 
 namespace Abyss::Streams {
 
 export class StreamReader {
-    InputStream &inputStream;
+    FileSystem::InputStream &_inputStream;
 
   public:
-    explicit StreamReader(InputStream &inputStream) : inputStream(inputStream) {}
+    explicit StreamReader(FileSystem::InputStream &inputStream) : _inputStream(inputStream) {}
 
-    [[nodiscard]] auto readByte() const -> uint8_t { return static_cast<uint8_t>(inputStream.get()); }
+    [[nodiscard]] auto readByte() const -> uint8_t { return static_cast<uint8_t>(_inputStream.get()); }
 
     auto readBytes(std::span<uint8_t> data) const -> void {
         if (data.empty()) {
             return;
         }
-        inputStream.read(reinterpret_cast<char *>(&data[0]), static_cast<long>(data.size()));
+        _inputStream.read(reinterpret_cast<char *>(&data[0]), static_cast<long>(data.size()));
     }
 
     [[nodiscard]] auto readUInt8() -> uint8_t { return ReadUnsigned<uint8_t>(); }
@@ -44,7 +44,7 @@ export class StreamReader {
         std::string result;
         char c;
 
-        while ((c = static_cast<char>(inputStream.get())) != '\0') {
+        while ((c = static_cast<char>(_inputStream.get())) != '\0') {
             result.push_back(c);
         }
 

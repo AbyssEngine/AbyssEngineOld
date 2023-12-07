@@ -3,14 +3,16 @@ module;
 #include <memory>
 #include <string>
 
+export module OD2.Startup;
+
 import Abyss.Common.Logging;
 import OD2.Common.ResourcePaths;
-import Abyss.Streams.InputStream;
+import Abyss.FileSystem.InputStream;
 import Abyss.Common.MouseProvider;
 import Abyss.Common.MouseState;
 import Abyss.Common.RendererProvider;
 import Abyss.Enums.BlendMode;
-import Abyss.Common.FileProvider;
+import Abyss.FileSystem.FileLoader;
 import OD2.Common.PaletteManager;
 import OD2.Common.ButtonDefManager;
 import OD2.Common.PaletteManager;
@@ -23,8 +25,6 @@ import Abyss.AbyssEngine;
 import OD2.Common.FontManager;
 import Abyss.UI.SpriteFont;
 import Abyss.DataTypes.DC6;
-
-export module OD2.Startup;
 
 namespace OD2 {
 
@@ -110,6 +110,7 @@ export auto startup(const int argc, char **argv) -> int {
 
         engine.setWindowTitle("OpenDiablo II");
 
+        engine.initializeFiles();
         loadPalettes();
         loadButtonDefs();
         loadFonts();

@@ -3,9 +3,9 @@ module;
 #include <ios>
 #include <istream>
 
-export module Abyss.Streams.InputStream;
+export module Abyss.FileSystem.InputStream;
 
-namespace Abyss::Streams {
+namespace Abyss::FileSystem {
 
 export class SizeableStreambuf : public std::basic_streambuf<char> {
   public:
@@ -39,4 +39,4 @@ export class InputStream final : public std::istream {
     }
 };
 
-} // namespace Abyss::Streams
+} // namespace Abyss::FileSystem

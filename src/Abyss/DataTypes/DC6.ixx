@@ -31,7 +31,7 @@ export class DC6 {
     explicit DC6(const std::string_view path)
         : _version(0), _flags(0), _encoding(0), _termination(), _directions(0), _framesPerDirection(0), _texture(nullptr, &SDL_DestroyTexture),
           _blendMode(Enums::BlendMode::None) {
-        auto stream = Singletons::getFileProvider().loadStream(path);
+        auto stream = Singletons::getFileProvider().loadFile(path);
         stream.read(reinterpret_cast<char *>(&_version), sizeof(_version));
         stream.read(reinterpret_cast<char *>(&_flags), sizeof(_flags));
         stream.read(reinterpret_cast<char *>(&_encoding), sizeof(_encoding));

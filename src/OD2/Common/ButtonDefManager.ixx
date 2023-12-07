@@ -1,7 +1,7 @@
 module;
 
-import Abyss.Common.FileProvider;
-import Abyss.Streams.InputStream;
+import Abyss.FileSystem.FileLoader;
+import Abyss.FileSystem.InputStream;
 import Abyss.Common.MouseProvider;
 import Abyss.Common.MouseState;
 import Abyss.Common.RendererProvider;
