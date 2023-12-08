@@ -60,6 +60,7 @@ auto loadButtonDefs() -> void {
         .resourceName = Common::ResourcePaths::UI::WideButtonBlank,
         .palette = paletteManager.getPalette("Units"),
         .font = "btntext",
+        .clickSound = Common::ResourcePaths::SFX::ButtonClick,
         .clickableRect = {.x = 6, .y = 1, .w = 259, .h = 32},
         .segments = {.x = 2, .y = 1},
         .frames = {.base = 0, .pressed = 1, .disabled = -1},

@@ -25,6 +25,7 @@ enum class ScreenMode {
 
 export class MainMenu final : public Abyss::Common::Scene {
     ScreenMode _screenMode = ScreenMode::TradeMark;
+    static bool playedIntroVideo;
 
     Abyss::DataTypes::DC6 _background = Abyss::DataTypes::DC6(Common::ResourcePaths::MainMenu::GameSelectScreen, GetPalette("Sky"));
     Abyss::DataTypes::DC6 _trademarkBackground = Abyss::DataTypes::DC6(Common::ResourcePaths::MainMenu::TrademarkScreen, GetPalette("Sky"));
@@ -48,15 +49,20 @@ export class MainMenu final : public Abyss::Common::Scene {
     auto onExitClicked() -> void { Abyss::AbyssEngine::getInstance().quit(); }
 
   public:
-    MainMenu() {
-        Abyss::AbyssEngine::getInstance().setBackgroundMusic(Common::ResourcePaths::Music::Title);
-        //
+    MainMenu() { Abyss::AbyssEngine::getInstance().playVideo(Common::ResourcePaths::Videos::BlizardStartup1); }
+
+    auto update([[maybe_unused]] const std::chrono::duration<double> deltaTime) -> void {
+        if (!playedIntroVideo) {
+            Abyss::AbyssEngine::getInstance().playVideo(Common::ResourcePaths::Videos::BlizardStartup2);
+            Abyss::AbyssEngine::getInstance().setBackgroundMusic(Common::ResourcePaths::Music::Title);
+            playedIntroVideo = true;
+            return;
+        }
+        _d2Logo.update(deltaTime);
     }
 
-    auto update([[maybe_unused]] const std::chrono::duration<double> deltaTime) -> void { _d2Logo.update(deltaTime); }
-
     auto processEvent([[maybe_unused]] const SDL_Event &event) -> void {
-        if (_screenMode == ScreenMode::TradeMark && event.type == SDL_MOUSEBUTTONUP && event.button.button == SDL_BUTTON_LEFT) {
+        if (_screenMode == ScreenMode::TradeMark && event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
             _screenMode = ScreenMode::MainMenu;
         }
     }
@@ -88,5 +94,7 @@ export class MainMenu final : public Abyss::Common::Scene {
         }
     }
 };
+
+bool MainMenu::playedIntroVideo = false;
 
 } // namespace OD2::Scenes::MainMenu

@@ -12,6 +12,8 @@ import Abyss.Concepts.Drawable;
 import Abyss.UI.ButtonDef;
 import Abyss.UI.Label;
 import Abyss.Concepts.FontRenderer;
+import Abyss.Streams.SoundEffect;
+import Abyss.Streams.AudioStream;
 
 namespace Abyss::UI {
 
@@ -26,6 +28,7 @@ export template <Concepts::Drawable T> class Button {
     std::function<void()> _onClick;
     bool _hasFocus{false};
     bool _canFocus{false};
+    Streams::SoundEffect _clickSound;
 
     auto handleMouse(const int x, const int y) -> void {
         const auto mouseState = Singletons::getMouseProvider().getMouseState();
@@ -44,8 +47,10 @@ export template <Concepts::Drawable T> class Button {
             _state = ButtonState::Normal; // TODO: Disabled state
         }
 
-        if (isMouseOver && leftMousePressed && !_hasFocus && _canFocus)
+        if (isMouseOver && leftMousePressed && !_hasFocus && _canFocus) {
             _hasFocus = true;
+            _clickSound.play();
+        }
 
         if (!_hasFocus)
             _canFocus = !leftMousePressed;
@@ -60,7 +65,8 @@ export template <Concepts::Drawable T> class Button {
 
   public:
     explicit Button(const ButtonDef &buttonDef, const std::string_view text, const Concepts::FontRenderer &fontRenderer, std::function<void()> onClick)
-        : _drawable(buttonDef.resourceName), _def(buttonDef), _state(ButtonState::Normal), _text(text), _label(fontRenderer), _onClick(std::move(onClick)) {
+        : _drawable(buttonDef.resourceName), _def(buttonDef), _state(ButtonState::Normal), _text(text), _label(fontRenderer), _onClick(std::move(onClick)),
+          _clickSound(std::make_unique<Abyss::Streams::AudioStream>(Singletons::getFileProvider().loadFile(buttonDef.clickSound))) {
         _drawable.setPalette(_def.palette);
         _label.setText(_text);
     }

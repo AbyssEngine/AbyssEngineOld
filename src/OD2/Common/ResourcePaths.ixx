@@ -36,6 +36,8 @@ const std::string Background = "/data/global/ui/FrontEnd/CinematicsSelectionEXP.
 }
 
 namespace Videos {
+const std::string BlizardStartup1 = "/data/local/video/New_Bliz640x480.bik";
+const std::string BlizardStartup2 = "/data/local/video/BlizNorth640x480.bik";
 const std::string Act1Intro = "/data/local/video/" + Language::LanguageTableToken + "/d2intro640x292.bik";
 const std::string Act2Intro = "/data/local/video/" + Language::LanguageTableToken + "/act02start640x292.bik";
 const std::string Act3Intro = "/data/local/video/" + Language::LanguageTableToken + "/act03start640x292.bik";
@@ -435,7 +437,7 @@ const std::string Act5Nihlathak = "/data/global/music/Act5/nihlathakmusic.wav";
 
 namespace SFX {
 const std::string CursorSelect = "cursor_select";
-const std::string ButtonClick = "cursor_button_click";
+const std::string ButtonClick = "/data/global/sfx/cursor/button.wav";
 const std::string AmazonDeselect = "cursor_amazon_deselect";
 const std::string AmazonSelect = "cursor_amazon_select";
 const std::string AssassinDeselect = "Cursor/intro/assassin deselect.wav";

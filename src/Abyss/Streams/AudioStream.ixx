@@ -279,6 +279,7 @@ export class AudioStream {
 
         _isPlaying = false;
         _isPaused = false;
+        av_seek_frame(_avFormatContext, _audioStreamIdx, 0, AVSEEK_FLAG_FRAME);
     }
 };
 

@@ -28,6 +28,7 @@ target_sources(Abyss
         Common/RendererProvider.ixx
         Common/RingBuffer.ixx
         Common/Scene.ixx
+        Common/SoundEffectProvider.ixx
         Common/WavDecompress.ixx
 
         Concepts/Drawable.ixx
@@ -40,12 +41,6 @@ target_sources(Abyss
         Enums/BlendMode.ixx
         Enums/MouseButton.ixx
 
-        #MPQ/BlockEntry.ixx
-        #MPQ/Crypto.ixx
-        #MPQ/File.ixx
-        #MPQ/HashEntry.ixx
-        #MPQ/Header.ixx
-
         FileSystem/Provider.ixx
         FileSystem/InputStream.ixx
         FileSystem/MPQ.ixx
@@ -53,7 +48,9 @@ target_sources(Abyss
         FileSystem/FileLoader.ixx
 
         Streams/AudioStream.ixx
+        Streams/SoundEffect.ixx
         Streams/StreamReader.ixx
+        Streams/VideoStream.ixx
 
         UI/Button.ixx
         UI/ButtonDef.ixx
