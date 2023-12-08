@@ -9,3 +9,4 @@ out/
 vcpkg_installed/
 .cache/
 imgui.ini
+*.dmg

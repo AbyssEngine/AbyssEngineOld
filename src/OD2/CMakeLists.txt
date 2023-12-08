@@ -4,6 +4,21 @@ project(OpenDiablo2)
 add_executable(OpenDiablo2 WIN32)
 
 # -------------------------------------------------------------------------------------------------
+# macOS DMG Disk Image Setup
+# -------------------------------------------------------------------------------------------------
+if (APPLE)
+  set(CPACK_GENERATOR DragNDrop)
+  set(CPACK_PACKAGE_NAME "OpenDiablo II")
+  set(CPACK_PACKAGE_FILE_NAME "OpenDiablo2")
+  set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/content/icon.icns")
+  set(CPACK_DMG_VOLUME_NAME "OpenDiablo II")
+  set(CPACK_DMG_BACKGROUND_IMAGE "${CMAKE_SOURCE_DIR}/content/dmg-background.png")
+  set(CPACK_DMG_DS_STORE "${CMAKE_SOURCE_DIR}/content/icon.icns")
+  set(CPACK_DMG_DS_STORE_SETUP_SCRIPT "${CMAKE_SOURCE_DIR}/CMakeDMGSetup.scp")
+endif()
+include(CPack)
+
+# -------------------------------------------------------------------------------------------------
 # Source Files
 # -------------------------------------------------------------------------------------------------
 
@@ -44,6 +59,25 @@ target_link_libraries(OpenDiablo2
         Abyss
 )
 
+# -------------------------------------------------------------------------------------------------
+# Enable universal binaries on macOS
+# -------------------------------------------------------------------------------------------------
+if(APPLE)
+  set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64")
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum macOS version")
+  set_target_properties(OpenDiablo2 PROPERTIES
+    XCODE_ATTRIBUTE_ARCHS[sdk=macos*] "x86_64;arm64"
+    XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "NO"
+  )
+endif()
+
+# -------------------------------------------------------------------------------------------------
+# Installation Artifacts
+# -------------------------------------------------------------------------------------------------
+install(TARGETS OpenDiablo2
+        BUNDLE DESTINATION . COMPONENT Runtime
+        RUNTIME DESTINATION . COMPONENT Runtime
+)
 
 # -------------------------------------------------------------------------------------------------
 # Make sure the EXE and libraries all build/copy to the same folder on Windows

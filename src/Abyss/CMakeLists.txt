@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
+
 add_library(Abyss
         # 3rdParty
         ${CMAKE_SOURCE_DIR}/3rdParty/Blast/blast.c
