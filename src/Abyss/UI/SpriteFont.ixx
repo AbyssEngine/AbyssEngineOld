@@ -67,7 +67,7 @@ export template <Concepts::Drawable T> class SpriteFont : public Concepts::FontR
 
         _drawable.setPalette(palette);
 
-        auto tableStream = Singletons::getFileProvider().loadStream(std::string(path) + ".tbl");
+        auto tableStream = Singletons::getFileProvider().loadFile(std::string(path) + ".tbl");
         char signature[6] = {0};
         tableStream.read(signature, 5);
         if (std::string_view(signature) != "Woo!\x01")

@@ -11,26 +11,26 @@ module;
 export module Abyss.AbyssEngine;
 
 import Abyss.Common.Configuration;
-import Abyss.Common.FileProvider;
+import Abyss.FileSystem.FileLoader;
+import Abyss.FileSystem.MPQ;
 import Abyss.Common.MouseProvider;
 import Abyss.Common.RendererProvider;
 import Abyss.Common.Scene;
 import Abyss.Singletons;
 import Abyss.Streams.AudioStream;
+import Abyss.DataTypes.DC6;
 import Abyss.Common.Logging;
 import Abyss.DataTypes.DC6;
 import Abyss.Common.MouseState;
-import Abyss.MPQ.File;
-import Abyss.Streams.MPQStream;
 import Abyss.Enums.MouseButton;
 import Abyss.Enums.BlendMode;
 import Abyss.DataTypes.Palette;
-import Abyss.Streams.InputStream;
+import Abyss.FileSystem.InputStream;
 import Abyss.Common.CommandLineOpts;
 
 namespace Abyss {
 
-export class AbyssEngine final : public Common::FileProvider, public Common::RendererProvider, public Common::MouseProvider {
+export class AbyssEngine final : public FileSystem::FileLoader, public Common::RendererProvider, public Common::MouseProvider {
     bool _running;
     bool _mouseOverGameWindow;
     Common::Configuration _configuration;
@@ -40,13 +40,12 @@ export class AbyssEngine final : public Common::FileProvider, public Common::Ren
     std::unique_ptr<Common::Scene> _currentScene;
     std::unique_ptr<Common::Scene> _nextScene;
     std::map<std::string, std::unique_ptr<DataTypes::DC6>> _cursors;
-    std::map<std::string, std::shared_ptr<MPQ::File>> _mapResourceMpqFileMap;
-    std::vector<std::shared_ptr<MPQ::File>> _mpqFileCache;
     DataTypes::DC6 *_cursorImage{};
     SDL_Rect _renderRect;
     Common::MouseState _mouseState;
     std::unique_ptr<Streams::AudioStream> _backgroundMusic;
     std::string _locale;
+    FileSystem::MultiFileLoader _fileProvider;
 
     AbyssEngine()
         : _running(true), _mouseOverGameWindow(false), _window(nullptr, SDL_DestroyWindow), _renderer(nullptr, SDL_DestroyRenderer),
@@ -288,6 +287,12 @@ export class AbyssEngine final : public Common::FileProvider, public Common::Ren
         return !quitOnRun;
     }
 
+    void initializeFiles() {
+        for (const auto &mpqFile : _configuration.getLoadOrder()) {
+          _fileProvider.addProvider(std::make_unique<FileSystem::MPQ>(mpqFile));
+        }
+    }
+
     auto run() -> void {
         SDL_ShowCursor(SDL_FALSE);
         auto lastTime = std::chrono::high_resolution_clock::now();
@@ -311,7 +316,7 @@ export class AbyssEngine final : public Common::FileProvider, public Common::Ren
     [[nodiscard]] auto getConfiguration() -> Common::Configuration & { return _configuration; }
 
     auto setBackgroundMusic(const std::string_view path) -> void {
-        _backgroundMusic = std::make_unique<Streams::AudioStream>(loadStream(path));
+        _backgroundMusic = std::make_unique<Streams::AudioStream>(loadFile(path));
         _backgroundMusic->setLoop(true);
         _backgroundMusic->play();
     }
@@ -323,40 +328,21 @@ export class AbyssEngine final : public Common::FileProvider, public Common::Ren
         cursorIcon.setBlendMode(Enums::BlendMode::Blend);
     }
 
-    [[nodiscard]] auto loadFile(const std::string_view path) -> Streams::MPQStream {
-        std::string lowercasePath;
-        lowercasePath = path;
-        std::ranges::transform(lowercasePath, lowercasePath.begin(), [](const unsigned char c) { return std::tolower(c); });
-        if (const size_t pos = lowercasePath.find("{lang_font}"); pos != std::string::npos)
-            lowercasePath.replace(pos, std::string("{lang_font}").length(), _locale);
+    // FileProvider
+    [[nodiscard]] auto loadFile(std::string_view file_path) -> FileSystem::InputStream override {
+        std::string path(file_path);
+        std::ranges::transform(path, path.begin(), [](const char c) { return std::tolower(c); });
+        if (const size_t pos = path.find("{lang_font}"); pos != std::string::npos)
+            path.replace(pos, std::string("{lang_font}").length(), _locale);
+        return _fileProvider.loadFile(path);
+    }
 
-        if (const auto mpqFileMapExists = _mapResourceMpqFileMap.contains(lowercasePath); !mpqFileMapExists) {
-            bool found = false;
-            for (const auto &mpqFile : _mpqFileCache) {
-                if (mpqFile->hasFile(lowercasePath)) {
-                    _mapResourceMpqFileMap[lowercasePath] = mpqFile;
-                    found = true;
-                    break;
-                }
-            }
-
-            if (!found) {
-                for (const auto &mpqFile : _configuration.getLoadOrder()) {
-                    if (const auto file = std::make_shared<MPQ::File>(mpqFile); file->hasFile(lowercasePath)) {
-                        Common::Log::info("Loaded MPQ file {}", mpqFile.string());
-                        _mapResourceMpqFileMap[lowercasePath] = file;
-                        _mpqFileCache.push_back(file);
-                        break;
-                    }
-                }
-            }
-
-            if (!_mapResourceMpqFileMap.contains(lowercasePath)) {
-                throw std::runtime_error("File not found in MPQ files: " + lowercasePath);
-            }
-        }
-
-        return {_mapResourceMpqFileMap.at(lowercasePath), lowercasePath};
+    [[nodiscard]] auto fileExists(std::string_view file_path) -> bool override {
+        std::string path(file_path);
+        std::ranges::transform(path, path.begin(), [](const char c) { return std::tolower(c); });
+        if (const size_t pos = path.find("{lang_font}"); pos != std::string::npos)
+            path.replace(pos, std::string("{lang_font}").length(), _locale);
+        return _fileProvider.fileExists(path);
     }
 
     // MouseProvider
@@ -368,39 +354,6 @@ export class AbyssEngine final : public Common::FileProvider, public Common::Ren
 
     // RendererProvider
     [[nodiscard]] auto getRenderer() -> SDL_Renderer * override { return _renderer.get(); }
-
-    // FileProvider
-    [[nodiscard]] auto loadStream(const std::string_view path) -> Streams::InputStream override {
-        return Streams::InputStream(std::make_unique<Streams::MPQStream>(loadFile(path)));
-    }
-
-    [[nodiscard]] auto loadString(const std::string_view path) -> std::string override {
-        const auto stream = loadStream(path);
-        std::stringstream ss;
-        ss << stream.rdbuf();
-        return ss.str();
-    }
-
-    [[nodiscard]] auto loadStringList(const std::string_view path) -> std::vector<std::string> override {
-        auto stream = loadStream(path);
-        std::vector<std::string> result;
-        std::string line;
-        while (std::getline(stream, line)) {
-            if (line.empty()) {
-                continue;
-            }
-            result.push_back(line);
-        }
-        return result;
-    }
-
-    [[nodiscard]] auto loadBytes(const std::string_view path) -> std::vector<std::byte> override {
-        auto stream = loadStream(path);
-        std::vector<std::byte> result;
-        result.resize(stream.size());
-        stream.read(std::bit_cast<char *>(result.data()), stream.size());
-        return result;
-    }
 
     auto setWindowTitle(const std::string_view title) -> void { SDL_SetWindowTitle(_window.get(), title.data()); }
 };

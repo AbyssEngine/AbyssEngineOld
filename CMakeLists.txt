@@ -39,6 +39,8 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 include(CPM)
+include(Stormlib)
+include(Casclib)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -50,6 +52,8 @@ find_package(FFMPEG COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE REQUIR
 CPMAddPackage(NAME imgui VERSION 1.90 DOWNLOAD_ONLY YES
         URL https://github.com/ocornut/imgui/archive/refs/tags/v1.90.zip
         URL_HASH SHA256=fbe086f5bfc631db509acea851734f6996d6d2ef8fdeacb3f097f6def21e8af8)
+include_stormlib()
+#include_casclib()
 
 if (APPLE)
   find_library(OSX_VIDEOTOOLBOX VideoToolbox)
