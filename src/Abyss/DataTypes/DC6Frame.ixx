@@ -6,7 +6,7 @@ module;
 
 export module Abyss.DataTypes.DC6Frame;
 
-import Abyss.Streams.InputStream;
+import Abyss.FileSystem.InputStream;
 
 namespace Abyss::DataTypes {
 
@@ -28,7 +28,7 @@ export class DC6Frame {
     std::vector<std::byte> _terminator{};
 
   public:
-    explicit DC6Frame(Streams::InputStream &stream) {
+    explicit DC6Frame(FileSystem::InputStream &stream) {
         stream.read(reinterpret_cast<char *>(&_flipped), sizeof(_flipped));
         stream.read(reinterpret_cast<char *>(&_width), sizeof(_width));
         stream.read(reinterpret_cast<char *>(&_height), sizeof(_height));

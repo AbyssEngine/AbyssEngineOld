@@ -1,9 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 project(OpenDiablo2)
 
-add_executable(OpenDiablo2 WIN32
-        main.ixx
-)
+add_executable(OpenDiablo2 WIN32)
 
 # -------------------------------------------------------------------------------------------------
 # Source Files

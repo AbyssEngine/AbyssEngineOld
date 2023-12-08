@@ -23,13 +23,13 @@ extern "C" {
 
 export module Abyss.Streams.AudioStream;
 
-import Abyss.Streams.InputStream;
+import Abyss.FileSystem.InputStream;
 import Abyss.Common.RingBuffer;
 
 namespace Abyss::Streams {
 
 export class AudioStream {
-    InputStream _stream;
+    FileSystem::InputStream _stream;
     unsigned char *_avBuffer;
     AVIOContext *_avioContext;
     AVFormatContext *_avFormatContext;
@@ -147,7 +147,7 @@ export class AudioStream {
     }
 
   public:
-    explicit AudioStream(InputStream stream) : _stream(std::move(stream)), _ringBuffer(1024 * 1024) {
+    explicit AudioStream(FileSystem::InputStream stream) : _stream(std::move(stream)), _ringBuffer(1024 * 1024) {
         const auto streamSize = _stream.size();
         const int decodeBufferSize = streamSize < DecodeBufferSize ? static_cast<int>(streamSize) : DecodeBufferSize;
 

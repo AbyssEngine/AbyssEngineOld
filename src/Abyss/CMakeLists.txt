@@ -10,6 +10,9 @@ add_library(Abyss
         ${imgui_SOURCE_DIR}/imgui_widgets.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl2.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_sdlrenderer2.cpp
+
+        # TODO: depend on it properly
+        #${CASC_SOURCES}
 )
 
 target_sources(Abyss
@@ -18,7 +21,6 @@ target_sources(Abyss
         Common/Animation.ixx
         Common/CommandLineOpts.ixx
         Common/Configuration.ixx
-        Common/FileProvider.ixx
         Common/Huffman.ixx
         Common/Logging.ixx
         Common/MouseProvider.ixx
@@ -38,16 +40,20 @@ target_sources(Abyss
         Enums/BlendMode.ixx
         Enums/MouseButton.ixx
 
-        MPQ/BlockEntry.ixx
-        MPQ/Crypto.ixx
-        MPQ/File.ixx
-        MPQ/HashEntry.ixx
-        MPQ/Header.ixx
+        #MPQ/BlockEntry.ixx
+        #MPQ/Crypto.ixx
+        #MPQ/File.ixx
+        #MPQ/HashEntry.ixx
+        #MPQ/Header.ixx
+
+        FileSystem/Provider.ixx
+        FileSystem/InputStream.ixx
+        FileSystem/MPQ.ixx
+        #FileSystem/CASC.ixx
+        FileSystem/FileLoader.ixx
 
         Streams/AudioStream.ixx
-        Streams/InputStream.ixx
         Streams/StreamReader.ixx
-        Streams/MPQStream.ixx
 
         UI/Button.ixx
         UI/ButtonDef.ixx
@@ -66,6 +72,11 @@ target_include_directories(Abyss
         ${imgui_SOURCE_DIR}/backends
 )
 
+target_include_directories(Abyss
+  PRIVATE
+  ${CascLib_SOURCE_DIR}/src
+)
+
 target_compile_features(Abyss PUBLIC cxx_std_20)
 target_link_libraries(Abyss
         PUBLIC
@@ -73,6 +84,7 @@ target_link_libraries(Abyss
         spdlog::spdlog
         cxxopts::cxxopts
         ZLIB::ZLIB
+        stormlib::stormlib
         ${FFMPEG_LIBRARIES}
         ${OSX_VIDEOTOOLBOX}
         ${OSX_COREMEDIA}
