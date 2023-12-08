@@ -214,6 +214,11 @@ export class AbyssEngine final : public Common::FileProvider, public Common::Ren
         if (_nextScene == nullptr) {
             return;
         }
+
+        _mouseState.setButtonState(Enums::MouseButton::Left, false);
+        _mouseState.setButtonState(Enums::MouseButton::Right, false);
+        _mouseState.setButtonState(Enums::MouseButton::Middle, false);
+
         _currentScene = std::move(_nextScene);
         _nextScene = nullptr;
     }

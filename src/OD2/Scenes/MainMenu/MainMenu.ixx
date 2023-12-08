@@ -18,8 +18,16 @@ import OD2.Scenes.MainMenu.Logo;
 
 namespace OD2::Scenes::MainMenu {
 
+enum class ScreenMode {
+    TradeMark,
+    MainMenu,
+};
+
 export class MainMenu final : public Abyss::Common::Scene {
+    ScreenMode _screenMode = ScreenMode::TradeMark;
+
     Abyss::DataTypes::DC6 _background = Abyss::DataTypes::DC6(Common::ResourcePaths::MainMenu::GameSelectScreen, GetPalette("Sky"));
+    Abyss::DataTypes::DC6 _trademarkBackground = Abyss::DataTypes::DC6(Common::ResourcePaths::MainMenu::TrademarkScreen, GetPalette("Sky"));
     Logo _d2Logo;
 
     Abyss::UI::Button<Abyss::DataTypes::DC6> _btnSinglePlayer = CreateButton("Wide", "SINGLE PLAYER", [this] { onSinglePlayerClicked(); });
@@ -46,9 +54,18 @@ export class MainMenu final : public Abyss::Common::Scene {
 
     auto update([[maybe_unused]] const std::chrono::duration<double> deltaTime) -> void { _d2Logo.update(deltaTime); }
 
-    auto processEvent([[maybe_unused]] const SDL_Event &event) -> void {}
+    auto processEvent([[maybe_unused]] const SDL_Event &event) -> void {
+        if (_screenMode == ScreenMode::TradeMark && event.type == SDL_MOUSEBUTTONUP && event.button.button == SDL_BUTTON_LEFT) {
+            _screenMode = ScreenMode::MainMenu;
+        }
+    }
 
-    auto render() -> void {
+    auto renderTrademark() -> void {
+        _trademarkBackground.draw(0, 0, 0, 4, 3);
+        _d2Logo.render();
+    }
+
+    auto renderMainMenu() -> void {
         _background.draw(0, 0, 0, 4, 3);
         _d2Logo.render();
         _btnSinglePlayer.draw(264, 290);
@@ -57,6 +74,17 @@ export class MainMenu final : public Abyss::Common::Scene {
         _btnExit.draw(264, 535);
 
         _lblCredits.drawCentered(400, 586);
+    }
+
+    auto render() -> void {
+        switch (_screenMode) {
+        case ScreenMode::TradeMark:
+            renderTrademark();
+            break;
+        case ScreenMode::MainMenu:
+            renderMainMenu();
+            break;
+        }
     }
 };
 
