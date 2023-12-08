@@ -49,7 +49,8 @@ export class MainMenu final : public Abyss::Common::Scene {
 
   public:
     MainMenu() {
-        // Abyss::AbyssEngine::getInstance().setBackgroundMusic(Common::ResourcePaths::Music::Title);
+        Abyss::AbyssEngine::getInstance().setBackgroundMusic(Common::ResourcePaths::Music::Title);
+        //
     }
 
     auto update([[maybe_unused]] const std::chrono::duration<double> deltaTime) -> void { _d2Logo.update(deltaTime); }

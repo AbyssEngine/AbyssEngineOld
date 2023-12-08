@@ -98,7 +98,10 @@ export class AudioStream {
             return;
 
         int avError;
-        const std::unique_ptr<AVPacket, void (*)(AVPacket *)> packet(nullptr, [](AVPacket *p) { av_packet_free(&p); });
+        const std::unique_ptr<AVPacket, void (*)(AVPacket *)> packet(new AVPacket(), [](AVPacket *p) {
+            av_packet_free(&p);
+            delete p;
+        });
 
         if ((avError = av_read_frame(_avFormatContext, packet.get())) < 0) {
             if (_loop) {
@@ -115,17 +118,13 @@ export class AudioStream {
             return;
 
         if ((avError = avcodec_send_packet(_audioCodecContext, packet.get())) < 0) {
-            if (_loop) {
-                avcodec_flush_buffers(_audioCodecContext);
-                avformat_flush(_avFormatContext);
-                av_seek_frame(_avFormatContext, _audioStreamIdx, 0, AVSEEK_FLAG_FRAME);
-                return;
-            }
-
             avcodec_flush_buffers(_audioCodecContext);
             avformat_flush(_avFormatContext);
             av_seek_frame(_avFormatContext, _audioStreamIdx, 0, AVSEEK_FLAG_FRAME);
-            _isPlaying = false;
+
+            if (!_loop)
+                _isPlaying = false;
+
             return;
         }
 

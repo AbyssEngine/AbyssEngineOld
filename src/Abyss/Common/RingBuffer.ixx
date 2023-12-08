@@ -40,12 +40,13 @@ export template <typename T> class RingBuffer {
     auto readData(std::span<T> outBuffer) -> void {
         std::lock_guard lock(_mutex);
 
-        const auto toRead = std::min<T>(outBuffer.size(), _remainingToRead);
-        std::fill(outBuffer.begin(), outBuffer.end(), 0);
+        const auto bla = outBuffer.size();
+        const auto toRead = std::min((uint32_t)outBuffer.size(), _remainingToRead);
 
         if (outBuffer.empty() || toRead == 0)
             return;
 
+        std::fill(outBuffer.begin(), outBuffer.end(), 0);
         auto readPos = _readPosition;
 
         while (readPos >= _bufferSize)
@@ -65,7 +66,7 @@ export template <typename T> class RingBuffer {
     auto pushData(std::span<T> data) {
         std::lock_guard lock(_mutex);
 
-        const auto remainingSize = _bufferSize - _writePosition;
+        const auto remainingSize = _bufferSize - _remainingToRead;
         const auto toWrite = data.size();
 
         if (toWrite > remainingSize)

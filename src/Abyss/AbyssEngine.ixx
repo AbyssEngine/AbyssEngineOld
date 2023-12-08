@@ -225,16 +225,13 @@ export class AbyssEngine final : public FileSystem::FileLoader, public Common::R
     auto initializeAudio() -> void {
         Common::Log::info("Initializing audio...");
 
-        SDL_AudioSpec want{};
+        SDL_AudioSpec want{.freq = 44100,
+                           .format = AUDIO_S16LSB,
+                           .channels = 2,
+                           .samples = 1024,
+                           .callback = [](void *userdata, Uint8 *stream, const int len) { static_cast<AbyssEngine *>(userdata)->fillAudioBuffer(stream, len); },
+                           .userdata = this};
         SDL_AudioSpec have{};
-
-        want.freq = 44100;
-        want.format = AUDIO_S16LSB;
-        want.channels = 2;
-        want.samples = 1024;
-        // set callback to a lambda
-        want.callback = [](void *userdata, Uint8 *stream, const int len) { static_cast<AbyssEngine *>(userdata)->fillAudioBuffer(stream, len); };
-        want.userdata = this;
 
         if (SDL_OpenAudio(&want, &have) != 0)
             throw std::runtime_error("Failed to open audio: " + std::string(SDL_GetError()));
@@ -294,7 +291,7 @@ export class AbyssEngine final : public FileSystem::FileLoader, public Common::R
 
     void initializeFiles() {
         for (const auto &mpqFile : _configuration.getLoadOrder()) {
-          _fileProvider.addProvider(std::make_unique<FileSystem::MPQ>(mpqFile));
+            _fileProvider.addProvider(std::make_unique<FileSystem::MPQ>(mpqFile));
         }
     }
 
