@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
 add_library(Abyss
-        # 3rdParty
-        ${CMAKE_SOURCE_DIR}/3rdParty/Blast/blast.c
-
         # ImGui
         ${imgui_SOURCE_DIR}/imgui.cpp
         ${imgui_SOURCE_DIR}/imgui_draw.cpp
@@ -18,48 +15,46 @@ add_library(Abyss
 
 target_sources(Abyss
         PUBLIC
-        FILE_SET CXX_MODULES FILES
-        Common/Animation.ixx
-        Common/CommandLineOpts.ixx
-        Common/Configuration.ixx
-        Common/Huffman.ixx
-        Common/Logging.ixx
-        Common/MouseProvider.ixx
-        Common/MouseState.ixx
-        Common/RendererProvider.ixx
-        Common/RingBuffer.ixx
-        Common/Scene.ixx
-        Common/SoundEffectProvider.ixx
-        Common/WavDecompress.ixx
+        Common/Animation.h
+        Common/CommandLineOpts.h
+        Common/Configuration.cpp Common/Configuration.h
+        Common/Logging.h
+        Common/MouseProvider.h
+        Common/MouseState.cpp Common/MouseState.h
+        Common/RendererProvider.h
+        Common/RingBuffer.h
+        Common/Scene.h
+        Common/SoundEffectProvider.h
+        Common/WavDecompress.cpp Common/WavDecompress.h
 
-        Concepts/Drawable.ixx
-        Concepts/FontRenderer.ixx
+        Concepts/Drawable.h
+        Concepts/FontRenderer.h
 
-        DataTypes/DC6Frame.ixx
-        DataTypes/DC6.ixx
-        DataTypes/Palette.ixx
+        DataTypes/DC6Frame.cpp DataTypes/DC6Frame.h
+        DataTypes/DC6.cpp DataTypes/DC6.h
+        DataTypes/Palette.cpp DataTypes/Palette.h
 
-        Enums/BlendMode.ixx
-        Enums/MouseButton.ixx
+        Enums/BlendMode.h
+        Enums/MouseButton.h
 
-        FileSystem/Provider.ixx
-        FileSystem/InputStream.ixx
-        FileSystem/MPQ.ixx
+        FileSystem/Provider.h
+        FileSystem/InputStream.cpp FileSystem/InputStream.h
+        FileSystem/MPQ.cpp FileSystem/MPQ.h
         #FileSystem/CASC.ixx
-        FileSystem/FileLoader.ixx
+        FileSystem/FileLoader.cpp FileSystem/FileLoader.h
 
-        Streams/AudioStream.ixx
-        Streams/SoundEffect.ixx
-        Streams/StreamReader.ixx
-        Streams/VideoStream.ixx
+        Streams/AudioStream.cpp Streams/AudioStream.h
+        Streams/SoundEffect.cpp Streams/SoundEffect.h
+        Streams/StreamReader.cpp Streams/StreamReader.h
+        Streams/VideoStream.cpp Streams/VideoStream.h
 
-        UI/Button.ixx
-        UI/ButtonDef.ixx
-        UI/Label.ixx
-        UI/SpriteFont.ixx
+        UI/Button.h
+        UI/ButtonDef.h
+        UI/Label.cpp UI/Label.h
+        UI/SpriteFont.h
 
-        Singletons.ixx
-        AbyssEngine.ixx
+        Singletons.cpp Singletons.h
+        AbyssEngine.cpp AbyssEngine.h
 )
 
 target_include_directories(Abyss
@@ -71,8 +66,8 @@ target_include_directories(Abyss
 )
 
 target_include_directories(Abyss
-  PRIVATE
-  ${CascLib_SOURCE_DIR}/src
+        PRIVATE
+        ${CascLib_SOURCE_DIR}/src
 )
 
 target_compile_features(Abyss PUBLIC cxx_std_20)

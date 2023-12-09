@@ -15,7 +15,7 @@ if (APPLE)
   set(CPACK_DMG_BACKGROUND_IMAGE "${CMAKE_SOURCE_DIR}/content/dmg-background.png")
   set(CPACK_DMG_DS_STORE "${CMAKE_SOURCE_DIR}/content/icon.icns")
   set(CPACK_DMG_DS_STORE_SETUP_SCRIPT "${CMAKE_SOURCE_DIR}/CMakeDMGSetup.scp")
-endif()
+endif ()
 include(CPack)
 
 # -------------------------------------------------------------------------------------------------
@@ -24,15 +24,18 @@ include(CPack)
 
 target_sources(OpenDiablo2
         PUBLIC
-        FILE_SET CXX_MODULES FILES
-        Startup.ixx
-        Common/PaletteManager.ixx
-        Common/ButtonDefManager.ixx
-        Common/ResourcePaths.ixx
-        Common/FontManager.ixx
-        Scenes/MainMenu/MainMenu.ixx
-        Scenes/MainMenu/Logo.ixx
-        main.ixx
+        # Common
+        Common/PaletteManager.h
+        Common/ButtonDefManager.h
+        Common/ResourcePaths.h
+        Common/FontManager.h
+
+        # Scenes
+        Scenes/MainMenu/MainMenu.cpp Scenes/MainMenu/MainMenu.h
+        Scenes/MainMenu/Logo.cpp Scenes/MainMenu/Logo.h
+
+        # Main
+        main.cpp
 )
 
 
@@ -41,11 +44,6 @@ target_sources(OpenDiablo2
 # -------------------------------------------------------------------------------------------------
 
 target_compile_options(OpenDiablo2 PRIVATE ${FFMPEG_DEFINITIONS})
-
-if (WIN32)
-  target_compile_options(OpenDiablo2 PRIVATE "/SUBSYSTEM:WINDOWS")
-endif ()
-
 
 target_include_directories(OpenDiablo2
         PRIVATE
@@ -62,14 +60,14 @@ target_link_libraries(OpenDiablo2
 # -------------------------------------------------------------------------------------------------
 # Enable universal binaries on macOS
 # -------------------------------------------------------------------------------------------------
-if(APPLE)
+if (APPLE)
   set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64")
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum macOS version")
   set_target_properties(OpenDiablo2 PROPERTIES
-    XCODE_ATTRIBUTE_ARCHS[sdk=macos*] "x86_64;arm64"
-    XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "NO"
+          XCODE_ATTRIBUTE_ARCHS[sdk=macos*] "x86_64;arm64"
+          XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "NO"
   )
-endif()
+endif ()
 
 # -------------------------------------------------------------------------------------------------
 # Installation Artifacts

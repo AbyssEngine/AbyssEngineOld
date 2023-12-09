@@ -1,41 +1,16 @@
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 3.20)
 
 project(Abyss)
-
-
-# If using clang, require version 17 or higher
-if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 17)
-    message(FATAL_ERROR "Clang version must be at least 17!")
-  endif ()
-endif ()
-
-# If using gcc, it must be version 14 or higher
-if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 14)
-    message(FATAL_ERROR "GCC version must be at least 14!")
-  endif ()
-endif ()
-
-# If using visual studio, must be MSVC 14.34 toolset or higher
-if (MSVC)
-  if (MSVC_TOOLSET_VERSION VERSION_LESS 14.34)
-    message(FATAL_ERROR "MSVC toolset version must be at least 14.34!")
-  endif ()
-endif ()
 
 if (NOT CMAKE_BUILD_TYPE)
   message(STATUS "No build type selected, defaulting to Release")
   set(CMAKE_BUILD_TYPE Release)
 endif ()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-implicit-modules")
-
-
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 include(CPM)
