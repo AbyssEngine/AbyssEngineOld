@@ -37,20 +37,20 @@ void loadButtonDefs() {
     auto &paletteManager = OD2::Common::PaletteManager::getInstance();
     buttonDefsMap.addButtonDef({
         .name = "Wide",
-        .resourceName = OD2::Common::ResourcePaths::UI::WideButtonBlank,
+        .resourceName = std::string(OD2::Common::ResourcePaths::UI::WideButtonBlank),
         .palette = paletteManager.getPalette("Units"),
         .font = "btntext",
-        .clickSound = OD2::Common::ResourcePaths::SFX::ButtonClick,
+        .clickSound = std::string(OD2::Common::ResourcePaths::SFX::ButtonClick),
         .clickableRect = {.x = 6, .y = 1, .w = 259, .h = 32},
         .segments = {.x = 2, .y = 1},
         .frames = {.base = 0, .pressed = 1, .disabled = -1},
     });
     buttonDefsMap.addButtonDef({
         .name = "Medium",
-        .resourceName = OD2::Common::ResourcePaths::UI::MediumButtonBlank,
+        .resourceName = std::string(OD2::Common::ResourcePaths::UI::MediumButtonBlank),
         .palette = paletteManager.getPalette("Units"),
         .font = "btntext",
-        .clickSound = OD2::Common::ResourcePaths::SFX::ButtonClick,
+        .clickSound = std::string(OD2::Common::ResourcePaths::SFX::ButtonClick),
         .clickableRect = {.x = 6, .y = 1, .w = 118, .h = 32},
         .segments = {.x = 1, .y = 1},
         .frames = {.base = 0, .pressed = 1, .disabled = -1},

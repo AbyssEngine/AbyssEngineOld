@@ -3,7 +3,7 @@
 #include "Abyss/Concepts/Drawable.h"
 #include <chrono>
 #include <cstdint>
-#include <string>
+#include <string_view>
 
 namespace Abyss::Common {
 
@@ -18,7 +18,7 @@ template <Concepts::Drawable T> class Animation {
     double _animationSpeed;
 
   public:
-    explicit Animation(const std::string &path) : _drawable(path), _frameTime(), _frameIdx(), _animationSpeed(0.5 * (AnimationSpeedUnit)) {}
+    explicit Animation(std::string_view path) : _drawable(path), _frameTime(), _frameIdx(), _animationSpeed(0.5 * (AnimationSpeedUnit)) {}
     void draw(int x, int y) { _drawable.draw(_frameIdx, x, y); }
 
     void update(const std::chrono::duration<double> deltaTime) {
