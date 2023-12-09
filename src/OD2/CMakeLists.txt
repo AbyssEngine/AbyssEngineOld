@@ -1,7 +1,39 @@
 cmake_minimum_required(VERSION 3.15)
 project(OpenDiablo2)
-
 add_executable(OpenDiablo2 WIN32)
+
+# -------------------------------------------------------------------------------------------------
+# Source Files
+# -------------------------------------------------------------------------------------------------
+
+target_sources(OpenDiablo2
+        PUBLIC
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        # Common
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        Common/PaletteManager.h
+        Common/ButtonDefManager.h
+        Common/ResourcePaths.h
+        Common/FontManager.h
+
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        # Scenes
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+        # Main Menu
+        Scenes/MainMenu/MainMenu.cpp Scenes/MainMenu/MainMenu.h
+        Scenes/MainMenu/Logo.cpp Scenes/MainMenu/Logo.h
+
+        # Credits
+        Scenes/Credits/Credits.cpp
+        Scenes/Credits/Credits.h
+
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        # Main
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        main.cpp
+)
+
 
 # -------------------------------------------------------------------------------------------------
 # macOS DMG Disk Image Setup
@@ -15,28 +47,8 @@ if (APPLE)
   set(CPACK_DMG_BACKGROUND_IMAGE "${CMAKE_SOURCE_DIR}/content/dmg-background.png")
   set(CPACK_DMG_DS_STORE "${CMAKE_SOURCE_DIR}/content/icon.icns")
   set(CPACK_DMG_DS_STORE_SETUP_SCRIPT "${CMAKE_SOURCE_DIR}/CMakeDMGSetup.scp")
+  include(CPack)
 endif ()
-include(CPack)
-
-# -------------------------------------------------------------------------------------------------
-# Source Files
-# -------------------------------------------------------------------------------------------------
-
-target_sources(OpenDiablo2
-        PUBLIC
-        # Common
-        Common/PaletteManager.h
-        Common/ButtonDefManager.h
-        Common/ResourcePaths.h
-        Common/FontManager.h
-
-        # Scenes
-        Scenes/MainMenu/MainMenu.cpp Scenes/MainMenu/MainMenu.h
-        Scenes/MainMenu/Logo.cpp Scenes/MainMenu/Logo.h
-
-        # Main
-        main.cpp
-)
 
 
 # -------------------------------------------------------------------------------------------------
@@ -56,6 +68,7 @@ target_link_libraries(OpenDiablo2
         PRIVATE
         Abyss
 )
+
 
 # -------------------------------------------------------------------------------------------------
 # Enable universal binaries on macOS
@@ -80,8 +93,10 @@ install(TARGETS OpenDiablo2
 # -------------------------------------------------------------------------------------------------
 # macOS Application Bundle
 # -------------------------------------------------------------------------------------------------
-if (APPLE) 
-  file(COPY "${CMAKE_SOURCE_DIR}/content/" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/OpenDiablo2.app/Contents/Resources")
+if (APPLE)
+  file(COPY "${CMAKE_SOURCE_DIR}/content/"
+          DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/OpenDiablo2.app/Contents/Resources")
+
   set_target_properties(OpenDiablo2 PROPERTIES
           MACOSX_BUNDLE TRUE
           MACOSX_BUNDLE_BUNDLE_NAME "OpenDiablo 2"
@@ -92,7 +107,9 @@ if (APPLE)
           MACOSX_BUNDLE_COPYRIGHT "(c) 2023 Krathic Studios, LLC"
   )
 
-  set_source_files_properties("${CMAKE_SOURCE_DIR}/content/icon.icns" PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+  set_source_files_properties("${CMAKE_SOURCE_DIR}/content/icon.icns"
+          PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 
-  set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE PATH "Install path prefix, prepended onto install directories" FORCE)
+  set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install"
+          CACHE PATH "Install path prefix, prepended onto install directories" FORCE)
 endif ()

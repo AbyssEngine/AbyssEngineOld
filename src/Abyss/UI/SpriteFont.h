@@ -4,6 +4,7 @@
 #include "Abyss/Concepts/Drawable.h"
 #include "Abyss/Concepts/FontRenderer.h"
 #include "Abyss/Singletons.h"
+#include <algorithm>
 #include <cstdint>
 #include <string>
 #include <unordered_map>
@@ -28,7 +29,7 @@ template <Concepts::Drawable T> class SpriteFont final : public Concepts::FontRe
         height = 0;
 
         for (const auto &c : text) {
-            const auto &[glyphFrameIndex, glyphWidth, glyphHeight, glyphOffsetX, glyphOffsetY] = _glyphs.at(c);
+            const auto &[glyphFrameIndex, glyphWidth, glyphHeight, glyphOffsetX, glyphOffsetY] = _glyphs.at(c >= _glyphs.size() ? '?' : c);
             int frameWidth, frameHeight;
             _drawable.getFrameSize(glyphFrameIndex, frameWidth, frameHeight);
             width += glyphWidth + glyphOffsetX;
@@ -43,7 +44,7 @@ template <Concepts::Drawable T> class SpriteFont final : public Concepts::FontRe
 
         int drawX = 0;
         for (const auto &c : text) {
-            const auto &[glyphFrameIndex, glyphWidth, glyphHeight, glyphOffsetX, glyphOffsetY] = _glyphs.at(c);
+            const auto &[glyphFrameIndex, glyphWidth, glyphHeight, glyphOffsetX, glyphOffsetY] = _glyphs.at(c >= _glyphs.size() ? '?' : c);
             int frameWidth, frameHeight;
             _drawable.getFrameSize(glyphFrameIndex, frameWidth, frameHeight);
             _drawable.draw(glyphFrameIndex, drawX, height);

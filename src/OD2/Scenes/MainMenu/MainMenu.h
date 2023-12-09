@@ -22,7 +22,7 @@ enum class ScreenMode {
 
 class MainMenu final : public Abyss::Common::Scene {
     ScreenMode _screenMode = ScreenMode::TradeMark;
-    static bool playedIntroVideo;
+    static int playedIntroVideos;
 
     Abyss::DataTypes::DC6 _background = Abyss::DataTypes::DC6(Common::ResourcePaths::MainMenu::GameSelectScreen, Common::GetPalette("Sky"));
     Abyss::DataTypes::DC6 _trademarkBackground = Abyss::DataTypes::DC6(Common::ResourcePaths::MainMenu::TrademarkScreen, Common::GetPalette("Sky"));

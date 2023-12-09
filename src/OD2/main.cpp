@@ -45,6 +45,16 @@ void loadButtonDefs() {
         .segments = {.x = 2, .y = 1},
         .frames = {.base = 0, .pressed = 1, .disabled = -1},
     });
+    buttonDefsMap.addButtonDef({
+        .name = "Medium",
+        .resourceName = OD2::Common::ResourcePaths::UI::MediumButtonBlank,
+        .palette = paletteManager.getPalette("Units"),
+        .font = "btntext",
+        .clickSound = OD2::Common::ResourcePaths::SFX::ButtonClick,
+        .clickableRect = {.x = 6, .y = 1, .w = 118, .h = 32},
+        .segments = {.x = 1, .y = 1},
+        .frames = {.base = 0, .pressed = 1, .disabled = -1},
+    });
 }
 
 void loadFonts() {
@@ -104,6 +114,7 @@ int main(const int argc, char **argv) {
         engine.setScene(std::make_unique<OD2::Scenes::MainMenu::MainMenu>());
 
         Abyss::Common::Log::info("Startup complete");
+        // engine.setMasterVolumeLevel(0.1f);
 
         engine.run();
     } catch (const std::exception &exception) {

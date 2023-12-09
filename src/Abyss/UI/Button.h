@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Abyss/Concepts/Drawable.h"
+#include "Abyss/Singletons.h"
 #include "Abyss/Streams/SoundEffect.h"
 #include "ButtonDef.h"
 #include "Label.h"

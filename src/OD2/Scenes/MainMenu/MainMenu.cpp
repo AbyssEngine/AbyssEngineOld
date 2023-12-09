@@ -1,24 +1,31 @@
 #include "MainMenu.h"
+#include "OD2/Scenes/Credits/Credits.h"
 
 namespace OD2::Scenes::MainMenu {
 
-bool MainMenu::playedIntroVideo = false;
+int MainMenu::playedIntroVideos = 0;
 
 void MainMenu::onSinglePlayerClicked() {}
 
 void MainMenu::onMultiplayerClicked() {}
 
-void MainMenu::onCreditsClicked() {}
+void MainMenu::onCreditsClicked() { Abyss::AbyssEngine::getInstance().setScene(std::make_unique<Credits::Credits>()); }
 
 auto MainMenu::onExitClicked() -> void { Abyss::AbyssEngine::getInstance().quit(); }
 
-MainMenu::MainMenu() { Abyss::AbyssEngine::getInstance().playVideo(Common::ResourcePaths::Videos::BlizardStartup1); }
+MainMenu::MainMenu() {
+    if (playedIntroVideos >= 2) {
+        return;
+    }
+    Abyss::AbyssEngine::getInstance().playVideo(Common::ResourcePaths::Videos::BlizardStartup1);
+    playedIntroVideos = 1;
+}
 
 void MainMenu::update(const std::chrono::duration<double> deltaTime) {
-    if (!playedIntroVideo) {
+    if (playedIntroVideos < 2) {
         Abyss::AbyssEngine::getInstance().playVideo(Common::ResourcePaths::Videos::BlizardStartup2);
         Abyss::AbyssEngine::getInstance().setBackgroundMusic(Common::ResourcePaths::Music::Title);
-        playedIntroVideo = true;
+        playedIntroVideos = 2;
         return;
     }
     _d2Logo.update(deltaTime);
