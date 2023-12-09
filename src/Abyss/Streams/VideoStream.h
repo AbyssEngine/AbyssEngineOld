@@ -61,7 +61,7 @@ class VideoStream {
     uint32_t _totalTicks = 0;
     uint8_t _audioOutBuffer[1024 * 16] = {};
 
-    std::string avErrorCodeToString(int avError);
+    static std::string avErrorCodeToString(int avError);
     int videoStreamRead(uint8_t *buffer, int size);
     bool processFrame();
     int64_t videoStreamSeek(int64_t offset, int whence);
@@ -70,7 +70,7 @@ class VideoStream {
     VideoStream(Abyss::FileSystem::InputStream stream, std::optional<Abyss::FileSystem::InputStream> separateAudio);
     ~VideoStream();
     void update(uint32_t ticks);
-    void render();
+    void render() const;
     void stopVideo();
     short getAudioSample();
     bool getIsPlaying() const;

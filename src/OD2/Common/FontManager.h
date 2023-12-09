@@ -3,6 +3,7 @@
 #include "Abyss/Concepts/FontRenderer.h"
 
 #include <memory>
+#include <ranges>
 #include <string>
 #include <unordered_map>
 
@@ -19,7 +20,7 @@ class FontManager {
     }
 
     Abyss::Concepts::FontRenderer &getFont(const std::string_view name) {
-        auto it = _fonts.find(std::string(name));
+        const auto it = _fonts.find(std::string(name));
         if (it == _fonts.end())
             throw std::runtime_error("Font not found");
 
@@ -27,14 +28,14 @@ class FontManager {
     }
 
     void addFont(const std::string_view name, std::unique_ptr<Abyss::Concepts::FontRenderer> renderer) {
-        if (_fonts.find(std::string(name)) != _fonts.end())
+        if (_fonts.contains(std::string(name)))
             throw std::runtime_error("Font already exists");
 
         _fonts.emplace(std::string(name), std::move(renderer));
     }
 
     void removeFont(const std::string_view name) {
-        auto it = _fonts.find(std::string(name));
+        const auto it = _fonts.find(std::string(name));
         if (it == _fonts.end())
             throw std::runtime_error("Font not found");
 
@@ -44,6 +45,6 @@ class FontManager {
     void clearFonts() { _fonts.clear(); }
 };
 
-inline Abyss::Concepts::FontRenderer &GetFont(const std::string_view name) { return OD2::Common::FontManager::getInstance().getFont(name); }
+inline Abyss::Concepts::FontRenderer &GetFont(const std::string_view name) { return FontManager::getInstance().getFont(name); }
 
 } // namespace OD2::Common

@@ -18,15 +18,15 @@ template <typename T> class RingBuffer {
     std::mutex _mutex;
 
   public:
-    RingBuffer(uint32_t bufferSize) : _bufferSize(bufferSize), _writePosition(0), _readPosition(0), _remainingToRead(0), _buffer(bufferSize) {}
+    explicit RingBuffer(uint32_t bufferSize) : _bufferSize(bufferSize), _writePosition(0), _readPosition(0), _remainingToRead(0), _buffer(bufferSize) {}
 
-    uint32_t available() const { return _remainingToRead; }
+    [[nodiscard]] uint32_t available() const { return _remainingToRead; }
 
-    uint32_t capacity() const { return _bufferSize; }
+    [[nodiscard]] uint32_t capacity() const { return _bufferSize; }
 
-    bool empty() const { return _remainingToRead == 0; }
+    [[nodiscard]] bool empty() const { return _remainingToRead == 0; }
 
-    bool full() const { return _remainingToRead == _bufferSize; }
+    [[nodiscard]] bool full() const { return _remainingToRead == _bufferSize; }
 
     void clear() {
         std::lock_guard lock(_mutex);
@@ -39,7 +39,7 @@ template <typename T> class RingBuffer {
         std::lock_guard lock(_mutex);
 
         const auto bla = outBuffer.size();
-        const auto toRead = std::min((uint32_t)outBuffer.size(), _remainingToRead);
+        const auto toRead = std::min(static_cast<uint32_t>(outBuffer.size()), _remainingToRead);
 
         if (outBuffer.empty() || toRead == 0)
             return;
@@ -75,7 +75,7 @@ template <typename T> class RingBuffer {
         while (writePos >= _bufferSize)
             writePos -= _bufferSize;
 
-        for (auto i = 0; i < (int)toWrite; i++) {
+        for (auto i = 0; i < static_cast<int>(toWrite); i++) {
             _buffer[writePos++] = data[i];
 
             while (writePos >= _bufferSize)

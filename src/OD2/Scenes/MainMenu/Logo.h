@@ -15,7 +15,7 @@ class Logo {
   public:
     Logo();
     void render();
-    void update(const std::chrono::duration<double> deltaTime);
+    void update(std::chrono::duration<double> deltaTime);
 };
 
 } // namespace OD2::Scenes::MainMenu

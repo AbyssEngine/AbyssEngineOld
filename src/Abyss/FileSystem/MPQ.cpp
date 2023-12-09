@@ -1,7 +1,7 @@
-#include <ios>
-
-#include "Abyss/Common/Logging.h"
 #include "MPQ.h"
+#include "Abyss/Common/Logging.h"
+#include <ios>
+#include <ranges>
 
 #define STORMLIB_NO_AUTO_LINK 1
 #include <StormLib.h>
@@ -16,7 +16,7 @@ class MPQStream final : public SizeableStreambuf {
   public:
     MPQStream(HANDLE mpq, const std::string &fileName);
     ~MPQStream() override { SFileCloseFile(_mpqFile); }
-    std::streamsize StartOfBlockForTesting() const;
+    [[nodiscard]] std::streamsize StartOfBlockForTesting() const;
 
   protected:
     int underflow() override;
@@ -25,9 +25,9 @@ class MPQStream final : public SizeableStreambuf {
     [[nodiscard]] std::streamsize size() const override;
 };
 
-inline std::string fixPath(std::string_view str) {
+inline std::string fixPath(const std::string_view str) {
     std::string result(str);
-    std::replace(result.begin(), result.end(), '/', '\\');
+    std::ranges::replace(result, '/', '\\');
     if (result.starts_with('\\')) {
         return result.substr(1);
     }
@@ -58,9 +58,9 @@ int MPQStream::underflow() {
     return gptr() == egptr() ? traits_type::eof() : traits_type::to_int_type(*gptr());
 }
 
-std::streambuf::pos_type MPQStream::seekpos(pos_type pos, std::ios_base::openmode which) { return seekoff(pos, std::ios_base::beg, which); }
+std::streambuf::pos_type MPQStream::seekpos(const pos_type pos, const std::ios_base::openmode which) { return seekoff(pos, std::ios_base::beg, which); }
 
-std::streambuf::pos_type MPQStream::seekoff(off_type off, std::ios_base::seekdir dir, std::ios_base::openmode which) {
+std::streambuf::pos_type MPQStream::seekoff(const off_type off, const std::ios_base::seekdir dir, std::ios_base::openmode which) {
     std::streamsize newPos = 0;
     switch (dir) {
     case std::ios_base::beg:
@@ -80,7 +80,7 @@ std::streambuf::pos_type MPQStream::seekoff(off_type off, std::ios_base::seekdir
         setg(eback(), eback() + newPos - _startOfBlock, egptr());
     } else {
         // Drop buffer, it will be read in underflow
-        SFileSetFilePointer(_mpqFile, (int)newPos, nullptr, 0);
+        SFileSetFilePointer(_mpqFile, static_cast<int>(newPos), nullptr, 0);
         setg(nullptr, nullptr, nullptr);
         _startOfBlock = newPos;
     }
@@ -99,9 +99,9 @@ MPQ::MPQ(const std::filesystem::path &mpqPath) : _stormMpq(nullptr) {
 
 MPQ::~MPQ() { SFileCloseArchive(_stormMpq); }
 
-bool MPQ::has(std::string_view fileName) { return SFileHasFile(_stormMpq, fixPath(fileName).c_str()); }
+bool MPQ::has(const std::string_view fileName) { return SFileHasFile(_stormMpq, fixPath(fileName).c_str()); }
 
-InputStream MPQ::load(std::string_view fileName) { return InputStream(std::make_unique<MPQStream>(_stormMpq, fixPath(fileName))); }
+InputStream MPQ::load(const std::string_view fileName) { return InputStream(std::make_unique<MPQStream>(_stormMpq, fixPath(fileName))); }
 
 std::vector<std::string> MPQ::fileList() {
     std::vector<std::string> result;

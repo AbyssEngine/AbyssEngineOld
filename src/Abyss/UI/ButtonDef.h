@@ -2,7 +2,6 @@
 
 #include "Abyss/DataTypes/Palette.h"
 
-#include <SDL2/SDL.h>
 #include <cstdint>
 #include <string>
 

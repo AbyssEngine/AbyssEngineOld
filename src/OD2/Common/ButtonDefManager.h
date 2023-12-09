@@ -22,7 +22,7 @@ class ButtonDefManager {
     }
 
     Abyss::UI::ButtonDef &getButtonDef(const std::string_view name) {
-        auto it = buttonDefs.find(std::string(name));
+        const auto it = buttonDefs.find(std::string(name));
         if (it == buttonDefs.end())
             throw std::runtime_error("ButtonDef not found");
 
@@ -30,14 +30,14 @@ class ButtonDefManager {
     }
 
     void addButtonDef(const Abyss::UI::ButtonDef &def) {
-        if (buttonDefs.find(def.name) != buttonDefs.end())
+        if (buttonDefs.contains(def.name))
             throw std::runtime_error("ButtonDef already exists");
 
         buttonDefs.emplace(def.name, def);
     }
 
     void removeButtonDef(const std::string_view name) {
-        auto it = buttonDefs.find(std::string(name));
+        const auto it = buttonDefs.find(std::string(name));
         if (it == buttonDefs.end())
             throw std::runtime_error("ButtonDef not found");
 
@@ -47,9 +47,10 @@ class ButtonDefManager {
     void clearButtonDefs() { buttonDefs.clear(); }
 };
 
-inline Abyss::UI::ButtonDef &GetButtonDef(const std::string_view name) { return OD2::Common::ButtonDefManager::getInstance().getButtonDef(name); };
+inline Abyss::UI::ButtonDef &GetButtonDef(const std::string_view name) { return ButtonDefManager::getInstance().getButtonDef(name); };
 
-inline Abyss::UI::Button<Abyss::DataTypes::DC6> CreateButton(const std::string_view buttonDefName, const std::string_view text, std::function<void()> onClick) {
+inline Abyss::UI::Button<Abyss::DataTypes::DC6> CreateButton(const std::string_view buttonDefName, const std::string_view text,
+                                                             const std::function<void()> &onClick) {
     const auto &buttonDef = GetButtonDef(buttonDefName);
     const auto fontName = buttonDef.font;
     const auto &font = GetFont(fontName);

@@ -8,7 +8,7 @@ static constexpr std::array<int, 89> kLookup1 = {
     0x1BDC, 0x1EA5, 0x21B6, 0x2515, 0x28CA, 0x2CDF, 0x315B, 0x364B, 0x3BB9, 0x41B2, 0x4844, 0x4F7E, 0x5771, 0x602F, 0x69CE, 0x7462, 0x7FFF,
 };
 
-static constexpr std::array<int, 32> kLookup2 = {
+static constexpr std::array kLookup2 = {
     -1, 0, -1, 4, -1, 2, -1, 6, -1, 1, -1, 5, -1, 3, -1, 7, -1, 1, -1, 5, -1, 3, -1, 7, -1, 2, -1, 4, -1, 6, -1, 8,
 };
 

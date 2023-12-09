@@ -4,7 +4,6 @@
 #include "Abyss/Concepts/Drawable.h"
 #include "Abyss/Concepts/FontRenderer.h"
 #include "Abyss/Singletons.h"
-#include <SDL2/SDL.h>
 #include <cstdint>
 #include <string>
 #include <unordered_map>
@@ -23,7 +22,7 @@ template <Concepts::Drawable T> class SpriteFont final : public Concepts::FontRe
     T _drawable;
     std::unordered_map<int, Glyph> _glyphs;
 
-    auto renderText(std::string_view text, int &width, int &height) const -> std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> override {
+    auto renderText(const std::string_view text, int &width, int &height) const -> std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> override {
         std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> texture{nullptr, SDL_DestroyTexture};
         width = 0;
         height = 0;

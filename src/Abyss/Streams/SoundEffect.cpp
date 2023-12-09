@@ -1,7 +1,7 @@
+#include "SoundEffect.h"
+#include "Abyss/Singletons.h"
 #include <algorithm>
 #include <cmath>
-#include "Abyss/Singletons.h"
-#include "SoundEffect.h"
 
 namespace Abyss::Streams {
 
@@ -58,16 +58,16 @@ void SoundEffect::setVolume(const float volume) {
 int16_t SoundEffect::getSample() {
     std::lock_guard lock(_mutex);
 
-    auto sample = (int32_t)_audioStream->getSample();
+    auto sample = static_cast<int32_t>(_audioStream->getSample());
 
     if (sample == 0)
         return 0;
 
-    sample = (int32_t)((float)sample * _volumeActual);
+    sample = static_cast<int32_t>(static_cast<float>(sample) * _volumeActual);
 
     sample = std::clamp(sample, -32768, 32767);
 
-    return (int16_t)sample;
+    return static_cast<int16_t>(sample);
 }
 
 } // namespace Abyss::Streams

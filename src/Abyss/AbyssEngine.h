@@ -83,7 +83,7 @@ class AbyssEngine final : public FileSystem::FileLoader, public Common::Renderer
 
     // RendererProvider
     [[nodiscard]] SDL_Renderer *getRenderer() override;
-    void setWindowTitle(std::string_view title);
+    void setWindowTitle(std::string_view title) const;
     void playVideo(std::string_view path);
     float getMasterVolumeLevel() const;
     void setMasterVolumeLevel(float level);

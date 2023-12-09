@@ -7,8 +7,7 @@
 namespace Abyss::DataTypes {
 
 DC6::DC6(const std::string_view path)
-    : _version(0), _flags(0), _encoding(0), _termination(), _directions(0), _framesPerDirection(0), _texture(nullptr, &SDL_DestroyTexture),
-      _blendMode(Enums::BlendMode::None) {
+    : _version(0), _flags(0), _encoding(0), _directions(0), _framesPerDirection(0), _texture(nullptr, &SDL_DestroyTexture), _blendMode(Enums::BlendMode::None) {
     auto stream = Singletons::getFileProvider().loadFile(path);
     stream.read(reinterpret_cast<char *>(&_version), sizeof(_version));
     stream.read(reinterpret_cast<char *>(&_flags), sizeof(_flags));

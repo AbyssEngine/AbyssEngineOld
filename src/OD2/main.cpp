@@ -48,7 +48,7 @@ void loadButtonDefs() {
 }
 
 void loadFonts() {
-    const auto addFont = [](const std::string_view fontPath, const std::string paletteName) -> void {
+    const auto addFont = [](const std::string_view fontPath, const std::string &paletteName) -> void {
         const auto getFontName = [](const std::string_view path) -> std::string {
             const auto pos = path.find_last_of('/');
             if (pos == std::string_view::npos)
@@ -76,8 +76,9 @@ void loadFonts() {
     addFont(OD2::Common::ResourcePaths::FontsAndLocales::FontSucker, "Static");
     addFont(OD2::Common::ResourcePaths::FontsAndLocales::FontRediculous, "Static");
 
-    OD2::Common::FontManager::getInstance().addFont("btntext", std::move(std::make_unique<Abyss::UI::SpriteFont<Abyss::DataTypes::DC6>>(
-                                                                   OD2::Common::ResourcePaths::FontsAndLocales::FontExocet10, OD2::Common::GetPalette("Units"))));
+    OD2::Common::FontManager::getInstance().addFont(
+        "btntext", std::move(std::make_unique<Abyss::UI::SpriteFont<Abyss::DataTypes::DC6>>(OD2::Common::ResourcePaths::FontsAndLocales::FontExocet10,
+                                                                                            OD2::Common::GetPalette("Units"))));
 }
 
 int main(const int argc, char **argv) {

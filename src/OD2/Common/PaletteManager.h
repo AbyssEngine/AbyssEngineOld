@@ -2,6 +2,7 @@
 
 #include "Abyss/DataTypes/Palette.h"
 
+#include <ranges>
 #include <string>
 #include <unordered_map>
 
@@ -18,7 +19,7 @@ class PaletteManager {
     }
 
     Abyss::DataTypes::Palette &getPalette(const std::string_view name) {
-        auto it = _palettes.find(std::string(name));
+        const auto it = _palettes.find(std::string(name));
         if (it == _palettes.end())
             throw std::runtime_error("Palette not found");
 
@@ -26,14 +27,14 @@ class PaletteManager {
     }
 
     void addPalette(const Abyss::DataTypes::Palette &palette) {
-        if (_palettes.find(palette.getName()) != _palettes.end())
+        if (_palettes.contains(palette.getName()))
             throw std::runtime_error("Palette already exists");
 
         _palettes.emplace(palette.getName(), palette);
     }
 
     void removePalette(const std::string_view name) {
-        auto it = _palettes.find(std::string(name));
+        const auto it = _palettes.find(std::string(name));
         if (it == _palettes.end())
             throw std::runtime_error("Palette not found");
 

@@ -56,12 +56,9 @@ void Abyss::Streams::AudioStream::update() {
     if (_avFormatContext == nullptr)
         return;
 
-    int avError;
-    const std::unique_ptr<AVPacket, void (*)(AVPacket *)> packet(av_packet_alloc(), [](AVPacket *p) {
-        av_packet_free(&p);
-    });
+    const std::unique_ptr<AVPacket, void (*)(AVPacket *)> packet(av_packet_alloc(), [](AVPacket *p) { av_packet_free(&p); });
 
-    if ((avError = av_read_frame(_avFormatContext, packet.get())) < 0) {
+    if (av_read_frame(_avFormatContext, packet.get()) < 0) {
         if (_loop) {
             av_seek_frame(_avFormatContext, _audioStreamIdx, 0, AVSEEK_FLAG_FRAME);
             return;
@@ -75,7 +72,7 @@ void Abyss::Streams::AudioStream::update() {
     if (packet->stream_index != _audioStreamIdx)
         return;
 
-    if ((avError = avcodec_send_packet(_audioCodecContext, packet.get())) < 0) {
+    if (avcodec_send_packet(_audioCodecContext, packet.get()) < 0) {
         avcodec_flush_buffers(_audioCodecContext);
         avformat_flush(_avFormatContext);
         av_seek_frame(_avFormatContext, _audioStreamIdx, 0, AVSEEK_FLAG_FRAME);
@@ -87,7 +84,7 @@ void Abyss::Streams::AudioStream::update() {
     }
 
     while (true) {
-        if ((avError = avcodec_receive_frame(_audioCodecContext, _avFrame)) < 0) {
+        if (int avError; (avError = avcodec_receive_frame(_audioCodecContext, _avFrame)) < 0) {
             if (avError == AVERROR(EAGAIN) || avError == AVERROR_EOF)
                 return;
 
@@ -151,11 +148,12 @@ Abyss::Streams::AudioStream::AudioStream(FileSystem::InputStream stream) : _stre
 
     _resampleContext = swr_alloc();
 
-    av_opt_set_channel_layout(_resampleContext, "in_channel_layout", av_get_default_channel_layout(_audioCodecContext->channels), 0);
+    av_opt_set_int(_resampleContext, "in_channel_layout", av_get_default_channel_layout(_audioCodecContext->channels), 0);
+
     av_opt_set_int(_resampleContext, "in_sample_rate", _audioCodecContext->sample_rate, 0);
     av_opt_set_sample_fmt(_resampleContext, "in_sample_fmt", _audioCodecContext->sample_fmt, 0);
 
-    av_opt_set_channel_layout(_resampleContext, "out_channel_layout", AV_CH_LAYOUT_STEREO, 0);
+    av_opt_set_int(_resampleContext, "out_channel_layout", AV_CH_LAYOUT_STEREO, 0);
     av_opt_set_int(_resampleContext, "out_sample_rate", 44100, 0);
     av_opt_set_sample_fmt(_resampleContext, "out_sample_fmt", AV_SAMPLE_FMT_S16, 0);
 

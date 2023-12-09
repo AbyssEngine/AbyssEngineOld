@@ -2,12 +2,13 @@
 #include "Common/CommandLineOpts.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_sdlrenderer2.h"
+#include <ranges>
 
 namespace Abyss {
 
 AbyssEngine::AbyssEngine()
     : _running(true), _mouseOverGameWindow(false), _window(nullptr, SDL_DestroyWindow), _renderer(nullptr, SDL_DestroyRenderer),
-      _renderTexture(nullptr, SDL_DestroyTexture), _currentScene(nullptr), _nextScene(nullptr), _videoStream(), _renderRect(), _locale("latin"), _lang("eng") {
+      _renderTexture(nullptr, SDL_DestroyTexture), _currentScene(nullptr), _nextScene(nullptr), _renderRect(), _locale("latin"), _lang("eng") {
 
     Singletons::setFileProvider(this);
     Singletons::setRendererProvider(this);
@@ -117,6 +118,8 @@ void AbyssEngine::processEvents(const std::chrono::duration<double> deltaTime) {
             }
 
             break;
+        default:
+            break;
         }
 
         if (_videoStream == nullptr && _currentScene != nullptr)
@@ -132,7 +135,7 @@ void AbyssEngine::processEvents(const std::chrono::duration<double> deltaTime) {
 void AbyssEngine::initializeSDL() {
 #ifdef _WIN32
     putenv("SDL_AUDIODRIVER=DirectSound");
-    #endif
+#endif
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         throw std::runtime_error("SDL_Init Error: " + std::string(SDL_GetError()));
     }
@@ -216,6 +219,7 @@ void AbyssEngine::initializeAudio() {
     SDL_PauseAudio(0);
 }
 
+// ReSharper disable once CppDFAUnreachableFunctionCall - fillAudioBuffer is called via SDL2 audio callback
 void AbyssEngine::fillAudioBuffer(Uint8 *stream, const int len) const {
     if (len & 1) {
         Common::Log::warn("Audio buffer length is not even, dropping samples...");
@@ -227,17 +231,17 @@ void AbyssEngine::fillAudioBuffer(Uint8 *stream, const int len) const {
         int32_t sample = 0;
 
         if (_videoStream != nullptr)
-            sample += _videoStream->getAudioSample() * _videoAudioLevelActual;
+            sample += static_cast<int32_t>(static_cast<float>(_videoStream->getAudioSample()) * _videoAudioLevelActual);
         else if (_backgroundMusic != nullptr)
-            sample += _backgroundMusic->getSample() * _backgroundMusicAudioLevelActual;
+            sample += static_cast<int32_t>(static_cast<float>(_backgroundMusic->getSample()) * _backgroundMusicAudioLevelActual);
 
         for (const auto soundEffect : _soundEffects) {
             if (!soundEffect->getIsPlaying())
                 continue;
-            sample += soundEffect->getSample() * _soundEffectsAudioLevelActual;
+            sample += static_cast<int32_t>(static_cast<float>(soundEffect->getSample()) * _soundEffectsAudioLevelActual);
         }
 
-        sample *= _masterAudioLevelActual;
+        sample = static_cast<int32_t>(static_cast<float>(sample) * _masterAudioLevelActual);
 
         sample = std::clamp(sample, -32768, 32767);
         stream[i] = sample & 0xFF;
@@ -304,7 +308,7 @@ void AbyssEngine::addCursorImage(const std::string_view name, const std::string_
     cursorIcon.setBlendMode(Enums::BlendMode::Blend);
 }
 
-FileSystem::InputStream AbyssEngine::loadFile(std::string_view file_path) {
+FileSystem::InputStream AbyssEngine::loadFile(const std::string_view file_path) {
     std::string path(file_path);
     std::ranges::transform(path, path.begin(), [](const char c) { return std::tolower(c); });
     if (const size_t pos = path.find("{lang_font}"); pos != std::string::npos)
@@ -314,7 +318,7 @@ FileSystem::InputStream AbyssEngine::loadFile(std::string_view file_path) {
     return _fileProvider.loadFile(path);
 }
 
-bool AbyssEngine::fileExists(std::string_view file_path) {
+bool AbyssEngine::fileExists(const std::string_view file_path) {
     std::string path(file_path);
     std::ranges::transform(path, path.begin(), [](const char c) { return std::tolower(c); });
     if (const size_t pos = path.find("{lang_font}"); pos != std::string::npos)
@@ -332,7 +336,7 @@ Common::MouseState &AbyssEngine::getMouseState() { return _mouseState; }
 
 SDL_Renderer *AbyssEngine::getRenderer() { return _renderer.get(); }
 
-void AbyssEngine::setWindowTitle(const std::string_view title) { SDL_SetWindowTitle(_window.get(), title.data()); }
+void AbyssEngine::setWindowTitle(const std::string_view title) const { SDL_SetWindowTitle(_window.get(), title.data()); }
 
 void AbyssEngine::playVideo(const std::string_view path) { _videoStream = std::make_unique<Streams::VideoStream>(std::move(loadFile(path)), std::nullopt); }
 
@@ -367,7 +371,7 @@ void AbyssEngine::setSoundEffectsVolumeLevel(const float level) {
 void AbyssEngine::addSoundEffect(Common::SoundEffectInterface *soundEffect) { _soundEffects.push_back(soundEffect); }
 
 void AbyssEngine::removeSoundEffect(Common::SoundEffectInterface *soundEffect) {
-    _soundEffects.erase(std::remove(_soundEffects.begin(), _soundEffects.end(), soundEffect), _soundEffects.end());
+    _soundEffects.erase(std::ranges::remove(_soundEffects, soundEffect).begin(), _soundEffects.end());
 }
 
 } // namespace Abyss
