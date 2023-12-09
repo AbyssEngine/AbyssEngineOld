@@ -1,6 +1,29 @@
+#include <ios>
+
+#include "Abyss/Common/Logging.h"
 #include "MPQ.h"
 
+#define STORMLIB_NO_AUTO_LINK 1
+#include <StormLib.h>
+
 namespace Abyss::FileSystem {
+
+class MPQStream final : public SizeableStreambuf {
+    HANDLE _mpqFile = nullptr;
+    std::streamsize _startOfBlock = 0;
+    char _buffer[2048] = {};
+
+  public:
+    MPQStream(HANDLE mpq, const std::string &fileName);
+    ~MPQStream() override { SFileCloseFile(_mpqFile); }
+    std::streamsize StartOfBlockForTesting() const;
+
+  protected:
+    int underflow() override;
+    pos_type seekpos(pos_type pos, std::ios_base::openmode which) override;
+    pos_type seekoff(off_type off, std::ios_base::seekdir dir, std::ios_base::openmode which) override;
+    [[nodiscard]] std::streamsize size() const override;
+};
 
 inline std::string fixPath(std::string_view str) {
     std::string result(str);
