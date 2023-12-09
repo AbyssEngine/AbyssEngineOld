@@ -1,11 +1,8 @@
 #pragma once
 
 #include "Abyss/Common/SoundEffectProvider.h"
-#include "Abyss/Singletons.h"
 #include "AudioStream.h"
 
-#include <algorithm>
-#include <cmath>
 #include <memory>
 #include <mutex>
 

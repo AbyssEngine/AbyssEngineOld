@@ -1,5 +1,8 @@
 #include "Logo.h"
 
+#include "OD2/Common/PaletteManager.h"
+#include "OD2/Common/ResourcePaths.h"
+
 namespace OD2::Scenes::MainMenu {
 
 Logo::Logo()

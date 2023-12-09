@@ -44,6 +44,6 @@ class FontManager {
     void clearFonts() { _fonts.clear(); }
 };
 
-} // namespace OD2::Common
+inline Abyss::Concepts::FontRenderer &GetFont(const std::string_view name) { return OD2::Common::FontManager::getInstance().getFont(name); }
 
-static Abyss::Concepts::FontRenderer &GetFont(const std::string_view name) { return OD2::Common::FontManager::getInstance().getFont(name); }
+} // namespace OD2::Common

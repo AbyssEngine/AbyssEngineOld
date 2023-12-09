@@ -42,6 +42,7 @@ class PaletteManager {
 
     void clearPalettes() { _palettes.clear(); }
 };
-} // namespace OD2::Common
 
-static Abyss::DataTypes::Palette &GetPalette(const std::string_view name) { return OD2::Common::PaletteManager::getInstance().getPalette(name); }
+inline Abyss::DataTypes::Palette &GetPalette(const std::string_view name) { return OD2::Common::PaletteManager::getInstance().getPalette(name); }
+
+} // namespace OD2::Common

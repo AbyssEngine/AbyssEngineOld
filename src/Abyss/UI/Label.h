@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Abyss/Concepts/FontRenderer.h"
-#include "Abyss/Singletons.h"
 
 #include <SDL2/SDL.h>
 #include <memory>

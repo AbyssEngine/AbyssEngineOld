@@ -47,14 +47,14 @@ class ButtonDefManager {
     void clearButtonDefs() { buttonDefs.clear(); }
 };
 
-} // namespace OD2::Common
+inline Abyss::UI::ButtonDef &GetButtonDef(const std::string_view name) { return OD2::Common::ButtonDefManager::getInstance().getButtonDef(name); };
 
-static Abyss::UI::ButtonDef &GetButtonDef(const std::string_view name) { return OD2::Common::ButtonDefManager::getInstance().getButtonDef(name); };
-
-static Abyss::UI::Button<Abyss::DataTypes::DC6> CreateButton(const std::string_view buttonDefName, const std::string_view text, std::function<void()> onClick) {
+inline Abyss::UI::Button<Abyss::DataTypes::DC6> CreateButton(const std::string_view buttonDefName, const std::string_view text, std::function<void()> onClick) {
     const auto &buttonDef = GetButtonDef(buttonDefName);
     const auto fontName = buttonDef.font;
     const auto &font = GetFont(fontName);
 
     return Abyss::UI::Button<Abyss::DataTypes::DC6>(buttonDef, text, font, std::move(onClick));
 };
+
+} // namespace OD2::Common

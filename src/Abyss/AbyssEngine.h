@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Common/CommandLineOpts.h"
 #include "Common/Configuration.h"
 #include "Common/Logging.h"
 #include "Common/MouseProvider.h"
@@ -12,8 +11,6 @@
 #include "FileSystem/MPQ.h"
 #include "Singletons.h"
 #include "Streams/VideoStream.h"
-#include "imgui_impl_sdl2.h"
-#include "imgui_impl_sdlrenderer2.h"
 
 #include <SDL2/SDL.h>
 #include <chrono>

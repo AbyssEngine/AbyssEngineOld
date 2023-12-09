@@ -1,4 +1,5 @@
 #include "Label.h"
+#include "Abyss/Singletons.h"
 
 namespace Abyss::UI {
 

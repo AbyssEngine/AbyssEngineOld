@@ -1,3 +1,4 @@
+#include <cstdint>
 #include "MouseState.h"
 
 namespace Abyss::Common {

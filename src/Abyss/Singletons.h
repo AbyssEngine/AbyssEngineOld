@@ -10,11 +10,6 @@
 namespace Abyss {
 
 class Singletons {
-    inline static FileSystem::FileLoader *_fileProvider = nullptr;
-    inline static Common::RendererProvider *_rendererProvider = nullptr;
-    inline static Common::MouseProvider *_mouseProvider = nullptr;
-    inline static Common::SoundEffectProvider *_soundEffectProvider = nullptr;
-
   public:
     [[nodiscard]] static FileSystem::FileLoader &getFileProvider();
     [[nodiscard]] static Common::RendererProvider &getRendererProvider();
