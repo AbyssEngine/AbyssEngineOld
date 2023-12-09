@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include "DC6.h"
 
 #include "Abyss/Singletons.h"

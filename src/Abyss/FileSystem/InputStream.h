@@ -1,6 +1,7 @@
 #pragma once
 #include <ios>
 #include <istream>
+#include <memory>
 
 namespace Abyss::FileSystem {
 

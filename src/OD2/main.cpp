@@ -58,7 +58,7 @@ void loadFonts() {
         };
 
         OD2::Common::FontManager::getInstance().addFont(
-            getFontName(fontPath), std::move(std::make_unique<Abyss::UI::SpriteFont<Abyss::DataTypes::DC6>>(fontPath, GetPalette(paletteName))));
+            getFontName(fontPath), std::move(std::make_unique<Abyss::UI::SpriteFont<Abyss::DataTypes::DC6>>(fontPath, OD2::Common::GetPalette(paletteName))));
     };
 
     Abyss::Common::Log::info("Loading fonts...");
@@ -77,7 +77,7 @@ void loadFonts() {
     addFont(OD2::Common::ResourcePaths::FontsAndLocales::FontRediculous, "Static");
 
     OD2::Common::FontManager::getInstance().addFont("btntext", std::move(std::make_unique<Abyss::UI::SpriteFont<Abyss::DataTypes::DC6>>(
-                                                                   OD2::Common::ResourcePaths::FontsAndLocales::FontExocet10, GetPalette("Units"))));
+                                                                   OD2::Common::ResourcePaths::FontsAndLocales::FontExocet10, OD2::Common::GetPalette("Units"))));
 }
 
 int main(const int argc, char **argv) {

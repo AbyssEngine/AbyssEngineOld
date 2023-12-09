@@ -5,7 +5,7 @@
 
 namespace Abyss::Common::Log {
 
-static void Initialize() {
+inline void Initialize() {
 #ifndef NDEBUG
     spdlog::set_level(spdlog::level::debug);
 #else

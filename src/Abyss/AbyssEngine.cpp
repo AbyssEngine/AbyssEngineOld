@@ -1,4 +1,7 @@
 #include "AbyssEngine.h"
+#include "Common/CommandLineOpts.h"
+#include "imgui_impl_sdl2.h"
+#include "imgui_impl_sdlrenderer2.h"
 
 namespace Abyss {
 

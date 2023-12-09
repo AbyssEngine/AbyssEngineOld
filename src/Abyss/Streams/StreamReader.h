@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Abyss/FileSystem/InputStream.h"
+#include <cstdint>
 #include <span>
 #include <string>
 

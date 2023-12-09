@@ -1,8 +1,6 @@
 #pragma once
 
 #include "Abyss/DataTypes/DC6.h"
-#include "OD2/Common/PaletteManager.h"
-#include "OD2/Common/ResourcePaths.h"
 
 #include <chrono>
 

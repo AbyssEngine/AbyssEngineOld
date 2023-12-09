@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include <string>
 #include <vector>
+#include <cstdint>
 
 namespace Abyss::DataTypes {
 
@@ -24,6 +25,7 @@ class Palette {
     std::string _name;
 
   public:
+    // Loads from file.
     Palette(std::string_view path, std::string_view name);
     [[nodiscard]] const std::string &getName() const;
     auto setName(const std::string_view newName) -> void { _name = newName; }

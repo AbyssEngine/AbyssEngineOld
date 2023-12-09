@@ -5,22 +5,14 @@
 
 #include <ios>
 #include <mutex>
+#include <cstdint>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswresample/swresample.h>
-}
-
-extern "C" {
 #include <libavutil/opt.h>
 }
-
-// Compatibility with newer API
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55, 28, 1)
-#define av_frame_alloc avcodec_alloc_frame
-#define av_frame_free avcodec_free_frame
-#endif
 
 namespace Abyss::Streams {
 

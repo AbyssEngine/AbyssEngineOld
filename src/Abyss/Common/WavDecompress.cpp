@@ -1,5 +1,18 @@
 #include "WavDecompress.h"
-auto Abyss::Common::WavDecompress::decompress(const std::span<std::byte> &input, const uint8_t channelCount) -> std::vector<std::byte> {
+
+static constexpr std::array<int, 89> kLookup1 = {
+    0x0007, 0x0008, 0x0009, 0x000A, 0x000B, 0x000C, 0x000D, 0x000E, 0x0010, 0x0011, 0x0013, 0x0015, 0x0017, 0x0019, 0x001C, 0x001F, 0x0022, 0x0025,
+    0x0029, 0x002D, 0x0032, 0x0037, 0x003C, 0x0042, 0x0049, 0x0050, 0x0058, 0x0061, 0x006B, 0x0076, 0x0082, 0x008F, 0x009D, 0x00AD, 0x00BE, 0x00D1,
+    0x00E6, 0x00FD, 0x0117, 0x0133, 0x0151, 0x0173, 0x0198, 0x01C1, 0x01EE, 0x0220, 0x0256, 0x0292, 0x02D4, 0x031C, 0x036C, 0x03C3, 0x0424, 0x048E,
+    0x0502, 0x0583, 0x0610, 0x06AB, 0x0756, 0x0812, 0x08E0, 0x09C3, 0x0ABD, 0x0BD0, 0x0CFF, 0x0E4C, 0x0FBA, 0x114C, 0x1307, 0x14EE, 0x1706, 0x1954,
+    0x1BDC, 0x1EA5, 0x21B6, 0x2515, 0x28CA, 0x2CDF, 0x315B, 0x364B, 0x3BB9, 0x41B2, 0x4844, 0x4F7E, 0x5771, 0x602F, 0x69CE, 0x7462, 0x7FFF,
+};
+
+static constexpr std::array<int, 32> kLookup2 = {
+    -1, 0, -1, 4, -1, 2, -1, 6, -1, 1, -1, 5, -1, 3, -1, 7, -1, 1, -1, 5, -1, 3, -1, 7, -1, 2, -1, 4, -1, 6, -1, 8,
+};
+
+auto Abyss::Common::WavDecompress(const std::span<std::byte> &input, const uint8_t channelCount) -> std::vector<std::byte> {
     uint32_t offset = 1; // Skip the first byte
     std::array array1 = {0x2C, 0x2C};
     std::vector<int> array2;
@@ -51,7 +64,7 @@ auto Abyss::Common::WavDecompress::decompress(const std::span<std::byte> &input,
                     channel = 1 - channel;
             }
         } else {
-            const auto temp1 = _lookup1[array1[channel]];
+            const auto temp1 = kLookup1[array1[channel]];
             auto temp2 = temp1 >> shift;
 
             if ((value & 1) != 0)
@@ -86,7 +99,7 @@ auto Abyss::Common::WavDecompress::decompress(const std::span<std::byte> &input,
             array2[channel] = temp3;
             output.push_back(static_cast<std::byte>(temp3 & 0xFF));
             output.push_back(static_cast<std::byte>(temp3 >> 8 & 0xFF));
-            array1[channel] += _lookup2[value & 0x1f];
+            array1[channel] += kLookup2[value & 0x1f];
 
             if (array1[channel] < 0)
                 array1[channel] = 0;

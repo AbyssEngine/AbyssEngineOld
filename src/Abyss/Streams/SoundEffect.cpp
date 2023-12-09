@@ -1,3 +1,6 @@
+#include <algorithm>
+#include <cmath>
+#include "Abyss/Singletons.h"
 #include "SoundEffect.h"
 
 namespace Abyss::Streams {

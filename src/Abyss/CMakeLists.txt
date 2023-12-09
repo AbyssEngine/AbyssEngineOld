@@ -16,7 +16,7 @@ add_library(Abyss
 target_sources(Abyss
         PUBLIC
         Common/Animation.h
-        Common/CommandLineOpts.h
+        Common/CommandLineOpts.cpp Common/CommandLineOpts.h
         Common/Configuration.cpp Common/Configuration.h
         Common/Logging.h
         Common/MouseProvider.h
