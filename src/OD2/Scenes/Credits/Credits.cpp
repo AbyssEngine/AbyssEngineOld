@@ -116,15 +116,14 @@ void Credits::addNextItem() {
         labelRecord.position = {400 - width / 2, 605};
     }
 
-    if (isHeading && isNextHeading) {
+    if (isHeading && isNextHeading)
         _cyclesUntilNextLine = 38;
-    } else if (isNextHeading) {
+    else if (isNextHeading)
         _cyclesUntilNextLine = isDoubled ? 38 : 57;
-    } else if (isHeading) {
+    else if (isHeading)
         _cyclesUntilNextLine = 38;
-    } else {
+    else
         _cyclesUntilNextLine = 19;
-    }
 }
 
 CreditsLabelItem Credits::getNewFontLabel(const bool isHeading) {

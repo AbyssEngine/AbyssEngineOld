@@ -112,6 +112,17 @@ void AbyssEngine::processEvents(const std::chrono::duration<double> deltaTime) {
         case SDL_MOUSEBUTTONUP:
             _mouseState.setButtonState(buttonMap.at(event.button.button), false);
             break;
+        case SDL_KEYDOWN:
+            // If alt/option+enter is pressed, toggle fullscreen
+            if (event.key.keysym.sym == SDLK_RETURN && (event.key.keysym.mod & KMOD_ALT) != 0) {
+                if (const auto flags = SDL_GetWindowFlags(_window.get()); (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) == 0) {
+                    SDL_SetWindowFullscreen(_window.get(), SDL_WINDOW_FULLSCREEN_DESKTOP);
+                } else {
+                    SDL_SetWindowFullscreen(_window.get(), 0);
+                }
+                updateRenderRect();
+            }
+            break;
         case SDL_WINDOWEVENT:
             if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
                 updateRenderRect();
