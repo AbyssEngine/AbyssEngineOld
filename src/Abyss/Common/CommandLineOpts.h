@@ -37,8 +37,8 @@ static void process(int argc, char **argv, bool &quitOnRun, Configuration &confi
         Log::info("Using MPQ directory: {}", mpqDir);
     } else {
 #ifdef _WIN32
-        if (std::filesystem::is_directory("Z:/Documents/MPQs")) {
-            config.setMPQDir("Z:/Documents/MPQs");
+        if (std::filesystem::is_directory("C:/Program Files (x86)/Diablo II")) {
+            config.setMPQDir("C:/Program Files (x86)/Diablo II");
         }
 #endif // _WIN32
     }

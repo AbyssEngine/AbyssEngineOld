@@ -27,9 +27,8 @@ bool VideoStream::processFrame() {
     if (_avFormatContext == nullptr || !_isPlaying)
         return false;
 
-    const std::unique_ptr<AVPacket, void (*)(AVPacket *)> packet(new AVPacket(), [](AVPacket *p) {
+    const std::unique_ptr<AVPacket, void (*)(AVPacket *)> packet(av_packet_alloc(), [](AVPacket *p) {
         av_packet_free(&p);
-        delete p;
     });
 
     if (av_read_frame(_avFormatContext, packet.get()) < 0) {

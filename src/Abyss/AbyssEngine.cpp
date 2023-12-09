@@ -127,6 +127,9 @@ void AbyssEngine::processEvents(const std::chrono::duration<double> deltaTime) {
 }
 
 void AbyssEngine::initializeSDL() {
+#ifdef _WIN32
+    putenv("SDL_AUDIODRIVER=DirectSound");
+    #endif
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         throw std::runtime_error("SDL_Init Error: " + std::string(SDL_GetError()));
     }
@@ -210,7 +213,7 @@ void AbyssEngine::initializeAudio() {
     SDL_PauseAudio(0);
 }
 
-void AbyssEngine::fillAudioBuffer(Uint8 *stream, const int len) {
+void AbyssEngine::fillAudioBuffer(Uint8 *stream, const int len) const {
     if (len & 1) {
         Common::Log::warn("Audio buffer length is not even, dropping samples...");
         std::fill_n(stream, len, 0);
@@ -225,7 +228,7 @@ void AbyssEngine::fillAudioBuffer(Uint8 *stream, const int len) {
         else if (_backgroundMusic != nullptr)
             sample += _backgroundMusic->getSample() * _backgroundMusicAudioLevelActual;
 
-        for (auto soundEffect : _soundEffects) {
+        for (const auto soundEffect : _soundEffects) {
             if (!soundEffect->getIsPlaying())
                 continue;
             sample += soundEffect->getSample() * _soundEffectsAudioLevelActual;

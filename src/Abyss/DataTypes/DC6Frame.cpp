@@ -1,4 +1,6 @@
 #include "DC6Frame.h"
+#include <bit>
+
 
 namespace Abyss::DataTypes {
 

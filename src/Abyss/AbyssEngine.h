@@ -62,7 +62,7 @@ class AbyssEngine final : public FileSystem::FileLoader, public Common::Renderer
     void updateRenderRect();
     void processSceneChange();
     void initializeAudio();
-    void fillAudioBuffer(Uint8 *stream, int len);
+    void fillAudioBuffer(Uint8 *stream, int len) const;
 
   public:
     [[nodiscard]] static AbyssEngine &getInstance();

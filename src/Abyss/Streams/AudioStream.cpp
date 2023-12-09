@@ -51,9 +51,8 @@ void Abyss::Streams::AudioStream::update() {
         return;
 
     int avError;
-    const std::unique_ptr<AVPacket, void (*)(AVPacket *)> packet(new AVPacket(), [](AVPacket *p) {
+    const std::unique_ptr<AVPacket, void (*)(AVPacket *)> packet(av_packet_alloc(), [](AVPacket *p) {
         av_packet_free(&p);
-        delete p;
     });
 
     if ((avError = av_read_frame(_avFormatContext, packet.get())) < 0) {

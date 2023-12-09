@@ -12,8 +12,6 @@ extern "C" {
 #include <libswresample/swresample.h>
 }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 extern "C" {
 #include <libavutil/opt.h>
 }
@@ -65,5 +63,4 @@ class AudioStream {
     void stop();
 };
 
-#pragma clang diagnostic pop
 } // namespace Abyss::Streams

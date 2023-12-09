@@ -78,17 +78,9 @@ install(TARGETS OpenDiablo2
 )
 
 # -------------------------------------------------------------------------------------------------
-# Make sure the EXE and libraries all build/copy to the same folder on Windows
-# -------------------------------------------------------------------------------------------------
-if (WIN32)
-  add_custom_command(TARGET OpenDiablo2 POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/content ${CMAKE_BINARY_DIR})
-  add_custom_command(TARGET OpenDiablo2 POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/bin ${CMAKE_BINARY_DIR})
-endif (WIN32)
-
-# -------------------------------------------------------------------------------------------------
 # macOS Application Bundle
 # -------------------------------------------------------------------------------------------------
-if (APPLE)
+if (APPLE) 
   file(COPY "${CMAKE_SOURCE_DIR}/content/" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/OpenDiablo2.app/Contents/Resources")
   set_target_properties(OpenDiablo2 PROPERTIES
           MACOSX_BUNDLE TRUE
