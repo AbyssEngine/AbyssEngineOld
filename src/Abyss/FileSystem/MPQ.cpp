@@ -1,5 +1,6 @@
 #include "MPQ.h"
 #include "Abyss/Common/Logging.h"
+#include <algorithm>
 #include <ios>
 #include <ranges>
 

@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <string_view>
 #include <string>
+#include <vector>
 
 #include "InputStream.h"
 #include "Provider.h"
