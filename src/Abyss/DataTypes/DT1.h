@@ -98,6 +98,7 @@ struct DT1BlockHeader {
     uint8_t zeros2[2];
     uint32_t encodedDataFileOffset;
 };
+#pragma pack(pop)
 
 struct DT1Tile {
     DT1TileHeader header{};
