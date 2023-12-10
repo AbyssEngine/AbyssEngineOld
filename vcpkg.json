@@ -4,7 +4,17 @@
   "version": "0.0.1",
   "dependencies": [
     "cxxopts",
-    "sdl2",
+        {
+      "name": "sdl2",
+      "features": [
+        "alsa"
+      ],
+      "platform": "linux"
+    },
+    {
+        "name": "sdl2",
+        "platform": "!linux"
+    },
     "spdlog",
     "zlib",
     {
