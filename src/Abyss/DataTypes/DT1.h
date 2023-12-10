@@ -53,7 +53,6 @@ enum class DT1TileType : uint32_t {
     LowerWall = 16 // > 15
 };
 
-#pragma pack(push, 1)
 struct DT1FileHeader {
     uint32_t versionMajor{};
     uint32_t versionMinor{};
@@ -61,9 +60,7 @@ struct DT1FileHeader {
     uint32_t numberOfTiles{};
     uint32_t pointerToTileHeaders{};
 };
-#pragma pack(pop)
 
-#pragma pack(push, 1)
 struct DT1TileHeader {
     uint32_t direction{};
     uint16_t roofHeight{};
@@ -84,9 +81,7 @@ struct DT1TileHeader {
     uint32_t numberOfBlocks{};
     uint8_t zzZeros2[12]{};
 };
-#pragma pack(pop)
 
-#pragma pack(push, 1)
 struct DT1BlockHeader {
     int16_t posX;
     int16_t posY;
@@ -98,7 +93,6 @@ struct DT1BlockHeader {
     uint8_t zeros2[2];
     uint32_t encodedDataFileOffset;
 };
-#pragma pack(pop)
 
 struct DT1Tile {
     DT1TileHeader header{};

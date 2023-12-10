@@ -1,5 +1,6 @@
 #include <cstring>
 
+#include "Abyss/Streams/StreamReader.h"
 #include "DC6.h"
 
 #include "Abyss/Singletons.h"
@@ -9,23 +10,24 @@ namespace Abyss::DataTypes {
 DC6::DC6(const std::string_view path)
     : _version(0), _flags(0), _encoding(0), _directions(0), _framesPerDirection(0), _texture(nullptr, &SDL_DestroyTexture), _blendMode(Enums::BlendMode::None) {
     auto stream = Singletons::getFileProvider().loadFile(path);
-    stream.read(reinterpret_cast<char *>(&_version), sizeof(_version));
-    stream.read(reinterpret_cast<char *>(&_flags), sizeof(_flags));
-    stream.read(reinterpret_cast<char *>(&_encoding), sizeof(_encoding));
-    stream.read(reinterpret_cast<char *>(&_termination), sizeof(_termination));
-    stream.read(reinterpret_cast<char *>(&_directions), sizeof(_directions));
-    stream.read(reinterpret_cast<char *>(&_framesPerDirection), sizeof(_framesPerDirection));
+    Streams::StreamReader sr(stream);
+    _version = sr.readUInt32();
+    _flags = sr.readUInt32();
+    _encoding = sr.readUInt32();
+    sr.readBytes(_termination);
+    _directions = sr.readUInt32();
+    _framesPerDirection = sr.readUInt32();
 
     const auto frameCount = _directions * _framesPerDirection;
 
     _framePointers.resize(frameCount);
 
     for (auto &framePointer : _framePointers) {
-        stream.read(reinterpret_cast<char *>(&framePointer), sizeof(framePointer));
+      framePointer = sr.readUInt32();
     }
 
     for ([[maybe_unused]] auto &framePointer : _framePointers) {
-        _frames.emplace_back(stream);
+        _frames.emplace_back(sr);
     }
 }
 

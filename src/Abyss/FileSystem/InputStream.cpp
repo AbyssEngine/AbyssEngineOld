@@ -17,6 +17,4 @@ std::streamsize InputStream::size() {
     return endPos;
 }
 
-bool InputStream::eof() { return tellg() >= size(); }
-
 } // namespace Abyss::FileSystem

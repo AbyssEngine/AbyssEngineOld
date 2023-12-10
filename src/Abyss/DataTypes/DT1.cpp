@@ -8,26 +8,66 @@
 #include <vector>
 
 #include "Abyss/AbyssEngine.h"
+#include "Abyss/Streams/StreamReader.h"
 
 namespace Abyss::DataTypes {
 
 DT1::DT1(const std::string_view path, const Palette &palette) {
-    auto reader = AbyssEngine::getInstance().loadFile(path);
+    auto file = AbyssEngine::getInstance().loadFile(path);
+    Streams::StreamReader sr(file);
 
-    const auto header = reader.readValue<DT1FileHeader>();
-    std::vector<DT1TileHeader> tileHeaders(header.numberOfTiles);
+    int versionMajor = sr.readUInt32();
+    int versionMinor = sr.readUInt32();
+    if (versionMajor != 7 || versionMinor != 6) {
+      throw std::runtime_error("DT1 version not supported");
+    }
 
-    for (auto &tileHeader : tileHeaders)
-        tileHeader = reader.readValue<DT1TileHeader>();
+    sr.skip(260);
+    uint32_t numberOfTiles = sr.readUInt32();
+    uint32_t pointerToTileHeaders = sr.readUInt32();
+    sr.seek(pointerToTileHeaders);
+
+    std::vector<DT1TileHeader> tileHeaders(numberOfTiles);
+
+    for (auto &tileHeader : tileHeaders) {
+      tileHeader.direction = sr.readUInt32();
+      tileHeader.roofHeight = sr.readUInt16();
+      tileHeader.soundIndex = sr.readUInt8();
+      tileHeader.animated = sr.readUInt8();
+      tileHeader.height = sr.readInt32();
+      tileHeader.width = sr.readInt32();
+      sr.skip(4);
+      tileHeader.orientation = static_cast<DT1TileType>(sr.readUInt32());
+      tileHeader.mainIndex = sr.readUInt32();
+      tileHeader.subIndex = sr.readUInt32();
+      tileHeader.rarityOrFrameIndex = sr.readUInt32();
+      sr.skip(4);
+      for (DT1SubtileFlag& flag : tileHeader.subtileFlags) {
+        flag = static_cast<DT1SubtileFlag>(sr.readByte());
+      }
+      sr.skip(7);
+      tileHeader.blockHeaderPointer = sr.readUInt32();
+      tileHeader.blockDataLength = sr.readUInt32();
+      tileHeader.numberOfBlocks = sr.readUInt32();
+      sr.skip(12);
+    }
 
     for (auto &tileHeader : tileHeaders) {
         auto &currentTile = tiles.emplace_back();
         currentTile.header = tileHeader;
 
         std::vector<DT1BlockHeader> blockHeaders(tileHeader.numberOfBlocks);
-        reader.seekg(tileHeader.blockHeaderPointer, std::ios_base::beg);
+        sr.seek(tileHeader.blockHeaderPointer);
         for (auto &blockHeader : blockHeaders) {
-            blockHeader = reader.readValue<DT1BlockHeader>();
+          blockHeader.posX = sr.readInt16();
+          blockHeader.posY = sr.readInt16();
+          sr.skip(2);
+          blockHeader.gridX = sr.readUInt8();
+          blockHeader.gridY = sr.readUInt8();
+          blockHeader.format = sr.readUInt16();
+          blockHeader.dataLength = sr.readInt32();
+          sr.skip(2);
+          blockHeader.encodedDataFileOffset = sr.readUInt32();
         }
 
         currentTile.width = 160; // Not technically true, but works for us
@@ -60,8 +100,8 @@ DT1::DT1(const std::string_view path, const Palette &palette) {
 
         for (const auto &blockHeader : blockHeaders) {
             std::vector<uint8_t> encodedData(blockHeader.dataLength);
-            reader.seekg(blockHeader.encodedDataFileOffset + tileHeader.blockHeaderPointer, std::ios_base::beg);
-            reader.read(reinterpret_cast<char *>(encodedData.data()), encodedData.size());
+            sr.seek(blockHeader.encodedDataFileOffset + tileHeader.blockHeaderPointer);
+            sr.readBytes(encodedData);
 
             if (blockHeader.format == 1) {
                 // isometric floor
@@ -136,6 +176,7 @@ DT1::DT1(const std::string_view path, const Palette &palette) {
         SDL_UpdateTexture(currentTile.texture.get(), nullptr, pixels.data(), pitch);
     }
 }
+
 void DT1::drawTile(const int x, const int y, const int tileIndex) {
     const auto &tile = tiles.at(tileIndex);
     const auto &renderer = AbyssEngine::getInstance().getRenderer();
