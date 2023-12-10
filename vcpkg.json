@@ -7,13 +7,11 @@
         {
       "name": "sdl2",
       "features": [
-        "alsa"
-      ],
-      "platform": "linux"
-    },
-    {
-        "name": "sdl2",
-        "platform": "!linux"
+        {
+                "name": "alsa",
+                "platform": "linux"
+        }
+      ]
     },
     "spdlog",
     "zlib",
