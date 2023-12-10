@@ -10,7 +10,9 @@
 
 namespace OD2::Scenes::Credits {
 
-struct CreditsLabelItem {
+class CreditsLabelItem {
+  public:
+    CreditsLabelItem(Abyss::UI::Label label, bool isHeading, bool available, SDL_Point position);
     Abyss::UI::Label label;
     bool isHeading{};
     bool available{};
@@ -19,7 +21,7 @@ struct CreditsLabelItem {
 
 class Credits final : public Abyss::Common::Scene {
     void onExitClicked();
-    static std::unique_ptr<CreditsLabelItem> getNewFontLabel(bool isHeading);
+    CreditsLabelItem &getNewFontLabel(bool isHeading);
     void addNextItem();
 
     bool _doneWithCredits{};
@@ -28,7 +30,7 @@ class Credits final : public Abyss::Common::Scene {
     Abyss::DataTypes::DC6 _background = Abyss::DataTypes::DC6(Common::ResourcePaths::Credits::CreditsBackground, Common::GetPalette("Sky"));
     Abyss::UI::Button<Abyss::DataTypes::DC6> _btnSinglePlayer = Common::CreateButton("Medium", "EXIT", [this] { onExitClicked(); });
     std::vector<std::string> _creditLines{};
-    std::vector<std::unique_ptr<CreditsLabelItem>> _creditLabels{};
+    std::vector<CreditsLabelItem> _creditLabels{};
 
   public:
     Credits();

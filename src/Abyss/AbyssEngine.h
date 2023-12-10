@@ -22,6 +22,7 @@
 namespace Abyss {
 
 class AbyssEngine final : public FileSystem::FileLoader, public Common::RendererProvider, public Common::MouseProvider, Common::SoundEffectProvider {
+    FileSystem::MultiFileLoader _fileProvider; // MUST be first on the list!
     bool _running;
     bool _mouseOverGameWindow;
     Common::Configuration _configuration;
@@ -39,7 +40,6 @@ class AbyssEngine final : public FileSystem::FileLoader, public Common::Renderer
     std::unique_ptr<Streams::AudioStream> _backgroundMusic;
     std::string _locale;
     std::string _lang;
-    FileSystem::MultiFileLoader _fileProvider;
     float _masterAudioLevel = 1.0f;
     float _masterAudioLevelActual = 0.5f;
     float _videoAudioLevel = 1.0f;
