@@ -28,7 +28,7 @@ CPMAddPackage(NAME imgui VERSION 1.90 DOWNLOAD_ONLY YES
         URL https://github.com/ocornut/imgui/archive/refs/tags/v1.90.zip
         URL_HASH SHA256=fbe086f5bfc631db509acea851734f6996d6d2ef8fdeacb3f097f6def21e8af8)
 include_stormlib()
-#include_casclib()
+include_casclib()
 
 if (APPLE)
   find_library(OSX_VIDEOTOOLBOX VideoToolbox)

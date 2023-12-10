@@ -1,35 +1,14 @@
-module;
-
-#include <filesystem>
+#include "CASC.h"
+#include "Abyss/Common/Logging.h"
+#include <algorithm>
 #include <ios>
-#include <string>
+#include <format>
+#include <ranges>
 
 #define CASCLIB_NO_AUTO_LINK_LIBRARY 1
 #include <CascLib.h>
 
-export module Abyss.FileSystem.CASC;
-
-import Abyss.FileSystem.InputStream;
-import Abyss.FileSystem.Provider;
-import Abyss.Common.Logging;
-
 namespace Abyss::FileSystem {
-
-export class CASC : public Provider {
-  public:
-    /// Proxy constructor that creates an CASC based on the specified filename.
-    /// \param cascPath Path to the CASC dir to load.
-    explicit CASC(const std::filesystem::path &cascPath);
-
-    ~CASC();
-
-    bool has(std::string_view fileName) override;
-    InputStream load(std::string_view fileName) override;
-    std::vector<std::string> fileList();
-
-  private:
-    void *_storage;
-};
 
 class CASCStream : public SizeableStreambuf {
   public:
@@ -105,6 +84,52 @@ std::streamsize CASCStream::size() const {
     ULONGLONG ulongsize;
     CascGetFileSize64(_file, &ulongsize);
     return ulongsize;
+}
+
+static bool casc_progress_callback(void *PtrUserParam, LPCSTR szWork, LPCSTR szObject, DWORD CurrentValue, DWORD TotalValue) {
+    if (szObject) {
+        if (TotalValue) {
+            Common::Log::trace("CASC progress: {0} ({1}), {2}/{3}", szWork, szObject, CurrentValue, TotalValue);
+        } else {
+            Common::Log::trace("CASC progress: {0} ({1})", szWork, szObject);
+        }
+    } else {
+        if (TotalValue) {
+            Common::Log::trace("CASC progress: {0}, {1}/{2}", szWork, CurrentValue, TotalValue);
+        } else {
+            Common::Log::trace("CASC progress: {0}", szWork);
+        }
+    }
+    return false;
+}
+
+CASC::CASC(const std::filesystem::path &cascPath) {
+    std::string path = std::filesystem::absolute(cascPath).string();
+    CASC_OPEN_STORAGE_ARGS args = {};
+    args.Size = sizeof(CASC_OPEN_STORAGE_ARGS);
+    args.PfnProgressCallback = casc_progress_callback;
+    if (!CascOpenStorageEx(path.c_str(), &args, 0, &_storage)) {
+        throw std::runtime_error(std::format("Error occurred while opening CASC {}: {}", cascPath.string(), GetCascError()));
+    }
+}
+
+CASC::~CASC() { CascCloseStorage(_storage); }
+
+static std::string FixPath(std::string_view str) {
+    while (str.starts_with("/")) str = str.substr(1);
+    while (str.starts_with("\\")) str = str.substr(1);
+    return "data:" + std::string(str);
+}
+
+InputStream CASC::load(std::string_view fileName) { return InputStream(std::make_unique<CASCStream>(_storage, FixPath(fileName))); }
+
+bool CASC::has(std::string_view fileName) {
+    HANDLE file;
+    if (CascOpenFile(_storage, FixPath(fileName).c_str(), 0, CASC_OPEN_BY_NAME, &file)) {
+        CascCloseFile(file);
+        return true;
+    }
+    return false;
 }
 
 } // namespace Abyss::FileSystem

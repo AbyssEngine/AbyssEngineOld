@@ -8,7 +8,6 @@
 #include "Common/SoundEffectProvider.h"
 #include "DataTypes/DC6.h"
 #include "FileSystem/FileLoader.h"
-#include "FileSystem/MPQ.h"
 #include "Singletons.h"
 #include "Streams/VideoStream.h"
 

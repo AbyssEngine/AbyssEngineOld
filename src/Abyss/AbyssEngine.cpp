@@ -1,7 +1,10 @@
 #include "AbyssEngine.h"
 #include "Common/CommandLineOpts.h"
+#include "FileSystem/CASC.h"
+#include "FileSystem/MPQ.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_sdlrenderer2.h"
+#include <memory>
 #include <ranges>
 
 namespace Abyss {
@@ -275,8 +278,13 @@ bool AbyssEngine::processCommandLineArguments(const int argc, char **argv) {
 }
 
 void AbyssEngine::initializeFiles() {
-    for (const auto &mpqFile : _configuration.getLoadOrder()) {
-        _fileProvider.addProvider(std::make_unique<FileSystem::MPQ>(mpqFile));
+    if (!_configuration.getCASCDir().empty()) {
+        _fileProvider.addProvider(std::make_unique<FileSystem::CASC>(_configuration.getCASCDir()));
+    }
+    if (!_configuration.getMPQDir().empty()) {
+        for (const auto &mpqFile : _configuration.getLoadOrder()) {
+            _fileProvider.addProvider(std::make_unique<FileSystem::MPQ>(mpqFile));
+        }
     }
 }
 

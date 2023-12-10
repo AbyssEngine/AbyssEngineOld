@@ -10,11 +10,8 @@ add_library(Abyss
         ${imgui_SOURCE_DIR}/backends/imgui_impl_sdlrenderer2.cpp
 
         # TODO: depend on it properly
-        #${CASC_SOURCES}
-)
+        ${CASC_SOURCES}
 
-target_sources(Abyss
-        PUBLIC
         Common/Animation.h
         Common/CommandLineOpts.cpp Common/CommandLineOpts.h
         Common/Configuration.cpp Common/Configuration.h
@@ -40,7 +37,7 @@ target_sources(Abyss
         FileSystem/Provider.h
         FileSystem/InputStream.cpp FileSystem/InputStream.h
         FileSystem/MPQ.cpp FileSystem/MPQ.h
-        #FileSystem/CASC.ixx
+        FileSystem/CASC.cpp FileSystem/CASC.h
         FileSystem/FileLoader.cpp FileSystem/FileLoader.h
 
         Streams/AudioStream.cpp Streams/AudioStream.h
