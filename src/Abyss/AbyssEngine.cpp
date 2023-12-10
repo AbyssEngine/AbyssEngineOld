@@ -357,7 +357,8 @@ SDL_Renderer *AbyssEngine::getRenderer() { return _renderer.get(); }
 
 void AbyssEngine::setWindowTitle(const std::string_view title) const { SDL_SetWindowTitle(_window.get(), title.data()); }
 
-void AbyssEngine::playVideo(const std::string_view path) { _videoStream = std::make_unique<Streams::VideoStream>(std::move(loadFile(path)), std::nullopt); }
+void AbyssEngine::playVideo(const std::string_view path) { _videoStream = std::make_unique<Streams::VideoStream>(loadFile(path), std::nullopt); }
+void AbyssEngine::playVideoAndAudio(const std::string_view videoPath, const std::string_view audioPath) { _videoStream = std::make_unique<Streams::VideoStream>(loadFile(videoPath), loadFile(audioPath)); }
 
 float AbyssEngine::getMasterVolumeLevel() const { return _masterAudioLevel; }
 
