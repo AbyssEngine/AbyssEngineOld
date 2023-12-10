@@ -16,6 +16,11 @@ const std::vector<std::filesystem::path> &Configuration::getLoadOrder() { return
 void Configuration::setLoadOrder(std::vector<std::filesystem::path> newLoadOrder) { this->_loadOrder = std::move(newLoadOrder); }
 
 const std::filesystem::path &Configuration::getMPQDir() { return _mpqDir; }
+const std::filesystem::path &Configuration::getCASCDir() { return _cascDir; }
+
+void Configuration::setCASCDir(std::filesystem::path newDir) {
+    this->_cascDir = std::move(newDir);
+}
 
 void Configuration::setMPQDir(std::filesystem::path newDir) {
     this->_mpqDir = std::move(newDir);

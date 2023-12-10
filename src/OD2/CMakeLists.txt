@@ -59,7 +59,7 @@ target_compile_options(OpenDiablo2 PRIVATE ${FFMPEG_DEFINITIONS})
 
 target_include_directories(OpenDiablo2
         PRIVATE
-        src/Extras/Blast src/Extras/Imgui src/
+        src/
         ${FFMPEG_INCLUDE_DIRS}
 )
 

@@ -9,6 +9,7 @@ void process(int argc, char **argv, bool &quitOnRun, Configuration &config) {
     cxxopts::Options options("Abyss", "Abyss Engine");
     options.add_options()                                                //
         ("d,mpqdir", "Path to MPQ files", cxxopts::value<std::string>()) //
+        ("cascdir", "Path to CASC dir", cxxopts::value<std::string>()) //
         ("o,loadorder", "Comma separated list of MPQ files to load", cxxopts::value<std::string>())("h,help", "Print usage");
 
     auto result = options.parse(argc, argv);
@@ -17,6 +18,23 @@ void process(int argc, char **argv, bool &quitOnRun, Configuration &config) {
         Log::info("{}", options.help());
         quitOnRun = true;
         return;
+    }
+
+    if (result.count("cascdir") != 0U) {
+        const auto cascDir = result["cascdir"].as<std::string>();
+
+        if (!std::filesystem::exists(cascDir)) {
+            Log::error("CASC directory does not exist: {}", cascDir);
+            exit(1);
+        }
+
+        if (!std::filesystem::is_directory(cascDir)) {
+            Log::error("CASC directory is not a directory: {}", cascDir);
+            exit(1);
+        }
+
+        config.setCASCDir(cascDir);
+        Log::info("Using CASC directory: {}", cascDir);
     }
 
     if (result.count("mpqdir") != 0U) {
