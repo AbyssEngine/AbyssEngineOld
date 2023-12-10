@@ -42,16 +42,16 @@ void Credits::update(const std::chrono::duration<double> deltaTime) {
         if (!_doneWithCredits && _cyclesUntilNextLine <= 0)
             addNextItem();
 
-        for (auto &[label, _, available, position] : _creditLabels) {
-            if (available)
+        for (const auto &l : _creditLabels) {
+            if (l->available)
                 continue;
 
-            if ((position.y -= 1) < -15)
-                available = true;
+            if ((l->position.y -= 1) < -15)
+                l->available = true;
         }
     }
 
-    std::erase_if(_creditLabels, [](const auto &label) { return label.available; });
+    std::erase_if(_creditLabels, [](const auto &label) { return label->available; });
 }
 
 void Credits::processEvent(const SDL_Event &event) {}
@@ -59,11 +59,11 @@ void Credits::processEvent(const SDL_Event &event) {}
 void Credits::render() {
     _background.draw(0, 0, 0, 4, 3);
 
-    for (auto &[label, _, available, position] : _creditLabels) {
-        if (available) {
+    for (const auto &l : _creditLabels) {
+        if (l->available) {
             continue;
         }
-        label.draw(position.x, position.y);
+        l->label.draw(l->position.x, l->position.y);
     }
 
     _btnSinglePlayer.draw(33, 543);
@@ -92,28 +92,27 @@ void Credits::addNextItem() {
     const auto isNextSpace = !_creditLines.empty() && _creditLines.front().empty();
     auto isDoubled = false;
 
-    _creditLabels.emplace_back(getNewFontLabel(isHeading));
-    auto &label = _creditLabels.back().label;
-    auto &labelRecord = _creditLabels.back();
+    const auto &curLabel = _creditLabels.emplace_back(getNewFontLabel(isHeading));
+    auto &label = curLabel->label;
     label.setText(isHeading ? text.substr(1) : text);
     int width, height;
     label.getSize(width, height);
 
     if (!isHeading && !isNextHeading && !isNextSpace) {
         isDoubled = true;
-        labelRecord.position = {395 - width, 605};
+        curLabel->position = {395 - width, 605};
 
         const auto text2 = _creditLines.front();
         _creditLines.erase(_creditLines.begin());
 
         isNextHeading = !_creditLines.empty() && !_creditLines.front().empty() && _creditLines.front()[0] == '*';
         _creditLabels.emplace_back(getNewFontLabel(isHeading));
-        auto &label2 = _creditLabels.back().label;
-        auto &labelRecord2 = _creditLabels.back();
+        auto &label2 = _creditLabels.back()->label;
+        const auto &labelRecord2 = _creditLabels.back();
         label2.setText(text2);
-        labelRecord2.position = {405, 605};
+        labelRecord2->position = {405, 605};
     } else {
-        labelRecord.position = {400 - width / 2, 605};
+        curLabel->position = {400 - width / 2, 605};
     }
 
     if (isHeading && isNextHeading)
@@ -126,9 +125,9 @@ void Credits::addNextItem() {
         _cyclesUntilNextLine = 19;
 }
 
-CreditsLabelItem Credits::getNewFontLabel(const bool isHeading) {
+std::unique_ptr<CreditsLabelItem> Credits::getNewFontLabel(const bool isHeading) {
     const auto labelColor = (isHeading) ? SDL_Color{0xff, 0x77, 0x77, 0xff} : SDL_Color{0xc7, 0xb3, 0x77, 0xff};
-    return {Abyss::UI::Label(Common::GetFont("fontformal10"), labelColor, ""), isHeading, false, {0, 0}};
+    return std::make_unique<CreditsLabelItem>(Abyss::UI::Label(Common::GetFont("fontformal10"), labelColor, ""), isHeading, false, SDL_Point{0, 0});
 }
 
 void Credits::onExitClicked() { Abyss::AbyssEngine::getInstance().setScene(std::make_unique<MainMenu::MainMenu>()); }

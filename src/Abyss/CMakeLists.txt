@@ -27,8 +27,9 @@ add_library(Abyss
         Concepts/Drawable.h
         Concepts/FontRenderer.h
 
-        DataTypes/DC6Frame.cpp DataTypes/DC6Frame.h
         DataTypes/DC6.cpp DataTypes/DC6.h
+        DataTypes/DC6Frame.cpp DataTypes/DC6Frame.h
+        DataTypes/DT1.cpp DataTypes/DT1.h
         DataTypes/Palette.cpp DataTypes/Palette.h
 
         Enums/BlendMode.h

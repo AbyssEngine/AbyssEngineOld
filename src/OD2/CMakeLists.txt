@@ -28,6 +28,9 @@ target_sources(OpenDiablo2
         Scenes/Credits/Credits.cpp
         Scenes/Credits/Credits.h
 
+        # Map Test
+        Scenes/MapTest/MapTest.cpp Scenes/MapTest/MapTest.h
+
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Main
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

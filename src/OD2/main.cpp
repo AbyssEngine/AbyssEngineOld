@@ -114,7 +114,7 @@ int main(const int argc, char **argv) {
         engine.setScene(std::make_unique<OD2::Scenes::MainMenu::MainMenu>());
 
         Abyss::Common::Log::info("Startup complete");
-        // engine.setMasterVolumeLevel(0.1f);
+        // engine.setMasterVolumeLevel(0.0f);
 
         engine.run();
     } catch (const std::exception &exception) {

@@ -9,6 +9,7 @@
 #include "OD2/Common/FontManager.h"
 #include "OD2/Common/PaletteManager.h"
 #include "OD2/Common/ResourcePaths.h"
+#include "OD2/Scenes/MapTest/MapTest.h"
 
 #include <SDL2/SDL.h>
 #include <chrono>
@@ -40,6 +41,8 @@ class MainMenu final : public Abyss::Common::Scene {
     Abyss::UI::Button<Abyss::DataTypes::DC6> _btnSinglePlayer = Common::CreateButton("Wide", "SINGLE PLAYER", [this] { onSinglePlayerClicked(); });
     Abyss::UI::Button<Abyss::DataTypes::DC6> _btnMultiPlayer = Common::CreateButton("Wide", "MULTIPLAYER", [this] { onMultiplayerClicked(); });
     Abyss::UI::Button<Abyss::DataTypes::DC6> _btnCredits = Common::CreateButton("Wide", "CREDITS", [this] { onCreditsClicked(); });
+    Abyss::UI::Button<Abyss::DataTypes::DC6> _btnMapTest =
+        Common::CreateButton("Wide", "MAP TEST", [] { Abyss::AbyssEngine::getInstance().setScene(std::make_unique<Scenes::MapTest::MapTest>()); });
     Abyss::UI::Button<Abyss::DataTypes::DC6> _btnExit = Common::CreateButton("Wide", "EXIT DIABLO II", [this] { onExitClicked(); });
 
   public:

@@ -55,6 +55,7 @@ void MainMenu::renderMainMenu() {
     _d2Logo.render();
     _btnSinglePlayer.draw(264, 290);
     _btnMultiPlayer.draw(264, 330);
+    _btnMapTest.draw(264, 370);
     _btnCredits.draw(264, 495);
     _btnExit.draw(264, 535);
 
