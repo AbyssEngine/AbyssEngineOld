@@ -4,6 +4,7 @@
 #include "Abyss/Concepts/Drawable.h"
 #include "Abyss/Concepts/FontRenderer.h"
 #include "Abyss/Singletons.h"
+#include "Abyss/Streams/StreamReader.h"
 #include <algorithm>
 #include <cstdint>
 #include <string>
@@ -63,25 +64,31 @@ template <Concepts::Drawable T> class SpriteFont final : public Concepts::FontRe
         _drawable.setPalette(palette);
 
         auto tableStream = Singletons::getFileProvider().loadFile(std::string(path) + ".tbl");
-        char signature[6] = {0};
-        tableStream.read(signature, 5);
-        if (std::string_view(signature) != "Woo!\x01")
-            throw std::runtime_error("Invalid font file: " + std::string(path));
+        Streams::StreamReader sr(tableStream);
+        char signature[5] = {};
+        sr.readBytes(signature);
+        if (std::string_view(signature, 5) != "Woo!\x01")
+            throw std::runtime_error("Invalid font file signature: " + std::string(path));
 
         tableStream.ignore(7); // skip unknown bytes
 
         while (!tableStream.eof()) {
-            const auto code = tableStream.readValue<uint16_t>();
+            const auto code = sr.readUInt16();
             auto &[glyphFrameIndex, glyphWidth, glyphHeight, glyphOffsetX, glyphOffsetY] = _glyphs[code];
 
             tableStream.ignore(1); // Skip a byte for some reason
 
-            glyphWidth = tableStream.readValue<uint8_t>();
-            glyphHeight = tableStream.readValue<uint8_t>();
+            glyphWidth = sr.readUInt8();
+            glyphHeight = sr.readUInt8();
 
             tableStream.ignore(3); // Skip 3 unknown bytes
 
-            glyphFrameIndex = tableStream.readValue<uint16_t>();
+            glyphFrameIndex = sr.readUInt16();
+
+            if (glyphFrameIndex == 0xFFFF) {
+              // FIXME: do something about this.
+              glyphFrameIndex = 1;
+            }
 
             if (glyphFrameIndex >= _drawable.getFrameCount())
                 throw std::runtime_error("Invalid font file: " + std::string(path));

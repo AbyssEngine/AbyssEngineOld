@@ -17,12 +17,6 @@ class InputStream final : public std::istream {
     explicit InputStream(std::unique_ptr<std::streambuf> streamBuff);
     InputStream(InputStream &&other) noexcept;
     std::streamsize size();
-    bool eof();
-    template <typename ReadT> ReadT readValue() {
-        ReadT value;
-        read(reinterpret_cast<char *>(&value), sizeof(ReadT));
-        return value;
-    }
 };
 
 } // namespace Abyss::FileSystem

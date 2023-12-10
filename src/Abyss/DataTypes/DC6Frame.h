@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Abyss/FileSystem/InputStream.h"
+#include "Abyss/Streams/StreamReader.h"
 #include <cstddef>
 #include <cstdint>
 #include <vector>
@@ -25,7 +25,7 @@ class DC6Frame {
     std::vector<std::byte> _terminator{};
 
   public:
-    explicit DC6Frame(FileSystem::InputStream &stream);
+    explicit DC6Frame(Streams::StreamReader& stream);
     [[nodiscard]] uint32_t getFlipped() const;
     [[nodiscard]] uint32_t getWidth() const;
     [[nodiscard]] uint32_t getHeight() const;
@@ -34,8 +34,8 @@ class DC6Frame {
     [[nodiscard]] uint32_t getUnknown() const;
     [[nodiscard]] uint32_t getNextBlock() const;
     [[nodiscard]] uint32_t getLength() const;
-    [[nodiscard]] std::vector<std::byte> getFrameData() const;
-    [[nodiscard]] std::vector<std::byte> getTerminator() const;
+    [[nodiscard]] const std::vector<std::byte>& getFrameData() const;
+    [[nodiscard]] const std::vector<std::byte>& getTerminator() const;
 };
 
 } // namespace Abyss::DataTypes
