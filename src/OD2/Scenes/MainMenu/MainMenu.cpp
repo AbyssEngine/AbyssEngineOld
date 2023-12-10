@@ -17,8 +17,16 @@ MainMenu::MainMenu() {
     if (playedIntroVideos >= 2) {
         return;
     }
-    Abyss::AbyssEngine::getInstance().playVideo(Common::ResourcePaths::Videos::BlizardStartup1);
-    playedIntroVideos = 1;
+    constexpr std::string_view webm = "/data/hd/global/video/blizzardlogos.webm";
+    constexpr std::string_view flac = "/data/hd/local/video/blizzardlogos.flac";
+    if (Abyss::AbyssEngine::getInstance().fileExists(webm)) {
+      Abyss::AbyssEngine::getInstance().playVideoAndAudio(webm, flac);
+      Abyss::AbyssEngine::getInstance().setBackgroundMusic(Common::ResourcePaths::Music::Title);
+      playedIntroVideos = 2;
+    } else {
+      Abyss::AbyssEngine::getInstance().playVideo(Common::ResourcePaths::Videos::BlizardStartup1);
+      playedIntroVideos = 1;
+    }
 }
 
 void MainMenu::update(const std::chrono::duration<double> deltaTime) {
