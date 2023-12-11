@@ -37,6 +37,7 @@ add_library(Abyss
 
         FileSystem/Provider.h
         FileSystem/InputStream.cpp FileSystem/InputStream.h
+        FileSystem/Direct.cpp FileSystem/Direct.h
         FileSystem/MPQ.cpp FileSystem/MPQ.h
         FileSystem/CASC.cpp FileSystem/CASC.h
         FileSystem/FileLoader.cpp FileSystem/FileLoader.h

@@ -6,6 +6,7 @@
 namespace Abyss::Common {
 
 class Configuration {
+    std::filesystem::path _directDir;
     std::filesystem::path _mpqDir;
     std::filesystem::path _cascDir;
     std::vector<std::filesystem::path> _loadOrder;
@@ -13,8 +14,10 @@ class Configuration {
   public:
     const std::vector<std::filesystem::path> &getLoadOrder();
     void setLoadOrder(std::vector<std::filesystem::path> newLoadOrder);
+    const std::filesystem::path &getDirectDir();
     const std::filesystem::path &getMPQDir();
     const std::filesystem::path &getCASCDir();
+    void setDirectDir(std::filesystem::path newDir);
     void setMPQDir(std::filesystem::path newDir);
     void setCASCDir(std::filesystem::path newDir);
 };
