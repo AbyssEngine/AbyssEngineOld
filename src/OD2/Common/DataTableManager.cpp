@@ -45,7 +45,7 @@ void DataTableManager::addDataTable(const std::string_view name, const std::stri
         auto row = splitLine(lines[i]);
         std::unordered_map<std::string, std::string> rowMap;
         for (size_t j = 0; j < header.size(); j++) {
-            rowMap.emplace(header[j], row[j]);
+            rowMap.emplace(header[j], std::move(row[j]));
         }
         result.push_back(rowMap);
     }

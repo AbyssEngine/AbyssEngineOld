@@ -6,6 +6,7 @@
 #include "Common/DataTableManager.h"
 #include "Common/FontManager.h"
 #include "Common/PaletteManager.h"
+#include "Common/SoundManager.h"
 #include "Common/ResourcePaths.h"
 #include "Scenes/MainMenu/MainMenu.h"
 
@@ -38,12 +39,13 @@ void loadButtonDefs() {
     Abyss::Common::Log::info("Loading button definitions...");
     auto &buttonDefsMap = OD2::Common::ButtonDefManager::getInstance();
     auto &paletteManager = OD2::Common::PaletteManager::getInstance();
+    auto &soundManager = OD2::Common::SoundManager::getInstance();
     buttonDefsMap.addButtonDef({
         .name = "Wide",
         .resourceName = std::string(OD2::Common::ResourcePaths::UI::WideButtonBlank),
         .palette = paletteManager.getPalette("Units"),
         .font = "btntext",
-        .clickSound = std::string(OD2::Common::ResourcePaths::SFX::ButtonClick),
+        .clickSound = soundManager.getSound("cursor_button_click"),
         .clickableRect = {.x = 6, .y = 1, .w = 259, .h = 32},
         .segments = {.x = 2, .y = 1},
         .frames = {.base = 0, .pressed = 1, .disabled = -1},
@@ -53,7 +55,7 @@ void loadButtonDefs() {
         .resourceName = std::string(OD2::Common::ResourcePaths::UI::MediumButtonBlank),
         .palette = paletteManager.getPalette("Units"),
         .font = "btntext",
-        .clickSound = std::string(OD2::Common::ResourcePaths::SFX::ButtonClick),
+        .clickSound = soundManager.getSound("cursor_button_click"),
         .clickableRect = {.x = 6, .y = 1, .w = 118, .h = 32},
         .segments = {.x = 1, .y = 1},
         .frames = {.base = 0, .pressed = 1, .disabled = -1},
@@ -184,9 +186,9 @@ int main(const int argc, char **argv) {
 
         engine.initializeFiles();
         loadPalettes();
-        loadButtonDefs();
         loadFonts();
         loadDataTables();
+        loadButtonDefs();
 
         engine.addCursorImage("Default", OD2::Common::ResourcePaths::MousePointers::CursorDefault,
                               OD2::Common::PaletteManager::getInstance().getPalette("Static"));
