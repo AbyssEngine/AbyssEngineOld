@@ -6,7 +6,7 @@
 
 namespace OD2::Common {
 
-typedef std::vector<std::unordered_map<std::string, std::string>> DataTable;
+using DataTable = std::vector<std::unordered_map<std::string, std::string>>;
 
 class DataTableManager {
     DataTableManager() = default;

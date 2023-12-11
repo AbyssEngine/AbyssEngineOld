@@ -18,7 +18,7 @@ std::vector<std::string> FileLoader::loadStringList(std::string_view path) {
         if (line.empty()) {
             continue;
         }
-        result.push_back(line);
+        result.push_back(std::move(line));
     }
     return result;
 }
