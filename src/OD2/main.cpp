@@ -3,6 +3,7 @@
 #include "Abyss/DataTypes/DC6.h"
 #include "Abyss/UI/SpriteFont.h"
 #include "Common/ButtonDefManager.h"
+#include "Common/DataTableManager.h"
 #include "Common/FontManager.h"
 #include "Common/PaletteManager.h"
 #include "Common/ResourcePaths.h"
@@ -91,6 +92,71 @@ void loadFonts() {
                                                                                             OD2::Common::GetPalette("Units"))));
 }
 
+void loadDataTables() {
+    Abyss::Common::Log::info("Loading data tables...");
+    auto &dataTableManager = OD2::Common::DataTableManager::getInstance();
+    dataTableManager.addDataTable("LevelPreset", OD2::Common::ResourcePaths::Data::LevelPreset);
+    dataTableManager.addDataTable("LevelType", OD2::Common::ResourcePaths::Data::LevelType);
+    dataTableManager.addDataTable("ObjectType", OD2::Common::ResourcePaths::Data::ObjectType);
+    dataTableManager.addDataTable("LevelWarp", OD2::Common::ResourcePaths::Data::LevelWarp);
+    dataTableManager.addDataTable("LevelDetails", OD2::Common::ResourcePaths::Data::LevelDetails);
+    dataTableManager.addDataTable("LevelMaze", OD2::Common::ResourcePaths::Data::LevelMaze);
+    dataTableManager.addDataTable("LevelSubstitutions", OD2::Common::ResourcePaths::Data::LevelSubstitutions);
+    dataTableManager.addDataTable("ObjectDetails", OD2::Common::ResourcePaths::Data::ObjectDetails);
+    dataTableManager.addDataTable("ObjectMode", OD2::Common::ResourcePaths::Data::ObjectMode);
+    dataTableManager.addDataTable("SoundSettings", OD2::Common::ResourcePaths::Data::SoundSettings);
+    dataTableManager.addDataTable("ItemStatCost", OD2::Common::ResourcePaths::Data::ItemStatCost);
+    dataTableManager.addDataTable("ItemRatio", OD2::Common::ResourcePaths::Data::ItemRatio);
+    dataTableManager.addDataTable("ItemTypes", OD2::Common::ResourcePaths::Data::ItemTypes);
+    dataTableManager.addDataTable("QualityItems", OD2::Common::ResourcePaths::Data::QualityItems);
+    dataTableManager.addDataTable("LowQualityItems", OD2::Common::ResourcePaths::Data::LowQualityItems);
+    dataTableManager.addDataTable("Overlays", OD2::Common::ResourcePaths::Data::Overlays);
+    dataTableManager.addDataTable("Runes", OD2::Common::ResourcePaths::Data::Runes);
+    dataTableManager.addDataTable("Sets", OD2::Common::ResourcePaths::Data::Sets);
+    dataTableManager.addDataTable("SetItems", OD2::Common::ResourcePaths::Data::SetItems);
+    dataTableManager.addDataTable("AutoMagic", OD2::Common::ResourcePaths::Data::AutoMagic);
+    dataTableManager.addDataTable("BodyLocations", OD2::Common::ResourcePaths::Data::BodyLocations);
+    dataTableManager.addDataTable("Events", OD2::Common::ResourcePaths::Data::Events);
+    dataTableManager.addDataTable("Properties", OD2::Common::ResourcePaths::Data::Properties);
+    dataTableManager.addDataTable("Hireling", OD2::Common::ResourcePaths::Data::Hireling);
+    dataTableManager.addDataTable("HirelingDescription", OD2::Common::ResourcePaths::Data::HirelingDescription);
+    dataTableManager.addDataTable("DifficultyLevels", OD2::Common::ResourcePaths::Data::DifficultyLevels);
+    dataTableManager.addDataTable("AutoMap", OD2::Common::ResourcePaths::Data::AutoMap);
+    dataTableManager.addDataTable("CubeRecipes", OD2::Common::ResourcePaths::Data::CubeRecipes);
+    dataTableManager.addDataTable("CubeModifier", OD2::Common::ResourcePaths::Data::CubeModifier);
+    dataTableManager.addDataTable("CubeType", OD2::Common::ResourcePaths::Data::CubeType);
+    dataTableManager.addDataTable("Skills", OD2::Common::ResourcePaths::Data::Skills);
+    dataTableManager.addDataTable("SkillDesc", OD2::Common::ResourcePaths::Data::SkillDesc);
+    dataTableManager.addDataTable("SkillCalc", OD2::Common::ResourcePaths::Data::SkillCalc);
+    dataTableManager.addDataTable("MissileCalc", OD2::Common::ResourcePaths::Data::MissileCalc);
+    dataTableManager.addDataTable("TreasureClass", OD2::Common::ResourcePaths::Data::TreasureClass);
+    dataTableManager.addDataTable("TreasureClassEx", OD2::Common::ResourcePaths::Data::TreasureClassEx);
+    dataTableManager.addDataTable("States", OD2::Common::ResourcePaths::Data::States);
+    dataTableManager.addDataTable("SoundEnvirons", OD2::Common::ResourcePaths::Data::SoundEnvirons);
+    dataTableManager.addDataTable("Shrines", OD2::Common::ResourcePaths::Data::Shrines);
+    dataTableManager.addDataTable("MonProp", OD2::Common::ResourcePaths::Data::MonProp);
+    dataTableManager.addDataTable("ElemType", OD2::Common::ResourcePaths::Data::ElemType);
+    dataTableManager.addDataTable("PlrMode", OD2::Common::ResourcePaths::Data::PlrMode);
+    dataTableManager.addDataTable("PetType", OD2::Common::ResourcePaths::Data::PetType);
+    dataTableManager.addDataTable("NPC", OD2::Common::ResourcePaths::Data::NPC);
+    dataTableManager.addDataTable("MonsterUniqueModifier", OD2::Common::ResourcePaths::Data::MonsterUniqueModifier);
+    dataTableManager.addDataTable("MonsterEquipment", OD2::Common::ResourcePaths::Data::MonsterEquipment);
+    dataTableManager.addDataTable("UniqueAppellation", OD2::Common::ResourcePaths::Data::UniqueAppellation);
+    dataTableManager.addDataTable("MonsterLevel", OD2::Common::ResourcePaths::Data::MonsterLevel);
+    dataTableManager.addDataTable("MonsterSound", OD2::Common::ResourcePaths::Data::MonsterSound);
+    dataTableManager.addDataTable("MonsterSequence", OD2::Common::ResourcePaths::Data::MonsterSequence);
+    dataTableManager.addDataTable("PlayerClass", OD2::Common::ResourcePaths::Data::PlayerClass);
+    dataTableManager.addDataTable("PlayerType", OD2::Common::ResourcePaths::Data::PlayerType);
+    dataTableManager.addDataTable("Composite", OD2::Common::ResourcePaths::Data::Composite);
+    dataTableManager.addDataTable("HitClass", OD2::Common::ResourcePaths::Data::HitClass);
+    dataTableManager.addDataTable("ObjectGroup", OD2::Common::ResourcePaths::Data::ObjectGroup);
+    dataTableManager.addDataTable("CompCode", OD2::Common::ResourcePaths::Data::CompCode);
+    dataTableManager.addDataTable("Belts", OD2::Common::ResourcePaths::Data::Belts);
+    dataTableManager.addDataTable("Gamble", OD2::Common::ResourcePaths::Data::Gamble);
+    dataTableManager.addDataTable("Colors", OD2::Common::ResourcePaths::Data::Colors);
+    dataTableManager.addDataTable("StorePage", OD2::Common::ResourcePaths::Data::StorePage);
+}
+
 int main(const int argc, char **argv) {
     Abyss::Common::Log::info("Starting up...");
 
@@ -106,6 +172,7 @@ int main(const int argc, char **argv) {
         loadPalettes();
         loadButtonDefs();
         loadFonts();
+        loadDataTables();
 
         engine.addCursorImage("Default", OD2::Common::ResourcePaths::MousePointers::CursorDefault,
                               OD2::Common::PaletteManager::getInstance().getPalette("Static"));

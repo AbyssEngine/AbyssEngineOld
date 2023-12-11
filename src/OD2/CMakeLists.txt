@@ -11,10 +11,11 @@ target_sources(OpenDiablo2
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Common
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        Common/PaletteManager.h
         Common/ButtonDefManager.h
-        Common/ResourcePaths.h
+        Common/DataTableManager.h Common/DataTableManager.cpp
         Common/FontManager.h
+        Common/PaletteManager.h
+        Common/ResourcePaths.h
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Scenes

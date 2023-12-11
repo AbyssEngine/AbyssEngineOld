@@ -8,11 +8,17 @@
 #include <memory>
 #include <ranges>
 
+extern "C" {
+#include <libavformat/avformat.h>
+#include <libavutil/log.h>
+}
+
 namespace Abyss {
 
 AbyssEngine::AbyssEngine()
     : _running(true), _mouseOverGameWindow(false), _window(nullptr, SDL_DestroyWindow), _renderer(nullptr, SDL_DestroyRenderer),
       _renderTexture(nullptr, SDL_DestroyTexture), _currentScene(nullptr), _nextScene(nullptr), _renderRect(), _locale("latin"), _lang("eng") {
+    av_log_set_level(AV_LOG_FATAL);
 
     Singletons::setFileProvider(this);
     Singletons::setRendererProvider(this);
@@ -362,7 +368,9 @@ SDL_Renderer *AbyssEngine::getRenderer() { return _renderer.get(); }
 void AbyssEngine::setWindowTitle(const std::string_view title) const { SDL_SetWindowTitle(_window.get(), title.data()); }
 
 void AbyssEngine::playVideo(const std::string_view path) { _videoStream = std::make_unique<Streams::VideoStream>(loadFile(path), std::nullopt); }
-void AbyssEngine::playVideoAndAudio(const std::string_view videoPath, const std::string_view audioPath) { _videoStream = std::make_unique<Streams::VideoStream>(loadFile(videoPath), loadFile(audioPath)); }
+void AbyssEngine::playVideoAndAudio(const std::string_view videoPath, const std::string_view audioPath) {
+    _videoStream = std::make_unique<Streams::VideoStream>(loadFile(videoPath), loadFile(audioPath));
+}
 
 float AbyssEngine::getMasterVolumeLevel() const { return _masterAudioLevel; }
 
