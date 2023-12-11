@@ -12,13 +12,13 @@ void DataTableManager::addDataTable(const std::string_view name, const std::stri
         std::string current;
         for (const auto c : line) {
             if (c == '\t') {
-                result.push_back(current);
+                result.push_back(std::move(current));
                 current.clear();
             } else {
                 current += c;
             }
         }
-        result.push_back(current);
+        result.push_back(std::move(current));
         return result;
     };
 
@@ -27,10 +27,9 @@ void DataTableManager::addDataTable(const std::string_view name, const std::stri
 
     // Grab first row and remove from lines
     auto header = splitLine(lines.front());
-    lines.erase(lines.begin());
 
-    for (const auto &line : lines) {
-        auto row = splitLine(line);
+    for (int i = 1; i < lines.size(); ++i) {
+        auto row = splitLine(lines[i]);
         std::unordered_map<std::string, std::string> rowMap;
         for (size_t i = 0; i < header.size(); i++) {
             rowMap.emplace(header[i], row[i]);
