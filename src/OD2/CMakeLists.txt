@@ -15,6 +15,7 @@ target_sources(OpenDiablo2
         Common/DataTableManager.h Common/DataTableManager.cpp
         Common/FontManager.h
         Common/PaletteManager.h
+        Common/SoundManager.h Common/SoundManager.cpp
         Common/ResourcePaths.h
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

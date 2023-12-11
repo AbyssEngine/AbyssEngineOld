@@ -1,4 +1,5 @@
 #include "MainMenu.h"
+#include "OD2/Common/SoundManager.h"
 #include "OD2/Scenes/Credits/Credits.h"
 
 namespace OD2::Scenes::MainMenu {
@@ -21,7 +22,7 @@ MainMenu::MainMenu() {
     constexpr std::string_view flac = "/data/hd/local/video/blizzardlogos.flac";
     if (Abyss::AbyssEngine::getInstance().fileExists(webm)) {
       Abyss::AbyssEngine::getInstance().playVideoAndAudio(webm, flac);
-      Abyss::AbyssEngine::getInstance().setBackgroundMusic(Common::ResourcePaths::Music::Title);
+      playMainThemeMusic();
       playedIntroVideos = 2;
     } else {
       Abyss::AbyssEngine::getInstance().playVideo(Common::ResourcePaths::Videos::BlizardStartup1);
@@ -32,11 +33,19 @@ MainMenu::MainMenu() {
 void MainMenu::update(const std::chrono::duration<double> deltaTime) {
     if (playedIntroVideos < 2) {
         Abyss::AbyssEngine::getInstance().playVideo(Common::ResourcePaths::Videos::BlizardStartup2);
-        Abyss::AbyssEngine::getInstance().setBackgroundMusic(Common::ResourcePaths::Music::Title);
+        playMainThemeMusic();
         playedIntroVideos = 2;
         return;
     }
     _d2Logo.update(deltaTime);
+}
+
+void MainMenu::playMainThemeMusic() {
+  if (Abyss::AbyssEngine::getInstance().fileExists(Common::ResourcePaths::Music::Title)) {
+    Abyss::AbyssEngine::getInstance().setBackgroundMusic(Common::ResourcePaths::Music::Title);
+  } else {
+    Abyss::AbyssEngine::getInstance().setBackgroundMusic(Common::SoundManager::getInstance().getSound("jukebox_music_group1"));
+  }
 }
 
 void MainMenu::processEvent(const SDL_Event &event) {

@@ -37,6 +37,7 @@ class MainMenu final : public Abyss::Common::Scene {
     void onMultiplayerClicked();
     void onCreditsClicked();
     auto onExitClicked() -> void;
+    void playMainThemeMusic();
 
     Abyss::UI::Button<Abyss::DataTypes::DC6> _btnSinglePlayer = Common::CreateButton("Wide", "SINGLE PLAYER", [this] { onSinglePlayerClicked(); });
     Abyss::UI::Button<Abyss::DataTypes::DC6> _btnMultiPlayer = Common::CreateButton("Wide", "MULTIPLAYER", [this] { onMultiplayerClicked(); });
