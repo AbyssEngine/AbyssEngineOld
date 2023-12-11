@@ -10,6 +10,7 @@ void process(int argc, char **argv, bool &quitOnRun, Configuration &config) {
     options.add_options()                                                //
         ("d,mpqdir", "Path to MPQ files", cxxopts::value<std::string>()) //
         ("cascdir", "Path to CASC dir", cxxopts::value<std::string>()) //
+        ("direct", "Path to dir", cxxopts::value<std::string>()) //
         ("o,loadorder", "Comma separated list of MPQ files to load", cxxopts::value<std::string>())("h,help", "Print usage");
 
     auto result = options.parse(argc, argv);
@@ -20,36 +21,35 @@ void process(int argc, char **argv, bool &quitOnRun, Configuration &config) {
         return;
     }
 
+    auto checkDir = [](const std::string& s) {
+        if (!std::filesystem::exists(s)) {
+            Log::error("Directory does not exist: {}", s);
+            exit(1);
+        }
+
+        if (!std::filesystem::is_directory(s)) {
+            Log::error("Directory is not a directory: {}", s);
+            exit(1);
+        }
+    };
+
+    if (result.count("direct") != 0U) {
+        const auto dir = result["direct"].as<std::string>();
+        checkDir(dir);
+        config.setDirectDir(dir);
+        Log::info("Using directory: {}", dir);
+    }
+
     if (result.count("cascdir") != 0U) {
         const auto cascDir = result["cascdir"].as<std::string>();
-
-        if (!std::filesystem::exists(cascDir)) {
-            Log::error("CASC directory does not exist: {}", cascDir);
-            exit(1);
-        }
-
-        if (!std::filesystem::is_directory(cascDir)) {
-            Log::error("CASC directory is not a directory: {}", cascDir);
-            exit(1);
-        }
-
+        checkDir(cascDir);
         config.setCASCDir(cascDir);
         Log::info("Using CASC directory: {}", cascDir);
     }
 
     if (result.count("mpqdir") != 0U) {
         const auto mpqDir = result["mpqdir"].as<std::string>();
-
-        if (!std::filesystem::exists(mpqDir)) {
-            Log::error("MPQ directory does not exist: {}", mpqDir);
-            exit(1);
-        }
-
-        if (!std::filesystem::is_directory(mpqDir)) {
-            Log::error("MPQ directory is not a directory: {}", mpqDir);
-            exit(1);
-        }
-
+        checkDir(mpqDir);
         config.setMPQDir(mpqDir);
         Log::info("Using MPQ directory: {}", mpqDir);
     } else {
