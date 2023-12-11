@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -11,6 +12,8 @@ using DataTable = std::vector<std::unordered_map<std::string, std::string>>;
 class DataTableManager {
     DataTableManager() = default;
     std::unordered_map<std::string, DataTable> dataTables{};
+    std::mutex _readMutex{};
+    std::mutex _writeMutex{};
 
   public:
     static DataTableManager &getInstance() {

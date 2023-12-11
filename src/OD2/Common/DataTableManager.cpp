@@ -22,7 +22,20 @@ void DataTableManager::addDataTable(const std::string_view name, const std::stri
         return result;
     };
 
-    auto lines = Abyss::AbyssEngine::getInstance().loadStringList(fileName);
+    std::string text;
+    {
+        std::lock_guard lock(_readMutex);
+        text = Abyss::AbyssEngine::getInstance().loadString(fileName);
+    }
+    std::vector<std::string> lines{};
+    std::istringstream stream(text);
+    std::string line;
+    while (std::getline(stream, line)) {
+        if (line.empty()) {
+            continue;
+        }
+        lines.push_back(std::move(line));
+    }
     DataTable result;
 
     // Grab first row and remove from lines
@@ -31,13 +44,16 @@ void DataTableManager::addDataTable(const std::string_view name, const std::stri
     for (int i = 1; i < lines.size(); ++i) {
         auto row = splitLine(lines[i]);
         std::unordered_map<std::string, std::string> rowMap;
-        for (size_t i = 0; i < header.size(); i++) {
-            rowMap.emplace(header[i], row[i]);
+        for (size_t j = 0; j < header.size(); j++) {
+            rowMap.emplace(header[j], row[j]);
         }
         result.push_back(rowMap);
     }
 
-    dataTables.emplace(std::string(name), result);
+    {
+        std::lock_guard lock(_writeMutex);
+        dataTables.emplace(std::string(name), result);
+    }
 }
 DataTable &DataTableManager::getDataTable(const std::string_view name) {
     const auto it = dataTables.find(std::string(name));
