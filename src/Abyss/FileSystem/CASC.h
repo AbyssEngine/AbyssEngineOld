@@ -11,7 +11,7 @@
 namespace Abyss::FileSystem {
 
 class CASC final : public Provider {
-    void* _storage;
+    void* _storage{};
 
   public:
     explicit CASC(const std::filesystem::path &cascPath);

@@ -12,9 +12,9 @@
 
 namespace Abyss::FileSystem {
 
-class CASCStream : public SizeableStreambuf {
+class CASCStream final : public SizeableStreambuf {
   public:
-    CASCStream(void *casc, std::string fileName);
+    CASCStream(void *casc, const std::string& fileName);
 
     ~CASCStream() override;
 
@@ -22,15 +22,15 @@ class CASCStream : public SizeableStreambuf {
     int underflow() override;
     pos_type seekpos(pos_type pos, std::ios_base::openmode which) override;
     pos_type seekoff(off_type off, std::ios_base::seekdir dir, std::ios_base::openmode which) override;
-    std::streamsize size() const override;
+    [[nodiscard]] std::streamsize size() const override;
 
   private:
-    void *_file = 0;
+    void *_file = nullptr;
     std::streamsize _startOfBlock = 0;
     char _buffer[2048] = {};
 };
 
-CASCStream::CASCStream(HANDLE storage, std::string fileName) {
+CASCStream::CASCStream(HANDLE storage, const std::string& fileName) {
     if (!CascOpenFile(storage, fileName.c_str(), 0, CASC_OPEN_BY_NAME, &_file)) {
         throw std::runtime_error(absl::StrCat("Failed to open file '", fileName, "' from CASC"));
     }
@@ -85,7 +85,7 @@ CASCStream::pos_type CASCStream::seekoff(off_type off, std::ios_base::seekdir di
 std::streamsize CASCStream::size() const {
     ULONGLONG ulongsize;
     CascGetFileSize64(_file, &ulongsize);
-    return ulongsize;
+    return static_cast<std::streamsize>(ulongsize);
 }
 
 static bool casc_progress_callback(void *PtrUserParam, LPCSTR szWork, LPCSTR szObject, DWORD CurrentValue, DWORD TotalValue) {
@@ -106,12 +106,12 @@ static bool casc_progress_callback(void *PtrUserParam, LPCSTR szWork, LPCSTR szO
 }
 
 CASC::CASC(const std::filesystem::path &cascPath) {
-    std::string path = std::filesystem::absolute(cascPath).string();
+    const std::string path = std::filesystem::absolute(cascPath).string();
     CASC_OPEN_STORAGE_ARGS args = {};
     args.Size = sizeof(CASC_OPEN_STORAGE_ARGS);
     args.PfnProgressCallback = casc_progress_callback;
     if (!CascOpenStorageEx(path.c_str(), &args, 0, &_storage)) {
-        throw std::runtime_error(std::format("Error occurred while opening CASC {}: {}", cascPath.string(), GetCascError()));
+        throw std::runtime_error(fmt::format("Error occurred while opening CASC {}: {}", cascPath.string(), GetCascError()));
     }
 }
 

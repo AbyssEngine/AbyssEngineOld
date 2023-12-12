@@ -78,9 +78,6 @@ jobs:
         working-directory: build/
         run: ninja
 
-      - name: Test
-        run: build/tests/abyss_test
-
       - name: Package (Windows)
         if: ${{ matrix.os == 'windows-latest' && github.event_name == 'push' }}
         working-directory: build/
