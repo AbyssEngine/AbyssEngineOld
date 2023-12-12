@@ -5,6 +5,7 @@
 #include "FileSystem/MPQ.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_sdlrenderer2.h"
+#include <absl/container/btree_map.h>
 #include <memory>
 #include <ranges>
 
@@ -96,7 +97,7 @@ void AbyssEngine::render() const {
 }
 
 void AbyssEngine::processEvents(const std::chrono::duration<double> deltaTime) {
-    const std::map<uint8_t, Enums::MouseButton> buttonMap = {
+    const absl::btree_map<uint8_t, Enums::MouseButton> buttonMap = {
         {SDL_BUTTON_LEFT, Enums::MouseButton::Left}, {SDL_BUTTON_RIGHT, Enums::MouseButton::Right}, {SDL_BUTTON_MIDDLE, Enums::MouseButton::Middle}};
     SDL_Event event;
     while (SDL_PollEvent(&event)) {

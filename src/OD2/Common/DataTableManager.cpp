@@ -37,26 +37,27 @@ void DataTableManager::addDataTable(const std::string_view name, const std::stri
         lines.push_back(std::move(line));
     }
     DataTable result;
+    result.reserve(lines.size());
 
     // Grab first row and remove from lines
     auto header = splitLine(lines.front());
 
     for (int i = 1; i < lines.size(); ++i) {
         auto row = splitLine(lines[i]);
-        std::unordered_map<std::string, std::string> rowMap;
+        absl::flat_hash_map<std::string, std::string> rowMap;
         for (size_t j = 0; j < header.size(); j++) {
             rowMap.emplace(header[j], std::move(row[j]));
         }
-        result.push_back(rowMap);
+        result.push_back(std::move(rowMap));
     }
 
     {
         std::lock_guard lock(_writeMutex);
-        dataTables.emplace(std::string(name), result);
+        dataTables.emplace(name, result);
     }
 }
 DataTable &DataTableManager::getDataTable(const std::string_view name) {
-    const auto it = dataTables.find(std::string(name));
+    const auto it = dataTables.find(name);
     if (it == dataTables.end())
         throw std::runtime_error("DataTable not found");
 

@@ -2,15 +2,15 @@
 
 #include "Abyss/Concepts/FontRenderer.h"
 
+#include <absl/container/flat_hash_map.h>
 #include <memory>
 #include <ranges>
 #include <string>
-#include <unordered_map>
 
 namespace OD2::Common {
 
 class FontManager {
-    std::unordered_map<std::string, std::unique_ptr<Abyss::Concepts::FontRenderer>> _fonts{};
+  absl::flat_hash_map<std::string, std::unique_ptr<Abyss::Concepts::FontRenderer>> _fonts{};
     FontManager() = default;
 
   public:
@@ -20,7 +20,7 @@ class FontManager {
     }
 
     Abyss::Concepts::FontRenderer &getFont(const std::string_view name) {
-        const auto it = _fonts.find(std::string(name));
+        const auto it = _fonts.find(name);
         if (it == _fonts.end())
             throw std::runtime_error("Font not found");
 
@@ -28,14 +28,14 @@ class FontManager {
     }
 
     void addFont(const std::string_view name, std::unique_ptr<Abyss::Concepts::FontRenderer> renderer) {
-        if (_fonts.contains(std::string(name)))
+        if (_fonts.contains(name))
             throw std::runtime_error("Font already exists");
 
-        _fonts.emplace(std::string(name), std::move(renderer));
+        _fonts.emplace(name, std::move(renderer));
     }
 
     void removeFont(const std::string_view name) {
-        const auto it = _fonts.find(std::string(name));
+        const auto it = _fonts.find(name);
         if (it == _fonts.end())
             throw std::runtime_error("Font not found");
 

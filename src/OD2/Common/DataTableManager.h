@@ -1,17 +1,17 @@
 #pragma once
 
+#include <absl/container/flat_hash_map.h>
 #include <mutex>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 namespace OD2::Common {
 
-using DataTable = std::vector<std::unordered_map<std::string, std::string>>;
+using DataTable = std::vector<absl::flat_hash_map<std::string, std::string>>;
 
 class DataTableManager {
     DataTableManager() = default;
-    std::unordered_map<std::string, DataTable> dataTables{};
+    absl::flat_hash_map<std::string, DataTable> dataTables{};
     std::mutex _readMutex{};
     std::mutex _writeMutex{};
 

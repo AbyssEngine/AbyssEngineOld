@@ -78,6 +78,7 @@ target_link_libraries(Abyss
         ZLIB::ZLIB
         stormlib::stormlib
         absl::flat_hash_map
+        absl::btree
         ${FFMPEG_LIBRARIES}
         ${OSX_VIDEOTOOLBOX}
         ${OSX_COREMEDIA}

@@ -6,12 +6,12 @@
 
 #include <functional>
 #include <string>
-#include <unordered_map>
+#include <absl/container/node_hash_map.h>
 
 namespace OD2::Common {
 
 class ButtonDefManager {
-    std::unordered_map<std::string, Abyss::UI::ButtonDef> buttonDefs{};
+    absl::node_hash_map<std::string, Abyss::UI::ButtonDef> buttonDefs{};
 
     ButtonDefManager() = default;
 
@@ -22,7 +22,7 @@ class ButtonDefManager {
     }
 
     Abyss::UI::ButtonDef &getButtonDef(const std::string_view name) {
-        const auto it = buttonDefs.find(std::string(name));
+        const auto it = buttonDefs.find(name);
         if (it == buttonDefs.end())
             throw std::runtime_error("ButtonDef not found");
 
@@ -37,7 +37,7 @@ class ButtonDefManager {
     }
 
     void removeButtonDef(const std::string_view name) {
-        const auto it = buttonDefs.find(std::string(name));
+        const auto it = buttonDefs.find(name);
         if (it == buttonDefs.end())
             throw std::runtime_error("ButtonDef not found");
 

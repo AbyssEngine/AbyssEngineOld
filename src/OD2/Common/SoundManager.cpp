@@ -3,6 +3,7 @@
 #include "DataTableManager.h"
 #include <cctype>
 #include <stdexcept>
+#include <absl/strings/str_cat.h>
 
 namespace OD2::Common {
 
@@ -16,17 +17,16 @@ SoundManager::SoundManager() {
 }
 
 const std::string& SoundManager::getSound(std::string_view name) {
-  std::string n(name);
-  auto it = _cache.find(n);
+  auto it = _cache.find(name);
   if (it != _cache.end()) {
     return it->second;
   }
 
   std::vector<std::string> attempts;
   const DataTable& table = DataTableManager::getInstance().getDataTable("SoundSettings");
-  auto iter = _index.find(n);
+  auto iter = _index.find(name);
   if (iter == _index.end()) {
-    throw std::runtime_error("Can't find sound " + n);
+    throw std::runtime_error(absl::StrCat("Can't find sound ", name));
   }
   const auto& mainRow = table[iter->second];
   // TODO perhaps redirect should be used only in HD mode?
@@ -52,22 +52,22 @@ const std::string& SoundManager::getSound(std::string_view name) {
     // TODO take music vs sfx and hd vs sd from 'Channel' field, but it's only for D2R
     std::string file = "/data/hd/global/sfx/" + a;
     if (instance.fileExists(file)) {
-      return _cache.emplace(n, file).first->second;
+      return _cache.emplace(name, file).first->second;
     }
     file = "/data/global/sfx/" + a;
     if (instance.fileExists(file)) {
-      return _cache.emplace(n, file).first->second;
+      return _cache.emplace(name, file).first->second;
     }
     file = "/data/hd/global/music/" + a;
     if (instance.fileExists(file)) {
-      return _cache.emplace(n, file).first->second;
+      return _cache.emplace(name, file).first->second;
     }
     file = "/data/global/music/" + a;
     if (instance.fileExists(file)) {
-      return _cache.emplace(n, file).first->second;
+      return _cache.emplace(name, file).first->second;
     }
   }
-  throw std::runtime_error("Can't find sound file for " + n);
+  throw std::runtime_error(absl::StrCat("Can't find sound file for ", name));
 }
 
 } // namespace OD2::Common

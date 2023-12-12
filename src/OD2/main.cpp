@@ -10,6 +10,7 @@
 #include "Common/ResourcePaths.h"
 #include "Scenes/MainMenu/MainMenu.h"
 
+#include <absl/container/btree_map.h>
 #include <future>
 
 void loadPalettes() {
@@ -98,7 +99,7 @@ void loadFonts() {
 
 void loadDataTables() {
     Abyss::Common::Log::info("Loading data tables...");
-    static const std::map<std::string_view, std::string_view> loadDict = {
+    static const absl::btree_map<std::string_view, std::string_view> loadDict = {
         {"LevelPreset", OD2::Common::ResourcePaths::Data::LevelPreset},
         {"LevelType", OD2::Common::ResourcePaths::Data::LevelType},
         {"ObjectType", OD2::Common::ResourcePaths::Data::ObjectType},

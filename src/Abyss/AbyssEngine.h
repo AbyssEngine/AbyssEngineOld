@@ -12,9 +12,9 @@
 #include "Streams/VideoStream.h"
 
 #include <SDL2/SDL.h>
+#include <absl/container/flat_hash_map.h>
 #include <chrono>
 #include <cmath>
-#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -32,7 +32,7 @@ class AbyssEngine final : public FileSystem::FileLoader, public Common::Renderer
     std::unique_ptr<Common::Scene> _currentScene;
     std::unique_ptr<Common::Scene> _nextScene;
     std::unique_ptr<Streams::VideoStream> _videoStream;
-    std::map<std::string, std::unique_ptr<DataTypes::DC6>> _cursors;
+    absl::flat_hash_map<std::string, std::unique_ptr<DataTypes::DC6>> _cursors;
     std::vector<Common::SoundEffectInterface *> _soundEffects;
     DataTypes::DC6 *_cursorImage{};
     SDL_Rect _renderRect;

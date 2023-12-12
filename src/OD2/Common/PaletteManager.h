@@ -2,14 +2,14 @@
 
 #include "Abyss/DataTypes/Palette.h"
 
+#include <absl/container/node_hash_map.h>
 #include <ranges>
 #include <string>
-#include <unordered_map>
 
 namespace OD2::Common {
 
 class PaletteManager {
-    std::unordered_map<std::string, Abyss::DataTypes::Palette> _palettes;
+    absl::node_hash_map<std::string, Abyss::DataTypes::Palette> _palettes;
     PaletteManager() = default;
 
   public:
@@ -19,7 +19,7 @@ class PaletteManager {
     }
 
     Abyss::DataTypes::Palette &getPalette(const std::string_view name) {
-        const auto it = _palettes.find(std::string(name));
+        const auto it = _palettes.find(name);
         if (it == _palettes.end())
             throw std::runtime_error("Palette not found");
 
@@ -34,7 +34,7 @@ class PaletteManager {
     }
 
     void removePalette(const std::string_view name) {
-        const auto it = _palettes.find(std::string(name));
+        const auto it = _palettes.find(name);
         if (it == _palettes.end())
             throw std::runtime_error("Palette not found");
 

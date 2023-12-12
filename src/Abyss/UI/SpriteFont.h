@@ -5,10 +5,10 @@
 #include "Abyss/Concepts/FontRenderer.h"
 #include "Abyss/Singletons.h"
 #include "Abyss/Streams/StreamReader.h"
+#include <absl/container/flat_hash_map.h>
 #include <algorithm>
 #include <cstdint>
 #include <string>
-#include <unordered_map>
 
 namespace Abyss::UI {
 
@@ -22,7 +22,7 @@ struct Glyph {
 
 template <Concepts::Drawable T> class SpriteFont final : public Concepts::FontRenderer {
     T _drawable;
-    std::unordered_map<int, Glyph> _glyphs;
+    absl::flat_hash_map<int, Glyph> _glyphs;
 
     auto renderText(const std::string_view text, int &width, int &height) const -> std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> override {
         std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> texture{nullptr, SDL_DestroyTexture};
