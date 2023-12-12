@@ -18,7 +18,7 @@ jobs:
             os: ubuntu-latest
             triplet: x64-linux-release
           - name: MacOS
-            os: macos-11
+            os: macos-13
             triplet: x64-osx-release
     env:
       VCPKG_ROOT: ${{ github.workspace }}/vcpkg
@@ -29,7 +29,7 @@ jobs:
         uses: maxim-lobanov/setup-xcode@v1
         if: matrix.os == 'macos-11'
         with:
-          xcode-version: "13.0"
+          xcode-version: "14.3.1"
 
       - uses: actions/checkout@v2
         name: Checkout
@@ -41,7 +41,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         uses: crazy-max/ghaction-chocolatey@v1
         with:
-          args: install nasm luarocks
+          args: install nasm ninja
 
       - name: Use MSVC (Windows)
         if: matrix.os == 'windows-latest'
@@ -49,7 +49,7 @@ jobs:
 
       - name: Install Deps (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get update && sudo apt-get install nasm libxext-dev libavcodec-dev libavformat-dev libavdevice-dev libavfilter-dev libegl-dev gperf autoconf-archive luarocks
+        run: sudo apt-get update && sudo apt-get install nasm libxext-dev libavcodec-dev libavformat-dev libavdevice-dev libavfilter-dev libegl-dev gperf autoconf-archive alsa-lib ninja-build
 
       - name: Install GCC (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
@@ -57,14 +57,14 @@ jobs:
 
       - name: Install Deps (MacOS)
         if: matrix.os == 'macos-11'
-        run: brew install nasm automake autoconf autoconf-archive luarocks
+        run: brew install nasm automake autoconf autoconf-archive ninja
 
       - name: Run vcpkg
         uses: lukka/run-vcpkg@v10
         with:
           vcpkgJsonGlob: "**/vcpkg.json"
           vcpkgDirectory: "${{ github.workspace }}/vcpkg"
-          vcpkgGitCommitId: "5f82fa45df07a446bab57f65479f3d2df797f408"
+          vcpkgGitCommitId: "f56238700757aa05975e41fa835739c632810f3f"
           appendedCacheKey: ${{ hashFiles( '**/vcpkg.json' ) }}
 
       - name: Make build dir
