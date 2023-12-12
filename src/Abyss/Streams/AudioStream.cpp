@@ -1,4 +1,5 @@
 #include "AudioStream.h"
+#include <absl/strings/str_cat.h>
 
 // Compatibility with newer API
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55, 28, 1)
@@ -88,7 +89,7 @@ void Abyss::Streams::AudioStream::update() {
             if (avError == AVERROR(EAGAIN) || avError == AVERROR_EOF)
                 return;
 
-            throw std::runtime_error("Failed to receive frame: " + AvErrorCodeToString(avError));
+            throw std::runtime_error(absl::StrCat("Failed to receive frame: ", AvErrorCodeToString(avError)));
         }
 
         int _lineSize;
@@ -116,10 +117,10 @@ Abyss::Streams::AudioStream::AudioStream(FileSystem::InputStream stream) : _stre
     int avError;
 
     if ((avError = avformat_open_input(&_avFormatContext, "", nullptr, nullptr)) < 0)
-        throw std::runtime_error("Failed to open input stream: " + AvErrorCodeToString(avError));
+        throw std::runtime_error(absl::StrCat("Failed to open input stream: ", AvErrorCodeToString(avError)));
 
     if ((avError = avformat_find_stream_info(_avFormatContext, nullptr)) < 0)
-        throw std::runtime_error("Failed to find stream info: " + AvErrorCodeToString(avError));
+        throw std::runtime_error(absl::StrCat("Failed to find stream info: ", AvErrorCodeToString(avError)));
 
     _audioStreamIdx = -1;
     for (uint32_t i = 0; i < _avFormatContext->nb_streams; i++) {
@@ -141,10 +142,10 @@ Abyss::Streams::AudioStream::AudioStream(FileSystem::InputStream stream) : _stre
 
     _audioCodecContext = avcodec_alloc_context3(audioDecoder);
     if ((avError = avcodec_parameters_to_context(_audioCodecContext, audioCodecPar)) < 0)
-        throw std::runtime_error("Failed to copy codec parameters to decoder context: " + AvErrorCodeToString(avError));
+        throw std::runtime_error(absl::StrCat("Failed to copy codec parameters to decoder context: ", AvErrorCodeToString(avError)));
 
     if ((avError = avcodec_open2(_audioCodecContext, audioDecoder, nullptr)) < 0)
-        throw std::runtime_error("Failed to open audio codec: " + AvErrorCodeToString(avError));
+        throw std::runtime_error(absl::StrCat("Failed to open audio codec: ", AvErrorCodeToString(avError)));
 
     _resampleContext = swr_alloc();
 
@@ -158,7 +159,7 @@ Abyss::Streams::AudioStream::AudioStream(FileSystem::InputStream stream) : _stre
     av_opt_set_sample_fmt(_resampleContext, "out_sample_fmt", AV_SAMPLE_FMT_S16, 0);
 
     if ((avError = swr_init(_resampleContext)) < 0)
-        throw std::runtime_error("Failed to initialize resampler: " + AvErrorCodeToString(avError));
+        throw std::runtime_error(absl::StrCat("Failed to initialize resampler: ", AvErrorCodeToString(avError)));
 
     _avFrame = av_frame_alloc();
 }

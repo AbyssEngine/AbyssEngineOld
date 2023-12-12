@@ -6,6 +6,9 @@
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_sdlrenderer2.h"
 #include <absl/container/btree_map.h>
+#include <absl/strings/ascii.h>
+#include <absl/strings/str_cat.h>
+#include <absl/strings/str_replace.h>
 #include <memory>
 #include <ranges>
 
@@ -159,17 +162,17 @@ void AbyssEngine::initializeSDL() {
     putenv("SDL_AUDIODRIVER=DirectSound");
 #endif
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        throw std::runtime_error("SDL_Init Error: " + std::string(SDL_GetError()));
+        throw std::runtime_error(absl::StrCat("SDL_Init Error: ", SDL_GetError()));
     }
 
     _window.reset(SDL_CreateWindow("Abyss Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE));
     if (_window == nullptr) {
-        throw std::runtime_error("SDL_CreateWindow Error: " + std::string(SDL_GetError()));
+        throw std::runtime_error(absl::StrCat("SDL_CreateWindow Error: ", SDL_GetError()));
     }
 
     _renderer.reset(SDL_CreateRenderer(_window.get(), -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC));
     if (_renderer == nullptr) {
-        throw std::runtime_error("SDL_CreateRenderer Error: " + std::string(SDL_GetError()));
+        throw std::runtime_error(absl::StrCat("SDL_CreateRenderer Error: ", SDL_GetError()));
     }
 
     _renderTexture.reset(SDL_CreateTexture(_renderer.get(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 800, 600));
@@ -234,7 +237,7 @@ void AbyssEngine::initializeAudio() {
     SDL_AudioSpec have{};
 
     if (SDL_OpenAudio(&want, &have) != 0)
-        throw std::runtime_error("Failed to open audio: " + std::string(SDL_GetError()));
+        throw std::runtime_error(absl::StrCat("Failed to open audio: ", SDL_GetError()));
 
     Common::Log::info("Using audio device: {}", SDL_GetAudioDeviceName(0, 0));
 
@@ -340,21 +343,15 @@ void AbyssEngine::addCursorImage(const std::string_view name, const std::string_
 
 FileSystem::InputStream AbyssEngine::loadFile(const std::string_view file_path) {
     std::string path(file_path);
-    std::ranges::transform(path, path.begin(), [](const char c) { return std::tolower(c); });
-    if (const size_t pos = path.find("{lang_font}"); pos != std::string::npos)
-        path.replace(pos, std::string("{lang_font}").length(), _locale);
-    if (const size_t pos = path.find("{lang}"); pos != std::string::npos)
-        path.replace(pos, std::string("{lang}").length(), _lang);
+    absl::AsciiStrToLower(&path);
+    absl::StrReplaceAll({{"{lang_font}", _locale}, {"{lang}", _lang}}, &path);
     return _fileProvider.loadFile(path);
 }
 
 bool AbyssEngine::fileExists(const std::string_view file_path) {
     std::string path(file_path);
-    std::ranges::transform(path, path.begin(), [](const char c) { return std::tolower(c); });
-    if (const size_t pos = path.find("{lang_font}"); pos != std::string::npos)
-        path.replace(pos, std::string("{lang_font}").length(), _locale);
-    if (const size_t pos = path.find("{lang}"); pos != std::string::npos)
-        path.replace(pos, std::string("{lang}").length(), _lang);
+    absl::AsciiStrToLower(&path);
+    absl::StrReplaceAll({{"{lang_font}", _locale}, {"{lang}", _lang}}, &path);
     return _fileProvider.fileExists(path);
 }
 

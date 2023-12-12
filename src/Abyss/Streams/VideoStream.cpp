@@ -1,6 +1,7 @@
 #include "VideoStream.h"
 
 #include "Abyss/Singletons.h"
+#include <absl/strings/str_cat.h>
 
 namespace Abyss::Streams {
 
@@ -38,10 +39,10 @@ bool VideoStream::processFrame() {
         int avError;
 
         if ((avError = avcodec_send_packet(_videoCodecContext, packet.get())) < 0)
-            throw std::runtime_error("Error decoding video packet: " + avErrorCodeToString(avError));
+            throw std::runtime_error(absl::StrCat("Error decoding video packet: ", avErrorCodeToString(avError)));
 
         if ((avError = avcodec_receive_frame(_videoCodecContext, _avFrame)) < 0)
-            throw std::runtime_error("Error decoding video packet: " + avErrorCodeToString(avError));
+            throw std::runtime_error(absl::StrCat("Error decoding video packet: ", avErrorCodeToString(avError)));
 
         uint8_t *data[AV_NUM_DATA_POINTERS];
         data[0] = _yPlane.data();
@@ -67,14 +68,14 @@ bool VideoStream::processFrame() {
         int avError;
 
         if ((avError = avcodec_send_packet(_audioCodecContext, packet.get())) < 0)
-            throw std::runtime_error("Error decoding audio packet: " + avErrorCodeToString(avError));
+            throw std::runtime_error(absl::StrCat("Error decoding audio packet: ", avErrorCodeToString(avError)));
 
         while (true) {
             if ((avError = avcodec_receive_frame(_audioCodecContext, _avFrame)) < 0) {
                 if (avError == AVERROR(EAGAIN) || avError == AVERROR_EOF)
                     break;
 
-                throw std::runtime_error("Error decoding audio packet: " + avErrorCodeToString(avError));
+                throw std::runtime_error(absl::StrCat("Error decoding audio packet: ", avErrorCodeToString(avError)));
             }
 
             int _lineSize;
@@ -135,10 +136,10 @@ VideoStream::VideoStream(FileSystem::InputStream stream, std::optional<FileSyste
 
     int avError;
     if ((avError = avformat_open_input(&_avFormatContext, "", nullptr, nullptr)) < 0)
-        throw std::runtime_error("Failed to open AV format context: " + avErrorCodeToString(avError));
+        throw std::runtime_error(absl::StrCat("Failed to open AV format context: ", avErrorCodeToString(avError)));
 
     if ((avError = avformat_find_stream_info(_avFormatContext, nullptr)) < 0)
-        throw std::runtime_error("Failed to find stream info: " + avErrorCodeToString(avError));
+        throw std::runtime_error(absl::StrCat("Failed to find stream info: ", avErrorCodeToString(avError)));
 
     for (auto i = 0; i < _avFormatContext->nb_streams; i++) {
         if (_avFormatContext->streams[i]->codecpar->codec_type != AVMEDIA_TYPE_VIDEO)
@@ -170,10 +171,10 @@ VideoStream::VideoStream(FileSystem::InputStream stream, std::optional<FileSyste
 
     _videoCodecContext = avcodec_alloc_context3(videoDecoder);
     if ((avError = avcodec_parameters_to_context(_videoCodecContext, videoCodecPar)) < 0)
-        throw std::runtime_error("Failed to apply parameters to video context: " + avErrorCodeToString(avError));
+        throw std::runtime_error(absl::StrCat("Failed to apply parameters to video context: ", avErrorCodeToString(avError)));
 
     if ((avError = avcodec_open2(_videoCodecContext, videoDecoder, nullptr)) < 0)
-        throw std::runtime_error("Failed to open video context: " + avErrorCodeToString(avError));
+        throw std::runtime_error(absl::StrCat("Failed to open video context: ", avErrorCodeToString(avError)));
 
     if (_audioStreamIdx >= 0) {
         const auto audioCodecPar = _avFormatContext->streams[_audioStreamIdx]->codecpar;
@@ -184,10 +185,10 @@ VideoStream::VideoStream(FileSystem::InputStream stream, std::optional<FileSyste
 
         _audioCodecContext = avcodec_alloc_context3(audioDecoder);
         if ((avError = avcodec_parameters_to_context(_audioCodecContext, audioCodecPar)) < 0)
-            throw std::runtime_error("Failed to apply parameters to audio context: " + avErrorCodeToString(avError));
+            throw std::runtime_error(absl::StrCat("Failed to apply parameters to audio context: ", avErrorCodeToString(avError)));
 
         if ((avError = avcodec_open2(_audioCodecContext, audioDecoder, nullptr)) < 0)
-            throw std::runtime_error("Failed to open audio context: " + avErrorCodeToString(avError));
+            throw std::runtime_error(absl::StrCat("Failed to open audio context: ", avErrorCodeToString(avError)));
 
         _resampleContext = swr_alloc();
         av_opt_set_int(_resampleContext, "in_channel_layout", static_cast<int64_t>(_audioCodecContext->channel_layout), 0);
@@ -198,7 +199,7 @@ VideoStream::VideoStream(FileSystem::InputStream stream, std::optional<FileSyste
         av_opt_set_sample_fmt(_resampleContext, "out_sample_fmt", AV_SAMPLE_FMT_S16, 0);
 
         if ((avError = swr_init(_resampleContext)) < 0)
-            throw std::runtime_error("Failed to initialize sound re-sampler: " + avErrorCodeToString(avError));
+            throw std::runtime_error(absl::StrCat("Failed to initialize sound re-sampler: ", avErrorCodeToString(avError)));
     }
 
     const auto ratio = static_cast<float>(_videoCodecContext->height) / static_cast<float>(_videoCodecContext->width);

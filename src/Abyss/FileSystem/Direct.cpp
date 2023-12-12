@@ -1,5 +1,7 @@
 #include "Direct.h"
 
+#include <absl/strings/ascii.h>
+#include <absl/strings/strip.h>
 #include <algorithm>
 #include <fstream>
 
@@ -7,12 +9,8 @@ namespace Abyss::FileSystem {
 
 // Removes / if prepended, and turns lower case
 static std::string normalizePath(std::string_view path) {
-    if (path.starts_with('/')) {
-        path = path.substr(1);
-    }
-    std::string p = std::string(path);
-    std::ranges::transform(p, p.begin(), [](const char c) { return std::tolower(c); });
-    return p;
+    absl::ConsumePrefix(&path, "/");
+    return absl::AsciiStrToLower(path);
 }
 
 Direct::Direct(const std::filesystem::path &path) : _basePath(path) {
@@ -22,7 +20,7 @@ Direct::Direct(const std::filesystem::path &path) : _basePath(path) {
         std::string p = entry.path().lexically_relative(_basePath).string();
         std::string lower = p;
         std::ranges::replace(lower, '\\', '/');
-        std::ranges::transform(lower, lower.begin(), [](const char c) { return std::tolower(c); });
+        absl::AsciiStrToLower(&lower);
         _files[std::move(lower)] = std::move(p);
     }
 }

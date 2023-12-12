@@ -1,5 +1,6 @@
 #include "MPQ.h"
 #include "Abyss/Common/Logging.h"
+#include <absl/strings/str_cat.h>
 #include <algorithm>
 #include <ios>
 #include <ranges>
@@ -38,7 +39,7 @@ inline std::string fixPath(const std::string_view str) {
 
 MPQStream::MPQStream(HANDLE mpq, const std::string &fileName) {
     if (!SFileOpenFileEx(mpq, fileName.c_str(), SFILE_OPEN_FROM_MPQ, &_mpqFile)) {
-        throw std::runtime_error("Failed to open file '" + fileName + "' from MPQ");
+        throw std::runtime_error(absl::StrCat("Failed to open file '", fileName, "' from MPQ"));
     }
 }
 
@@ -92,9 +93,9 @@ std::streamsize MPQStream::size() const { return SFileGetFileSize(_mpqFile, null
 
 MPQ::MPQ(const std::filesystem::path &mpqPath) : _stormMpq(nullptr) {
     std::string path = std::filesystem::absolute(mpqPath).string();
-    Common::Log::info("Opening MPQ {}", path);
+    Common::Log::debug("Opening MPQ {}", path);
     if (!SFileOpenArchive(path.c_str(), 0, STREAM_PROVIDER_FLAT | BASE_PROVIDER_FILE | STREAM_FLAG_READ_ONLY, &_stormMpq)) {
-        throw std::runtime_error("Error occurred while opening MPQ " + mpqPath.string());
+        throw std::runtime_error(absl::StrCat("Error occurred while opening MPQ ", mpqPath.string()));
     }
 }
 

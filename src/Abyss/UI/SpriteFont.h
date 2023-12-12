@@ -6,6 +6,7 @@
 #include "Abyss/Singletons.h"
 #include "Abyss/Streams/StreamReader.h"
 #include <absl/container/flat_hash_map.h>
+#include <absl/strings/str_cat.h>
 #include <algorithm>
 #include <cstdint>
 #include <string>
@@ -58,17 +59,17 @@ template <Concepts::Drawable T> class SpriteFont final : public Concepts::FontRe
     }
 
   public:
-    explicit SpriteFont(const std::string_view path, const DataTypes::Palette &palette) : _drawable(std::string(path) + ".dc6") {
+    explicit SpriteFont(const std::string_view path, const DataTypes::Palette &palette) : _drawable(absl::StrCat(path, ".dc6")) {
         Abyss::Common::Log::debug("Loading font {}...", path);
 
         _drawable.setPalette(palette);
 
-        auto tableStream = Singletons::getFileProvider().loadFile(std::string(path) + ".tbl");
+        auto tableStream = Singletons::getFileProvider().loadFile(absl::StrCat(path, ".tbl"));
         Streams::StreamReader sr(tableStream);
         char signature[5] = {};
         sr.readBytes(signature);
         if (std::string_view(signature, 5) != "Woo!\x01")
-            throw std::runtime_error("Invalid font file signature: " + std::string(path));
+            throw std::runtime_error(absl::StrCat("Invalid font file signature: ", path));
 
         tableStream.ignore(7); // skip unknown bytes
 
@@ -91,7 +92,7 @@ template <Concepts::Drawable T> class SpriteFont final : public Concepts::FontRe
             }
 
             if (glyphFrameIndex >= _drawable.getFrameCount())
-                throw std::runtime_error("Invalid font file: " + std::string(path));
+                throw std::runtime_error(absl::StrCat("Invalid font file: ", path));
 
             _drawable.getFrameOffset(glyphFrameIndex, glyphOffsetX, glyphOffsetY);
 

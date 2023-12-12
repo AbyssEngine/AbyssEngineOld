@@ -14,7 +14,7 @@ auto PaletteEntry::getBlue() const -> uint8_t { return blue; }
 
 auto PaletteEntry::getSdlColor() const -> SDL_Color { return {red, green, blue, 255}; }
 
-Palette::Palette(const std::string_view path, const std::string_view name) : _name(std::string(name)) {
+Palette::Palette(const std::string_view path, const std::string_view name) : _name(name) {
     const auto bytes = Singletons::getFileProvider().loadBytes(path);
 
     for (size_t i = 0; i < bytes.size(); i += 3) {

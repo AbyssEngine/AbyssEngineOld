@@ -1,8 +1,10 @@
 #include "CASC.h"
 #include "Abyss/Common/Logging.h"
+#include <absl/strings/str_cat.h>
+#include <absl/strings/strip.h>
 #include <algorithm>
-#include <ios>
 #include <format>
+#include <ios>
 #include <ranges>
 
 #define CASCLIB_NO_AUTO_LINK_LIBRARY 1
@@ -30,7 +32,7 @@ class CASCStream : public SizeableStreambuf {
 
 CASCStream::CASCStream(HANDLE storage, std::string fileName) {
     if (!CascOpenFile(storage, fileName.c_str(), 0, CASC_OPEN_BY_NAME, &_file)) {
-        throw std::runtime_error("Failed to open file '" + fileName + "' from CASC");
+        throw std::runtime_error(absl::StrCat("Failed to open file '", fileName, "' from CASC"));
     }
 }
 
@@ -116,9 +118,9 @@ CASC::CASC(const std::filesystem::path &cascPath) {
 CASC::~CASC() { CascCloseStorage(_storage); }
 
 static std::string FixPath(std::string_view str) {
-    while (str.starts_with("/")) str = str.substr(1);
-    while (str.starts_with("\\")) str = str.substr(1);
-    return "data:" + std::string(str);
+    absl::ConsumePrefix(&str, "/");
+    absl::ConsumePrefix(&str, "\\");
+    return absl::StrCat("data:", str);
 }
 
 InputStream CASC::load(std::string_view fileName) { return InputStream(std::make_unique<CASCStream>(_storage, FixPath(fileName))); }

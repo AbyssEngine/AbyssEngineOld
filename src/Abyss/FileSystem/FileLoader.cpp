@@ -46,7 +46,7 @@ InputStream MultiFileLoader::loadFile(std::string_view path) {
         ++i;
     }
 
-    throw std::runtime_error("File not found: " + std::string(path));
+    throw std::runtime_error(absl::StrCat("File not found: ", path));
 }
 
 bool MultiFileLoader::fileExists(std::string_view path) {
