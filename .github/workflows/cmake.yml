@@ -49,14 +49,14 @@ jobs:
 
       - name: Install Deps (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get update && sudo apt-get install nasm libxext-dev libavcodec-dev libavformat-dev libavdevice-dev libavfilter-dev libegl-dev gperf autoconf-archive alsa-lib ninja-build
+        run: sudo apt-get update && sudo apt-get install nasm libxext-dev libavcodec-dev libavformat-dev libavdevice-dev libavfilter-dev libegl-dev gperf autoconf-archive libasound2-dev ninja-build
 
       - name: Install GCC (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
         run: sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get install g++-10 libstdc++-10-dev && echo "CC=gcc-10" >> $GITHUB_ENV && echo "CXX=g++-10" >> $GITHUB_ENV
 
       - name: Install Deps (MacOS)
-        if: matrix.os == 'macos-11'
+        if: matrix.os == 'macos-13'
         run: brew install nasm automake autoconf autoconf-archive ninja
 
       - name: Run vcpkg

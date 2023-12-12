@@ -22,7 +22,6 @@ add_library(Abyss
         Common/RingBuffer.h
         Common/Scene.h
         Common/SoundEffectProvider.h
-        Common/WavDecompress.cpp Common/WavDecompress.h
 
         Concepts/Drawable.h
         Concepts/FontRenderer.h
