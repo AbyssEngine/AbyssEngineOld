@@ -19,6 +19,7 @@ include(Casclib)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+find_package(absl CONFIG REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(cxxopts CONFIG REQUIRED)

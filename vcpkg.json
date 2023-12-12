@@ -8,6 +8,12 @@
     "spdlog",
     "zlib",
     {
+      "name": "abseil",
+      "features": [
+        "cxx17"
+      ]
+    },
+    {
       "name": "ffmpeg",
       "features": [
         "avcodec",

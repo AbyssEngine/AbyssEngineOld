@@ -32,22 +32,39 @@ std::vector<std::byte> FileLoader::loadBytes(std::string_view path) {
 }
 
 InputStream MultiFileLoader::loadFile(std::string_view path) {
+    auto it = _cacheWhere.find(path);
+    if (it != _cacheWhere.end()) {
+        return _providers[it->second]->load(path);
+    }
+
+    int i = 0;
     for (const auto &provider : _providers) {
         if (provider->has(path)) {
+          _cacheWhere[path] = i;
             return provider->load(path);
         }
+        ++i;
     }
 
     throw std::runtime_error("File not found: " + std::string(path));
 }
 
 bool MultiFileLoader::fileExists(std::string_view path) {
-    for (const auto &provider : _providers) {
-        if (provider->has(path)) {
-            return true;
-        }
+    auto it = _cacheWhere.find(path);
+    if (it != _cacheWhere.end()) {
+        return it->second != -1;
     }
 
+    int i = 0;
+    for (const auto &provider : _providers) {
+        if (provider->has(path)) {
+            _cacheWhere[path] = i;
+            return true;
+        }
+        ++i;
+    }
+
+    _cacheWhere[path] = -1;
     return false;
 }
 

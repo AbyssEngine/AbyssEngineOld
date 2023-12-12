@@ -3,6 +3,7 @@
 #include "InputStream.h"
 #include "Provider.h"
 
+#include <absl/container/flat_hash_map.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -29,6 +30,7 @@ class MultiFileLoader final : public FileLoader {
 
   private:
     std::vector<std::unique_ptr<Provider>> _providers;
+    absl::flat_hash_map<std::string, int /* index in _providers */> _cacheWhere;
 };
 
 } // namespace Abyss::FileSystem
