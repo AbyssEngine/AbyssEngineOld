@@ -1,22 +1,28 @@
 {
-  "name": "abyssengine",
-  "version-string": "pre-alpha",
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "abyss",
+  "version": "0.0.1",
   "dependencies": [
+    "cxxopts",
+        {
+      "name": "sdl2",
+      "features": [
+        "alsa"
+      ],
+      "platform": "linux"
+    },
+    {
+        "name": "sdl2",
+        "platform": "!linux"
+    },
     "spdlog",
-    "argh",
-    "libpng",
-    "bzip2",
     "zlib",
-    "icu",
-    "sdl2",
-    "luajit",
-    "gtest",
-    "cppzmq",
-    "pango",
-    "cairo",
-    "fontconfig",
-    "fmt",
-    "sqlite3",
+    {
+      "name": "abseil",
+      "features": [
+        "cxx17"
+      ]
+    },
     {
       "name": "ffmpeg",
       "features": [
@@ -29,15 +35,6 @@
         "swresample",
         "ffmpeg"
       ]
-    },
-    {
-      "name": "abseil",
-      "features": [
-        "cxx17"
-      ]
     }
-  ],
-  "builtin-baseline": "5f82fa45df07a446bab57f65479f3d2df797f408",
-  "overrides": [
   ]
 }
