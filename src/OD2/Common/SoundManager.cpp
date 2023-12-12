@@ -7,13 +7,7 @@
 
 namespace OD2::Common {
 
-SoundManager::SoundManager() {
-  const DataTable& table = DataTableManager::getInstance().getDataTable("SoundSettings");
-
-  for (int i = 0; i < table.size(); ++i) {
-    const auto& row = table[i];
-    _index[row.at("Sound")] = i;
-  }
+SoundManager::SoundManager() : _index(DataTableManager::getInstance().buildIndexBy("SoundSettings", "Sound")) {
 }
 
 const std::string& SoundManager::getSound(std::string_view name) {

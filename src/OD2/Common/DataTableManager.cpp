@@ -64,6 +64,16 @@ DataTable &DataTableManager::getDataTable(const std::string_view name) {
     return it->second;
 }
 
+absl::flat_hash_map<std::string, int> DataTableManager::buildIndexBy(std::string_view name, std::string_view column) {
+  const auto& table = getDataTable(name);
+  absl::flat_hash_map<std::string, int> result;
+  for (int i = 0; i < table.size(); ++i) {
+    const auto& row = table[i];
+    result[row.at(column)] = i;
+  }
+  return result;
+}
+
 DataTable &DataTableManager::operator[](const std::string_view name) { return getDataTable(name); }
 
 } // namespace OD2::Common
