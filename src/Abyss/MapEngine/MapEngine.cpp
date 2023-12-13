@@ -5,9 +5,8 @@
 #include <future>
 
 namespace Abyss::MapEngine {
-MapEngine::MapEngine(DataTypes::Palette _palette, const int width, const int height, std::vector<DataTypes::DT1> dt1s,
-                     std::vector<DataTypes::DS1> ds1s)
-    : _width(width), _height(height), _palette(std::move(_palette)), _dt1s(std::move(dt1s)), _ds1s(std::move(ds1s)) {
+MapEngine::MapEngine(const int width, const int height, std::vector<DataTypes::DT1> dt1s, std::vector<DataTypes::DS1> ds1s)
+    : _width(width), _height(height), _dt1s(std::move(dt1s)), _ds1s(std::move(ds1s)) {
 
     std::vector<std::future<void>> futures;
 
@@ -171,13 +170,18 @@ void MapEngine::render() const {
 }
 
 void MapEngine::setCameraPosition(int x, int y) {
-    _cameraPosition.x = x;
-    _cameraPosition.y = y;
+    _cameraPosition.x = x - 320;
+    _cameraPosition.y = y - 260;
 }
 
 void MapEngine::getCameraPosition(int &x, int &y) const {
-    x = _cameraPosition.x;
-    y = _cameraPosition.y;
+    x = _cameraPosition.x + 320;
+    y = _cameraPosition.y + 260;
+}
+
+void MapEngine::getMapSize(int &width, int &height) const {
+    width = _width;
+    height = _height;
 }
 
 

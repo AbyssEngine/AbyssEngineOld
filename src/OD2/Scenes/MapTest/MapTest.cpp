@@ -19,6 +19,13 @@ MapTest::MapTest() {
             continue;
         _mapSelections.push_back(levelName);
     }
+
+    _selectedLevelName = _mapSelections.front();
+    onLevelChanged(_selectedLevelName);
+    if (!_selectedLevelAltName.empty()) {
+        _selectedLevelAltName = _mapAltSelections.front();
+        loadTile(_selectedLevelAltName);
+    }
 }
 
 void MapTest::onLevelChanged(const std::string &levelName) {
@@ -94,7 +101,7 @@ void MapTest::processEvent(const SDL_Event &event) {
             Abyss::AbyssEngine::getInstance().getMouseState().getPosition(mx, my);
             _mousePressedPosition.x = mx;
             _mousePressedPosition.y = my;
-            _startCameraPosition = _cameraPosition;
+            _mapEngine->getCameraPosition(_startCameraPosition.x, _startCameraPosition.y);
             SDL_CaptureMouse(SDL_TRUE);
             break;
         }
@@ -113,8 +120,8 @@ void MapTest::processEvent(const SDL_Event &event) {
             int mx;
             int my;
             Abyss::AbyssEngine::getInstance().getMouseState().getPosition(mx, my);
-            _cameraPosition.x = _startCameraPosition.x + (_mousePressedPosition.x - mx);
-            _cameraPosition.y = _startCameraPosition.y + (_mousePressedPosition.y - my);
+            _mapEngine->setCameraPosition(_startCameraPosition.x + (_mousePressedPosition.x - mx),
+                                          _startCameraPosition.y + (_mousePressedPosition.y - my));
         }
         break;
     }
@@ -131,7 +138,6 @@ void MapTest::loadTile(const std::string &altName) {
     const auto &levelType = getLevelType(levelTypeId);
     const auto &palette = Common::PaletteManager::getInstance().getPalette("Act" + std::to_string(act));
 
-    _dt1s.clear();
     std::vector<std::string> dt1sToLoad{};
 
     for (int i = 1; i <= 31; ++i) {
@@ -141,15 +147,14 @@ void MapTest::loadTile(const std::string &altName) {
         if (dt1 != "None" && dt1 != "Expansion" && dt1 != "0" && std::ranges::find(dt1sToLoad, dt1) == dt1sToLoad.end()) {
             auto filePath = "/data/global/tiles/" + dt1;
             std::ranges::transform(filePath, filePath.begin(), [](const auto c) { return std::tolower(c); });
-            _dt1s.emplace_back("/data/global/tiles/" + dt1, palette);
             dt1sToLoad.push_back("/data/global/tiles/" + dt1);
         }
     }
 
-    _ds1 = std::make_unique<Abyss::DataTypes::DS1>("/data/global/tiles/" + altName);
+    Abyss::DataTypes::DS1 ds1("/data/global/tiles/" + altName);
 
     // Add all the DS1 files to the DT1s
-    for (auto &file : _ds1->files) {
+    for (auto &file : ds1.files) {
         std::ranges::replace(file, '\\', '/');
         if (file.starts_with("/d2/")) // Because why not?
             file = file.substr(3);
@@ -161,99 +166,43 @@ void MapTest::loadTile(const std::string &altName) {
             if (file.starts_with("/d2/"))
                 file = file.substr(3);
 
-            _dt1s.emplace_back(file, palette);
             dt1sToLoad.push_back(file);
         }
     }
 
-    _ds1->bindTileReferences(_dt1s);
+    const auto dsSubIndex = std::ranges::find(_mapAltSelections, altName) - _mapAltSelections.begin();
+    // Load all dt1s into a vector
+    std::vector<Abyss::DataTypes::DT1> dt1s{};
+    dt1s.reserve(dt1sToLoad.size());
+    for (const auto &dt1 : dt1sToLoad)
+        dt1s.emplace_back(dt1, palette);
 
-    // // Center the map
-    const auto mapCenterX = _ds1->width / 2;
-    const auto mapCenterY = _ds1->height / 2;
-    //
-    // // Convert center to ortho
+    const auto mapWidth = ds1.width;
+    const auto mapHeight = ds1.height;
+
+    _mapEngine = std::make_unique<Abyss::MapEngine::MapEngine>(mapWidth, mapHeight, std::move(dt1s), std::vector{std::move(ds1)});
+    _mapEngine->stampDs1(0, 0, 0);
+
+    // Center the map
+    const auto mapCenterX = mapWidth / 2;
+    const auto mapCenterY = mapHeight / 2;
+
+    // Convert center to ortho
     const auto orthoCenterX = (mapCenterX - mapCenterY) * 80;
     const auto orthoCenterY = (mapCenterX + mapCenterY) * 40;
 
     // Adjust camera position
-    _cameraPosition.x = orthoCenterX - 320;
-    _cameraPosition.y = orthoCenterY - 260;
-
+    _mapEngine->setCameraPosition(orthoCenterX, orthoCenterY);
 }
 
 void MapTest::render() {
-    const auto &renderer = Abyss::AbyssEngine::getInstance().getRenderer();
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderClear(renderer);
+    SDL_SetRenderDrawColor(Abyss::AbyssEngine::getInstance().getRenderer(), 0, 0, 0, 255);
+    SDL_RenderClear(Abyss::AbyssEngine::getInstance().getRenderer());
 
-    if (_ds1) {
-        for (int tileY = 0; tileY < _ds1->height; ++tileY) {
-            for (int tileX = 0; tileX < _ds1->width; ++tileX) {
-                const auto posX = (tileX - tileY) * 80;
-                const auto posY = (tileX + tileY) * 40;
+    if (_mapEngine)
+        _mapEngine->render();
 
-                // Draw lower walls
-                for (const auto &layer : _ds1->layers.wall) {
-                    if (const auto &tile = layer[tileX + tileY * _ds1->width];
-                        tile.dt1Ref && tile.type >= Abyss::DataTypes::TileType::LowerWallsEquivalentToLeftWall)
-                        tile.dt1Ref->drawTile(posX - _cameraPosition.x, posY - _cameraPosition.y, tile.dt1Index);
-                }
-
-                // Draw floors
-                for (const auto &layer : _ds1->layers.floor) {
-                    if (const auto &tile = layer[tileX + tileY * _ds1->width]; tile.dt1Ref)
-                        tile.dt1Ref->drawTile(posX - _cameraPosition.x, posY - _cameraPosition.y, tile.dt1Index);
-                }
-                // Draw shadows
-                for (const auto &layer : _ds1->layers.shadow) {
-                    if (const auto &tile = layer[tileX + tileY * _ds1->width]; tile.dt1Ref)
-                        tile.dt1Ref->drawTile(posX - _cameraPosition.x, posY - _cameraPosition.y, tile.dt1Index);
-                }
-            }
-        }
-
-        for (int tileY = 0; tileY < _ds1->height; ++tileY) {
-            for (int tileX = 0; tileX < _ds1->width; ++tileX) {
-                const auto posX = (tileX - tileY) * 80;
-                const auto posY = (tileX + tileY) * 40;
-
-                // Draw upper
-                for (const auto &layer : _ds1->layers.wall) {
-                    if (const auto &tile = layer[tileX + tileY * _ds1->width];
-                        tile.dt1Ref && ((tile.type >= Abyss::DataTypes::TileType::LeftWall && tile.type <=
-                                         Abyss::DataTypes::TileType::RightWallWithDoor) || (
-                                            tile.type >= Abyss::DataTypes::TileType::PillarsColumnsAndStandaloneObjects && tile.type <=
-                                            Abyss::DataTypes::TileType::Tree))) {
-                        tile.dt1Ref->drawTile(posX - _cameraPosition.x, posY - _cameraPosition.y + 96, tile.dt1Index);
-
-                        // Super special condition. This was fun to figure out :(
-                        if (tile.type == Abyss::DataTypes::TileType::RightPartOfNorthCornerWall)
-                            tile.dt1Ref->drawTile(posX - _cameraPosition.x, posY - _cameraPosition.y + 96, tile.dt1IndexAlt);
-                    }
-
-                }
-
-            }
-        }
-
-        for (int tileY = 0; tileY < _ds1->height; ++tileY) {
-            for (int tileX = 0; tileX < _ds1->width; ++tileX) {
-                const auto posX = (tileX - tileY) * 80;
-                const auto posY = (tileX + tileY) * 40;
-
-                // Draw Roof
-                for (const auto &layer : _ds1->layers.wall) {
-                    if (const auto &tile = layer[tileX + tileY * _ds1->width];
-                        tile.dt1Ref && tile.type == Abyss::DataTypes::TileType::Roof)
-                        tile.dt1Ref->drawTile(posX - _cameraPosition.x, posY - _cameraPosition.y - 72, tile.dt1Index);
-                }
-
-            }
-        }
-    }
-
-    ImGui::SetNextWindowSize(ImVec2(250, 200), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(350, 200), ImGuiCond_FirstUseEver);
     ImGui::Begin("Debug");
 
     // Level selection
@@ -264,7 +213,9 @@ void MapTest::render() {
                 if (_selectedLevelName != levelName) {
                     onLevelChanged(levelName);
                     _selectedLevelName = levelName;
-                    _selectedLevelAltName = "";
+                    _selectedLevelAltName = _mapAltSelections.empty() ? "" : _mapAltSelections.front();
+                    if (!_selectedLevelAltName.empty())
+                        loadTile(_selectedLevelAltName);
                 }
 
             if (isSelected)
@@ -289,6 +240,22 @@ void MapTest::render() {
             }
             ImGui::EndCombo();
         }
+    }
+
+    ImGui::Separator();
+
+    // Show map information
+    if (_mapEngine) {
+        int mapWidth;
+        int mapHeight;
+        _mapEngine->getMapSize(mapWidth, mapHeight);
+        int cameraPosX;
+        int cameraPosY;
+        _mapEngine->getCameraPosition(cameraPosX, cameraPosY);
+
+        ImGui::LabelText("Map size", "%d, %d", mapWidth, mapHeight);
+        ImGui::LabelText("Camera position", "%d, %d", cameraPosX, cameraPosY);
+        ImGui::LabelText("DS1", "%s", _selectedLevelAltName.c_str());
     }
 
     ImGui::End();

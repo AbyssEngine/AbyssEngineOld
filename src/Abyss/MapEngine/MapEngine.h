@@ -2,7 +2,6 @@
 
 #include "Abyss/DataTypes/DS1.h"
 #include "Abyss/DataTypes/DT1.h"
-#include "Abyss/DataTypes/Palette.h"
 
 #include <vector>
 #include <string>
@@ -13,10 +12,9 @@ namespace Abyss::MapEngine {
 class MapEngine {
     const int _width{};
     const int _height{};
-    const DataTypes::Palette _palette;
     std::vector<DataTypes::DT1> _dt1s;
     std::vector<DataTypes::DS1> _ds1s;
-    SDL_Point _cameraPosition{0, 0};
+    SDL_Point _cameraPosition{-320, -260};
 
     struct {
         std::vector<DataTypes::TileMap> floor{};
@@ -26,11 +24,11 @@ class MapEngine {
     } _layers;
 
 public:
-    MapEngine(DataTypes::Palette _palette, int width, int height, std::vector<DataTypes::DT1> dt1s,
-              std::vector<DataTypes::DS1> ds1s);
+    MapEngine(int width, int height, std::vector<DataTypes::DT1> dt1s, std::vector<DataTypes::DS1> ds1s);
     void stampDs1(uint32_t ds1Index, int originX, int originY);
     void render() const;
     void setCameraPosition(int x, int y);
     void getCameraPosition(int &x, int &y) const;
+    void getMapSize(int &width, int &height) const;
 };
 } // namespace Abyss::MapEngine
