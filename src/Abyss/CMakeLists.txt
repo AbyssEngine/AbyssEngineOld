@@ -43,6 +43,8 @@ add_library(Abyss
         FileSystem/CASC.cpp FileSystem/CASC.h
         FileSystem/FileLoader.cpp FileSystem/FileLoader.h
 
+        Layouts/Profile.cpp Layouts/Profile.h
+
         Streams/AudioStream.cpp Streams/AudioStream.h
         Streams/SoundEffect.cpp Streams/SoundEffect.h
         Streams/StreamReader.cpp Streams/StreamReader.h
@@ -81,10 +83,11 @@ target_link_libraries(Abyss
         absl::flat_hash_map
         absl::btree
         nlohmann_json::nlohmann_json
-        rapidjson
         ${FFMPEG_LIBRARIES}
         ${OSX_VIDEOTOOLBOX}
         ${OSX_COREMEDIA}
         ${OSX_SECURITY}
+        PRIVATE
+        rapidjson
 )
 

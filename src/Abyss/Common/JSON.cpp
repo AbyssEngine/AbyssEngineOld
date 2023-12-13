@@ -1,6 +1,5 @@
 #include "JSON.h"
-#include "Abyss/AbyssEngine.h"
-#include "Abyss/FileSystem/InputStream.h"
+#include <format>
 #include <rapidjson/document.h>
 #include <rapidjson/error/en.h>
 #include <rapidjson/istreamwrapper.h>
@@ -10,11 +9,9 @@
 
 namespace Abyss::Common {
 
-nlohmann::json parseJson(std::string_view path) {
-    Abyss::FileSystem::InputStream istr = Abyss::AbyssEngine::getInstance().loadFile(path);
-    rapidjson::IStreamWrapper wrap(istr);
+nlohmann::json parseJson(std::string_view json) {
     rapidjson::Document d;
-    d.ParseStream<rapidjson::kParseCommentsFlag | rapidjson::kParseTrailingCommasFlag>(wrap);
+    d.Parse<rapidjson::kParseCommentsFlag | rapidjson::kParseTrailingCommasFlag>(json.data(), json.length());
     if (d.HasParseError()) {
         throw std::runtime_error(
             std::format("JSON parse error ({}) at offset {}", rapidjson::GetParseError_En(d.GetParseError()), d.GetErrorOffset()));
