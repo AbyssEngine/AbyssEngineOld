@@ -15,6 +15,7 @@ add_library(Abyss
         Common/Animation.h
         Common/CommandLineOpts.cpp Common/CommandLineOpts.h
         Common/Configuration.cpp Common/Configuration.h
+        Common/JSON.cpp Common/JSON.h
         Common/Logging.h
         Common/MouseProvider.h
         Common/MouseState.cpp Common/MouseState.h
@@ -79,6 +80,8 @@ target_link_libraries(Abyss
         stormlib::stormlib
         absl::flat_hash_map
         absl::btree
+        nlohmann_json::nlohmann_json
+        rapidjson
         ${FFMPEG_LIBRARIES}
         ${OSX_VIDEOTOOLBOX}
         ${OSX_COREMEDIA}
