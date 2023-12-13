@@ -222,12 +222,24 @@ void DS1::bindLayerTileReferences(std::vector<Tile> &tiles, const std::vector<DT
                     continue;
                 tile.dt1Ref = &dt1;
                 tile.dt1Index = tileInfo.dt1Index;
+                if (tile.type == TileType::RightPartOfNorthCornerWall) {
+                    // Get tile with style of LeftPartOfNorthCornerWall
+                    for (const auto &tileInfo2 : dt1.tiles) {
+                        if (tileInfo2.header.orientation != TileType::LeftPartOfNorthCornerWall)
+                            continue;
+                        if (tileInfo2.header.mainIndex != tile.mainIndex)
+                            continue;
+                        if (tileInfo2.header.subIndex != tile.subIndex)
+                            continue;
+                        tile.dt1IndexAlt = tileInfo2.dt1Index;
+                        break;
+                    }
+                }
                 foundTile = true;
                 break;
             }
         }
     }
 }
-
 
 } // namespace Abyss::DataTypes

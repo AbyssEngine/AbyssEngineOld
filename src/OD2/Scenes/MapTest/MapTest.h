@@ -19,6 +19,10 @@ class MapTest final : public Abyss::Common::Scene {
     std::vector<Abyss::DataTypes::DT1> _dt1s;
     std::unique_ptr<Abyss::DataTypes::DS1> _ds1{};
     SDL_Point _cameraPosition{0, 0};
+    SDL_Point _mousePressedPosition{0, 0};
+    SDL_Point _startCameraPosition{0, 0};
+
+    bool _isMouseDragging{false};
 
     void onLevelChanged(const std::string &levelName);
     static const Common::DataTableRow &getLevelPrest(std::string_view name);

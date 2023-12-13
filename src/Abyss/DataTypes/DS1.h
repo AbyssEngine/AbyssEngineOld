@@ -60,6 +60,7 @@ public:
 
     const DT1 *dt1Ref{nullptr};
     uint32_t dt1Index{};
+    uint32_t dt1IndexAlt{}; // Super secret alt index explicitly for RightPartOfNorthCornerWall
 };
 
 using TileMap = std::vector<Tile>;

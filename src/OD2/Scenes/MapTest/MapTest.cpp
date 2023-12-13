@@ -88,6 +88,38 @@ void MapTest::update(std::chrono::duration<double> deltaTime) {
 
 void MapTest::processEvent(const SDL_Event &event) {
     switch (event.type) {
+    case SDL_MOUSEBUTTONDOWN:
+        switch (event.button.button) {
+        case SDL_BUTTON_RIGHT:
+            _isMouseDragging = true;
+            int mx;
+            int my;
+            Abyss::AbyssEngine::getInstance().getMouseState().getPosition(mx, my);
+            _mousePressedPosition.x = mx;
+            _mousePressedPosition.y = my;
+            _startCameraPosition = _cameraPosition;
+            SDL_CaptureMouse(SDL_TRUE);
+            break;
+        }
+        break;
+    case SDL_MOUSEBUTTONUP:
+        switch (event.button.button) {
+        case SDL_BUTTON_RIGHT:
+            SDL_CaptureMouse(SDL_FALSE);
+            _isMouseDragging = false;
+            break;
+        }
+        break;
+    case SDL_MOUSEMOTION:
+        if (_isMouseDragging) {
+            // Drag but take scale into account
+            int mx;
+            int my;
+            Abyss::AbyssEngine::getInstance().getMouseState().getPosition(mx, my);
+            _cameraPosition.x = _startCameraPosition.x + (_mousePressedPosition.x - mx);
+            _cameraPosition.y = _startCameraPosition.y + (_mousePressedPosition.y - my);
+        }
+        break;
     case SDL_KEYDOWN:
         switch (event.key.keysym.sym) {
         case SDLK_w:
@@ -213,8 +245,14 @@ void MapTest::render() {
                         tile.dt1Ref && ((tile.type >= Abyss::DataTypes::TileType::LeftWall && tile.type <=
                                          Abyss::DataTypes::TileType::RightWallWithDoor) || (
                                             tile.type >= Abyss::DataTypes::TileType::PillarsColumnsAndStandaloneObjects && tile.type <=
-                                            Abyss::DataTypes::TileType::Tree)))
+                                            Abyss::DataTypes::TileType::Tree))) {
                         tile.dt1Ref->drawTile(posX - _cameraPosition.x, posY - _cameraPosition.y + 96, tile.dt1Index);
+
+                        // Super special condition. This was fun to figure out :(
+                        if (tile.type == Abyss::DataTypes::TileType::RightPartOfNorthCornerWall)
+                            tile.dt1Ref->drawTile(posX - _cameraPosition.x, posY - _cameraPosition.y + 96, tile.dt1IndexAlt);
+                    }
+
                 }
 
             }
