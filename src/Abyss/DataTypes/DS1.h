@@ -50,14 +50,6 @@ public:
     TileType type{};
     uint16_t mainIndex{};
     uint16_t subIndex{};
-
-    union {
-        TileShadow shadow;
-        TileFloor floor;
-        TileWall wall;
-        TileSubstitution substitution;
-    };
-
     const DT1 *dt1Ref{nullptr};
     uint32_t dt1Index{};
     uint32_t dt1IndexAlt{}; // Super secret alt index explicitly for RightPartOfNorthCornerWall

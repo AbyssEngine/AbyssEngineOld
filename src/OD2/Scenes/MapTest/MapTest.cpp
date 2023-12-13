@@ -13,9 +13,6 @@
 namespace OD2::Scenes::MapTest {
 
 MapTest::MapTest() {
-    // : testdt1("/data/global/tiles/ACT1/TOWN/floor.dt1", Common::PaletteManager::getInstance().getPalette("Act1")),
-    //   testdt2("/data/global/tiles/ACT1/TOWN/fence.dt1", Common::PaletteManager::getInstance().getPalette("Act1")) {
-
     for (const auto &lvlPrest = Common::DataTableManager::getInstance().getDataTable("LevelPreset"); const auto &row : lvlPrest) {
         const auto &levelName = row.at("Name");
         if (levelName == "None" || levelName == "Expansion")
@@ -118,24 +115,6 @@ void MapTest::processEvent(const SDL_Event &event) {
             Abyss::AbyssEngine::getInstance().getMouseState().getPosition(mx, my);
             _cameraPosition.x = _startCameraPosition.x + (_mousePressedPosition.x - mx);
             _cameraPosition.y = _startCameraPosition.y + (_mousePressedPosition.y - my);
-        }
-        break;
-    case SDL_KEYDOWN:
-        switch (event.key.keysym.sym) {
-        case SDLK_w:
-            _cameraPosition.y -= 100;
-            break;
-        case SDLK_s:
-            _cameraPosition.y += 100;
-            break;
-        case SDLK_a:
-            _cameraPosition.x -= 100;
-            break;
-        case SDLK_d:
-            _cameraPosition.x += 100;
-            break;
-        default:
-            break;
         }
         break;
     }
@@ -273,12 +252,6 @@ void MapTest::render() {
             }
         }
     }
-
-    // testdt1.drawTile(480, 240, 4);
-    // testdt1.drawTile(400, 200, 5);
-    // testdt1.drawTile(560, 200, 6);
-    // testdt1.drawTile(480, 160, 7);
-    // testdt2.drawTile(480, 240, 6);
 
     ImGui::SetNextWindowSize(ImVec2(250, 200), ImGuiCond_FirstUseEver);
     ImGui::Begin("Debug");
