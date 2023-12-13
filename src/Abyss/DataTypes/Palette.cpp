@@ -2,9 +2,14 @@
 
 #include "Abyss/Singletons.h"
 
+#include <cmath>
+
 namespace Abyss::DataTypes {
 
-PaletteEntry::PaletteEntry(const uint8_t red, const uint8_t green, const uint8_t blue) : red(red), green(green), blue(blue) {}
+
+PaletteEntry::PaletteEntry(const uint8_t red, const uint8_t green, const uint8_t blue)
+    : red(red), green(green), blue(blue) {
+}
 
 auto PaletteEntry::getRed() const -> uint8_t { return red; }
 
@@ -14,11 +19,15 @@ auto PaletteEntry::getBlue() const -> uint8_t { return blue; }
 
 auto PaletteEntry::getSdlColor() const -> SDL_Color { return {red, green, blue, 255}; }
 
-Palette::Palette(const std::string_view path, const std::string_view name) : _name(name) {
+Palette::Palette(const std::string_view path, const std::string_view name)
+    : _name(name) {
     const auto bytes = Singletons::getFileProvider().loadBytes(path);
 
     for (size_t i = 0; i < bytes.size(); i += 3) {
-        addEntry({static_cast<uint8_t>(bytes.at(i)), static_cast<uint8_t>(bytes.at(i + 1)), static_cast<uint8_t>(bytes.at(i + 2))});
+        addEntry({
+            colorAdjust(static_cast<uint8_t>(bytes.at(i))),
+            colorAdjust(static_cast<uint8_t>(bytes.at(i + 1))),
+            colorAdjust(static_cast<uint8_t>(bytes.at(i + 2)))});
     }
 }
 
@@ -43,6 +52,10 @@ void Palette::addEntries(const std::vector<PaletteEntry> &newEntries) {
     for (const auto &entry : newEntries) {
         addEntry(entry);
     }
+}
+
+uint8_t Palette::colorAdjust(const uint8_t value) {
+    return static_cast<uint8_t>(std::clamp(std::pow(static_cast<float>(value) / 255.0f, gamma) * 255.0f * brightness, 0.0f, 255.0f));
 }
 
 } // namespace Abyss::DataTypes

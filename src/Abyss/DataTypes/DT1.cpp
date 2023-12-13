@@ -43,7 +43,7 @@ DT1::DT1(const std::string_view path, const Palette &palette) {
         tileHeader.height = sr.readInt32();
         tileHeader.width = sr.readInt32();
         sr.skip(4);
-        tileHeader.orientation = static_cast<DT1TileType>(sr.readUInt32());
+        tileHeader.orientation = static_cast<TileType>(sr.readUInt32());
         tileHeader.mainIndex = sr.readUInt32();
         tileHeader.subIndex = sr.readUInt32();
         tileHeader.rarityOrFrameIndex = sr.readUInt32();
@@ -76,10 +76,11 @@ DT1::DT1(const std::string_view path, const Palette &palette) {
             blockHeader.encodedDataFileOffset = sr.readUInt32();
         }
 
+        currentTile.dt1Index = static_cast<int>(tiles.size()) - 1;
         currentTile.width = 160; // Not technically true, but works for us
         currentTile.height = 0;
 
-        if (tileHeader.orientation == DT1TileType::Floor || tileHeader.orientation == DT1TileType::Roof) {
+        if (tileHeader.orientation == TileType::Floor || tileHeader.orientation == TileType::Roof) {
             currentTile.height = 80;
         } else {
             int minCellY = std::numeric_limits<int>::max();
@@ -136,7 +137,7 @@ DT1::DT1(const std::string_view path, const Palette &palette) {
                             continue;
                         }
                         const auto &paletteEntry = palette.getEntry(index);
-                        const auto color = (paletteEntry.getRed() << 24) | (paletteEntry.getGreen() << 16) | (paletteEntry.getBlue() << 8) | 0xFF;
+                        const auto color = (paletteEntry.getBlue() << 24) | (paletteEntry.getGreen() << 16) | (paletteEntry.getRed() << 8) | 0xFF;
                         pixels[targetY * currentTile.width + targetX] = color;
                         x++;
                     }
@@ -171,7 +172,7 @@ DT1::DT1(const std::string_view path, const Palette &palette) {
                             continue;
                         }
                         const auto &paletteEntry = palette.getEntry(index);
-                        const auto color = (paletteEntry.getRed() << 24) | (paletteEntry.getGreen() << 16) | (paletteEntry.getBlue() << 8) | 0xFF;
+                        const auto color = (paletteEntry.getBlue() << 24) | (paletteEntry.getGreen() << 16) | (paletteEntry.getRed() << 8) | 0xFF;
                         pixels[targetY * currentTile.width + targetX] = color;
                         x++;
                     }
@@ -183,7 +184,9 @@ DT1::DT1(const std::string_view path, const Palette &palette) {
     }
 }
 
-void DT1::drawTile(const int x, const int y, const int tileIndex) {
+void DT1::drawTile(const int x, const int y, const int tileIndex) const {
+    if (tileIndex < 0 || tileIndex >= static_cast<int>(tiles.size()))
+        return;
     const auto &tile = tiles.at(tileIndex);
     const auto &renderer = AbyssEngine::getInstance().getRenderer();
     const SDL_Rect destRect = {.x = x, .y = y - tile.drawOffsetY, .w = tile.width, .h = tile.height};

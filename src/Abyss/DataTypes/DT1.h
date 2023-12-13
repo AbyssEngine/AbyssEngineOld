@@ -34,23 +34,28 @@ enum class DT1SubtileFlag : uint8_t {
     BlockUnknown3 = 0x80,
 };
 
-enum class DT1TileType : uint32_t {
-    Floor = 0,
-    LeftWall = 1,
-    UpperWall = 2,
-    UpperPartOfUpperLeftCorner = 3,
-    LeftPartOfUpperLeftCorner = 4,
-    UpperRightCorner = 5,
-    LowerLeftCorner = 6,
-    LowerRightCorner = 7,
-    LeftWallWithdoor = 8,
-    UpperWallWithDoor = 9,
-    Special1 = 10,
-    Special2 = 11,
-    Shadow = 13,
-    Object = 14,
-    Roof = 15,
-    LowerWall = 16 // > 15
+enum class TileType : uint32_t {
+    Floor,
+    LeftWall,
+    RightWall,
+    RightPartOfNorthCornerWall,
+    LeftPartOfNorthCornerWall,
+    LeftEndWall,
+    RightEndWall,
+    SouthCornerWall,
+    LeftWallWithDoor,
+    RightWallWithDoor,
+    SpecialTile1,
+    SpecialTile2,
+    PillarsColumnsAndStandaloneObjects,
+    Shadow,
+    Tree,
+    Roof,
+    LowerWallsEquivalentToLeftWall,
+    LowerWallsEquivalentToRightWall,
+    LowerWallsEquivalentToRightLeftNorthCornerWall,
+    LowerWallsEquivalentToSouthCornerwall,
+    None
 };
 
 struct DT1FileHeader {
@@ -69,7 +74,7 @@ struct DT1TileHeader {
     int32_t height{};
     int32_t width{};
     uint8_t zzUnused[4]{};
-    DT1TileType orientation{};
+    TileType orientation{};
     uint32_t mainIndex{};
     uint32_t subIndex{};
     uint32_t rarityOrFrameIndex{};
@@ -100,14 +105,15 @@ struct DT1Tile {
     int drawOffsetY{};
     int width{};
     int height{};
+    int dt1Index{};
 };
 
 class DT1 {
-  public:
+public:
     std::string name;
     std::vector<DT1Tile> tiles{};
     DT1(std::string_view path, const Palette &palette);
-    void drawTile(int x, int y, int tileIndex);
+    void drawTile(int x, int y, int tileIndex) const;
 };
 
 } // namespace Abyss::DataTypes
