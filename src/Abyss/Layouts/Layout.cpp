@@ -46,8 +46,9 @@ nlohmann::json readMergedLayout(std::string_view name) {
 
 } // namespace
 
-Layout::Layout(std::string_view name) {
+Layout::Layout(std::string_view name, const Profile& profile) {
     _data = readMergedLayout(name);
+    profile.resolveReferences(_data);
 }
 
 } // namespace Abyss::Layouts

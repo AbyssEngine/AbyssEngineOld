@@ -10,7 +10,7 @@ class Profile {
   public:
     // Reads from /data/global/ui/layouts/_profile{name}.json
     explicit Profile(std::string_view name);
-    void resolveReferences(nlohmann::json& object);
+    void resolveReferences(nlohmann::json& object) const;
 };
 
 } // namespace Abyss::Layouts

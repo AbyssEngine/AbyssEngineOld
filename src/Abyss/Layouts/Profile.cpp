@@ -23,7 +23,7 @@ nlohmann::json readMergedProfile(std::string_view name) {
 bool resolveDataReferences(nlohmann::json &object, const nlohmann::json &profile) {
     bool again = false;
     for (auto &[k, v] : object.items()) {
-        if (v.is_object()) {
+        if (v.is_structured()) {
             again = resolveDataReferences(v, profile) || again;
         } else if (v.is_string() && v.get<std::string_view>().starts_with('$')) {
             v = profile.at(v.get<std::string_view>().substr(1));
@@ -41,7 +41,7 @@ Profile::Profile(std::string_view name) {
     }
 }
 
-void Profile::resolveReferences(nlohmann::json& object) {
+void Profile::resolveReferences(nlohmann::json& object) const {
     resolveDataReferences(object, _data);
 }
 
