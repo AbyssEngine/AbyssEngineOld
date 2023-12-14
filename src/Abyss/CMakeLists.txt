@@ -43,6 +43,7 @@ add_library(Abyss
         FileSystem/CASC.cpp FileSystem/CASC.h
         FileSystem/FileLoader.cpp FileSystem/FileLoader.h
 
+        Layouts/Layout.cpp Layouts/Layout.h
         Layouts/Profile.cpp Layouts/Profile.h
 
         Streams/AudioStream.cpp Streams/AudioStream.h
