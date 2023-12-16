@@ -74,7 +74,8 @@ void loadFonts() {
         };
 
         OD2::Common::FontManager::getInstance().addFont(
-            getFontName(fontPath), std::move(std::make_unique<Abyss::UI::SpriteFont<Abyss::DataTypes::DC6>>(fontPath, OD2::Common::GetPalette(paletteName))));
+            getFontName(fontPath),
+            std::move(std::make_unique<Abyss::UI::SpriteFont<Abyss::DataTypes::DC6>>(fontPath, OD2::Common::GetPalette(paletteName))));
     };
 
     Abyss::Common::Log::info("Loading fonts...");
@@ -164,7 +165,9 @@ void loadDataTables() {
     futures.reserve(loadDict.size());
 
     for (const auto &[name, fileName] : loadDict)
-        futures.emplace_back(std::async(std::launch::async, [name, fileName] { OD2::Common::DataTableManager::getInstance().addDataTable(name, fileName); }));
+        futures.emplace_back(std::async(std::launch::async, [name, fileName] {
+            OD2::Common::DataTableManager::getInstance().addDataTable(name, fileName);
+        }));
 
     for (auto &future : futures)
         future.wait();

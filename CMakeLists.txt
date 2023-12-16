@@ -3,9 +3,10 @@ cmake_minimum_required(VERSION 3.20)
 project(Abyss)
 
 if (NOT CMAKE_BUILD_TYPE)
-  message(STATUS "No build type selected, defaulting to Release")
-  set(CMAKE_BUILD_TYPE Release)
+    message(STATUS "No build type selected, defaulting to Release")
+    set(CMAKE_BUILD_TYPE Release)
 endif ()
+
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
@@ -34,9 +35,9 @@ include_stormlib()
 include_casclib()
 
 if (APPLE)
-  find_library(OSX_VIDEOTOOLBOX VideoToolbox)
-  find_library(OSX_COREMEDIA CoreMedia)
-  find_library(OSX_SECURITY Security)
+    find_library(OSX_VIDEOTOOLBOX VideoToolbox)
+    find_library(OSX_COREMEDIA CoreMedia)
+    find_library(OSX_SECURITY Security)
 endif ()
 
 add_subdirectory(src)

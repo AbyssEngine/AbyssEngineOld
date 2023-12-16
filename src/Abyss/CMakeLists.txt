@@ -43,6 +43,8 @@ add_library(Abyss
         FileSystem/CASC.cpp FileSystem/CASC.h
         FileSystem/FileLoader.cpp FileSystem/FileLoader.h
 
+        MapEngine/MapEngine.cpp MapEngine/MapEngine.h
+
         Streams/AudioStream.cpp Streams/AudioStream.h
         Streams/SoundEffect.cpp Streams/SoundEffect.h
         Streams/StreamReader.cpp Streams/StreamReader.h
