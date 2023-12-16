@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "dependencies": [
     "cxxopts",
-        {
+    {
       "name": "sdl2",
       "features": [
         "alsa"
@@ -15,6 +15,8 @@
         "name": "sdl2",
         "platform": "!linux"
     },
+    "nlohmann-json",
+    "rapidjson",
     "spdlog",
     "zlib",
     {

@@ -25,6 +25,8 @@ find_package(SDL2 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(cxxopts CONFIG REQUIRED)
 find_package(ZLIB REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
+find_package(RapidJSON REQUIRED)
 find_package(FFMPEG COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE REQUIRED)
 CPMAddPackage(NAME imgui VERSION 1.90 DOWNLOAD_ONLY YES
         URL https://github.com/ocornut/imgui/archive/refs/tags/v1.90.zip
