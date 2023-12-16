@@ -5,13 +5,13 @@
 #include <nlohmann/json.hpp>
 #include <stdexcept>
 
-namespace Abyss::Layouts {
+namespace OD2::Layouts {
 
 namespace {
 
 nlohmann::json readMergedProfile(std::string_view name) {
     nlohmann::json me =
-        Abyss::Common::parseJson(Singletons::getFileProvider().loadString(std::format("/data/global/ui/layouts/_profile{}.json", name)));
+        Abyss::Common::parseJson(Abyss::Singletons::getFileProvider().loadString(std::format("/data/global/ui/layouts/_profile{}.json", name)));
     if (me.contains("basedOn")) {
         nlohmann::json base = readMergedProfile(me["basedOn"].get<std::string_view>());
         base.merge_patch(me);
@@ -41,8 +41,6 @@ Profile::Profile(std::string_view name) {
     }
 }
 
-void Profile::resolveReferences(nlohmann::json& object) const {
-    resolveDataReferences(object, _data);
-}
+void Profile::resolveReferences(nlohmann::json &object) const { resolveDataReferences(object, _data); }
 
-} // namespace Abyss::Layouts
+} // namespace OD2::Layouts

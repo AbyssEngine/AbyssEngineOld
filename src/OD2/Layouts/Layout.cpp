@@ -4,7 +4,7 @@
 #include <absl/container/flat_hash_map.h>
 #include <absl/strings/str_cat.h>
 
-namespace Abyss::Layouts {
+namespace OD2::Layouts {
 
 namespace {
 
@@ -36,7 +36,7 @@ void mergeFromParent(nlohmann::json &object, nlohmann::json &parent) {
 }
 
 nlohmann::json readMergedLayout(std::string_view name) {
-    nlohmann::json me = Abyss::Common::parseJson(Singletons::getFileProvider().loadString(absl::StrCat("/data/global/ui/layouts/", name)));
+    nlohmann::json me = Abyss::Common::parseJson(Abyss::Singletons::getFileProvider().loadString(absl::StrCat("/data/global/ui/layouts/", name)));
     if (me.contains("basedOn")) {
         nlohmann::json parent = readMergedLayout(me["basedOn"].get<std::string_view>());
         mergeFromParent(me, parent);
@@ -46,9 +46,9 @@ nlohmann::json readMergedLayout(std::string_view name) {
 
 } // namespace
 
-Layout::Layout(std::string_view name, const Profile& profile) {
+Layout::Layout(std::string_view name, const Profile &profile) {
     _data = readMergedLayout(name);
     profile.resolveReferences(_data);
 }
 
-} // namespace Abyss::Layouts
+} // namespace OD2::Layouts

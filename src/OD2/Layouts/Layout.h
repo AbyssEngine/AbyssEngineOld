@@ -4,7 +4,7 @@
 #include <nlohmann/json.hpp>
 #include <string_view>
 
-namespace Abyss::Layouts {
+namespace OD2::Layouts {
 
 class Layout {
     nlohmann::json _data;
@@ -14,4 +14,4 @@ class Layout {
     explicit Layout(std::string_view name, const Profile &profile);
 };
 
-} // namespace Abyss::Layouts
+} // namespace OD2::Layouts

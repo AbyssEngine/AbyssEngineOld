@@ -22,6 +22,9 @@ target_sources(OpenDiablo2
         # Scenes
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+        Layouts/Layout.cpp Layouts/Layout.h
+        Layouts/Profile.cpp Layouts/Profile.h
+
         # Main Menu
         Scenes/MainMenu/MainMenu.cpp Scenes/MainMenu/MainMenu.h
         Scenes/MainMenu/Logo.cpp Scenes/MainMenu/Logo.h
