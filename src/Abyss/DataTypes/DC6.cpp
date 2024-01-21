@@ -82,6 +82,9 @@ void DC6::setPalette(const Palette &palette) {
 
         const auto &frameData = frame.getFrameData();
         while (process) {
+            if (offset >= frameData.size()) {
+                throw std::runtime_error("Data overrun while decoding DC6 frame.");
+            }
             const auto b = frameData[offset];
             offset++;
 
@@ -102,6 +105,9 @@ void DC6::setPalette(const Palette &palette) {
             }
             case eScanlineType::RunOfOpaquePixels: {
                 for (auto i = 0; i < static_cast<int>(b); i++) {
+                    if (offset >= frameData.size()) {
+                        throw std::runtime_error("Data overrun while decoding DC6 frame.");
+                    }
                     const auto paletteIndex = static_cast<int>(frameData[offset]);
                     const auto &paletteColor = palette.getEntries()[paletteIndex];
                     const auto pixel = static_cast<uint32_t>(paletteColor.getBlue() << 24 | paletteColor.getGreen() << 16 | paletteColor.getRed() << 8 | 0xFF);
