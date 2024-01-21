@@ -22,7 +22,6 @@ class DC6Frame {
     uint32_t _nextBlock{};
     uint32_t _length{};
     std::vector<std::byte> _frameData{};
-    std::vector<std::byte> _terminator{};
 
   public:
     explicit DC6Frame(Streams::StreamReader& stream);
@@ -35,7 +34,6 @@ class DC6Frame {
     [[nodiscard]] uint32_t getNextBlock() const;
     [[nodiscard]] uint32_t getLength() const;
     [[nodiscard]] const std::vector<std::byte>& getFrameData() const;
-    [[nodiscard]] const std::vector<std::byte>& getTerminator() const;
 };
 
 } // namespace Abyss::DataTypes

@@ -14,11 +14,8 @@ DC6Frame::DC6Frame(Streams::StreamReader &stream) {
   _nextBlock = stream.readUInt32();
   _length = stream.readUInt32();
 
-    _frameData.resize(_length);
-    stream.readBytes(_frameData);
-
-    _terminator.resize(DC6TerminatorSize);
-    stream.readBytes(_terminator);
+  _frameData.resize(_length + DC6TerminatorSize);
+  stream.readBytes(_frameData);
 }
 
 uint32_t DC6Frame::getFlipped() const { return _flipped; }
@@ -38,7 +35,5 @@ uint32_t DC6Frame::getNextBlock() const { return _nextBlock; }
 uint32_t DC6Frame::getLength() const { return _length; }
 
 const std::vector<std::byte>& DC6Frame::getFrameData() const { return _frameData; }
-
-const std::vector<std::byte>& DC6Frame::getTerminator() const { return _terminator; }
 
 } // namespace Abyss::DataTypes
